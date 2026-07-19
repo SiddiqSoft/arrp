@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    SiddiqSoft.aarp.natvis
+    
+    Natvis file for debugging siddiqsoft::arrp library types in Visual Studio and VS Code.
+    
+    This file provides custom visualizations for:
+    - siddiqsoft::arrp::resource_pool: Thread-safe auto-returning resource pool
+    - siddiqsoft::arrp::scoped_resource: RAII wrapper for resource lifecycle management
+    
+    Installation:
+    - Visual Studio: Copy to %USERPROFILE%\Documents\Visual Studio 20XX\Visualizers\
+    - VS Code: Use with C++ extension and native debugging
+    
+    BSD 3-Clause License
+    Copyright (c) 2026 Abdulkareem Siddiq
+-->
+
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+
+  <!-- ============================================================================
+       scoped_resource<T> - RAII wrapper for resource lifecycle management
+       ============================================================================ -->
+  <Type Name="siddiqsoft::arrp::scoped_resource&lt;*&gt;">
+    <DisplayString Condition="m_is_valid">scoped_resource&lt;{$T1}&gt; [valid, id:{m_debug_id}]</DisplayString>
+    <DisplayString Condition="!m_is_valid">scoped_resource&lt;{$T1}&gt; [invalid, id:{m_debug_id}]</DisplayString>
+    <Expand>
+      <Item Name="[Resource]">m_rsrc</Item>
+      <Item Name="[Valid]">m_is_valid</Item>
+      <Item Name="[Debug ID]">m_debug_id</Item>
+      <Item Name="[Has Callback]">m_putback_callback != nullptr</Item>
+    </Expand>
+  </Type>
+
+  <!-- ============================================================================
+       resource_pool<T, SRT, InitCapacity> - Thread-safe resource pool
+       ============================================================================ -->
+  <Type Name="siddiqsoft::arrp::resource_pool&lt;*,*,*&gt;">
+    <DisplayString>resource_pool&lt;{$T1}&gt; [size:{m_pool.size()}, checked_out:{m_resources_checkedout}, capacity:{m_capacity}]</DisplayString>
+    <Expand>
+      <Item Name="[Capacity]">m_capacity</Item>
+      <Item Name="[Pool Size]">m_pool.size()</Item>
+      <Item Name="[Checked Out]">m_resources_checkedout</Item>
+      <Item Name="[Invalidated Resources]">m_invalidated_resources</Item>
+      <Item Name="[Load]">m_pool.size() + m_resources_checkedout</Item>
+      <Item Name="[Utilization %]">(m_pool.size() + m_resources_checkedout) * 100 / m_capacity</Item>
+      <ArrayItems>
+        <Size>m_pool.size()</Size>
+        <ValuePointer>m_pool._Myfirst</ValuePointer>
+      </ArrayItems>
+      <Item Name="[Counters]">
+        <Expand>
+          <Item Name="Borrow Operations">m_counter_borrow_from_pool</Item>
+          <Item Name="Return Operations">m_counter_return_to_pool</Item>
+          <Item Name="On-Demand Adds">m_counter_ondemand_adds</Item>
+          <Item Name="Auto-Returned">m_counter_auto_returned</Item>
+        </Expand>
+      </Item>
+      <Item Name="[Callbacks]">
+        <Expand>
+          <Item Name="Has Factory Callback">m_callback_to_add_new_raw_resource_to_pool != nullptr</Item>
+          <Item Name="Has Invalidation Callback">m_callback_resource_invalidated != nullptr</Item>
+          <Item Name="Has Shutdown Callback">m_callback_pool_shutdown != nullptr</Item>
+        </Expand>
+      </Item>
+    </Expand>
+  </Type>
+
+  <!-- ============================================================================
+       resource_pool<T> with default template parameters
+       ============================================================================ -->
+  <Type Name="siddiqsoft::arrp::resource_pool&lt;*&gt;">
+    <DisplayString>resource_pool&lt;{$T1}&gt; [size:{m_pool.size()}, checked_out:{m_resources_checkedout}, capacity:{m_capacity}]</DisplayString>
+    <Expand>
+      <Item Name="[Capacity]">m_capacity</Item>
+      <Item Name="[Pool Size]">m_pool.size()</Item>
+      <Item Name="[Checked Out]">m_resources_checkedout</Item>
+      <Item Name="[Invalidated Resources]">m_invalidated_resources</Item>
+      <Item Name="[Load]">m_pool.size() + m_resources_checkedout</Item>
+      <Item Name="[Utilization %]">(m_pool.size() + m_resources_checkedout) * 100 / m_capacity</Item>
+      <ArrayItems>
+        <Size>m_pool.size()</Size>
+        <ValuePointer>m_pool._Myfirst</ValuePointer>
+      </ArrayItems>
+      <Item Name="[Counters]">
+        <Expand>
+          <Item Name="Borrow Operations">m_counter_borrow_from_pool</Item>
+          <Item Name="Return Operations">m_counter_return_to_pool</Item>
+          <Item Name="On-Demand Adds">m_counter_ondemand_adds</Item>
+          <Item Name="Auto-Returned">m_counter_auto_returned</Item>
+        </Expand>
+      </Item>
+      <Item Name="[Callbacks]">
+        <Expand>
+          <Item Name="Has Factory Callback">m_callback_to_add_new_raw_resource_to_pool != nullptr</Item>
+          <Item Name="Has Invalidation Callback">m_callback_resource_invalidated != nullptr</Item>
+          <Item Name="Has Shutdown Callback">m_callback_pool_shutdown != nullptr</Item>
+        </Expand>
+      </Item>
+    </Expand>
+  </Type>
+
+  <!-- ============================================================================
+       Namespace alias for convenience
+       ============================================================================ -->
+  <Type Name="siddiqsoft::arrp::scoped_resource&lt;*&gt;">
+    <DisplayString Condition="m_is_valid">scoped_resource&lt;{$T1}&gt; [valid, id:{m_debug_id}]</DisplayString>
+    <DisplayString Condition="!m_is_valid">scoped_resource&lt;{$T1}&gt; [invalid, id:{m_debug_id}]</DisplayString>
+    <Expand>
+      <Item Name="[Resource]">m_rsrc</Item>
+      <Item Name="[Valid]">m_is_valid</Item>
+      <Item Name="[Debug ID]">m_debug_id</Item>
+      <Item Name="[Has Callback]">m_putback_callback != nullptr</Item>
+    </Expand>
+  </Type>
+
+</AutoVisualizer>

@@ -1,0 +1,18 @@
+{
+    "version": 8,
+    "configurePresets": [
+        {
+            "name": "Project-Base",
+            "displayName": "Project Base",
+            "description": "Base preset for all project configurations.",
+            "cacheVariables": {
+                "CMAKE_PROJECT_NAME": "aarp",
+                "CMAKE_PROJECT_DESCRIPTION": "Auto returning resource pool for modern C++",
+                "CMAKE_CXX_STANDARD": "20",
+                "arrp_BUILD_TESTS": "ON",
+                "CI_BUILDID": "0.0.0"
+            },
+            "hidden": true
+        }
+    ]
+}

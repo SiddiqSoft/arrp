@@ -1,0 +1,245 @@
+# ============================================================================
+# Azure Pipelines Main Configuration
+# ============================================================================
+#
+# This pipeline:
+# 1. Builds the library across multiple platforms with a build matrix
+#    - Windows (x64, arm64) with MSVC
+#    - Linux (x64) with Clang and GCC
+# 2. Runs tests on all platforms (configurable)
+# 3. Publishes to NuGet and GitHub (on main/master branches)
+# 4. Deploys documentation to GitHub Pages (on main/master branches)
+#
+# Pipeline Stages:
+# 1. Windows - Cleanup, build, and test for Windows with matrix for architecture and compiler
+# 2. Linux - Cleanup, build, and test for Linux with matrix for architecture and compiler
+# 3. Publication - Publishes to NuGet and GitHub
+# 4. Documentation - Builds and deploys Doxygen docs to GitHub Pages
+#
+# Documentation: See PIPELINE_DOCUMENTATION_INDEX.md for detailed information
+# ============================================================================
+
+# ============================================================================
+# TRIGGER & PR CONFIGURATION
+# ============================================================================
+trigger:
+  branches:
+    include:
+      - main
+      - master
+      - development
+      - devel
+      - release/*
+  paths:
+    exclude:
+      - README.md
+      - .azure/*
+      - docs/* # Sometimes we would like to deploy manually
+      - azure-pipelines.yml # Avoids recursive triggers when modifying the pipeline itself
+pr:
+  branches:
+    include:
+      - main
+      - release/*
+    exclude:
+      - README.md
+
+# ============================================================================
+# RESOURCES
+# ============================================================================
+resources:
+  repositories:
+    - repository: self
+      type: git
+
+# ============================================================================
+# PARAMETERS
+# ============================================================================
+parameters:
+  - name: Architectures
+    type: stringList
+    default: [ arm64 ]
+    values: [ arm64, x64 ]
+    displayName: "Architectures to build (x64, arm64)"
+  
+  - name: Platforms
+    type: stringList
+    default: [ Linux, Windows ]
+    values: [ Windows, Linux, Darwin ]
+    displayName: "Platforms to build (Windows, Linux)"
+  
+  # Compiler Selection per Platform
+  - name: Compilers_Windows
+    type: stringList
+    default: [ MSVC ]
+    values: [ MSVC ]
+    displayName: "Windows compilers to build (MSVC)"
+
+  - name: Compilers_Linux
+    type: stringList
+    default: [ Clang, GCC ]
+    values: [ Clang, GCC ]
+    displayName: "Linux compilers to build (Clang, GCC)"
+
+  - name: Compilers_Darwin
+    type: stringList
+    default: [ Clang ]
+    values: [ Clang ]
+    displayName: "Darwin compilers to build (Clang, GCC)"
+
+  - name: BuildTypes
+    type: stringList
+    default: [ Release ]
+    values: [ Release, Debug ]
+    displayName: "Build types to build (Release, Debug)"
+  
+  # Testing
+  - name: RunTests
+    type: boolean
+    default: true
+    displayName: "Run tests after building"
+
+  # Publishing
+  - name: PublishNuGet
+    type: boolean
+    default: false
+    displayName: "Publish to NuGet (auto-enabled on main/master)"
+
+  - name: PublishGitHub
+    type: boolean
+    default: false
+    displayName: "Create GitHub release (auto-enabled on main/master)"
+
+  - name: DeployPages
+    type: boolean
+    default: false
+    displayName: "Deploy documentation to GitHub Pages (auto-enabled on main/master)"
+
+  # Cleanup
+  - name: Cleanup
+    type: boolean
+    default: false
+    displayName: "Cleanup only (skip builds and tests)"
+
+# ============================================================================
+# VARIABLES
+# ============================================================================
+variables:
+  # Auto-enable publishing on main/master branches
+  - ${{ if and(eq(parameters.PublishNuGet, false), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(variables['Build.SourceBranch'], 'refs/heads/master'))) }}:
+    - name: PublishNuGet
+      value: false
+    - name: PublishGitHub
+      value: false
+    - name: DeployPages
+      value: true
+  - ${{ else }}:
+    - name: PublishNuGet
+      value: ${{ parameters.PublishNuGet }}
+    - name: PublishGitHub
+      value: ${{ parameters.PublishGitHub }}
+    - name: DeployPages
+      value: ${{ parameters.DeployPages }}
+  - group: Common
+
+  # System information
+  - name: AgentOS
+    value: $(Agent.OS)
+  - name: AgentArch
+    value: $(Agent.OSArchitecture)
+
+  # Build paths
+  - name: cpmCachePath
+    value: $(Agent.HomeDirectory)/.cpmcache
+  - name: buildOutputPath
+    value: $(System.DefaultWorkingDirectory)/build/$(cmakePreset)
+  - name: testResultsPath
+    value: $(System.DefaultWorkingDirectory)/build/$(cmakePreset)/tests/results
+
+# ============================================================================
+# STAGES
+# ============================================================================
+stages:
+  # ==========================================================================
+  # STAGE 1: WINDOWS BUILD
+  # ==========================================================================
+  - stage: Windows
+    displayName: Windows
+    condition: ${{ containsValue(parameters.Platforms, 'Windows') }}
+    dependsOn: []
+
+    jobs:
+    - ${{ if eq(parameters.Cleanup, true) }}:
+      - template: .azure/az-cleanup-windows.yml
+        parameters:
+          displayName: "Windows Cleanup"
+          BuildOperatingSystem: $(Agent.OS)
+          CleanupDirectory: ${{ variables.cpmCachePath }}
+
+    - template: .azure/az-build-windows.yml
+      parameters:
+        displayName: "Windows Build and Test"
+        architectures: ${{ parameters.Architectures }}
+        compilers: ${{ parameters.Compilers_Windows }}
+        buildTypes: ${{ parameters.BuildTypes }}
+        runTests: ${{ parameters.RunTests }}
+        publishNuGet: ${{ variables.PublishNuGet }}
+
+  # ==========================================================================
+  # STAGE 2: LINUX BUILD
+  # ==========================================================================
+  - stage: Linux
+    displayName: Linux
+    condition: ${{ containsValue(parameters.Platforms, 'Linux') }}
+    dependsOn: []
+
+    jobs:
+    - ${{ if eq(parameters.Cleanup, true) }}:
+      - template: .azure/az-cleanup-linux.yml
+        parameters:
+          displayName: "Linux Cleanup"
+          BuildOperatingSystem: $(Agent.OS)
+          CleanupDirectory: ${{ variables.cpmCachePath }}
+
+    - template: .azure/az-build-linux.yml
+      parameters:
+        displayName: "Linux Build and Test"
+        architectures: ${{ parameters.Architectures }}
+        compilers: ${{ parameters.Compilers_Linux }}
+        buildTypes: ${{ parameters.BuildTypes }}
+        runTests: ${{ parameters.RunTests }}
+
+  # ==========================================================================
+  # STAGE 3: PUBLICATION
+  # ==========================================================================
+  - stage: Publication
+    displayName: Publication
+    dependsOn:
+      - Windows
+      - Linux
+    condition: and(or(eq(${{ variables.PublishGitHub }}, true), eq(${{ variables.PublishNuGet }}, true)), succeeded())
+    jobs:
+      - ${{ if eq(variables.PublishNuGet, true) }}:
+        - template: .azure/az-publish-nuget.yml
+          parameters:
+            displayName: NuGet Release
+            PublishNuGet: ${{ variables.PublishNuGet }}
+  
+      - template: .azure/az-publish-github.yml
+        parameters:
+          displayName: GitHub Release
+          PublishGitHub: ${{ variables.PublishGitHub }}
+
+  # ==========================================================================
+  # STAGE 4: DOCUMENTATION DEPLOYMENT
+  # This stage can be run independently and without the requisite code build.
+  # ==========================================================================
+  - stage: Documentation
+    displayName: Documentation
+    dependsOn: []
+    condition: or(eq(${{ variables.DeployPages }}, true), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(variables['Build.SourceBranch'], 'refs/heads/master')))
+    jobs:
+      - template: .azure/az-deploy-pages.yml
+        parameters:
+          displayName: Deploy to GitHub Pages
+          DeployPages: ${{ variables.DeployPages }}
