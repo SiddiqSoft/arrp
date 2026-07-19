@@ -365,15 +365,11 @@ namespace siddiqsoft::arrp
                     // Return first element from the pool and pop it on scope end
                     RunOnEnd pop_guard([&]() {
                         m_pool.pop_front();
-#if defined(DEBUG) && defined(NLOHMANN_JSON_VERSION_MAJOR)
-#endif
                     });
 
                     m_resources_checkedout++;
                     ++m_counter_borrow_from_pool;
 
-#if defined(DEBUG) && defined(NLOHMANN_JSON_VERSION_MAJOR)
-#endif
 
                     // Make a wrapper..
                     // Create a SRT element and wire up the auto-return callback to return
@@ -406,8 +402,6 @@ namespace siddiqsoft::arrp
                 }
                 else if (m_capacity > m_pool.size() + m_resources_checkedout) {
                     // We're under-capacity.. but no dynamic resource provider
-#if defined(DEBUG) && defined(NLOHMANN_JSON_VERSION_MAJOR)
-#endif
                 }
             } // scope end
             catch (const std::exception& ex) {
@@ -463,8 +457,6 @@ namespace siddiqsoft::arrp
         void return_to_pool(T&& raw_resource)
         {
             ++m_counter_return_to_pool;
-#if defined(DEBUG) && defined(NLOHMANN_JSON_VERSION_MAJOR)
-#endif
 
             std::scoped_lock l(m_pool_lock);
 
