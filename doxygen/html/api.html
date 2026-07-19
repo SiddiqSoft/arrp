@@ -28,7 +28,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="Siddiq-Software-Avatar.png"/></td>
   <td id="projectalign">
-   <div id="projectname">arrp<span id="projectnumber">&#160;0.0.2</span>
+   <div id="projectname">arrp<span id="projectnumber">&#160;0.0.3</span>
    </div>
    <div id="projectbrief">Auto returning resource pool for modern C++</div>
   </td>
@@ -112,7 +112,7 @@ Overview</h3>
 Template Parameters</h3>
 <ul>
 <li><span class="tt">T</span> - The resource type to manage (must satisfy <span class="tt">NonNumericMoveConstructible</span> concept)</li>
-<li><span class="tt">SRT</span> - The resource wrapper type (default: <span class="tt">scoped_resource&lt;T&gt;</span>)</li>
+<li><span class="tt">SRT</span> - The resource wrapper type (default: <span class="tt">scoped_resource&lt;T&gt;</span>, must derive from <span class="tt">scoped_resource&lt;T&gt;</span>)</li>
 <li><span class="tt">InitCapacity</span> - Initial capacity limit (default: <span class="tt">resource_pool_limits::DefaultCapacity</span>, max: <span class="tt">resource_pool_limits::MaxCapacity</span>)</li>
 </ul>
 <h3 class="doxsection"><a class="anchor" id="autotoc_md5"></a>
@@ -127,17 +127,21 @@ Key Features</h3>
 <li><b>JSON Serialization</b>: Provides pool state diagnostics via JSON (when nlohmann/json is available)</li>
 </ul>
 <h3 class="doxsection"><a class="anchor" id="autotoc_md6"></a>
-Constructor</h3>
-<div class="fragment"><div class="line">resource_pool(std::function&lt;SRT(resource_pool&amp;)&gt;&amp;&amp; new_resource_callback = {});</div>
-</div><!-- fragment --><p>Creates a resource pool with optional custom resource factory callback.</p>
+Constructors</h3>
+<h4 class="doxsection"><a class="anchor" id="autotoc_md7"></a>
+Constructor with Custom Factory</h4>
+<div class="fragment"><div class="line">resource_pool(std::function&lt;SRT(resource_pool&amp;)&gt;&amp;&amp; new_resource_callback);</div>
+</div><!-- fragment --><p>Creates a resource pool with a custom resource factory callback.</p>
 <p><b>Parameters:</b></p><ul>
-<li><span class="tt">new_resource_callback</span> - Optional callback to create new resources. If not provided, a default factory creates <span class="tt">T{}</span> wrapped in <span class="tt">SRT{}</span></li>
+<li><span class="tt">new_resource_callback</span> - Callback function to create new resources. Must not be empty.</li>
 </ul>
-<p><b>Example:</b> </p><div class="fragment"><div class="line"><span class="comment">// Using default factory</span></div>
-<div class="line"><span class="keyword">auto</span> pool1 = <a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool&lt;MyResource&gt;</a>();</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Using custom factory</span></div>
-<div class="line"><span class="keyword">auto</span> pool2 = <a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool&lt;MyResource&gt;</a>(</div>
+<p><b>Details:</b></p><ul>
+<li>The callback is stored and called later when resources are needed</li>
+<li>The callback is invoked outside the lock to minimize contention</li>
+<li>If an empty callback is provided, defaults to <span class="tt">CallbackDoNotAutoAddResource</span></li>
+</ul>
+<p><b>Example:</b> </p><div class="fragment"><div class="line"><span class="comment">// Using custom factory</span></div>
+<div class="line"><span class="keyword">auto</span> pool = <a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool&lt;MyResource&gt;</a>(</div>
 <div class="line">    [](<span class="keyword">auto</span>&amp; p) -&gt; scoped_resource&lt;MyResource&gt; {</div>
 <div class="line">        <span class="keywordflow">return</span> scoped_resource&lt;MyResource&gt;(</div>
 <div class="line">            MyResource::create(),</div>
@@ -146,28 +150,65 @@ Constructor</h3>
 <div class="line">    }</div>
 <div class="line">);</div>
 <div class="ttc" id="aclasssiddiqsoft_1_1arrp_1_1resource__pool_html"><div class="ttname"><a href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool</a></div><div class="ttdoc">Thread-safe auto-returning resource pool for modern C++.</div><div class="ttdef"><b>Definition</b> <a href="resource__pool_8hpp_source.html#l00123">resource_pool.hpp:124</a></div></div>
-</div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="autotoc_md7"></a>
+</div><!-- fragment --><h4 class="doxsection"><a class="anchor" id="autotoc_md8"></a>
+Constructor with Auto-Add Policy</h4>
+<div class="fragment"><div class="line">resource_pool(auto_add_policy add_policy = auto_add_policy::NoGrow);</div>
+</div><!-- fragment --><p>Creates a resource pool with specified auto-add policy.</p>
+<p><b>Parameters:</b></p><ul>
+<li><span class="tt">add_policy</span> - Policy for automatic resource creation:<ul>
+<li><span class="tt">NoGrow</span> (default): Pool does not grow; throws when empty</li>
+<li><span class="tt">AutoGrow</span>: Pool automatically creates resources up to capacity</li>
+<li><span class="tt">Custom</span>: User provides custom factory via other constructor</li>
+</ul>
+</li>
+</ul>
+<p><b>Details:</b></p><ul>
+<li><span class="tt">NoGrow</span>: Uses <span class="tt">CallbackDoNotAutoAddResource</span> which throws <span class="tt">std::runtime_error</span></li>
+<li><span class="tt">AutoGrow</span>: Creates default-constructed resources and wires up auto-return callback</li>
+<li>Resources are created on-demand up to the capacity limit</li>
+</ul>
+<p><b>Example:</b> </p><div class="fragment"><div class="line"><span class="comment">// Using default factory with auto-grow</span></div>
+<div class="line"><span class="keyword">auto</span> pool = <a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool&lt;MyResource&gt;</a>(</div>
+<div class="line">    siddiqsoft::arrp::resource_pool&lt;MyResource&gt;::auto_add_policy::AutoGrow</div>
+<div class="line">);</div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// Using default factory without auto-grow</span></div>
+<div class="line"><span class="keyword">auto</span> pool2 = <a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool&lt;MyResource&gt;</a>();</div>
+</div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="autotoc_md9"></a>
 Methods</h3>
-<h4 class="doxsection"><a class="anchor" id="autotoc_md8"></a>
+<h4 class="doxsection"><a class="anchor" id="autotoc_md10"></a>
 size</h4>
-<div class="fragment"><div class="line"><span class="keyword">auto</span> size() <span class="keyword">const</span>;</div>
+<div class="fragment"><div class="line">[[nodiscard]] <span class="keywordtype">size_t</span> size() <span class="keyword">const</span>;</div>
 </div><!-- fragment --><p>Returns the current number of available resources in the pool.</p>
-<p><b>Returns:</b> Number of resources currently in the pool</p>
+<p><b>Returns:</b> Number of resources currently in the pool (not including checked-out resources)</p>
 <p><b>Thread Safety:</b> Thread-safe. Protected by mutex.</p>
+<p><b>Details:</b></p><ul>
+<li>Prevents TOCTOU (Time-of-Check-Time-of-Use) race conditions</li>
+<li>Returns a snapshot at the moment of the call</li>
+<li>Size may change immediately after due to concurrent access</li>
+<li>Capacity is limited to 255 resources (uint8_t)</li>
+</ul>
 <p><b>Example:</b> </p><div class="fragment"><div class="line"><span class="keyword">auto</span> available = pool.size();</div>
 <div class="line">std::cout &lt;&lt; <span class="stringliteral">&quot;Available resources: &quot;</span> &lt;&lt; available &lt;&lt; std::endl;</div>
-</div><!-- fragment --><h4 class="doxsection"><a class="anchor" id="autotoc_md9"></a>
+</div><!-- fragment --><h4 class="doxsection"><a class="anchor" id="autotoc_md11"></a>
 borrow_from_pool</h4>
 <div class="fragment"><div class="line">[[nodiscard]] <span class="keyword">auto</span> borrow_from_pool() -&gt; SRT;</div>
 </div><!-- fragment --><p>Borrows a resource from the pool, wrapping it in a <span class="tt">scoped_resource</span> that automatically returns it when destroyed.</p>
 <p><b>Returns:</b> A <span class="tt">scoped_resource&lt;T&gt;</span> containing the borrowed resource</p>
 <p><b>Throws:</b> <span class="tt">std::runtime_error</span> if unable to obtain a resource (pool at capacity and no factory callback available)</p>
-<p><b>Thread Safety:</b> Thread-safe. Protected by mutex. Resource creation happens outside the lock.</p>
+<p><b>Thread Safety:</b> Thread-safe. Protected by mutex. Resource creation happens outside the lock to minimize contention.</p>
 <p><b>Algorithm:</b></p><ol type="1">
 <li>If the pool is non-empty, return the first resource (FIFO)</li>
 <li>If the pool is empty but under capacity, create a new resource via factory</li>
 <li>If at capacity and no resources available, throw <span class="tt">std::runtime_error</span></li>
 </ol>
+<p><b>Details:</b></p><ul>
+<li>Increments the borrow counter only on successful borrow</li>
+<li>Resources are returned in FIFO order</li>
+<li>The resource is marked as valid upon return</li>
+<li>Uses <span class="tt">unique_lock</span> to allow resource creation outside the critical section</li>
+<li>Increments <span class="tt">m_resources_checkedout</span> counter</li>
+</ul>
 <p><b>Example:</b> </p><div class="fragment"><div class="line"><span class="keywordflow">try</span> {</div>
 <div class="line">    <span class="keyword">auto</span> resource = pool.borrow_from_pool();</div>
 <div class="line">    <span class="comment">// Use the resource...</span></div>
@@ -176,15 +217,22 @@ borrow_from_pool</h4>
 <div class="line">} <span class="keywordflow">catch</span> (<span class="keyword">const</span> std::runtime_error&amp; e) {</div>
 <div class="line">    std::cerr &lt;&lt; <span class="stringliteral">&quot;Failed to borrow resource: &quot;</span> &lt;&lt; e.what() &lt;&lt; std::endl;</div>
 <div class="line">}</div>
-</div><!-- fragment --><h4 class="doxsection"><a class="anchor" id="autotoc_md10"></a>
+</div><!-- fragment --><h4 class="doxsection"><a class="anchor" id="autotoc_md12"></a>
 return_to_pool</h4>
 <div class="fragment"><div class="line"><span class="keywordtype">void</span> return_to_pool(T&amp;&amp; raw_resource);</div>
 </div><!-- fragment --><p>Returns a resource to the pool, making it available for future checkout operations.</p>
 <p><b>Parameters:</b></p><ul>
-<li><span class="tt">raw_resource</span> - The resource to return (moved into the pool)</li>
+<li><span class="tt">raw_resource</span> - R-value reference to the resource to return to the pool</li>
 </ul>
 <p><b>Thread Safety:</b> Thread-safe. Protected by mutex.</p>
-<p><b>Note:</b> This method is typically called automatically by the <span class="tt">scoped_resource</span> destructor, but can also be called manually if needed.</p>
+<p><b>Details:</b></p><ul>
+<li>Adds resource to the back of the deque (FIFO ordering)</li>
+<li>Decrements the checked-out counter</li>
+<li>Increments the return counter</li>
+<li>This method is typically called automatically by the <span class="tt">scoped_resource</span> destructor</li>
+<li>Can be called manually for advanced use cases</li>
+<li>Only valid resources should be checked in</li>
+</ul>
 <p><b>Example:</b> </p><div class="fragment"><div class="line"><span class="comment">// Typically called automatically:</span></div>
 <div class="line">{</div>
 <div class="line">    <span class="keyword">auto</span> resource = pool.borrow_from_pool();</div>
@@ -195,19 +243,26 @@ return_to_pool</h4>
 <div class="line"><span class="keyword">auto</span> resource = pool.borrow_from_pool();</div>
 <div class="line"><span class="comment">// ... use resource ...</span></div>
 <div class="line">pool.return_to_pool(std::move(*resource));</div>
-</div><!-- fragment --><h4 class="doxsection"><a class="anchor" id="autotoc_md11"></a>
+</div><!-- fragment --><h4 class="doxsection"><a class="anchor" id="autotoc_md13"></a>
 clear</h4>
 <div class="fragment"><div class="line"><span class="keywordtype">void</span> clear();</div>
 </div><!-- fragment --><p>Removes and destroys all resources currently in the pool.</p>
 <p><b>Thread Safety:</b> Thread-safe. Protected by mutex.</p>
-<p><b>Note:</b> Any checked-out resources are NOT affected by this operation.</p>
+<p><b>Details:</b></p><ul>
+<li>Removes all resources from the internal deque</li>
+<li>All resources are destroyed</li>
+<li>Any checked-out resources are NOT affected</li>
+<li>Safe to call on an empty pool</li>
+<li>This operation does not affect the capacity limit</li>
+</ul>
 <p><b>Example:</b> </p><div class="fragment"><div class="line">pool.clear();  <span class="comment">// Remove all pooled resources</span></div>
-</div><!-- fragment --><h4 class="doxsection"><a class="anchor" id="autotoc_md12"></a>
+</div><!-- fragment --><h4 class="doxsection"><a class="anchor" id="autotoc_md14"></a>
 to_json</h4>
 <div class="fragment"><div class="line">nlohmann::json to_json() <span class="keyword">const</span>;</div>
 </div><!-- fragment --><p>Serializes pool state to JSON for diagnostics and monitoring.</p>
 <p><b>Returns:</b> nlohmann::json object with pool statistics</p>
 <p><b>Thread Safety:</b> Thread-safe. Protected by mutex.</p>
+<p><b>Availability:</b> Only available when <span class="tt">NLOHMANN_JSON_VERSION_MAJOR</span> is defined (nlohmann/json is included)</p>
 <p><b>JSON Structure:</b> </p><div class="fragment"><div class="line">{</div>
 <div class="line">  &quot;_typver&quot;: &quot;siddiqsoft.arrp.resource_pool/0.0.0&quot;,</div>
 <div class="line">  &quot;capacity&quot;: 10,</div>
@@ -227,7 +282,7 @@ to_json</h4>
 <li><span class="tt">capacity</span>: Maximum number of resources the pool can hold</li>
 <li><span class="tt">size</span>: Number of resources currently in the pool</li>
 <li><span class="tt">load</span>: Total resources (in pool + checked out)</li>
-<li><span class="tt">invalidated</span>: Number of invalidated resources</li>
+<li><span class="tt">invalidated</span>: Number of invalidated resources (reserved for future use)</li>
 <li><span class="tt">checkedout</span>: Number of resources currently checked out</li>
 <li><span class="tt">counters</span>: Operation counters<ul>
 <li><span class="tt">autoreturns</span>: Number of automatic resource returns (via default factory callback)</li>
@@ -239,7 +294,24 @@ to_json</h4>
 </ul>
 <p><b>Example:</b> </p><div class="fragment"><div class="line"><span class="keyword">auto</span> state = pool.to_json();</div>
 <div class="line">std::cout &lt;&lt; state.dump(2) &lt;&lt; std::endl;</div>
-</div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="autotoc_md13"></a>
+</div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="autotoc_md15"></a>
+Static Members</h3>
+<h4 class="doxsection"><a class="anchor" id="autotoc_md16"></a>
+CallbackDoNotAutoAddResource</h4>
+<div class="fragment"><div class="line"><span class="keyword">static</span> <span class="keyword">inline</span> std::function&lt;SRT(resource_pool&amp;)&gt; CallbackDoNotAutoAddResource;</div>
+</div><!-- fragment --><p>Default callback that throws when the pool is empty and cannot grow.</p>
+<p><b>Behavior:</b> Throws <span class="tt">std::runtime_error</span> with message "No items in the pool; add something first."</p>
+<p><b>Usage:</b> Used internally when <span class="tt">auto_add_policy::NoGrow</span> is specified</p>
+<h3 class="doxsection"><a class="anchor" id="autotoc_md17"></a>
+Constraints and Limitations</h3>
+<ul>
+<li><b>Not copy-constructible or move-constructible</b>: Pool instances cannot be copied or moved</li>
+<li><b>Not copy-assignable or move-assignable</b>: Pool instances cannot be assigned</li>
+<li><b>Capacity limit</b>: Maximum 255 resources (uint8_t)</li>
+<li><b>Resource requirements</b>: Resources must be move-constructible and non-arithmetic types</li>
+<li><b>Factory callback restrictions</b>: MUST NOT call any pool methods to avoid deadlock</li>
+</ul>
+<h3 class="doxsection"><a class="anchor" id="autotoc_md18"></a>
 Thread Safety</h3>
 <p>All public methods are thread-safe:</p><ul>
 <li><span class="tt">borrow_from_pool()</span> can be called from multiple threads</li>
@@ -247,20 +319,21 @@ Thread Safety</h3>
 <li><span class="tt">size()</span> is an atomic read</li>
 <li><span class="tt">clear()</span> is protected by mutex</li>
 <li><span class="tt">to_json()</span> is protected by mutex</li>
+<li>Internal synchronization uses <span class="tt">std::mutex</span> (or <span class="tt">std::recursive_mutex</span> if <span class="tt">ARRP_USE_RECURSIVE_MUTEX</span> is defined)</li>
 </ul>
 <hr  />
-<h2 class="doxsection"><a class="anchor" id="autotoc_md15"></a>
+<h2 class="doxsection"><a class="anchor" id="autotoc_md20"></a>
 scoped_resource</h2>
 <p>RAII wrapper for managing resource lifecycle with automatic return to pool.</p>
-<h3 class="doxsection"><a class="anchor" id="autotoc_md16"></a>
+<h3 class="doxsection"><a class="anchor" id="autotoc_md21"></a>
 Overview</h3>
 <p>The <span class="tt">scoped_resource</span> class implements the Resource Acquisition Is Initialization (RAII) pattern for managing resources that should be returned to a resource pool. It wraps a resource and automatically invokes a callback when the wrapper is destroyed, enabling automatic resource management without manual cleanup.</p>
-<h3 class="doxsection"><a class="anchor" id="autotoc_md17"></a>
+<h3 class="doxsection"><a class="anchor" id="autotoc_md22"></a>
 Template Parameters</h3>
 <ul>
 <li><span class="tt">T</span> - The resource type to wrap (must satisfy <span class="tt">NonNumericMoveConstructible</span> concept)</li>
 </ul>
-<h3 class="doxsection"><a class="anchor" id="autotoc_md18"></a>
+<h3 class="doxsection"><a class="anchor" id="autotoc_md23"></a>
 Key Features</h3>
 <ul>
 <li><b>RAII Pattern</b>: Automatically returns resources via destructor</li>
@@ -271,18 +344,21 @@ Key Features</h3>
 <li><b>Dereference Access</b>: Provides operator*, get() method, and type conversion for resource access</li>
 <li><b>Invalidation</b>: Allows explicit invalidation to prevent automatic return</li>
 </ul>
-<h3 class="doxsection"><a class="anchor" id="autotoc_md19"></a>
-Constructor</h3>
+<h3 class="doxsection"><a class="anchor" id="autotoc_md24"></a>
+Constructors</h3>
+<h4 class="doxsection"><a class="anchor" id="autotoc_md25"></a>
+Explicit Constructor</h4>
 <div class="fragment"><div class="line"><span class="keyword">explicit</span> scoped_resource(T&amp;&amp; src, std::function&lt;<span class="keywordtype">void</span>(T&amp;&amp;)&gt;&amp;&amp; f = {});</div>
 </div><!-- fragment --><p>Constructs a scoped_resource wrapper around the provided resource.</p>
 <p><b>Parameters:</b></p><ul>
 <li><span class="tt">src</span> - R-value reference to the resource to wrap</li>
-<li><span class="tt">f</span> - Optional callback function to return resource to pool</li>
+<li><span class="tt">f</span> - Optional callback function to return resource to pool (default: empty)</li>
 </ul>
 <p><b>Details:</b></p><ul>
 <li>The resource is marked as valid upon construction</li>
 <li>The callback is typically provided by <span class="tt">resource_pool</span> to automatically return the resource</li>
 <li>The constructor is marked explicit to prevent accidental implicit conversions</li>
+<li>If no callback is provided, the resource is simply destroyed on scope exit</li>
 </ul>
 <p><b>Example:</b> </p><div class="fragment"><div class="line"><span class="comment">// Direct construction (rarely used)</span></div>
 <div class="line">MyResource res;</div>
@@ -293,7 +369,7 @@ Constructor</h3>
 <div class="line"> </div>
 <div class="line"><span class="comment">// Typical usage via resource_pool</span></div>
 <div class="line"><span class="keyword">auto</span> wrapped = pool.borrow_from_pool();</div>
-</div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="autotoc_md20"></a>
+</div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="autotoc_md26"></a>
 Move Constructor</h3>
 <div class="fragment"><div class="line">scoped_resource(scoped_resource&amp;&amp; src) <span class="keyword">noexcept</span>;</div>
 </div><!-- fragment --><p>Moves the resource and callback from another wrapper.</p>
@@ -301,11 +377,12 @@ Move Constructor</h3>
 <li>Essential for returning wrapped resources from functions</li>
 <li>The source wrapper is reset to prevent double-return</li>
 <li>Source callback is cleared and validity flag is set to false</li>
+<li>Enables efficient transfer of ownership</li>
 </ul>
 <p><b>Example:</b> </p><div class="fragment"><div class="line">scoped_resource&lt;MyResource&gt; src = <span class="comment">/* ... */</span>;</div>
 <div class="line">scoped_resource&lt;MyResource&gt; dst = std::move(src);</div>
 <div class="line"><span class="comment">// src is now invalid; only dst will return the resource</span></div>
-</div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="autotoc_md21"></a>
+</div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="autotoc_md27"></a>
 Move Assignment Operator</h3>
 <div class="fragment"><div class="line">scoped_resource&amp; operator=(T&amp;&amp; src);</div>
 </div><!-- fragment --><p>Assigns a new resource to this wrapper and marks it as valid.</p>
@@ -317,19 +394,22 @@ Move Assignment Operator</h3>
 <li>The previous resource (if any) is discarded without invoking its callback</li>
 <li>The new resource is marked as valid</li>
 <li>The callback is NOT changed by this operation</li>
+<li>Useful for replacing resources within the same wrapper</li>
 </ul>
 <p><b>Example:</b> </p><div class="fragment"><div class="line"><span class="keyword">auto</span> resource = pool.borrow_from_pool();</div>
 <div class="line">MyResource new_res;</div>
 <div class="line">resource = std::move(new_res);  <span class="comment">// Replace the resource</span></div>
-</div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="autotoc_md22"></a>
-Dereference Operator</h3>
+</div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="autotoc_md28"></a>
+Access Methods</h3>
+<h4 class="doxsection"><a class="anchor" id="autotoc_md29"></a>
+Dereference Operator</h4>
 <div class="fragment"><div class="line"><span class="keyword">auto</span> operator*() -&gt; T&amp;;</div>
 </div><!-- fragment --><p>Dereferences the wrapped resource.</p>
 <p><b>Returns:</b> Reference to the wrapped resource</p>
 <p><b>Example:</b> </p><div class="fragment"><div class="line"><span class="keyword">auto</span> resource = pool.borrow_from_pool();</div>
 <div class="line">(*resource).doSomething();  <span class="comment">// Access via dereference</span></div>
-</div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="autotoc_md23"></a>
-get Method</h3>
+</div><!-- fragment --><h4 class="doxsection"><a class="anchor" id="autotoc_md30"></a>
+get Method</h4>
 <div class="fragment"><div class="line">T&amp; get();</div>
 </div><!-- fragment --><p>Gets a reference to the wrapped resource.</p>
 <p><b>Returns:</b> Reference to the wrapped resource</p>
@@ -338,16 +418,18 @@ get Method</h3>
 <div class="line"> </div>
 <div class="line"><span class="comment">// Equivalent to dereference operator</span></div>
 <div class="line">(*resource).doSomething();</div>
-</div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="autotoc_md24"></a>
-Type Conversion Operator</h3>
+</div><!-- fragment --><h4 class="doxsection"><a class="anchor" id="autotoc_md31"></a>
+Type Conversion Operator</h4>
 <div class="fragment"><div class="line"><span class="keyword">explicit</span> <span class="keyword">operator</span> T&amp;();</div>
 </div><!-- fragment --><p>Explicit conversion to the resource type.</p>
 <p><b>Returns:</b> Reference to the wrapped resource</p>
 <p><b>Example:</b> </p><div class="fragment"><div class="line"><span class="keyword">auto</span> resource = pool.borrow_from_pool();</div>
 <div class="line"><span class="keyword">auto</span>&amp; ref = <span class="keyword">static_cast&lt;</span>T&amp;<span class="keyword">&gt;</span>(resource);  <span class="comment">// Explicit conversion</span></div>
 <div class="line">ref.doSomething();</div>
-</div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="autotoc_md25"></a>
-Destructor</h3>
+</div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="autotoc_md32"></a>
+Lifecycle Methods</h3>
+<h4 class="doxsection"><a class="anchor" id="autotoc_md33"></a>
+Destructor</h4>
 <div class="fragment"><div class="line">~scoped_resource();</div>
 </div><!-- fragment --><p>Automatically returns resource to pool if valid.</p>
 <p><b>Details:</b></p><ul>
@@ -355,19 +437,21 @@ Destructor</h3>
 <li>If <span class="tt">m_is_valid</span> is true and <span class="tt">m_putback_callback</span> exists: returns resource to pool</li>
 <li>If <span class="tt">m_is_valid</span> is false: resource is discarded (not returned)</li>
 <li>Ensures resources are always properly managed, even if an exception occurs</li>
+<li>Safe to call even if the resource has been moved out</li>
 </ul>
 <p><b>Example:</b> </p><div class="fragment"><div class="line">{</div>
 <div class="line">    <span class="keyword">auto</span> resource = pool.borrow_from_pool();</div>
 <div class="line">    <span class="comment">// Use resource...</span></div>
 <div class="line">}  <span class="comment">// Destructor called here; resource returned to pool</span></div>
-</div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="autotoc_md26"></a>
-invalidate</h3>
+</div><!-- fragment --><h4 class="doxsection"><a class="anchor" id="autotoc_md34"></a>
+invalidate</h4>
 <div class="fragment"><div class="line"><span class="keywordtype">void</span> invalidate();</div>
 </div><!-- fragment --><p>Marks the resource as invalid to prevent automatic return to the pool.</p>
 <p><b>Details:</b></p><ul>
 <li>Call this method when you've moved the resource out or want to prevent automatic return</li>
 <li>After calling this, the destructor will NOT return the resource to the pool</li>
 <li>Safe to call multiple times (subsequent calls have no effect)</li>
+<li>Useful for taking ownership of the resource</li>
 </ul>
 <p><b>Use Cases:</b></p><ul>
 <li>You've moved the resource out and it's no longer valid</li>
@@ -385,9 +469,9 @@ invalidate</h3>
 <div class="line">process_and_consume(*resource);</div>
 <div class="line">resource.invalidate();  <span class="comment">// Resource was consumed, don&#39;t return it</span></div>
 </div><!-- fragment --><hr  />
-<h2 class="doxsection"><a class="anchor" id="autotoc_md28"></a>
+<h2 class="doxsection"><a class="anchor" id="autotoc_md36"></a>
 Concepts</h2>
-<h3 class="doxsection"><a class="anchor" id="autotoc_md29"></a>
+<h3 class="doxsection"><a class="anchor" id="autotoc_md37"></a>
 NonNumericMoveConstructible</h3>
 <p>This concept is used by <span class="tt">resource_pool</span> and <span class="tt">scoped_resource</span> to enforce proper resource management:</p>
 <div class="fragment"><div class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
@@ -436,9 +520,9 @@ NonNumericMoveConstructible</h3>
 <div class="line"><span class="comment">// error: constraints not satisfied for class template &#39;resource_pool&#39;</span></div>
 <div class="line"><span class="comment">// because &#39;int&#39; does not satisfy &#39;NonNumericMoveConstructible&#39;</span></div>
 </div><!-- fragment --><hr  />
-<h2 class="doxsection"><a class="anchor" id="autotoc_md31"></a>
+<h2 class="doxsection"><a class="anchor" id="autotoc_md39"></a>
 Common Patterns</h2>
-<h3 class="doxsection"><a class="anchor" id="autotoc_md32"></a>
+<h3 class="doxsection"><a class="anchor" id="autotoc_md40"></a>
 Basic Resource Pool Usage</h3>
 <div class="fragment"><div class="line"><a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool&lt;std::shared_ptr&lt;DatabaseConnection&gt;</a>&gt; pool;</div>
 <div class="line"> </div>
@@ -451,7 +535,7 @@ Basic Resource Pool Usage</h3>
 <div class="line"><span class="keyword">auto</span> conn = pool.borrow_from_pool();</div>
 <div class="line">conn-&gt;execute(<span class="stringliteral">&quot;SELECT * FROM users&quot;</span>);</div>
 <div class="line"><span class="comment">// conn automatically returned to pool when scope exits</span></div>
-</div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="autotoc_md33"></a>
+</div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="autotoc_md41"></a>
 Resource Pool with Custom Factory</h3>
 <div class="fragment"><div class="line"><a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool&lt;Connection&gt;</a> pool{</div>
 <div class="line">    [](<span class="keyword">auto</span>&amp; p) -&gt; scoped_resource&lt;Connection&gt; {</div>
@@ -464,14 +548,32 @@ Resource Pool with Custom Factory</h3>
 <div class="line"> </div>
 <div class="line"><span class="comment">// Resources are created on-demand up to capacity</span></div>
 <div class="line"><span class="keyword">auto</span> conn = pool.borrow_from_pool();</div>
-</div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="autotoc_md34"></a>
+</div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="autotoc_md42"></a>
+Resource Pool with Auto-Grow Policy</h3>
+<div class="fragment"><div class="line"><span class="comment">// Pool automatically creates resources up to capacity</span></div>
+<div class="line"><span class="keyword">auto</span> pool = <a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool&lt;MyResource&gt;</a>(</div>
+<div class="line">    siddiqsoft::arrp::resource_pool&lt;MyResource&gt;::auto_add_policy::AutoGrow</div>
+<div class="line">);</div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// Resources are created on-demand</span></div>
+<div class="line"><span class="keyword">auto</span> resource = pool.borrow_from_pool();</div>
+</div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="autotoc_md43"></a>
 Resource Invalidation</h3>
 <div class="fragment"><div class="line"><span class="keyword">auto</span> resource = pool.borrow_from_pool();</div>
 <div class="line"><span class="keyword">auto</span> ptr = std::move(*resource);</div>
 <div class="line">resource.invalidate();  <span class="comment">// Don&#39;t return the moved-out resource</span></div>
 <div class="line"><span class="comment">// Resource is NOT returned to pool</span></div>
+</div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="autotoc_md44"></a>
+Monitoring Pool State</h3>
+<div class="fragment"><div class="line"><span class="keyword">auto</span> state = pool.to_json();</div>
+<div class="line">std::cout &lt;&lt; <span class="stringliteral">&quot;Pool state: &quot;</span> &lt;&lt; state.dump(2) &lt;&lt; std::endl;</div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// Check specific metrics</span></div>
+<div class="line">std::cout &lt;&lt; <span class="stringliteral">&quot;Available: &quot;</span> &lt;&lt; state[<span class="stringliteral">&quot;size&quot;</span>] &lt;&lt; std::endl;</div>
+<div class="line">std::cout &lt;&lt; <span class="stringliteral">&quot;Checked out: &quot;</span> &lt;&lt; state[<span class="stringliteral">&quot;checkedout&quot;</span>] &lt;&lt; std::endl;</div>
+<div class="line">std::cout &lt;&lt; <span class="stringliteral">&quot;Total borrows: &quot;</span> &lt;&lt; state[<span class="stringliteral">&quot;counters&quot;</span>][<span class="stringliteral">&quot;borrow&quot;</span>] &lt;&lt; std::endl;</div>
 </div><!-- fragment --><hr  />
-<h2 class="doxsection"><a class="anchor" id="autotoc_md36"></a>
+<h2 class="doxsection"><a class="anchor" id="autotoc_md46"></a>
 Thread Safety</h2>
 <p>All classes are thread-safe for their public interfaces:</p>
 <ul>
@@ -480,12 +582,12 @@ Thread Safety</h2>
 <li><span class="tt">size()</span> is an atomic read</li>
 <li><span class="tt">clear()</span> is protected by mutex</li>
 <li><span class="tt">to_json()</span> is protected by mutex</li>
-<li>Internal synchronization uses <span class="tt">std::mutex</span> and <span class="tt">std::scoped_lock</span></li>
+<li>Internal synchronization uses <span class="tt">std::mutex</span> (or <span class="tt">std::recursive_mutex</span> if <span class="tt">ARRP_USE_RECURSIVE_MUTEX</span> is defined)</li>
 </ul>
 <hr  />
-<h2 class="doxsection"><a class="anchor" id="autotoc_md38"></a>
+<h2 class="doxsection"><a class="anchor" id="autotoc_md48"></a>
 Performance Considerations</h2>
-<h3 class="doxsection"><a class="anchor" id="autotoc_md39"></a>
+<h3 class="doxsection"><a class="anchor" id="autotoc_md49"></a>
 resource_pool</h3>
 <ul>
 <li>Ideal capacity should match <span class="tt">std::thread::hardware_concurrency()</span></li>
@@ -493,15 +595,42 @@ resource_pool</h3>
 <li>Resources are stored in a deque for efficient FIFO access</li>
 <li>There is overhead from the <span class="tt">scoped_resource</span> wrapper</li>
 <li>Use for expensive resources (connections, file handles, buffers)</li>
+<li>Resource creation happens outside the lock to minimize contention</li>
+<li>Counters use uint64_t and will wrap around after ~18 quintillion operations</li>
 </ul>
-<h3 class="doxsection"><a class="anchor" id="autotoc_md40"></a>
+<h3 class="doxsection"><a class="anchor" id="autotoc_md50"></a>
 scoped_resource</h3>
 <ul>
 <li>Minimal overhead for wrapper</li>
 <li>Move operations are efficient</li>
 <li>Callback invocation is fast</li>
-<li>No performance penalty for validity tracking </li>
+<li>No performance penalty for validity tracking</li>
+<li>Supports compiler optimizations like NRVO (Named Return Value Optimization)</li>
 </ul>
+<hr  />
+<h2 class="doxsection"><a class="anchor" id="autotoc_md52"></a>
+Compiler Support</h2>
+<ul>
+<li><b>GCC</b>: 10+ (Linux)</li>
+<li><b>Clang</b>:<ul>
+<li>AppleClang v21+</li>
+<li>LLVM v20+</li>
+</ul>
+</li>
+<li><b>MSVC</b>:<ul>
+<li>Visual Studio 2019</li>
+<li>Visual Studio 2022</li>
+<li>Visual Studio 2026</li>
+</ul>
+</li>
+</ul>
+<p><b>Language Standard:</b> C++20 minimum required</p>
+<hr  />
+<h2 class="doxsection"><a class="anchor" id="autotoc_md54"></a>
+Mutex Configuration</h2>
+<p>By default, <span class="tt">resource_pool</span> uses <span class="tt">std::mutex</span> for optimal performance. For testing or specific use cases, you can enable <span class="tt">std::recursive_mutex</span> by defining:</p>
+<div class="fragment"><div class="line"><span class="preprocessor">#define ARRP_USE_RECURSIVE_MUTEX</span></div>
+</div><!-- fragment --><p>This is useful when tests need to relax some deadlock constraints, but should not be used in production code. </p>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->
 </div><!-- doc-content -->

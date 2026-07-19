@@ -28,7 +28,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="Siddiq-Software-Avatar.png"/></td>
   <td id="projectalign">
-   <div id="projectname">arrp<span id="projectnumber">&#160;0.0.2</span>
+   <div id="projectname">arrp<span id="projectnumber">&#160;0.0.3</span>
    </div>
    <div id="projectbrief">Auto returning resource pool for modern C++</div>
   </td>
@@ -100,7 +100,7 @@ Overview</h1>
 <p><b>Security Rating</b>: EXCELLENT ⭐⭐⭐⭐⭐</p>
 <h1 class="doxsection"><a class="anchor" id="security_features"></a>
 Built-in Security Features</h1>
-<h3 class="doxsection"><a class="anchor" id="autotoc_md69"></a>
+<h3 class="doxsection"><a class="anchor" id="autotoc_md83"></a>
 Memory Safety</h3>
 <ul>
 <li>✅ No unsafe functions (strcpy, sprintf, malloc, free)</li>
@@ -109,7 +109,7 @@ Memory Safety</h3>
 <li>✅ RAII principles ensure automatic cleanup</li>
 <li>✅ No use-after-free vulnerabilities</li>
 </ul>
-<h3 class="doxsection"><a class="anchor" id="autotoc_md70"></a>
+<h3 class="doxsection"><a class="anchor" id="autotoc_md84"></a>
 Thread Safety</h3>
 <ul>
 <li>✅ Proper synchronization with mutexes</li>
@@ -118,7 +118,7 @@ Thread Safety</h3>
 <li>✅ Atomic operations for lock-free updates</li>
 <li>✅ No data races</li>
 </ul>
-<h3 class="doxsection"><a class="anchor" id="autotoc_md71"></a>
+<h3 class="doxsection"><a class="anchor" id="autotoc_md85"></a>
 Exception Safety</h3>
 <ul>
 <li>✅ Exceptions caught at resource boundaries</li>
@@ -127,7 +127,7 @@ Exception Safety</h3>
 <li>✅ Graceful degradation on errors</li>
 <li>✅ No resource leaks on exception</li>
 </ul>
-<h3 class="doxsection"><a class="anchor" id="autotoc_md72"></a>
+<h3 class="doxsection"><a class="anchor" id="autotoc_md86"></a>
 Type Safety</h3>
 <ul>
 <li>��� Strong typing throughout</li>
@@ -136,7 +136,7 @@ Type Safety</h3>
 <li>✅ No type confusion vulnerabilities</li>
 <li>✅ Template-based type safety</li>
 </ul>
-<h3 class="doxsection"><a class="anchor" id="autotoc_md73"></a>
+<h3 class="doxsection"><a class="anchor" id="autotoc_md87"></a>
 Resource Management</h3>
 <ul>
 <li>✅ RAII principles throughout</li>
@@ -148,7 +148,7 @@ Resource Management</h3>
 <h1 class="doxsection"><a class="anchor" id="callback_security"></a>
 Callback Security</h1>
 <p>Callbacks are user-provided code and should be implemented securely.</p>
-<h3 class="doxsection"><a class="anchor" id="autotoc_md74"></a>
+<h3 class="doxsection"><a class="anchor" id="autotoc_md88"></a>
 ✅ Good Callback Practices</h3>
 <div class="fragment"><div class="line"><span class="comment">// Safe callback with error handling</span></div>
 <div class="line"><span class="keyword">auto</span> res = pool.borrow_from_pool();</div>
@@ -166,7 +166,7 @@ Callback Security</h1>
 <div class="line"><span class="keyword">auto</span> res = pool.borrow_from_pool();</div>
 <div class="line"><span class="keyword">auto</span> ptr = std::move(*res);</div>
 <div class="line">res.invalidate();  <span class="comment">// Don&#39;t return moved-out resource</span></div>
-</div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="autotoc_md75"></a>
+</div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="autotoc_md89"></a>
 ❌ Bad Callback Practices</h3>
 <div class="fragment"><div class="line"><span class="comment">// ❌ Accessing invalid memory</span></div>
 <div class="line"><span class="keyword">auto</span> res = pool.borrow_from_pool();</div>
@@ -184,7 +184,7 @@ Callback Security</h1>
 <div class="line"><span class="keywordflow">throw</span> std::runtime_error(<span class="stringliteral">&quot;Unhandled error&quot;</span>);</div>
 </div><!-- fragment --><h1 class="doxsection"><a class="anchor" id="deadlock_prevention"></a>
 Deadlock Prevention</h1>
-<h3 class="doxsection"><a class="anchor" id="autotoc_md76"></a>
+<h3 class="doxsection"><a class="anchor" id="autotoc_md90"></a>
 Circular Dependencies</h3>
 <p>Never create circular dependencies with resources:</p>
 <div class="fragment"><div class="line"><span class="comment">// ✅ GOOD: Independent resource usage</span></div>
@@ -194,7 +194,7 @@ Circular Dependencies</h3>
 <div class="line"><span class="comment">// ❌ BAD: Circular dependency (if pool is shared)</span></div>
 <div class="line"><span class="keyword">auto</span> res = pool.borrow_from_pool();</div>
 <div class="line"><span class="keyword">auto</span> res2 = pool.borrow_from_pool();  <span class="comment">// May deadlock if pool exhausted</span></div>
-</div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="autotoc_md77"></a>
+</div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="autotoc_md91"></a>
 Blocking Operations</h3>
 <p>Avoid blocking operations when holding resources:</p>
 <div class="fragment"><div class="line"><span class="comment">// ❌ BAD: Blocking operation while holding resource</span></div>
@@ -204,7 +204,7 @@ Blocking Operations</h3>
 <div class="line"><span class="comment">// ✅ GOOD: Quick operation</span></div>
 <div class="line"><span class="keyword">auto</span> res = pool.borrow_from_pool();</div>
 <div class="line">res-&gt;process();  <span class="comment">// Quick operation</span></div>
-</div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="autotoc_md78"></a>
+</div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="autotoc_md92"></a>
 Lock Ordering</h3>
 <p>If using locks in resource operations, maintain consistent lock ordering:</p>
 <div class="fragment"><div class="line"><span class="comment">// ✅ GOOD: Consistent lock ordering</span></div>
@@ -215,7 +215,7 @@ Lock Ordering</h3>
 <div class="line">res-&gt;process();</div>
 </div><!-- fragment --><h1 class="doxsection"><a class="anchor" id="locking_considerations"></a>
 Locking and Deadlock Prevention</h1>
-<h3 class="doxsection"><a class="anchor" id="autotoc_md79"></a>
+<h3 class="doxsection"><a class="anchor" id="autotoc_md93"></a>
 Understanding the Mutex Strategy</h3>
 <p>The resource pool uses mutexes to protect internal state. By default, it uses <span class="tt">std::mutex</span> for optimal performance. However, you can enable <span class="tt">std::recursive_mutex</span> by defining <span class="tt">ARRP_USE_RECURSIVE_MUTEX</span> or by setting the CMake option <span class="tt">arrp_USE_RECURSIVE_MUTEX=ON</span>.</p>
 <p><b>When to use recursive_mutex:</b></p><ul>
@@ -228,7 +228,7 @@ Understanding the Mutex Strategy</h3>
 <li>When you follow proper locking discipline</li>
 <li>When factory callbacks don't call pool methods</li>
 </ul>
-<h3 class="doxsection"><a class="anchor" id="autotoc_md80"></a>
+<h3 class="doxsection"><a class="anchor" id="autotoc_md94"></a>
 Critical Rule: Factory Callbacks Must Not Call Pool Methods</h3>
 <p>This is the most important rule to prevent deadlocks:</p>
 <div class="fragment"><div class="line"><span class="comment">// ❌ DEADLOCK RISK: Factory callback calls pool methods</span></div>
@@ -255,7 +255,7 @@ Critical Rule: Factory Callbacks Must Not Call Pool Methods</h3>
 <div class="line">);</div>
 <div class="ttc" id="aclasssiddiqsoft_1_1arrp_1_1resource__pool_html"><div class="ttname"><a href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool</a></div><div class="ttdoc">Thread-safe auto-returning resource pool for modern C++.</div><div class="ttdef"><b>Definition</b> <a href="resource__pool_8hpp_source.html#l00123">resource_pool.hpp:124</a></div></div>
 <div class="ttc" id="aclasssiddiqsoft_1_1arrp_1_1scoped__resource_html"><div class="ttname"><a href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html">siddiqsoft::arrp::scoped_resource</a></div><div class="ttdoc">RAII wrapper for managing resource lifecycle with automatic return to pool.</div><div class="ttdef"><b>Definition</b> <a href="scoped__resource_8hpp_source.html#l00134">scoped_resource.hpp:135</a></div></div>
-</div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="autotoc_md81"></a>
+</div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="autotoc_md95"></a>
 Lock Ordering and Consistency</h3>
 <p>If your resource operations acquire locks, maintain consistent lock ordering:</p>
 <div class="fragment"><div class="line"><span class="comment">// ✅ GOOD: Consistent lock ordering</span></div>
@@ -273,14 +273,14 @@ Lock Ordering and Consistency</h3>
 <div class="line"><span class="comment">// Thread 1: acquires resource_lock, then other_lock</span></div>
 <div class="line"><span class="comment">// Thread 2: acquires other_lock, then resource_lock</span></div>
 <div class="line"><span class="comment">// Result: DEADLOCK</span></div>
-</div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="autotoc_md82"></a>
+</div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="autotoc_md96"></a>
 Detecting Deadlock Issues</h3>
 <p>Enable <span class="tt">ARRP_USE_RECURSIVE_MUTEX</span> during development to catch potential deadlock issues:</p>
 <div class="fragment"><div class="line">cmake -DARRP_USE_RECURSIVE_MUTEX=ON ..</div>
 </div><!-- fragment --><p>This allows the pool to be re-entered from the same thread, which can help identify problematic patterns.</p>
 <h1 class="doxsection"><a class="anchor" id="resource_exhaustion"></a>
 Resource Exhaustion Prevention</h1>
-<h3 class="doxsection"><a class="anchor" id="autotoc_md83"></a>
+<h3 class="doxsection"><a class="anchor" id="autotoc_md97"></a>
 Capacity Limits</h3>
 <p>The resource pool enforces capacity limits to prevent unbounded growth:</p>
 <div class="fragment"><div class="line"><span class="comment">// ✅ GOOD: Set appropriate capacity</span></div>
@@ -290,7 +290,7 @@ Capacity Limits</h3>
 <div class="line"><span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; 16; ++i) {</div>
 <div class="line">    pool.return_to_pool(Resource{});</div>
 <div class="line">}</div>
-</div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="autotoc_md84"></a>
+</div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="autotoc_md98"></a>
 Handling Pool Exhaustion</h3>
 <p>Handle the case when the pool is exhausted:</p>
 <div class="fragment"><div class="line"><span class="comment">// ✅ GOOD: Handle pool exhaustion</span></div>
@@ -303,7 +303,7 @@ Handling Pool Exhaustion</h3>
 <div class="line">}</div>
 </div><!-- fragment --><h1 class="doxsection"><a class="anchor" id="exception_handling"></a>
 Exception Handling</h1>
-<h3 class="doxsection"><a class="anchor" id="autotoc_md85"></a>
+<h3 class="doxsection"><a class="anchor" id="autotoc_md99"></a>
 Resource Exceptions</h3>
 <p>Exceptions during resource operations are handled safely:</p>
 <div class="fragment"><div class="line"><span class="comment">// Safe exception handling</span></div>
@@ -314,7 +314,7 @@ Resource Exceptions</h3>
 <div class="line">    std::cerr &lt;&lt; <span class="stringliteral">&quot;Error: &quot;</span> &lt;&lt; e.what() &lt;&lt; std::endl;</div>
 <div class="line">    <span class="comment">// Resource is still properly returned to pool</span></div>
 <div class="line">}</div>
-</div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="autotoc_md86"></a>
+</div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="autotoc_md100"></a>
 Critical Exceptions</h3>
 <p>Critical exceptions (std::bad_alloc, etc.) are handled specially:</p>
 <div class="fragment"><div class="line"><span class="comment">// Critical exceptions are identified</span></div>
@@ -326,7 +326,7 @@ Critical Exceptions</h3>
 <div class="line">}</div>
 </div><!-- fragment --><h1 class="doxsection"><a class="anchor" id="thread_safety"></a>
 Thread Safety</h1>
-<h3 class="doxsection"><a class="anchor" id="autotoc_md87"></a>
+<h3 class="doxsection"><a class="anchor" id="autotoc_md101"></a>
 Pool Operations</h3>
 <p>All pool operations are thread-safe:</p>
 <div class="fragment"><div class="line"><span class="comment">// Safe to call from multiple threads</span></div>
@@ -334,7 +334,7 @@ Pool Operations</h3>
 <div class="line">std::thread t2([&amp;]() { <span class="keyword">auto</span> res = pool.borrow_from_pool(); });</div>
 <div class="line">t1.join();</div>
 <div class="line">t2.join();</div>
-</div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="autotoc_md88"></a>
+</div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="autotoc_md102"></a>
 Resource Access</h3>
 <p>Resources are accessed safely through scoped_resource:</p>
 <div class="fragment"><div class="line"><span class="comment">// Safe access through wrapper</span></div>
@@ -343,7 +343,7 @@ Resource Access</h3>
 <div class="line"><span class="comment">// Automatically returned when going out of scope</span></div>
 </div><!-- fragment --><h1 class="doxsection"><a class="anchor" id="shutdown_safety"></a>
 Shutdown Safety</h1>
-<h3 class="doxsection"><a class="anchor" id="autotoc_md89"></a>
+<h3 class="doxsection"><a class="anchor" id="autotoc_md103"></a>
 Graceful Shutdown</h3>
 <p>Shutdown is graceful and safe:</p>
 <div class="fragment"><div class="line">{</div>
@@ -356,7 +356,7 @@ Graceful Shutdown</h3>
 <div class="line">    <span class="comment">// Destructor waits for all checked-out resources to be returned</span></div>
 <div class="line">    <span class="comment">// Then destroys all pooled resources</span></div>
 <div class="line">}  <span class="comment">// All cleanup happens here</span></div>
-</div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="autotoc_md90"></a>
+</div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="autotoc_md104"></a>
 Resource Cleanup</h3>
 <p>All resources are properly cleaned up:</p>
 <div class="fragment"><div class="line"><span class="comment">// Resources are destroyed in FIFO order</span></div>
@@ -364,7 +364,7 @@ Resource Cleanup</h3>
 <div class="line"><span class="comment">// No resource leaks occur</span></div>
 </div><!-- fragment --><h1 class="doxsection"><a class="anchor" id="monitoring"></a>
 Monitoring and Diagnostics</h1>
-<h3 class="doxsection"><a class="anchor" id="autotoc_md91"></a>
+<h3 class="doxsection"><a class="anchor" id="autotoc_md105"></a>
 JSON Serialization</h3>
 <p>Get pool state as JSON:</p>
 <div class="fragment"><div class="line"><span class="preprocessor">#include &lt;nlohmann/json.hpp&gt;</span></div>
@@ -379,7 +379,7 @@ JSON Serialization</h3>
 <div class="line"><span class="comment">// - invalidated: Number of invalidated resources</span></div>
 <div class="line"><span class="comment">// - checkedout: Number of checked-out resources</span></div>
 <div class="line"><span class="comment">// - counters: Operation counters (borrow, return, ondemand adds, auto-returned)</span></div>
-</div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="autotoc_md92"></a>
+</div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="autotoc_md106"></a>
 Monitoring Best Practices</h3>
 <div class="fragment"><div class="line"><span class="comment">// ✅ GOOD: Monitor pool state</span></div>
 <div class="line"><span class="keyword">auto</span> state = pool.to_json();</div>

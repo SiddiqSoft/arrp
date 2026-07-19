@@ -10,9 +10,9 @@ var index =
       [ "Basic Resource Pool Example", "index.html#resource_pool_basic", null ],
       [ "Custom Factory Example", "index.html#resource_pool_custom", null ],
       [ "Multi-threaded Usage Example", "index.html#resource_pool_multithreaded", [
-        [ "Using CMake (Recommended)", "index.html#autotoc_md52", null ],
-        [ "Using NuGet (Windows)", "index.html#autotoc_md53", null ],
-        [ "Manual Integration", "index.html#autotoc_md54", null ]
+        [ "Using CMake (Recommended)", "index.html#autotoc_md66", null ],
+        [ "Using NuGet (Windows)", "index.html#autotoc_md67", null ],
+        [ "Manual Integration", "index.html#autotoc_md68", null ]
       ] ]
     ] ],
     [ "License", "index.html#license", null ],

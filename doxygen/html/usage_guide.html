@@ -28,7 +28,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="Siddiq-Software-Avatar.png"/></td>
   <td id="projectalign">
-   <div id="projectname">arrp<span id="projectnumber">&#160;0.0.2</span>
+   <div id="projectname">arrp<span id="projectnumber">&#160;0.0.3</span>
    </div>
    <div id="projectbrief">Auto returning resource pool for modern C++</div>
   </td>
@@ -167,30 +167,30 @@ Custom Resource Factory</h2>
 <div class="ttc" id="aclasssiddiqsoft_1_1arrp_1_1scoped__resource_html"><div class="ttname"><a href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html">siddiqsoft::arrp::scoped_resource</a></div><div class="ttdoc">RAII wrapper for managing resource lifecycle with automatic return to pool.</div><div class="ttdef"><b>Definition</b> <a href="scoped__resource_8hpp_source.html#l00134">scoped_resource.hpp:135</a></div></div>
 </div><!-- fragment --><h2 class="doxsection"><a class="anchor" id="rp_methods"></a>
 Resource Pool Methods</h2>
-<h4 class="doxsection"><a class="anchor" id="autotoc_md93"></a>
+<h4 class="doxsection"><a class="anchor" id="autotoc_md107"></a>
 borrow_from_pool()</h4>
 <p>Borrow a resource from the pool:</p>
 <div class="fragment"><div class="line"><span class="keyword">auto</span> resource = pool.borrow_from_pool();  <span class="comment">// Returns scoped_resource&lt;T&gt;</span></div>
 <div class="line"><span class="comment">// Use the resource...</span></div>
 <div class="line"><span class="comment">// Automatically returned when going out of scope</span></div>
 </div><!-- fragment --><p>Throws <span class="tt">std::runtime_error</span> if the pool is empty and at capacity.</p>
-<h4 class="doxsection"><a class="anchor" id="autotoc_md94"></a>
+<h4 class="doxsection"><a class="anchor" id="autotoc_md108"></a>
 return_to_pool()</h4>
 <p>Return a resource to the pool:</p>
 <div class="fragment"><div class="line"><span class="keyword">auto</span> resource = pool.borrow_from_pool();</div>
 <div class="line"><span class="comment">// Use the resource...</span></div>
 <div class="line">pool.return_to_pool(std::move(*resource));  <span class="comment">// Manual return (rarely needed)</span></div>
 </div><!-- fragment --><p>This is typically called automatically by the scoped_resource destructor.</p>
-<h4 class="doxsection"><a class="anchor" id="autotoc_md95"></a>
+<h4 class="doxsection"><a class="anchor" id="autotoc_md109"></a>
 size()</h4>
 <p>Get the current number of available resources:</p>
 <div class="fragment"><div class="line"><span class="keyword">auto</span> available = pool.size();</div>
 <div class="line">std::cout &lt;&lt; <span class="stringliteral">&quot;Available resources: &quot;</span> &lt;&lt; available &lt;&lt; std::endl;</div>
-</div><!-- fragment --><h4 class="doxsection"><a class="anchor" id="autotoc_md96"></a>
+</div><!-- fragment --><h4 class="doxsection"><a class="anchor" id="autotoc_md110"></a>
 clear()</h4>
 <p>Remove all resources from the pool:</p>
 <div class="fragment"><div class="line">pool.clear();  <span class="comment">// All pooled resources are destroyed</span></div>
-</div><!-- fragment --><h4 class="doxsection"><a class="anchor" id="autotoc_md97"></a>
+</div><!-- fragment --><h4 class="doxsection"><a class="anchor" id="autotoc_md111"></a>
 to_json()</h4>
 <p>Get pool state as JSON (requires nlohmann/json):</p>
 <div class="fragment"><div class="line"><span class="preprocessor">#include &lt;nlohmann/json.hpp&gt;</span></div>
@@ -387,7 +387,7 @@ Resource Invalidation</h2>
 <div class="line"><span class="comment">// Resource is NOT returned to pool when going out of scope</span></div>
 </div><!-- fragment --><h1 class="doxsection"><a class="anchor" id="performance"></a>
 Performance Considerations</h1>
-<h3 class="doxsection"><a class="anchor" id="autotoc_md98"></a>
+<h3 class="doxsection"><a class="anchor" id="autotoc_md112"></a>
 resource_pool</h3>
 <ul>
 <li>Ideal capacity should match <span class="tt">std::thread::hardware_concurrency()</span></li>
@@ -396,7 +396,7 @@ resource_pool</h3>
 <li>Minimal overhead from the <span class="tt">scoped_resource</span> wrapper</li>
 <li>Use for expensive resources (connections, file handles, buffers)</li>
 </ul>
-<h3 class="doxsection"><a class="anchor" id="autotoc_md99"></a>
+<h3 class="doxsection"><a class="anchor" id="autotoc_md113"></a>
 Optimization Tips</h3>
 <ul>
 <li>Pre-populate the pool with resources</li>
