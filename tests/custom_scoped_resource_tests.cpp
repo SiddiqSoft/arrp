@@ -22,6 +22,9 @@
 #include <cstdio>
 #include <cstdlib>
 #include <filesystem>
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 #include "nlohmann/json.hpp"
 #include "../include/siddiqsoft/resource_pool.hpp"
@@ -158,11 +161,25 @@ public:
 // NOLINTBEGIN(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 
 /**
- * @brief Create a temporary file for testing
- * @return Path to the temporary file
+ * @brief Get a temporary file path (cross-platform)
+ * @return Path to a temporary file
  */
-std::string create_temp_file()
+std::string get_temp_file_path()
 {
+#ifdef _WIN32
+    char temp_path[MAX_PATH];
+    char temp_dir[MAX_PATH];
+    
+    if (GetTempPathA(MAX_PATH, temp_dir) == 0) {
+        throw std::runtime_error("Failed to get temp directory");
+    }
+    
+    if (GetTempFileNameA(temp_dir, "arrp", 0, temp_path) == 0) {
+        throw std::runtime_error("Failed to create temp file name");
+    }
+    
+    return std::string(temp_path);
+#else
     char temp_path[] = "/tmp/arrp_test_XXXXXX";
     int  fd          = mkstemp(temp_path);
     if (fd == -1) {
@@ -170,6 +187,45 @@ std::string create_temp_file()
     }
     close(fd);
     return std::string(temp_path);
+#endif
+}
+
+/**
+ * @brief Create a temporary file for testing
+ * @return Path to the temporary file
+ */
+std::string create_temp_file()
+{
+    std::string temp_path = get_temp_file_path();
+    FILE*       file      = std::fopen(temp_path.c_str(), "w");
+    if (file == nullptr) {
+        throw std::runtime_error("Failed to create temporary file");
+    }
+    std::fclose(file);
+    return temp_path;
+}
+
+/**
+ * @brief Close all files in a pool and clear it
+ * @param pool The resource pool to clear
+ */
+template<typename PoolType>
+void close_and_clear_pool(PoolType& pool)
+{
+    // Borrow and close all remaining files in the pool
+    while (pool.size() > 0) {
+        try {
+            auto file_resource = pool.borrow_from_pool();
+            if (file_resource.is_valid()) {
+                std::fclose(file_resource.get_file());
+                file_resource.invalidate();  // Prevent returning to pool
+            }
+        }
+        catch (const std::exception&) {
+            break;
+        }
+    }
+    pool.clear();
 }
 
 /**
@@ -178,8 +234,20 @@ std::string create_temp_file()
  */
 void cleanup_temp_file(const std::string& path)
 {
-    if (fs::exists(path)) {
-        fs::remove(path);
+    // Retry logic for Windows file locking issues
+    int max_retries = 5;
+    for (int i = 0; i < max_retries; ++i) {
+        try {
+            if (fs::exists(path)) {
+                fs::remove(path);
+                return;
+            }
+        }
+        catch (const std::exception&) {
+            if (i < max_retries - 1) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            }
+        }
     }
 }
 
@@ -209,6 +277,7 @@ TEST(custom_scoped_resource, basic_file_pool_creation)
         }
 
         EXPECT_EQ(1u, pool.size());
+        close_and_clear_pool(pool);
     }
     catch (...) {
         cleanup_temp_file(temp_file);
@@ -249,6 +318,7 @@ TEST(custom_scoped_resource, write_to_file)
         std::fclose(verify_file);
 
         EXPECT_STREQ("Hello, World!", buffer);
+        close_and_clear_pool(pool);
     }
     catch (...) {
         cleanup_temp_file(temp_file);
@@ -295,6 +365,7 @@ TEST(custom_scoped_resource, multiple_file_resources)
 
         // All files returned to pool
         EXPECT_EQ(3u, pool.size());
+        close_and_clear_pool(pool);
     }
     catch (...) {
         cleanup_temp_file(temp_file1);
@@ -344,6 +415,7 @@ TEST(custom_scoped_resource, file_persistence_across_cycles)
 
         EXPECT_TRUE(std::string(buffer).find("First write") != std::string::npos);
         EXPECT_TRUE(std::string(buffer).find("Second write") != std::string::npos);
+        close_and_clear_pool(pool);
     }
     catch (...) {
         cleanup_temp_file(temp_file);
@@ -396,6 +468,7 @@ TEST(custom_scoped_resource, concurrent_file_writes)
 
         EXPECT_EQ(4u, pool.size());
         EXPECT_GT(write_count.load(), 0);
+        close_and_clear_pool(pool);
     }
     catch (...) {
         cleanup_temp_file(temp_file);
@@ -430,6 +503,7 @@ TEST(custom_scoped_resource, file_resource_invalidation)
 
         // Resource should NOT be returned to pool
         EXPECT_EQ(1u, pool.size());
+        close_and_clear_pool(pool);
     }
     catch (...) {
         cleanup_temp_file(temp_file);
@@ -462,6 +536,7 @@ TEST(custom_scoped_resource, file_resource_move_semantics)
 
         // Only one resource should be returned
         EXPECT_EQ(1u, pool.size());
+        close_and_clear_pool(pool);
     }
     catch (...) {
         cleanup_temp_file(temp_file);
@@ -502,6 +577,7 @@ TEST(custom_scoped_resource, custom_factory_callback)
 
         // Resources should be returned
         EXPECT_EQ(2u, pool.size());
+        close_and_clear_pool(pool);
     }
     catch (...) {
         cleanup_temp_file(temp_file);
@@ -544,6 +620,7 @@ TEST(custom_scoped_resource, json_serialization)
         auto counters = json["counters"];
         EXPECT_TRUE(counters.contains("borrow"));
         EXPECT_TRUE(counters.contains("return"));
+        close_and_clear_pool(pool);
     }
     catch (...) {
         cleanup_temp_file(temp_file);
@@ -594,6 +671,7 @@ TEST(custom_scoped_resource, high_throughput_file_ops)
 
         EXPECT_EQ(4u, pool.size());
         EXPECT_GT(operations.load(), 0);
+        close_and_clear_pool(pool);
     }
     catch (...) {
         cleanup_temp_file(temp_file);
@@ -626,6 +704,7 @@ TEST(custom_scoped_resource, exception_safety)
 
         // Resource should still be returned to pool
         EXPECT_EQ(1u, pool.size());
+        close_and_clear_pool(pool);
     }
     catch (...) {
         cleanup_temp_file(temp_file);
@@ -658,6 +737,7 @@ TEST(custom_scoped_resource, capacity_limits)
 
         // Should throw when trying to borrow beyond capacity
         EXPECT_THROW({ auto r3 = pool.borrow_from_pool(); }, std::runtime_error);
+        close_and_clear_pool(pool);
     }
     catch (...) {
         cleanup_temp_file(temp_file);
@@ -689,6 +769,7 @@ TEST(custom_scoped_resource, rapid_file_cycles)
         }
 
         EXPECT_EQ(1u, pool.size());
+        close_and_clear_pool(pool);
     }
     catch (...) {
         cleanup_temp_file(temp_file);
@@ -714,7 +795,7 @@ TEST(custom_scoped_resource, clear_operation)
 
         EXPECT_EQ(3u, pool.size());
 
-        pool.clear();
+        close_and_clear_pool(pool);
         EXPECT_EQ(0u, pool.size());
 
         // After clear, checkout should throw
@@ -773,6 +854,7 @@ TEST(custom_scoped_resource, fifo_ordering)
 
         // All returned to pool
         EXPECT_EQ(3u, pool.size());
+        close_and_clear_pool(pool);
     }
     catch (...) {
         cleanup_temp_file(temp_file);
