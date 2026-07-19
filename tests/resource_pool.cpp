@@ -1488,6 +1488,10 @@ TEST(resource_pool, concurrent_clear_deadlock_detection)
 
     auto clearer_fn = [&]() {
         start_barrier.arrive_and_wait();
+        // this specific wait is important otherwise the workers
+        // will never get a chance to run..
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        
         while (!stop.load()) {
             pool.clear();
             ++clear_cycles;
@@ -1499,20 +1503,26 @@ TEST(resource_pool, concurrent_clear_deadlock_detection)
         return true;
     };
 
+    EXPECT_EQ(8, pool.size());
     auto           worker1 = std::async(std::launch::async, worker_fn);
     auto           worker2 = std::async(std::launch::async, worker_fn);
     auto           clearer = std::async(std::launch::async, clearer_fn);
 
+    // give five seconds for the threads to complete..
     constexpr auto timeout = std::chrono::seconds(5);
     EXPECT_EQ(std::future_status::ready, worker1.wait_for(timeout));
     EXPECT_EQ(std::future_status::ready, worker2.wait_for(timeout));
 
+    // signal for them to stop..
     stop = true;
+
+    // wait another five seconds..
     EXPECT_EQ(std::future_status::ready, clearer.wait_for(timeout));
 
-    worker1.get();
-    worker2.get();
-    clearer.get();
+    // consume the results..
+    std::cerr << "  results... " << worker1.get() << std::endl;
+    std::cerr << "  results... " << worker2.get() << std::endl;
+    std::cerr << "  results... " << clearer.get() << std::endl;
 
     EXPECT_GT(borrow_cycles.load(), 0);
     EXPECT_GT(clear_cycles.load(), 0);
