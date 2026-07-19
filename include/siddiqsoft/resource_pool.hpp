@@ -366,7 +366,6 @@ namespace siddiqsoft::arrp
                     RunOnEnd pop_guard([&]() {
                         m_pool.pop_front();
 #if defined(DEBUG) && defined(NLOHMANN_JSON_VERSION_MAJOR)
-                        std::cerr << std::format("{} - completed..from pool..{}\n", __func__, this->to_json().dump());
 #endif
                     });
 
@@ -374,7 +373,6 @@ namespace siddiqsoft::arrp
                     ++m_counter_borrow_from_pool;
 
 #if defined(DEBUG) && defined(NLOHMANN_JSON_VERSION_MAJOR)
-                    std::cerr << std::format("{} - satisfy from pool.. {}\n", __func__, this->to_json().dump());
 #endif
 
                     // Make a wrapper..
@@ -409,7 +407,6 @@ namespace siddiqsoft::arrp
                 else if (m_capacity > m_pool.size() + m_resources_checkedout) {
                     // We're under-capacity.. but no dynamic resource provider
 #if defined(DEBUG) && defined(NLOHMANN_JSON_VERSION_MAJOR)
-                    std::cerr << std::format("checkout - under-capacity but no provider! {}\n", this->to_json().dump(2));
 #endif
                 }
             } // scope end
@@ -467,7 +464,6 @@ namespace siddiqsoft::arrp
         {
             ++m_counter_return_to_pool;
 #if defined(DEBUG) && defined(NLOHMANN_JSON_VERSION_MAJOR)
-            std::cerr << std::format("{} - called.. {}\n", __func__, this->to_json().dump());
 #endif
 
             std::scoped_lock l(m_pool_lock);
@@ -476,7 +472,6 @@ namespace siddiqsoft::arrp
             if (m_resources_checkedout > 0) m_resources_checkedout--;
 
 #if defined(DEBUG) && defined(NLOHMANN_JSON_VERSION_MAJOR)
-            std::cerr << std::format("{} - completed.. {}\n", __func__, this->to_json().dump());
 #endif
         }
 
@@ -530,12 +525,12 @@ namespace siddiqsoft::arrp
          */
         nlohmann::json to_json() const
         {
-            std::scoped_lock l(m_pool_lock);
+            auto             myPoolSize = this->size();
 
             return {{"_typver", "siddiqsoft.arrp.resource_pool/0.0.0"},
                     {"capacity", m_capacity},
-                    {"size", m_pool.size()},
-                    {"load", m_pool.size() + m_resources_checkedout.load()},
+                    {"size", myPoolSize},
+                    {"load", myPoolSize + m_resources_checkedout.load()},
                     {"invalidated", m_invalidated_resources.load()},
                     {"checkedout", m_resources_checkedout.load()},
                     {"counters",
