@@ -171,6 +171,9 @@ namespace siddiqsoft::arrp
         std::function<SRT(resource_pool&)> m_callback_to_add_new_raw_resource_to_pool {};
 
     public:
+        /// @brief This controls the auto-grow (or adding items when the pool is starving)
+        /// and below capacity (up to the maximum limit).
+        /// The load is calculated as
         enum class auto_add_policy
         {
             NoGrow,
@@ -236,6 +239,9 @@ namespace siddiqsoft::arrp
                 m_callback_to_add_new_raw_resource_to_pool = CallbackDoNotAutoAddResource;
             }
             else if (add_policy == auto_add_policy::AutoGrow) {
+                // This method is declared here as lambda to capture the this pointer
+                // whereas if we attempted to declared it earlier as a static inline then the
+                // this pointer would not be captured.
                 m_callback_to_add_new_raw_resource_to_pool = [this](resource_pool& pool) -> SRT {
                     // Create a SRT element and wire up the auto-return callback to return
                     // the resource back to this object.
@@ -382,7 +388,6 @@ namespace siddiqsoft::arrp
                     m_resources_checkedout++;
                     ++m_counter_borrow_from_pool;
 
-
                     // Make a wrapper..
                     // Create a SRT element and wire up the auto-return callback to return
                     // the resource back to this object.
@@ -414,6 +419,7 @@ namespace siddiqsoft::arrp
                 }
                 else if (m_capacity > m_pool.size() + m_resources_checkedout) {
                     // We're under-capacity.. but no dynamic resource provider
+                    std::cerr << std::format("We're under-capacity.. but no dynamic resource provider\n");
                 }
             } // scope end
             catch (const std::exception& ex) {
@@ -469,14 +475,12 @@ namespace siddiqsoft::arrp
         void return_to_pool(T&& raw_resource)
         {
             ++m_counter_return_to_pool;
+            {
+                std::scoped_lock l(m_pool_lock);
 
-            std::scoped_lock l(m_pool_lock);
-
-            m_pool.push_back(std::move(raw_resource));
-            if (m_resources_checkedout > 0) m_resources_checkedout--;
-
-#if defined(DEBUG) && defined(NLOHMANN_JSON_VERSION_MAJOR)
-#endif
+                m_pool.push_back(std::move(raw_resource));
+                if (m_resources_checkedout > 0) m_resources_checkedout--;
+            } // lock scope end
         }
 
 #if defined(NLOHMANN_JSON_VERSION_MAJOR)
