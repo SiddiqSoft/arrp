@@ -150,7 +150,7 @@ namespace siddiqsoft::arrp
         /// @details Uses FIFO ordering: resources are added to back, retrieved from front
         std::deque<T> m_pool {};
 
-#if defined(DEBUG0) || defined(arrp_USE_RECURSIVE_MUTEX) || defined(ARRP_USE_RECURSIVE_MUTEX)
+#if defined(arrp_USE_RECURSIVE_MUTEX) || defined(ARRP_USE_RECURSIVE_MUTEX)
         /// @brief Mutex protecting access to the resource pool
         /// @details Uses a recursive mutex for tests which relax some deadlocks
         /// otherwise the CI will fail. It is also up to the user to ensure
