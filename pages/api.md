@@ -16,11 +16,140 @@ Thread-safe auto-returning resource pool for managing reusable resources with au
 
 The `resource_pool` class implements a thread-safe object pool pattern with automatic resource management using RAII principles. Resources are automatically returned to the pool when the `scoped_resource` wrapper goes out of scope, eliminating manual resource management and reducing the risk of resource leaks.
 
+### Template Definition
+
+```cpp
+template <typename T, typename SRT = scoped_resource<T>, uint8_t InitCapacity = resource_pool_limits::DefaultCapacity>
+    requires((InitCapacity <= resource_pool_limits::MaxCapacity)) && 
+            NonNumericMoveConstructible<T> &&
+            std::derived_from<SRT, scoped_resource<T>>
+class resource_pool
+{
+    // ...
+};
+```
+
 ### Template Parameters
 
-- `T` - The resource type to manage (must satisfy `NonNumericMoveConstructible` concept)
-- `SRT` - The resource wrapper type (default: `scoped_resource<T>`, must derive from `scoped_resource<T>`)
-- `InitCapacity` - Initial capacity limit (default: `resource_pool_limits::DefaultCapacity`, max: `resource_pool_limits::MaxCapacity`)
+#### T - Resource Type
+
+The resource type that will be managed by the pool.
+
+- **Requirements**: Must satisfy `NonNumericMoveConstructible<T>` concept
+- **Move-Constructible**: The type must support move construction (`std::move_constructible<T>`)
+- **Non-Arithmetic**: The type must NOT be an arithmetic type (`!std::is_arithmetic_v<T>`)
+- **Purpose**: This is the actual resource type that will be pooled and managed
+- **Examples of Valid Types**:
+  - `std::shared_ptr<Connection>` - Shared pointer to a connection
+  - `std::unique_ptr<Resource>` - Unique pointer to a resource
+  - `std::string` - String objects
+  - `std::vector<T>` - Vector containers
+  - Custom classes and structs
+  - File handles wrapped in classes
+  - Database connections
+  - Network sockets
+
+#### SRT - Scoped Resource Wrapper Type
+
+The RAII wrapper type that manages the resource lifecycle.
+
+- **Default**: `scoped_resource<T>`
+- **Requirements**: Must derive from `scoped_resource<T>` (checked via `std::derived_from<SRT, scoped_resource<T>>`)
+- **Purpose**: Implements RAII pattern for automatic resource return to pool
+- **Customization**: Allows custom wrapper implementations that extend `scoped_resource<T>`
+- **Responsibility**: The wrapper is responsible for:
+  - Storing the resource
+  - Managing the return callback
+  - Tracking resource validity
+  - Implementing the destructor that returns the resource to the pool
+- **Example Custom Wrapper**:
+  ```cpp
+  template<typename T>
+  class CustomScopedResource : public scoped_resource<T> {
+      // Custom implementation with additional features
+      void customMethod() { /* ... */ }
+  };
+  
+  // Use with custom wrapper
+  resource_pool<MyResource, CustomScopedResource<MyResource>, 16> pool;
+  ```
+
+#### InitCapacity - Initial Pool Capacity
+
+The maximum number of resources that can be in the pool (in pool + checked out).
+
+- **Default**: `resource_pool_limits::DefaultCapacity` (typically 8)
+- **Maximum**: `resource_pool_limits::MaxCapacity` (typically 255)
+- **Type**: `uint8_t` (unsigned 8-bit integer, range 0-255)
+- **Constraint**: Must satisfy `InitCapacity <= resource_pool_limits::MaxCapacity` (compile-time checked)
+- **Purpose**: Limits total resources to prevent unbounded growth
+- **Examples**:
+  ```cpp
+  // Pool with default capacity (8)
+  resource_pool<MyResource> pool1;
+  
+  // Pool with custom capacity (16)
+  resource_pool<MyResource, scoped_resource<MyResource>, 16> pool2;
+  
+  // Pool with maximum capacity (255)
+  resource_pool<MyResource, scoped_resource<MyResource>, 255> pool3;
+  
+  // Compile error: capacity exceeds maximum
+  // resource_pool<MyResource, scoped_resource<MyResource>, 256> pool4;
+  ```
+
+### Template Constraints (Requires Clause)
+
+The template has three compile-time constraints that are enforced by the `requires` clause:
+
+#### 1. Capacity Constraint
+
+```cpp
+InitCapacity <= resource_pool_limits::MaxCapacity
+```
+
+- **Purpose**: Ensures the initial capacity does not exceed the maximum allowed capacity
+- **Benefit**: Prevents accidental creation of pools with invalid capacity
+- **Checked**: At compile-time
+- **Example Error**:
+  ```cpp
+  // Compile error: InitCapacity (256) exceeds MaxCapacity (255)
+  resource_pool<MyResource, scoped_resource<MyResource>, 256> pool;
+  // error: constraints not satisfied for class template 'resource_pool'
+  ```
+
+#### 2. Resource Type Constraint
+
+```cpp
+NonNumericMoveConstructible<T>
+```
+
+- **Purpose**: Ensures the resource type is move-constructible and non-arithmetic
+- **Benefit**: Prevents pooling of cheap-to-copy types like int, float, double, bool
+- **Checked**: At compile-time
+- **Example Error**:
+  ```cpp
+  // Compile error: int does not satisfy NonNumericMoveConstructible
+  resource_pool<int> pool;
+  // error: constraints not satisfied for class template 'resource_pool'
+  // because 'int' does not satisfy 'NonNumericMoveConstructible'
+  ```
+
+#### 3. Wrapper Type Constraint
+
+```cpp
+std::derived_from<SRT, scoped_resource<T>>
+```
+
+- **Purpose**: Ensures the wrapper type derives from `scoped_resource<T>`
+- **Benefit**: Allows custom wrapper implementations while ensuring RAII semantics
+- **Checked**: At compile-time
+- **Example Error**:
+  ```cpp
+  // Compile error: CustomWrapper does not derive from scoped_resource<MyResource>
+  resource_pool<MyResource, CustomWrapper> pool;
+  // error: constraints not satisfied for class template 'resource_pool'
+  ```
 
 ### Key Features
 
@@ -127,7 +256,7 @@ std::cout << "Available resources: " << available << std::endl;
 
 Borrows a resource from the pool, wrapping it in a `scoped_resource` that automatically returns it when destroyed.
 
-**Returns:** A `scoped_resource<T>` containing the borrowed resource
+**Returns:** A `scoped_resource<T>` (or custom SRT) containing the borrowed resource
 
 **Throws:** `std::runtime_error` if unable to obtain a resource (pool at capacity and no factory callback available)
 
@@ -307,9 +436,27 @@ RAII wrapper for managing resource lifecycle with automatic return to pool.
 
 The `scoped_resource` class implements the Resource Acquisition Is Initialization (RAII) pattern for managing resources that should be returned to a resource pool. It wraps a resource and automatically invokes a callback when the wrapper is destroyed, enabling automatic resource management without manual cleanup.
 
+### Template Definition
+
+```cpp
+template <typename T>
+    requires NonNumericMoveConstructible<T>
+class scoped_resource
+{
+    // ...
+};
+```
+
 ### Template Parameters
 
-- `T` - The resource type to wrap (must satisfy `NonNumericMoveConstructible` concept)
+#### T - Resource Type
+
+The resource type to wrap.
+
+- **Requirements**: Must satisfy `NonNumericMoveConstructible<T>` concept
+- **Move-Constructible**: The type must support move construction
+- **Non-Arithmetic**: The type must NOT be an arithmetic type
+- **Purpose**: This is the actual resource type that will be wrapped and managed
 
 ### Key Features
 
@@ -417,25 +564,6 @@ Dereferences the wrapped resource.
 ```cpp
 auto resource = pool.borrow_from_pool();
 (*resource).doSomething();  // Access via dereference
-```
-
-#### get Method
-
-```cpp
-T& get();
-```
-
-Gets a reference to the wrapped resource.
-
-**Returns:** Reference to the wrapped resource
-
-**Example:**
-```cpp
-auto resource = pool.borrow_from_pool();
-resource.get().doSomething();  // Explicit access via get()
-
-// Equivalent to dereference operator
-(*resource).doSomething();
 ```
 
 #### Type Conversion Operator
