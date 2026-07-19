@@ -28,7 +28,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="Siddiq-Software-Avatar.png"/></td>
   <td id="projectalign">
-   <div id="projectname">arrp<span id="projectnumber">&#160;0.0.1</span>
+   <div id="projectname">arrp<span id="projectnumber">&#160;0.0.2</span>
    </div>
    <div id="projectbrief">Auto returning resource pool for modern C++</div>
   </td>
@@ -100,9 +100,18 @@ $(function(){initNavTree('classsiddiqsoft_1_1arrp_1_1resource__pool.html','','cl
 
 <p><code>#include &lt;<a class="el" href="resource__pool_8hpp_source.html">siddiqsoft/resource_pool.hpp</a>&gt;</code></p>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pub-types" class="groupheader"><a id="pub-types" name="pub-types"></a>
+Public Types</h2></td></tr>
+<tr class="memitem:a0d60256a101cc4801245b8b79025e8a6" id="r_a0d60256a101cc4801245b8b79025e8a6"><td class="memItemLeft">enum class &#160;</td><td class="memItemRight"><b>auto_add_policy</b> { <b>NoGrow</b>
+, <b>AutoGrow</b>
+, <b>Custom</b>
+ }</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:aad1f0673a3738dcc29909bea5502cf5e" id="r_aad1f0673a3738dcc29909bea5502cf5e"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#aad1f0673a3738dcc29909bea5502cf5e">resource_pool</a> (std::function&lt; SRT(resource_pool &amp;)&gt; &amp;&amp;new_resource_callback={})</td></tr>
+<tr class="memitem:a8ee6ea9893ca40052626e6f502d253c7" id="r_a8ee6ea9893ca40052626e6f502d253c7"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a8ee6ea9893ca40052626e6f502d253c7">resource_pool</a> (std::function&lt; SRT(resource_pool &amp;)&gt; &amp;&amp;new_resource_callback)</td></tr>
+<tr class="memitem:a1af18960c0ae03a482e0ff2c245aaff7" id="r_a1af18960c0ae03a482e0ff2c245aaff7"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a1af18960c0ae03a482e0ff2c245aaff7">resource_pool</a> (auto_add_policy add_policy=auto_add_policy::NoGrow)</td></tr>
+<tr class="memdesc:a1af18960c0ae03a482e0ff2c245aaff7"><td class="mdescLeft">&#160;</td><td class="mdescRight">This is the default constructor.. the policy is to not auto-grow. The client code can as for AutoGrow in which case we will use the lambda to get the derived-class to build its custom pool.  <br /></td></tr>
 <tr class="memitem:a3f49a8f3ce97a69f0e8df2dcb3c52381" id="r_a3f49a8f3ce97a69f0e8df2dcb3c52381"><td class="memItemLeft"><a id="a3f49a8f3ce97a69f0e8df2dcb3c52381" name="a3f49a8f3ce97a69f0e8df2dcb3c52381"></a>
 &#160;</td><td class="memItemRight"><b>resource_pool</b> (resource_pool &amp;)=delete</td></tr>
 <tr class="memdesc:a3f49a8f3ce97a69f0e8df2dcb3c52381"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy constructor is deleted. <br /></td></tr>
@@ -121,6 +130,11 @@ resource_pool &amp;&#160;</td><td class="memItemRight"><b>operator=</b> (resourc
 <tr class="memitem:a93cb33f2a30b893e0eb7276092b6ec3d" id="r_a93cb33f2a30b893e0eb7276092b6ec3d"><td class="memItemLeft">size_t&#160;</td><td class="memItemRight"><a class="el" href="#a93cb33f2a30b893e0eb7276092b6ec3d">size</a> () const</td></tr>
 <tr class="memitem:a7af727d1f38404f4487f65dd93386329" id="r_a7af727d1f38404f4487f65dd93386329"><td class="memItemLeft">auto&#160;</td><td class="memItemRight"><a class="el" href="#a7af727d1f38404f4487f65dd93386329">borrow_from_pool</a> () -&gt; SRT</td></tr>
 <tr class="memitem:a4b545d06b570049d7a96ce545f1bad80" id="r_a4b545d06b570049d7a96ce545f1bad80"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a4b545d06b570049d7a96ce545f1bad80">return_to_pool</a> (T &amp;&amp;raw_resource)</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pub-static-attribs" class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
+Static Public Attributes</h2></td></tr>
+<tr class="memitem:ad1c762915e349bd3cd3562bf305a61b4" id="r_ad1c762915e349bd3cd3562bf305a61b4"><td class="memItemLeft">static std::function&lt; SRT(resource_pool &amp;)&gt;&#160;</td><td class="memItemRight"><a class="el" href="#ad1c762915e349bd3cd3562bf305a61b4">CallbackDoNotAutoAddResource</a></td></tr>
+<tr class="memdesc:ad1c762915e349bd3cd3562bf305a61b4"><td class="mdescLeft">&#160;</td><td class="mdescRight">This callback is the default and does not grow the resource; it throws a runtime_error.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><div class="compoundTemplParams">template&lt;typename T, typename SRT = scoped_resource&lt;T&gt;, uint8_t InitCapacity = resource_pool_limits::DefaultCapacity&gt;<br />
@@ -181,13 +195,40 @@ Resources are stored in a FIFO deque for predictable ordering </dd>
 The pool is designed for long-lived objects that are expensive to create </dd>
 <dd>
 Counters use uint64_t and will wrap around after ~18 quintillion operations </dd></dl>
-<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_220_2s_2include_2siddiqsoft_2resource_pool_8hpp-example.html#_a2">/opt/azure-agent/_work/20/s/include/siddiqsoft/resource_pool.hpp</a>.</dd>
+<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_220_2s_2include_2siddiqsoft_2resource_pool_8hpp-example.html#_a3">/opt/azure-agent/_work/20/s/include/siddiqsoft/resource_pool.hpp</a>.</dd>
 </dl>
 
 <p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00123">123</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
-</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="aad1f0673a3738dcc29909bea5502cf5e" name="aad1f0673a3738dcc29909bea5502cf5e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aad1f0673a3738dcc29909bea5502cf5e">&#9670;&#160;</a></span>resource_pool()</h2>
+</div><a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Member Enumeration Documentation</h2>
+<a id="a0d60256a101cc4801245b8b79025e8a6" name="a0d60256a101cc4801245b8b79025e8a6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0d60256a101cc4801245b8b79025e8a6">&#9670;&#160;</a></span>auto_add_policy</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T, typename SRT = scoped_resource&lt;T&gt;, uint8_t InitCapacity = resource_pool_limits::DefaultCapacity&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum class siddiqsoft::arrp::resource_pool::auto_add_policy</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel strong">strong</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00174">174</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
+
+</div>
+</div>
+<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a id="a8ee6ea9893ca40052626e6f502d253c7" name="a8ee6ea9893ca40052626e6f502d253c7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8ee6ea9893ca40052626e6f502d253c7">&#9670;&#160;</a></span>resource_pool() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -200,7 +241,7 @@ template&lt;typename T, typename SRT = scoped_resource&lt;T&gt;, uint8_t InitCap
         <tr>
           <td class="memname"><a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool</a>&lt; T, SRT, InitCapacity &gt;::resource_pool </td>
           <td>(</td>
-          <td class="paramtype">std::function&lt; SRT(resource_pool&lt; T, SRT, InitCapacity &gt; &amp;)&gt; &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em>new_resource_callback</em></span><span class="paramdefsep"> = </span><span class="paramdefval">{}</span></td><td>)</td>
+          <td class="paramtype">std::function&lt; SRT(resource_pool&lt; T, SRT, InitCapacity &gt; &amp;)&gt; &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em>new_resource_callback</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -211,7 +252,38 @@ template&lt;typename T, typename SRT = scoped_resource&lt;T&gt;, uint8_t InitCap
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00215">215</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00219">219</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
+
+</div>
+</div>
+<a id="a1af18960c0ae03a482e0ff2c245aaff7" name="a1af18960c0ae03a482e0ff2c245aaff7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1af18960c0ae03a482e0ff2c245aaff7">&#9670;&#160;</a></span>resource_pool() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T, typename SRT = scoped_resource&lt;T&gt;, uint8_t InitCapacity = resource_pool_limits::DefaultCapacity&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool</a>&lt; T, SRT, InitCapacity &gt;::resource_pool </td>
+          <td>(</td>
+          <td class="paramtype">auto_add_policy</td>          <td class="paramname"><span class="paramname"><em>add_policy</em></span><span class="paramdefsep"> = </span><span class="paramdefval">auto_add_policy::NoGrow</span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>This is the default constructor.. the policy is to not auto-grow. The client code can as for AutoGrow in which case we will use the lambda to get the derived-class to build its custom pool. </p>
+
+<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00233">233</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
 
 </div>
 </div>
@@ -247,10 +319,10 @@ template&lt;typename T, typename SRT = scoped_resource&lt;T&gt;, uint8_t InitCap
 All remaining pooled resources are destroyed </dd>
 <dd>
 Checked-out resources will be returned to the pool when their <a class="el" href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html" title="RAII wrapper for managing resource lifecycle with automatic return to pool.">scoped_resource</a> wrappers are destroyed </dd></dl>
-<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_220_2s_2include_2siddiqsoft_2resource_pool_8hpp-example.html#a1">/opt/azure-agent/_work/20/s/include/siddiqsoft/resource_pool.hpp</a>.</dd>
+<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_220_2s_2include_2siddiqsoft_2resource_pool_8hpp-example.html#a2">/opt/azure-agent/_work/20/s/include/siddiqsoft/resource_pool.hpp</a>.</dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00260">260</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00278">278</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
 
 </div>
 </div>
@@ -280,7 +352,7 @@ template&lt;typename T, typename SRT = scoped_resource&lt;T&gt;, uint8_t InitCap
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00356">356</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00370">370</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
 
 </div>
 </div>
@@ -309,7 +381,7 @@ template&lt;typename T, typename SRT = scoped_resource&lt;T&gt;, uint8_t InitCap
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00284">284</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00298">298</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
 
 </div>
 </div>
@@ -338,7 +410,7 @@ template&lt;typename T, typename SRT = scoped_resource&lt;T&gt;, uint8_t InitCap
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00457">457</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00469">469</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
 
 </div>
 </div>
@@ -367,7 +439,41 @@ template&lt;typename T, typename SRT = scoped_resource&lt;T&gt;, uint8_t InitCap
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00313">313</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00327">327</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
+
+</div>
+</div>
+<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a id="ad1c762915e349bd3cd3562bf305a61b4" name="ad1c762915e349bd3cd3562bf305a61b4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad1c762915e349bd3cd3562bf305a61b4">&#9670;&#160;</a></span>CallbackDoNotAutoAddResource</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T, typename SRT = scoped_resource&lt;T&gt;, uint8_t InitCapacity = resource_pool_limits::DefaultCapacity&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::function&lt;SRT(resource_pool&amp;)&gt; <a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool</a>&lt; T, SRT, InitCapacity &gt;::CallbackDoNotAutoAddResource</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line">                                                         = [](resource_pool&amp;) -&gt; SRT {</div>
+<div class="line">    <span class="keywordflow">throw</span> std::runtime_error(<span class="stringliteral">&quot;No items in the pool; add something first.&quot;</span>);</div>
+<div class="line">}</div>
+</div><!-- fragment -->
+<p>This callback is the default and does not grow the resource; it throws a runtime_error. </p>
+<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_220_2s_2include_2siddiqsoft_2resource_pool_8hpp-example.html#a0">/opt/azure-agent/_work/20/s/include/siddiqsoft/resource_pool.hpp</a>.</dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00182">182</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
 
 </div>
 </div>
