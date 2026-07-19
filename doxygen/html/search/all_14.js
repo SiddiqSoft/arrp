@@ -1,0 +1,26 @@
+var searchData=
+[
+  ['parameters_0',['Parameters',['../api.html#autotoc_md4',1,'Template Parameters'],['../api.html#autotoc_md17',1,'Template Parameters'],['../quick_reference.html#qr_template_params',1,'Template Parameters']]],
+  ['pattern_201_3a_20basic_20resource_20borrowing_1',['Pattern 1: Basic Resource Borrowing',['../getting_started.html#autotoc_md46',1,'']]],
+  ['pattern_202_3a_20custom_20resource_20factory_2',['Pattern 2: Custom Resource Factory',['../getting_started.html#autotoc_md47',1,'']]],
+  ['pattern_203_3a_20multi_20threaded_20usage_3',['Pattern 3: Multi-threaded Usage',['../getting_started.html#autotoc_md48',1,'']]],
+  ['pattern_204_3a_20resource_20invalidation_4',['Pattern 4: Resource Invalidation',['../getting_started.html#autotoc_md49',1,'']]],
+  ['patterns_5',['Patterns',['../quick_reference.html#qr_basic_patterns',1,'Basic Patterns'],['../api.html#autotoc_md31',1,'Common Patterns'],['../getting_started.html#common_patterns',1,'Common Patterns']]],
+  ['performance_20considerations_6',['Performance Considerations',['../api.html#autotoc_md38',1,'Performance Considerations'],['../usage_guide.html#performance',1,'Performance Considerations']]],
+  ['performance_20tips_7',['Performance Tips',['../quick_reference.html#qr_performance',1,'']]],
+  ['planning_8',['Capacity Planning',['../usage_guide.html#bp_capacity',1,'']]],
+  ['pool_9',['Pool',['../examples.html#ex_database_connections',1,'Database Connection Pool'],['../quick_reference.html#autotoc_md64',1,'Example 1: Basic Pool'],['../examples.html#ex_file_handles',1,'File Handle Pool'],['../examples.html#ex_http_client',1,'HTTP Client Connection Pool'],['../usage_guide.html#resource_pool',1,'Resource Pool']]],
+  ['pool_20example_10',['Basic Resource Pool Example',['../index.html#resource_pool_basic',1,'']]],
+  ['pool_20exhaustion_11',['Handling Pool Exhaustion',['../security.html#autotoc_md84',1,'']]],
+  ['pool_20for_20modern_20c_12',['ARRP - Auto Returning Resource Pool for Modern C++',['../index.html',1,'']]],
+  ['pool_20integration_13',['Thread Pool Integration',['../examples.html#ex_thread_pool_integration',1,'']]],
+  ['pool_20methods_14',['Pool Methods',['../security.html#autotoc_md80',1,'Critical Rule: Factory Callbacks Must Not Call Pool Methods'],['../usage_guide.html#rp_methods',1,'Resource Pool Methods']]],
+  ['pool_20monitoring_15',['Pool Monitoring',['../examples.html#ex_monitoring',1,'']]],
+  ['pool_20operations_16',['Pool Operations',['../security.html#autotoc_md87',1,'']]],
+  ['pool_20usage_17',['Pool Usage',['../quick_reference.html#qr_pattern_basic',1,'Basic Pool Usage'],['../api.html#autotoc_md32',1,'Basic Resource Pool Usage']]],
+  ['pool_20with_20custom_20factory_18',['Resource Pool with Custom Factory',['../api.html#autotoc_md33',1,'']]],
+  ['practices_19',['Practices',['../usage_guide.html#best_practices',1,'Best Practices'],['../security.html#autotoc_md92',1,'Monitoring Best Practices'],['../security.html#autotoc_md74',1,'✅ Good Callback Practices'],['../security.html#autotoc_md75',1,'❌ Bad Callback Practices']]],
+  ['prevention_20',['Prevention',['../security.html#deadlock_prevention',1,'Deadlock Prevention'],['../security.html#locking_considerations',1,'Locking and Deadlock Prevention'],['../security.html#resource_exhaustion',1,'Resource Exhaustion Prevention']]],
+  ['principles_21',['Design Principles',['../index.html#design',1,'']]],
+  ['program_22',['Your First Program',['../getting_started.html#first_program',1,'']]]
+];
