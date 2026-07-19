@@ -107,7 +107,7 @@ parameters:
 
   - name: PublishGitHub
     type: boolean
-    default: false
+    default: true
     displayName: "Create GitHub release (auto-enabled on main/master)"
 
   - name: DeployPages
