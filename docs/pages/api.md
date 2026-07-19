@@ -19,7 +19,7 @@ The `resource_pool` class implements a thread-safe object pool pattern with auto
 ### Template Parameters
 
 - `T` - The resource type to manage (must satisfy `NonNumericMoveConstructible` concept)
-- `SRT` - The resource wrapper type (default: `scoped_resource<T>`)
+- `SRT` - The resource wrapper type (default: `scoped_resource<T>`, must derive from `scoped_resource<T>`)
 - `InitCapacity` - Initial capacity limit (default: `resource_pool_limits::DefaultCapacity`, max: `resource_pool_limits::MaxCapacity`)
 
 ### Key Features
@@ -32,24 +32,28 @@ The `resource_pool` class implements a thread-safe object pool pattern with auto
 - **Diagnostic Counters**: Tracks borrow, return, and auto-add operations
 - **JSON Serialization**: Provides pool state diagnostics via JSON (when nlohmann/json is available)
 
-### Constructor
+### Constructors
+
+#### Constructor with Custom Factory
 
 ```cpp
-resource_pool(std::function<SRT(resource_pool&)>&& new_resource_callback = {});
+resource_pool(std::function<SRT(resource_pool&)>&& new_resource_callback);
 ```
 
-Creates a resource pool with optional custom resource factory callback.
+Creates a resource pool with a custom resource factory callback.
 
 **Parameters:**
-- `new_resource_callback` - Optional callback to create new resources. If not provided, a default factory creates `T{}` wrapped in `SRT{}`
+- `new_resource_callback` - Callback function to create new resources. Must not be empty.
+
+**Details:**
+- The callback is stored and called later when resources are needed
+- The callback is invoked outside the lock to minimize contention
+- If an empty callback is provided, defaults to `CallbackDoNotAutoAddResource`
 
 **Example:**
 ```cpp
-// Using default factory
-auto pool1 = siddiqsoft::arrp::resource_pool<MyResource>();
-
 // Using custom factory
-auto pool2 = siddiqsoft::arrp::resource_pool<MyResource>(
+auto pool = siddiqsoft::arrp::resource_pool<MyResource>(
     [](auto& p) -> scoped_resource<MyResource> {
         return scoped_resource<MyResource>(
             MyResource::create(),
@@ -59,19 +63,55 @@ auto pool2 = siddiqsoft::arrp::resource_pool<MyResource>(
 );
 ```
 
+#### Constructor with Auto-Add Policy
+
+```cpp
+resource_pool(auto_add_policy add_policy = auto_add_policy::NoGrow);
+```
+
+Creates a resource pool with specified auto-add policy.
+
+**Parameters:**
+- `add_policy` - Policy for automatic resource creation:
+  - `NoGrow` (default): Pool does not grow; throws when empty
+  - `AutoGrow`: Pool automatically creates resources up to capacity
+  - `Custom`: User provides custom factory via other constructor
+
+**Details:**
+- `NoGrow`: Uses `CallbackDoNotAutoAddResource` which throws `std::runtime_error`
+- `AutoGrow`: Creates default-constructed resources and wires up auto-return callback
+- Resources are created on-demand up to the capacity limit
+
+**Example:**
+```cpp
+// Using default factory with auto-grow
+auto pool = siddiqsoft::arrp::resource_pool<MyResource>(
+    siddiqsoft::arrp::resource_pool<MyResource>::auto_add_policy::AutoGrow
+);
+
+// Using default factory without auto-grow
+auto pool2 = siddiqsoft::arrp::resource_pool<MyResource>();
+```
+
 ### Methods
 
 #### size
 
 ```cpp
-auto size() const;
+[[nodiscard]] size_t size() const;
 ```
 
 Returns the current number of available resources in the pool.
 
-**Returns:** Number of resources currently in the pool
+**Returns:** Number of resources currently in the pool (not including checked-out resources)
 
 **Thread Safety:** Thread-safe. Protected by mutex.
+
+**Details:**
+- Prevents TOCTOU (Time-of-Check-Time-of-Use) race conditions
+- Returns a snapshot at the moment of the call
+- Size may change immediately after due to concurrent access
+- Capacity is limited to 255 resources (uint8_t)
 
 **Example:**
 ```cpp
@@ -91,12 +131,19 @@ Borrows a resource from the pool, wrapping it in a `scoped_resource` that automa
 
 **Throws:** `std::runtime_error` if unable to obtain a resource (pool at capacity and no factory callback available)
 
-**Thread Safety:** Thread-safe. Protected by mutex. Resource creation happens outside the lock.
+**Thread Safety:** Thread-safe. Protected by mutex. Resource creation happens outside the lock to minimize contention.
 
 **Algorithm:**
 1. If the pool is non-empty, return the first resource (FIFO)
 2. If the pool is empty but under capacity, create a new resource via factory
 3. If at capacity and no resources available, throw `std::runtime_error`
+
+**Details:**
+- Increments the borrow counter only on successful borrow
+- Resources are returned in FIFO order
+- The resource is marked as valid upon return
+- Uses `unique_lock` to allow resource creation outside the critical section
+- Increments `m_resources_checkedout` counter
 
 **Example:**
 ```cpp
@@ -119,11 +166,17 @@ void return_to_pool(T&& raw_resource);
 Returns a resource to the pool, making it available for future checkout operations.
 
 **Parameters:**
-- `raw_resource` - The resource to return (moved into the pool)
+- `raw_resource` - R-value reference to the resource to return to the pool
 
 **Thread Safety:** Thread-safe. Protected by mutex.
 
-**Note:** This method is typically called automatically by the `scoped_resource` destructor, but can also be called manually if needed.
+**Details:**
+- Adds resource to the back of the deque (FIFO ordering)
+- Decrements the checked-out counter
+- Increments the return counter
+- This method is typically called automatically by the `scoped_resource` destructor
+- Can be called manually for advanced use cases
+- Only valid resources should be checked in
 
 **Example:**
 ```cpp
@@ -149,7 +202,12 @@ Removes and destroys all resources currently in the pool.
 
 **Thread Safety:** Thread-safe. Protected by mutex.
 
-**Note:** Any checked-out resources are NOT affected by this operation.
+**Details:**
+- Removes all resources from the internal deque
+- All resources are destroyed
+- Any checked-out resources are NOT affected
+- Safe to call on an empty pool
+- This operation does not affect the capacity limit
 
 **Example:**
 ```cpp
@@ -167,6 +225,8 @@ Serializes pool state to JSON for diagnostics and monitoring.
 **Returns:** nlohmann::json object with pool statistics
 
 **Thread Safety:** Thread-safe. Protected by mutex.
+
+**Availability:** Only available when `NLOHMANN_JSON_VERSION_MAJOR` is defined (nlohmann/json is included)
 
 **JSON Structure:**
 ```json
@@ -191,7 +251,7 @@ Serializes pool state to JSON for diagnostics and monitoring.
 - `capacity`: Maximum number of resources the pool can hold
 - `size`: Number of resources currently in the pool
 - `load`: Total resources (in pool + checked out)
-- `invalidated`: Number of invalidated resources
+- `invalidated`: Number of invalidated resources (reserved for future use)
 - `checkedout`: Number of resources currently checked out
 - `counters`: Operation counters
   - `autoreturns`: Number of automatic resource returns (via default factory callback)
@@ -205,6 +265,28 @@ auto state = pool.to_json();
 std::cout << state.dump(2) << std::endl;
 ```
 
+### Static Members
+
+#### CallbackDoNotAutoAddResource
+
+```cpp
+static inline std::function<SRT(resource_pool&)> CallbackDoNotAutoAddResource;
+```
+
+Default callback that throws when the pool is empty and cannot grow.
+
+**Behavior:** Throws `std::runtime_error` with message "No items in the pool; add something first."
+
+**Usage:** Used internally when `auto_add_policy::NoGrow` is specified
+
+### Constraints and Limitations
+
+- **Not copy-constructible or move-constructible**: Pool instances cannot be copied or moved
+- **Not copy-assignable or move-assignable**: Pool instances cannot be assigned
+- **Capacity limit**: Maximum 255 resources (uint8_t)
+- **Resource requirements**: Resources must be move-constructible and non-arithmetic types
+- **Factory callback restrictions**: MUST NOT call any pool methods to avoid deadlock
+
 ### Thread Safety
 
 All public methods are thread-safe:
@@ -213,6 +295,7 @@ All public methods are thread-safe:
 - `size()` is an atomic read
 - `clear()` is protected by mutex
 - `to_json()` is protected by mutex
+- Internal synchronization uses `std::mutex` (or `std::recursive_mutex` if `ARRP_USE_RECURSIVE_MUTEX` is defined)
 
 ---
 
@@ -238,7 +321,9 @@ The `scoped_resource` class implements the Resource Acquisition Is Initializatio
 - **Dereference Access**: Provides operator*, get() method, and type conversion for resource access
 - **Invalidation**: Allows explicit invalidation to prevent automatic return
 
-### Constructor
+### Constructors
+
+#### Explicit Constructor
 
 ```cpp
 explicit scoped_resource(T&& src, std::function<void(T&&)>&& f = {});
@@ -248,12 +333,13 @@ Constructs a scoped_resource wrapper around the provided resource.
 
 **Parameters:**
 - `src` - R-value reference to the resource to wrap
-- `f` - Optional callback function to return resource to pool
+- `f` - Optional callback function to return resource to pool (default: empty)
 
 **Details:**
 - The resource is marked as valid upon construction
 - The callback is typically provided by `resource_pool` to automatically return the resource
 - The constructor is marked explicit to prevent accidental implicit conversions
+- If no callback is provided, the resource is simply destroyed on scope exit
 
 **Example:**
 ```cpp
@@ -280,6 +366,7 @@ Moves the resource and callback from another wrapper.
 - Essential for returning wrapped resources from functions
 - The source wrapper is reset to prevent double-return
 - Source callback is cleared and validity flag is set to false
+- Enables efficient transfer of ownership
 
 **Example:**
 ```cpp
@@ -305,6 +392,7 @@ Assigns a new resource to this wrapper and marks it as valid.
 - The previous resource (if any) is discarded without invoking its callback
 - The new resource is marked as valid
 - The callback is NOT changed by this operation
+- Useful for replacing resources within the same wrapper
 
 **Example:**
 ```cpp
@@ -313,7 +401,9 @@ MyResource new_res;
 resource = std::move(new_res);  // Replace the resource
 ```
 
-### Dereference Operator
+### Access Methods
+
+#### Dereference Operator
 
 ```cpp
 auto operator*() -> T&;
@@ -329,7 +419,7 @@ auto resource = pool.borrow_from_pool();
 (*resource).doSomething();  // Access via dereference
 ```
 
-### get Method
+#### get Method
 
 ```cpp
 T& get();
@@ -348,7 +438,7 @@ resource.get().doSomething();  // Explicit access via get()
 (*resource).doSomething();
 ```
 
-### Type Conversion Operator
+#### Type Conversion Operator
 
 ```cpp
 explicit operator T&();
@@ -365,7 +455,9 @@ auto& ref = static_cast<T&>(resource);  // Explicit conversion
 ref.doSomething();
 ```
 
-### Destructor
+### Lifecycle Methods
+
+#### Destructor
 
 ```cpp
 ~scoped_resource();
@@ -378,6 +470,7 @@ Automatically returns resource to pool if valid.
 - If `m_is_valid` is true and `m_putback_callback` exists: returns resource to pool
 - If `m_is_valid` is false: resource is discarded (not returned)
 - Ensures resources are always properly managed, even if an exception occurs
+- Safe to call even if the resource has been moved out
 
 **Example:**
 ```cpp
@@ -387,7 +480,7 @@ Automatically returns resource to pool if valid.
 }  // Destructor called here; resource returned to pool
 ```
 
-### invalidate
+#### invalidate
 
 ```cpp
 void invalidate();
@@ -399,6 +492,7 @@ Marks the resource as invalid to prevent automatic return to the pool.
 - Call this method when you've moved the resource out or want to prevent automatic return
 - After calling this, the destructor will NOT return the resource to the pool
 - Safe to call multiple times (subsequent calls have no effect)
+- Useful for taking ownership of the resource
 
 **Use Cases:**
 - You've moved the resource out and it's no longer valid
@@ -516,6 +610,18 @@ siddiqsoft::arrp::resource_pool<Connection> pool{
 auto conn = pool.borrow_from_pool();
 ```
 
+### Resource Pool with Auto-Grow Policy
+
+```cpp
+// Pool automatically creates resources up to capacity
+auto pool = siddiqsoft::arrp::resource_pool<MyResource>(
+    siddiqsoft::arrp::resource_pool<MyResource>::auto_add_policy::AutoGrow
+);
+
+// Resources are created on-demand
+auto resource = pool.borrow_from_pool();
+```
+
 ### Resource Invalidation
 
 ```cpp
@@ -523,6 +629,18 @@ auto resource = pool.borrow_from_pool();
 auto ptr = std::move(*resource);
 resource.invalidate();  // Don't return the moved-out resource
 // Resource is NOT returned to pool
+```
+
+### Monitoring Pool State
+
+```cpp
+auto state = pool.to_json();
+std::cout << "Pool state: " << state.dump(2) << std::endl;
+
+// Check specific metrics
+std::cout << "Available: " << state["size"] << std::endl;
+std::cout << "Checked out: " << state["checkedout"] << std::endl;
+std::cout << "Total borrows: " << state["counters"]["borrow"] << std::endl;
 ```
 
 ---
@@ -536,7 +654,7 @@ All classes are thread-safe for their public interfaces:
 - `size()` is an atomic read
 - `clear()` is protected by mutex
 - `to_json()` is protected by mutex
-- Internal synchronization uses `std::mutex` and `std::scoped_lock`
+- Internal synchronization uses `std::mutex` (or `std::recursive_mutex` if `ARRP_USE_RECURSIVE_MUTEX` is defined)
 
 ---
 
@@ -549,6 +667,8 @@ All classes are thread-safe for their public interfaces:
 - Resources are stored in a deque for efficient FIFO access
 - There is overhead from the `scoped_resource` wrapper
 - Use for expensive resources (connections, file handles, buffers)
+- Resource creation happens outside the lock to minimize contention
+- Counters use uint64_t and will wrap around after ~18 quintillion operations
 
 ### scoped_resource
 
@@ -556,3 +676,31 @@ All classes are thread-safe for their public interfaces:
 - Move operations are efficient
 - Callback invocation is fast
 - No performance penalty for validity tracking
+- Supports compiler optimizations like NRVO (Named Return Value Optimization)
+
+---
+
+## Compiler Support
+
+- **GCC**: 10+ (Linux)
+- **Clang**: 
+  - AppleClang v21+
+  - LLVM v20+
+- **MSVC**: 
+  - Visual Studio 2019
+  - Visual Studio 2022
+  - Visual Studio 2026
+
+**Language Standard:** C++20 minimum required
+
+---
+
+## Mutex Configuration
+
+By default, `resource_pool` uses `std::mutex` for optimal performance. For testing or specific use cases, you can enable `std::recursive_mutex` by defining:
+
+```cpp
+#define ARRP_USE_RECURSIVE_MUTEX
+```
+
+This is useful when tests need to relax some deadlock constraints, but should not be used in production code.
