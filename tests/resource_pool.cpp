@@ -1395,7 +1395,7 @@ TEST(resource_pool, concurrent_clear_with_operations_FIXED)
 /// DEADLOCK FIX: Added timeout mechanism and reduced contention
 TEST(resource_pool_adversarial, concurrent_clear_rapid_ops_FIXED)
 {
-    siddiqsoft::arrp::resource_pool<std::string> pool {};
+    siddiqsoft::arrp::resource_pool<std::string> pool { siddiqsoft::arrp::resource_pool<std::string>::auto_add_policy::AutoGrow};
     for (int i = 0; i < 20; ++i) {
         pool.return_to_pool(std::format("resource-{}", i));
     }

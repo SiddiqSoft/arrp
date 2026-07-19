@@ -170,20 +170,24 @@ namespace siddiqsoft::arrp
         /// @warning MUST NOT call any pool methods to avoid deadlock
         std::function<SRT(resource_pool&)> m_callback_to_add_new_raw_resource_to_pool {};
 
-        /// @brief Callback invoked when a resource is invalidated
-        /// @details Optional callback for custom cleanup when resources are marked invalid
-        std::function<void(SRT&&)> m_callback_resource_invalidated {};
-
-        /// @brief Callback invoked when the pool is about to shutdown
-        /// @details Optional callback for cleanup operations during pool destruction
-        std::function<void()> m_callback_pool_shutdown {};
-
     public:
+        enum class auto_add_policy
+        {
+            NoGrow,
+            AutoGrow,
+            Custom
+        };
+
+        /// @brief This callback is the default and does not grow the resource; it throws a runtime_error
+        static inline std::function<SRT(resource_pool&)> CallbackDoNotAutoAddResource = [](resource_pool&) -> SRT {
+            throw std::runtime_error("No items in the pool; add something first.");
+        };
+
         /**
          * @brief Construct a resource pool with optional custom resource factory
          *
-         * @param new_resource_callback Optional callback function to create new resources.
-         *        If not provided, a default factory creates T{} wrapped in SRT{}.
+         * @param new_resource_callback Required callback function to create new resources.
+         *        Use the method with the auto_add_policy to control how the pool grows.
          *
          * @details
          * Initializes the resource pool with the specified capacity. If a custom callback
@@ -212,12 +216,26 @@ namespace siddiqsoft::arrp
          * );
          * @endcode
          */
-        resource_pool(std::function<SRT(resource_pool&)>&& new_resource_callback = {})
+        resource_pool(std::function<SRT(resource_pool&)>&& new_resource_callback)
         {
             if (new_resource_callback) {
                 m_callback_to_add_new_raw_resource_to_pool = std::move(new_resource_callback);
             }
             else {
+                // This is just in case someone sends an empty callback!
+                m_callback_to_add_new_raw_resource_to_pool = CallbackDoNotAutoAddResource;
+            }
+        }
+
+        /// @brief This is the default constructor.. the policy is to not auto-grow.
+        /// The client code can as for AutoGrow in which case we will use the lambda
+        /// to get the derived-class to build its custom pool.
+        resource_pool(auto_add_policy add_policy = auto_add_policy::NoGrow)
+        {
+            if (add_policy == auto_add_policy::NoGrow) {
+                m_callback_to_add_new_raw_resource_to_pool = CallbackDoNotAutoAddResource;
+            }
+            else if (add_policy == auto_add_policy::AutoGrow) {
                 m_callback_to_add_new_raw_resource_to_pool = [this](resource_pool& pool) -> SRT {
                     // Create a SRT element and wire up the auto-return callback to return
                     // the resource back to this object.
@@ -257,11 +275,7 @@ namespace siddiqsoft::arrp
          * @note Checked-out resources will be returned to the pool when their
          *       scoped_resource wrappers are destroyed
          */
-        ~resource_pool()
-        {
-            if (m_callback_pool_shutdown) m_callback_pool_shutdown();
-            clear();
-        }
+        ~resource_pool() { clear(); }
 
         /**
          * @brief Clear all items from the pool
@@ -363,9 +377,7 @@ namespace siddiqsoft::arrp
                 if (!m_pool.empty()) {
                     // The pool is non-empty; return from the pool
                     // Return first element from the pool and pop it on scope end
-                    RunOnEnd pop_guard([&]() {
-                        m_pool.pop_front();
-                    });
+                    RunOnEnd pop_guard([&]() { m_pool.pop_front(); });
 
                     m_resources_checkedout++;
                     ++m_counter_borrow_from_pool;
@@ -517,7 +529,7 @@ namespace siddiqsoft::arrp
          */
         nlohmann::json to_json() const
         {
-            auto             myPoolSize = this->size();
+            auto myPoolSize = this->size();
 
             return {{"_typver", "siddiqsoft.arrp.resource_pool/0.0.0"},
                     {"capacity", m_capacity},
