@@ -431,9 +431,14 @@ namespace siddiqsoft::arrp
                     std::cerr << std::format("We're under-capacity.. but no dynamic resource provider\n");
                 }
             } // scope end
+            catch (std::exception& ex) {
+                checkout_guard();
+                std::cerr << std::format("Error in checkout: {}\n", ex.what());
+                throw;
+            }
             catch (...) {
                 checkout_guard();
-                std::cerr << std::format("Error in checkout");
+                std::cerr << std::format("UNKNOWN Error in checkout\n");
                 throw;
             }
 
