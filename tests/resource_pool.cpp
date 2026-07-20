@@ -1472,7 +1472,7 @@ TEST(resource_pool, concurrent_clear_deadlock_detection)
 
     auto             worker_fn = [&]() {
         start_barrier.arrive_and_wait();
-        for (int iteration = 0; iteration < 200 && !stop.load(); ++iteration) {
+        for (int iteration = 0; iteration < 600 && !stop.load(); ++iteration) {
             try {
                 auto res = pool.borrow_from_pool();
                 ++borrow_cycles;
