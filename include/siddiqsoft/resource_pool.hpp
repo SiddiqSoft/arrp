@@ -375,6 +375,14 @@ namespace siddiqsoft::arrp
          */
         [[nodiscard]] auto borrow_from_pool() -> SRT
         {
+            // Create a guard to decrement m_resources_checkedout if the factory callback throws
+            // This ensures we don't leak the checkout count if the factory fails
+            auto checkout_guard = [this]() {
+                if (m_resources_checkedout > 0) {
+                    m_resources_checkedout--;
+                }
+            };
+
             try {
                 // @note We use a unique_lock vs a scoped_lock to allow ourselves
                 // to create the resource outside the lock!
@@ -412,14 +420,6 @@ namespace siddiqsoft::arrp
                     ++m_counter_borrow_from_pool;
                     // Update the attempted delegated calls to add new raw resource to pool.
                     ++m_counter_ondemand_adds;
-
-                    // Create a guard to decrement m_resources_checkedout if the factory callback throws
-                    // This ensures we don't leak the checkout count if the factory fails
-                    auto checkout_guard = [this]() {
-                        if (m_resources_checkedout > 0) {
-                            m_resources_checkedout--;
-                        }
-                    };
 
                     // ..delegate the new resource acquisition
                     // outside the lock.
