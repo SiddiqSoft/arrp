@@ -256,51 +256,51 @@ $(function(){initNavTree('resource__pool_8hpp_source.html','',''); });
 <div class="line"><a id="l00338" name="l00338"></a><span class="lineno">  338</span></div>
 <div class="line"><a id="l00376" name="l00376"></a><span class="lineno">  376</span>        [[nodiscard]] <span class="keyword">auto</span> borrow_from_pool() -&gt; SRT</div>
 <div class="line"><a id="l00377" name="l00377"></a><span class="lineno">  377</span>        {</div>
-<div class="line"><a id="l00378" name="l00378"></a><span class="lineno">  378</span>            <span class="keywordflow">try</span> {</div>
-<div class="line"><a id="l00379" name="l00379"></a><span class="lineno">  379</span>                <span class="comment">// @note We use a unique_lock vs a scoped_lock to allow ourselves</span></div>
-<div class="line"><a id="l00380" name="l00380"></a><span class="lineno">  380</span>                <span class="comment">// to create the resource outside the lock!</span></div>
-<div class="line"><a id="l00381" name="l00381"></a><span class="lineno">  381</span>                std::unique_lock l(m_pool_lock);</div>
-<div class="line"><a id="l00382" name="l00382"></a><span class="lineno">  382</span> </div>
-<div class="line"><a id="l00383" name="l00383"></a><span class="lineno">  383</span>                <span class="keywordflow">if</span> (!m_pool.empty()) {</div>
-<div class="line"><a id="l00384" name="l00384"></a><span class="lineno">  384</span>                    <span class="comment">// The pool is non-empty; return from the pool</span></div>
-<div class="line"><a id="l00385" name="l00385"></a><span class="lineno">  385</span>                    <span class="comment">// Return first element from the pool and pop it on scope end</span></div>
-<div class="line"><a id="l00386" name="l00386"></a><span class="lineno">  386</span>                    RunOnEnd pop_guard([&amp;]() { m_pool.pop_front(); });</div>
-<div class="line"><a id="l00387" name="l00387"></a><span class="lineno">  387</span> </div>
-<div class="line"><a id="l00388" name="l00388"></a><span class="lineno">  388</span>                    m_resources_checkedout++;</div>
-<div class="line"><a id="l00389" name="l00389"></a><span class="lineno">  389</span>                    ++m_counter_borrow_from_pool;</div>
+<div class="line"><a id="l00378" name="l00378"></a><span class="lineno">  378</span>            <span class="comment">// Create a guard to decrement m_resources_checkedout if the factory callback throws</span></div>
+<div class="line"><a id="l00379" name="l00379"></a><span class="lineno">  379</span>            <span class="comment">// This ensures we don&#39;t leak the checkout count if the factory fails</span></div>
+<div class="line"><a id="l00380" name="l00380"></a><span class="lineno">  380</span>            <span class="keyword">auto</span> checkout_guard = [<span class="keyword">this</span>]() {</div>
+<div class="line"><a id="l00381" name="l00381"></a><span class="lineno">  381</span>                <span class="keywordflow">if</span> (m_resources_checkedout &gt; 0) {</div>
+<div class="line"><a id="l00382" name="l00382"></a><span class="lineno">  382</span>                    m_resources_checkedout--;</div>
+<div class="line"><a id="l00383" name="l00383"></a><span class="lineno">  383</span>                }</div>
+<div class="line"><a id="l00384" name="l00384"></a><span class="lineno">  384</span>            };</div>
+<div class="line"><a id="l00385" name="l00385"></a><span class="lineno">  385</span> </div>
+<div class="line"><a id="l00386" name="l00386"></a><span class="lineno">  386</span>            <span class="keywordflow">try</span> {</div>
+<div class="line"><a id="l00387" name="l00387"></a><span class="lineno">  387</span>                <span class="comment">// @note We use a unique_lock vs a scoped_lock to allow ourselves</span></div>
+<div class="line"><a id="l00388" name="l00388"></a><span class="lineno">  388</span>                <span class="comment">// to create the resource outside the lock!</span></div>
+<div class="line"><a id="l00389" name="l00389"></a><span class="lineno">  389</span>                std::unique_lock l(m_pool_lock);</div>
 <div class="line"><a id="l00390" name="l00390"></a><span class="lineno">  390</span> </div>
-<div class="line"><a id="l00391" name="l00391"></a><span class="lineno">  391</span>                    <span class="comment">// Make a wrapper..</span></div>
-<div class="line"><a id="l00392" name="l00392"></a><span class="lineno">  392</span>                    <span class="comment">// Create a SRT element and wire up the auto-return callback to return</span></div>
-<div class="line"><a id="l00393" name="l00393"></a><span class="lineno">  393</span>                    <span class="comment">// the resource back to this object.</span></div>
-<div class="line"><a id="l00394" name="l00394"></a><span class="lineno">  394</span>                    <span class="keywordflow">return</span> SRT {std::move(m_pool.front()), [<span class="keyword">this</span>](T&amp;&amp; src) {</div>
-<div class="line"><a id="l00395" name="l00395"></a><span class="lineno">  395</span>                                    this-&gt;m_counter_auto_returned++;</div>
-<div class="line"><a id="l00396" name="l00396"></a><span class="lineno">  396</span>                                    this-&gt;return_to_pool(std::forward&lt;T&amp;&amp;&gt;(src));</div>
-<div class="line"><a id="l00397" name="l00397"></a><span class="lineno">  397</span>                                }};</div>
-<div class="line"><a id="l00398" name="l00398"></a><span class="lineno">  398</span>                    <span class="comment">// Allow the compiler to use NRVO (move elision; do not use std::move here!)</span></div>
-<div class="line"><a id="l00399" name="l00399"></a><span class="lineno">  399</span>                    <span class="comment">// return temp;</span></div>
-<div class="line"><a id="l00400" name="l00400"></a><span class="lineno">  400</span> </div>
-<div class="line"><a id="l00401" name="l00401"></a><span class="lineno">  401</span>                    <span class="comment">// The pop_front() happens within this scope and within the lock!</span></div>
-<div class="line"><a id="l00402" name="l00402"></a><span class="lineno">  402</span>                }</div>
-<div class="line"><a id="l00403" name="l00403"></a><span class="lineno">  403</span>                <span class="keywordflow">else</span> <span class="keywordflow">if</span> ((m_capacity &gt; m_pool.size() + m_resources_checkedout) &amp;&amp; m_callback_to_add_new_raw_resource_to_pool) {</div>
-<div class="line"><a id="l00404" name="l00404"></a><span class="lineno">  404</span>                    <span class="comment">// We have no more items in the pool (we&#39;re starting up or everything is</span></div>
-<div class="line"><a id="l00405" name="l00405"></a><span class="lineno">  405</span>                    <span class="comment">// checked out) but we have not reached the limit. The limit is number</span></div>
-<div class="line"><a id="l00406" name="l00406"></a><span class="lineno">  406</span>                    <span class="comment">// of m_resources_checkedout + pool.size() &lt; m_capacity We are</span></div>
-<div class="line"><a id="l00407" name="l00407"></a><span class="lineno">  407</span>                    <span class="comment">// under-capacity.. so we can return to the caller a new item..</span></div>
-<div class="line"><a id="l00408" name="l00408"></a><span class="lineno">  408</span>                    m_resources_checkedout++;</div>
-<div class="line"><a id="l00409" name="l00409"></a><span class="lineno">  409</span>                    <span class="comment">// We should unlock the resource and ..</span></div>
-<div class="line"><a id="l00410" name="l00410"></a><span class="lineno">  410</span>                    l.unlock();</div>
-<div class="line"><a id="l00411" name="l00411"></a><span class="lineno">  411</span> </div>
-<div class="line"><a id="l00412" name="l00412"></a><span class="lineno">  412</span>                    ++m_counter_borrow_from_pool;</div>
-<div class="line"><a id="l00413" name="l00413"></a><span class="lineno">  413</span>                    <span class="comment">// Update the attempted delegated calls to add new raw resource to pool.</span></div>
-<div class="line"><a id="l00414" name="l00414"></a><span class="lineno">  414</span>                    ++m_counter_ondemand_adds;</div>
-<div class="line"><a id="l00415" name="l00415"></a><span class="lineno">  415</span> </div>
-<div class="line"><a id="l00416" name="l00416"></a><span class="lineno">  416</span>                    <span class="comment">// Create a guard to decrement m_resources_checkedout if the factory callback throws</span></div>
-<div class="line"><a id="l00417" name="l00417"></a><span class="lineno">  417</span>                    <span class="comment">// This ensures we don&#39;t leak the checkout count if the factory fails</span></div>
-<div class="line"><a id="l00418" name="l00418"></a><span class="lineno">  418</span>                    <span class="keyword">auto</span> checkout_guard = [<span class="keyword">this</span>]() {</div>
-<div class="line"><a id="l00419" name="l00419"></a><span class="lineno">  419</span>                        <span class="keywordflow">if</span> (m_resources_checkedout &gt; 0) {</div>
-<div class="line"><a id="l00420" name="l00420"></a><span class="lineno">  420</span>                            m_resources_checkedout--;</div>
-<div class="line"><a id="l00421" name="l00421"></a><span class="lineno">  421</span>                        }</div>
-<div class="line"><a id="l00422" name="l00422"></a><span class="lineno">  422</span>                    };</div>
+<div class="line"><a id="l00391" name="l00391"></a><span class="lineno">  391</span>                <span class="keywordflow">if</span> (!m_pool.empty()) {</div>
+<div class="line"><a id="l00392" name="l00392"></a><span class="lineno">  392</span>                    <span class="comment">// The pool is non-empty; return from the pool</span></div>
+<div class="line"><a id="l00393" name="l00393"></a><span class="lineno">  393</span>                    <span class="comment">// Return first element from the pool and pop it on scope end</span></div>
+<div class="line"><a id="l00394" name="l00394"></a><span class="lineno">  394</span>                    RunOnEnd pop_guard([&amp;]() { m_pool.pop_front(); });</div>
+<div class="line"><a id="l00395" name="l00395"></a><span class="lineno">  395</span> </div>
+<div class="line"><a id="l00396" name="l00396"></a><span class="lineno">  396</span>                    m_resources_checkedout++;</div>
+<div class="line"><a id="l00397" name="l00397"></a><span class="lineno">  397</span>                    ++m_counter_borrow_from_pool;</div>
+<div class="line"><a id="l00398" name="l00398"></a><span class="lineno">  398</span> </div>
+<div class="line"><a id="l00399" name="l00399"></a><span class="lineno">  399</span>                    <span class="comment">// Make a wrapper..</span></div>
+<div class="line"><a id="l00400" name="l00400"></a><span class="lineno">  400</span>                    <span class="comment">// Create a SRT element and wire up the auto-return callback to return</span></div>
+<div class="line"><a id="l00401" name="l00401"></a><span class="lineno">  401</span>                    <span class="comment">// the resource back to this object.</span></div>
+<div class="line"><a id="l00402" name="l00402"></a><span class="lineno">  402</span>                    <span class="keywordflow">return</span> SRT {std::move(m_pool.front()), [<span class="keyword">this</span>](T&amp;&amp; src) {</div>
+<div class="line"><a id="l00403" name="l00403"></a><span class="lineno">  403</span>                                    this-&gt;m_counter_auto_returned++;</div>
+<div class="line"><a id="l00404" name="l00404"></a><span class="lineno">  404</span>                                    this-&gt;return_to_pool(std::forward&lt;T&amp;&amp;&gt;(src));</div>
+<div class="line"><a id="l00405" name="l00405"></a><span class="lineno">  405</span>                                }};</div>
+<div class="line"><a id="l00406" name="l00406"></a><span class="lineno">  406</span>                    <span class="comment">// Allow the compiler to use NRVO (move elision; do not use std::move here!)</span></div>
+<div class="line"><a id="l00407" name="l00407"></a><span class="lineno">  407</span>                    <span class="comment">// return temp;</span></div>
+<div class="line"><a id="l00408" name="l00408"></a><span class="lineno">  408</span> </div>
+<div class="line"><a id="l00409" name="l00409"></a><span class="lineno">  409</span>                    <span class="comment">// The pop_front() happens within this scope and within the lock!</span></div>
+<div class="line"><a id="l00410" name="l00410"></a><span class="lineno">  410</span>                }</div>
+<div class="line"><a id="l00411" name="l00411"></a><span class="lineno">  411</span>                <span class="keywordflow">else</span> <span class="keywordflow">if</span> ((m_capacity &gt; m_pool.size() + m_resources_checkedout) &amp;&amp; m_callback_to_add_new_raw_resource_to_pool) {</div>
+<div class="line"><a id="l00412" name="l00412"></a><span class="lineno">  412</span>                    <span class="comment">// We have no more items in the pool (we&#39;re starting up or everything is</span></div>
+<div class="line"><a id="l00413" name="l00413"></a><span class="lineno">  413</span>                    <span class="comment">// checked out) but we have not reached the limit. The limit is number</span></div>
+<div class="line"><a id="l00414" name="l00414"></a><span class="lineno">  414</span>                    <span class="comment">// of m_resources_checkedout + pool.size() &lt; m_capacity We are</span></div>
+<div class="line"><a id="l00415" name="l00415"></a><span class="lineno">  415</span>                    <span class="comment">// under-capacity.. so we can return to the caller a new item..</span></div>
+<div class="line"><a id="l00416" name="l00416"></a><span class="lineno">  416</span>                    m_resources_checkedout++;</div>
+<div class="line"><a id="l00417" name="l00417"></a><span class="lineno">  417</span>                    <span class="comment">// We should unlock the resource and ..</span></div>
+<div class="line"><a id="l00418" name="l00418"></a><span class="lineno">  418</span>                    l.unlock();</div>
+<div class="line"><a id="l00419" name="l00419"></a><span class="lineno">  419</span> </div>
+<div class="line"><a id="l00420" name="l00420"></a><span class="lineno">  420</span>                    ++m_counter_borrow_from_pool;</div>
+<div class="line"><a id="l00421" name="l00421"></a><span class="lineno">  421</span>                    <span class="comment">// Update the attempted delegated calls to add new raw resource to pool.</span></div>
+<div class="line"><a id="l00422" name="l00422"></a><span class="lineno">  422</span>                    ++m_counter_ondemand_adds;</div>
 <div class="line"><a id="l00423" name="l00423"></a><span class="lineno">  423</span> </div>
 <div class="line"><a id="l00424" name="l00424"></a><span class="lineno">  424</span>                    <span class="comment">// ..delegate the new resource acquisition</span></div>
 <div class="line"><a id="l00425" name="l00425"></a><span class="lineno">  425</span>                    <span class="comment">// outside the lock.</span></div>
