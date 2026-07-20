@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['parameters_0',['Template Parameters',['../api.html#api_rp_template',1,'']]],
+  ['parameters_0',['Parameters',['../api.html#api_rp_template',1,'Template Parameters'],['../api.html#api_sr_template',1,'Template Parameters']]],
   ['patterns_1',['Advanced Patterns',['../usage_guide.html#ug_advanced_patterns',1,'']]],
   ['performance_20characteristics_2',['Performance Characteristics',['../api.html#api_performance',1,'']]],
   ['performance_20issues_3',['Performance Issues',['../usage_guide.html#ug_performance',1,'']]],

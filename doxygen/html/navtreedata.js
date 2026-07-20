@@ -34,6 +34,7 @@ var NAVTREE =
         [ "Methods", "api.html#api_rp_methods", null ]
       ] ],
       [ "scoped_resource Class", "api.html#api_scoped_resource", [
+        [ "Template Parameters", "api.html#api_sr_template", null ],
         [ "Constructors", "api.html#api_sr_constructors", null ],
         [ "Methods", "api.html#api_sr_methods", null ]
       ] ],
@@ -44,7 +45,8 @@ var NAVTREE =
       [ "Memory Characteristics", "api.html#api_memory", null ],
       [ "Constraints", "api.html#api_constraints", null ],
       [ "Exception Safety", "api.html#api_exception_safety", null ],
-      [ "Best Practices", "api.html#api_best_practices", null ]
+      [ "Best Practices", "api.html#api_best_practices", null ],
+      [ "Quick Links", "api.html#api_quick_links", null ]
     ] ],
     [ "Usage Guide", "usage_guide.html", [
       [ "Overview", "usage_guide.html#ug_overview", null ],

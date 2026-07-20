@@ -28,7 +28,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="Siddiq-Software-Avatar.png"/></td>
   <td id="projectalign">
-   <div id="projectname">arrp<span id="projectnumber">&#160;0.0.14</span>
+   <div id="projectname">arrp<span id="projectnumber">&#160;0.0.15</span>
    </div>
    <div id="projectbrief">Auto returning resource pool for modern C++</div>
   </td>
@@ -118,10 +118,12 @@ Default Constructor</h4>
 <li><b>NoGrow</b>: Throws when empty (default)</li>
 <li><b>AutoGrow</b>: Creates resources on demand</li>
 </ul>
+<p>See auto_add_policy for available policies.</p>
 <h4 class="doxsection"><a class="anchor" id="autotoc_md1"></a>
 Custom Factory Constructor</h4>
 <div class="fragment"><div class="line">resource_pool(std::function&lt;SRT(resource_pool&amp;)&gt;&amp;&amp; new_resource_callback);</div>
 </div><!-- fragment --><p> Creates a pool with custom resource factory callback.</p>
+<p>Returns a scoped_resource wrapping the newly created resource.</p>
 <p><b>Warning</b>: Factory callbacks MUST NOT call any pool methods (would cause deadlock).</p>
 <h2 class="doxsection"><a class="anchor" id="api_rp_methods"></a>
 Methods</h2>
@@ -134,6 +136,7 @@ checkout()</h4>
 <p><b>Thread Safety</b>: Thread-safe. Resource creation happens outside lock.</p>
 <p><b>Performance</b>: O(1) amortized.</p>
 <p><b>Exception Safety</b>: Strong - if factory throws, checkout count is properly decremented.</p>
+<p><b>See Also</b>: scoped_resource for automatic resource management.</p>
 <h4 class="doxsection"><a class="anchor" id="autotoc_md3"></a>
 checkin()</h4>
 <div class="fragment"><div class="line"><span class="keywordtype">void</span> checkin(T&amp;&amp; raw_resource);</div>
@@ -172,24 +175,39 @@ to_json()</h4>
 <p><b>Performance</b>: O(1) with lock acquisition.</p>
 <h1 class="doxsection"><a class="anchor" id="api_scoped_resource"></a>
 scoped_resource Class</h1>
-<p>RAII wrapper for automatic resource return to pool.</p>
+<p>RAII wrapper for automatic resource return to pool. Implements the Resource Acquisition Is Initialization (RAII) pattern.</p>
+<h2 class="doxsection"><a class="anchor" id="api_sr_template"></a>
+Template Parameters</h2>
+<ul>
+<li><b>T</b>: Resource type. Must be move-constructible and non-arithmetic.</li>
+</ul>
 <h2 class="doxsection"><a class="anchor" id="api_sr_constructors"></a>
 Constructors</h2>
 <h4 class="doxsection"><a class="anchor" id="autotoc_md7"></a>
 Explicit Constructor</h4>
 <div class="fragment"><div class="line"><span class="keyword">explicit</span> scoped_resource(T&amp;&amp; src, std::function&lt;<span class="keywordtype">void</span>(T&amp;&amp;)&gt;&amp;&amp; f = {});</div>
 </div><!-- fragment --><p> Wraps resource with optional return callback.</p>
+<p><b>Parameters</b>:</p><ul>
+<li><span class="tt">src</span>: R-value reference to the resource to wrap</li>
+<li><span class="tt">f</span>: Optional callback function invoked on destruction to return resource to pool</li>
+</ul>
+<p><b>Note</b>: Typically created by resource_pool::checkout().</p>
 <h2 class="doxsection"><a class="anchor" id="api_sr_methods"></a>
 Methods</h2>
 <h4 class="doxsection"><a class="anchor" id="autotoc_md8"></a>
 operator*()</h4>
 <div class="fragment"><div class="line"><span class="keyword">auto</span> operator*() -&gt; T&amp;;</div>
 </div><!-- fragment --><p> Dereferences wrapped resource.</p>
-<h4 class="doxsection"><a class="anchor" id="autotoc_md9"></a>
+<p><b>Returns</b>: Reference to the wrapped resource.</p>
+<p><b>Example</b>: </p><div class="fragment"><div class="line"><span class="keyword">auto</span> res = pool.checkout();</div>
+<div class="line">(*res).doSomething();  <span class="comment">// Access via dereference</span></div>
+</div><!-- fragment --><h4 class="doxsection"><a class="anchor" id="autotoc_md9"></a>
 operator T&amp;()</h4>
 <div class="fragment"><div class="line"><span class="keyword">operator</span> T&amp;();</div>
 </div><!-- fragment --><p> Implicit conversion to resource reference.</p>
-<h4 class="doxsection"><a class="anchor" id="autotoc_md10"></a>
+<p><b>Example</b>: </p><div class="fragment"><div class="line"><span class="keyword">auto</span> res = pool.checkout();</div>
+<div class="line">T&amp; ref = res;  <span class="comment">// Implicit conversion</span></div>
+</div><!-- fragment --><h4 class="doxsection"><a class="anchor" id="autotoc_md10"></a>
 invalidate()</h4>
 <div class="fragment"><div class="line"><span class="keywordtype">void</span> invalidate();</div>
 </div><!-- fragment --><p> Marks resource as invalid to prevent automatic return to pool.</p>
@@ -198,14 +216,19 @@ invalidate()</h4>
 <li>Resource has been consumed</li>
 <li>Custom resource management needed</li>
 </ul>
-<h4 class="doxsection"><a class="anchor" id="autotoc_md11"></a>
+<p><b>Example</b>: </p><div class="fragment"><div class="line"><span class="keyword">auto</span> res = pool.checkout();</div>
+<div class="line"><span class="keyword">auto</span> extracted = std::move(*res);</div>
+<div class="line">res.invalidate();  <span class="comment">// Don&#39;t return moved-out resource</span></div>
+</div><!-- fragment --><h4 class="doxsection"><a class="anchor" id="autotoc_md11"></a>
 Move Constructor</h4>
 <div class="fragment"><div class="line">scoped_resource(scoped_resource&amp;&amp; src) <span class="keyword">noexcept</span>;</div>
 </div><!-- fragment --><p> Transfers ownership. Source becomes invalid.</p>
+<p><b>Note</b>: Ensures only one wrapper returns the resource to the pool.</p>
 <h4 class="doxsection"><a class="anchor" id="autotoc_md12"></a>
 Move Assignment</h4>
 <div class="fragment"><div class="line">scoped_resource&amp; operator=(scoped_resource&amp;&amp; src) <span class="keyword">noexcept</span>;</div>
 </div><!-- fragment --><p> Transfers ownership. Previous resource (if valid) is returned to pool.</p>
+<p><b>Note</b>: If this wrapper held a valid resource, it is returned to the pool before assignment.</p>
 <h1 class="doxsection"><a class="anchor" id="api_enums"></a>
 Enumerations</h1>
 <h4 class="doxsection"><a class="anchor" id="autotoc_md13"></a>
@@ -214,9 +237,19 @@ auto_add_policy</h4>
 <div class="line">    NoGrow,    <span class="comment">// Throw when pool is empty</span></div>
 <div class="line">    AutoGrow   <span class="comment">// Create resources on demand</span></div>
 <div class="line">};</div>
+</div><!-- fragment --><p>Controls whether resource_pool automatically creates resources when empty.</p>
+<p><b>Values</b>:</p><ul>
+<li><b>NoGrow</b>: Throws std::runtime_error when checkout() is called on empty pool</li>
+<li><b>AutoGrow</b>: Automatically creates new resources on demand up to capacity limit</li>
+</ul>
+<p><b>Usage</b>: </p><div class="fragment"><div class="line"><span class="comment">// NoGrow policy (default)</span></div>
+<div class="line">resource_pool&lt;Resource&gt; pool1;</div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// AutoGrow policy</span></div>
+<div class="line">resource_pool&lt;Resource&gt; pool2(auto_add_policy::AutoGrow);</div>
 </div><!-- fragment --><h1 class="doxsection"><a class="anchor" id="api_exceptions"></a>
 Exceptions</h1>
-<p>All exceptions are std::runtime_error:</p>
+<p>All exceptions thrown by ARRP are of type std::runtime_error:</p>
 <ul>
 <li><b>"No items in the pool; add something first."</b> - checkout() on empty pool with NoGrow policy</li>
 <li><b>"Pool Size:X checkedout:Y capacity:Z"</b> - checkout() when at capacity and empty</li>
@@ -224,7 +257,7 @@ Exceptions</h1>
 <h1 class="doxsection"><a class="anchor" id="api_thread_safety"></a>
 Thread Safety</h1>
 <p><b>Guarantees</b>:</p><ul>
-<li>All public methods are thread-safe</li>
+<li>All public methods of resource_pool are thread-safe</li>
 <li>Multiple threads can safely call checkout() and checkin() concurrently</li>
 <li>Internal mutexes protect shared state</li>
 <li>Atomic counters for lock-free statistics</li>
@@ -234,6 +267,7 @@ Thread Safety</h1>
 <li>Resource creation happens outside lock to minimize contention</li>
 <li>Atomic operations for counters avoid lock overhead</li>
 </ul>
+<p><b>Note</b>: scoped_resource is not thread-safe by itself; thread safety is provided by resource_pool.</p>
 <h1 class="doxsection"><a class="anchor" id="api_performance"></a>
 Performance Characteristics</h1>
 <table class="markdownTable">
@@ -261,8 +295,8 @@ Memory Characteristics</h1>
 Constraints</h1>
 <ul>
 <li>Capacity limited to 255 resources (uint8_t)</li>
-<li>Factory callbacks must not call pool methods</li>
-<li>Resources must be move-constructible</li>
+<li>Factory callbacks must not call resource_pool methods</li>
+<li>Resources must be move-constructible and non-arithmetic types</li>
 <li>Counters wrap around after ~18 quintillion operations (uint64_t)</li>
 </ul>
 <h1 class="doxsection"><a class="anchor" id="api_exception_safety"></a>
@@ -278,13 +312,21 @@ Exception Safety</h1>
 Best Practices</h1>
 <ol type="1">
 <li><b>Always use RAII</b>: Let scoped_resource handle resource return</li>
-<li><b>Factory callbacks</b>: Only create and return resources, never call pool methods</li>
+<li><b>Factory callbacks</b>: Only create and return resources, never call resource_pool methods</li>
 <li><b>Exception handling</b>: Catch std::runtime_error from checkout()</li>
 <li><b>Resource types</b>: Prefer shared_ptr or unique_ptr over raw pointers</li>
 <li><b>Monitoring</b>: Use to_json() to track pool utilization</li>
 <li><b>Thread safety</b>: No external synchronization needed</li>
-<li><b>Invalidation</b>: Use invalidate() only when resource is moved out or consumed </li>
+<li><b>Invalidation</b>: Use invalidate() only when resource is moved out or consumed</li>
 </ol>
+<h1 class="doxsection"><a class="anchor" id="api_quick_links"></a>
+Quick Links</h1>
+<ul>
+<li>resource_pool class - Main pool implementation</li>
+<li>scoped_resource class - RAII wrapper</li>
+<li>auto_add_policy enum - Growth policy control</li>
+<li><a class="el" href="usage_guide.html" title="Usage Guide">Usage Guide</a> - Practical examples and patterns </li>
+</ul>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->
 </div><!-- doc-content -->

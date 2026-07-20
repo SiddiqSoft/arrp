@@ -1,9 +1,11 @@
 var searchData=
 [
-  ['safety_0',['Safety',['../api.html#api_exception_safety',1,'Exception Safety'],['../usage_guide.html#ug_exception_safety',1,'Exception Safety'],['../api.html#api_thread_safety',1,'Thread Safety']]],
-  ['scoped_5fresource_20class_1',['scoped_resource Class',['../api.html#api_scoped_resource',1,'']]],
-  ['see_20also_2',['See Also',['../index.html#see_also',1,'']]],
-  ['shared_5fptr_3',['Using shared_ptr',['../usage_guide.html#ug_shared_ptr',1,'']]],
-  ['size_4',['size()',['../api.html#autotoc_md4',1,'']]],
-  ['state_5',['Monitoring Pool State',['../usage_guide.html#ug_monitoring',1,'']]]
+  ['recommended_0',['Using CMake (Recommended)',['../index.html#autotoc_md14',1,'']]],
+  ['reference_1',['API Reference',['../api.html',1,'']]],
+  ['resource_20invalidation_2',['Resource Invalidation',['../usage_guide.html#ug_invalidation',1,'']]],
+  ['resource_20pool_20for_20modern_20c_3',['ARRP - Auto Returning Resource Pool for Modern C++',['../index.html',1,'']]],
+  ['resource_20types_4',['Resource Types',['../usage_guide.html#ug_resource_types',1,'']]],
+  ['resource_5fpool_20class_5',['resource_pool Class',['../api.html#api_resource_pool',1,'']]],
+  ['resources_6',['Resources',['../usage_guide.html#ug_borrow_resource',1,'Borrowing Resources'],['../usage_guide.html#ug_invalidate_consumed',1,'Invalidating Consumed Resources'],['../usage_guide.html#ug_invalidate_moved',1,'Invalidating Moved Resources']]],
+  ['returning_20resource_20pool_20for_20modern_20c_7',['ARRP - Auto Returning Resource Pool for Modern C++',['../index.html',1,'']]]
 ];

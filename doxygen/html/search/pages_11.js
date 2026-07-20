@@ -1,11 +1,9 @@
 var searchData=
 [
-  ['t_0',['operator T&amp;amp;()',['../api.html#autotoc_md9',1,'']]],
-  ['template_20parameters_1',['Template Parameters',['../api.html#api_rp_template',1,'']]],
-  ['the_20pool_2',['Populating the Pool',['../usage_guide.html#ug_populate_pool',1,'']]],
-  ['thread_20safety_3',['Thread Safety',['../api.html#api_thread_safety',1,'']]],
-  ['threaded_20usage_4',['Multi-threaded Usage',['../usage_guide.html#ug_multithreaded',1,'']]],
-  ['to_5fjson_5',['to_json()',['../api.html#autotoc_md6',1,'']]],
-  ['troubleshooting_6',['Troubleshooting',['../usage_guide.html#ug_troubleshooting',1,'']]],
-  ['types_7',['Types',['../usage_guide.html#ug_resource_types',1,'Resource Types'],['../usage_guide.html#ug_custom_types',1,'Using Custom Types']]]
+  ['safety_0',['Safety',['../api.html#api_exception_safety',1,'Exception Safety'],['../usage_guide.html#ug_exception_safety',1,'Exception Safety'],['../api.html#api_thread_safety',1,'Thread Safety']]],
+  ['scoped_5fresource_20class_1',['scoped_resource Class',['../api.html#api_scoped_resource',1,'']]],
+  ['see_20also_2',['See Also',['../index.html#see_also',1,'']]],
+  ['shared_5fptr_3',['Using shared_ptr',['../usage_guide.html#ug_shared_ptr',1,'']]],
+  ['size_4',['size()',['../api.html#autotoc_md4',1,'']]],
+  ['state_5',['Monitoring Pool State',['../usage_guide.html#ug_monitoring',1,'']]]
 ];
