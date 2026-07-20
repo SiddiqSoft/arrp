@@ -1,5 +1,14 @@
 var searchData=
 [
-  ['json_20output_20format_0',['JSON Output Format',['../quick_reference.html#qr_json_output',1,'']]],
-  ['json_20serialization_1',['JSON Serialization',['../security.html#autotoc_md114',1,'JSON Serialization'],['../usage_guide.html#adv_json_serialization',1,'JSON Serialization']]]
+  ['parameters_0',['Template Parameters',['../api.html#api_rp_template',1,'']]],
+  ['patterns_1',['Advanced Patterns',['../usage_guide.html#ug_advanced_patterns',1,'']]],
+  ['performance_20characteristics_2',['Performance Characteristics',['../api.html#api_performance',1,'']]],
+  ['performance_20issues_3',['Performance Issues',['../usage_guide.html#ug_performance',1,'']]],
+  ['pool_4',['Pool',['../usage_guide.html#ug_create_pool',1,'Creating a Pool'],['../usage_guide.html#ug_populate_pool',1,'Populating the Pool']]],
+  ['pool_20exhaustion_5',['Handling Pool Exhaustion',['../usage_guide.html#ug_pool_exhaustion',1,'']]],
+  ['pool_20for_20modern_20c_6',['ARRP - Auto Returning Resource Pool for Modern C++',['../index.html',1,'']]],
+  ['pool_20is_20empty_7',['Pool is Empty',['../usage_guide.html#ug_pool_empty',1,'']]],
+  ['pool_20state_8',['Monitoring Pool State',['../usage_guide.html#ug_monitoring',1,'']]],
+  ['populating_20the_20pool_9',['Populating the Pool',['../usage_guide.html#ug_populate_pool',1,'']]],
+  ['practices_10',['Practices',['../api.html#api_best_practices',1,'Best Practices'],['../usage_guide.html#ug_best_practices',1,'Best Practices']]]
 ];

@@ -1,10 +1,12 @@
 var searchData=
 [
-  ['gcc_2010_0',['GCC 10+',['../getting_started.html#autotoc_md67',1,'']]],
-  ['getting_20started_1',['Getting Started',['../getting_started.html',1,'']]],
-  ['glance_2',['Components at a Glance',['../quick_reference.html#qr_components',1,'']]],
-  ['good_20callback_20practices_3',['✅ Good Callback Practices',['../security.html#autotoc_md97',1,'']]],
-  ['graceful_20shutdown_4',['Graceful Shutdown',['../security.html#autotoc_md112',1,'']]],
-  ['grow_20policy_5',['Resource Pool with Auto-Grow Policy',['../api.html#autotoc_md51',1,'']]],
-  ['guide_6',['Guide',['../security.html',1,'Security Guide'],['../usage_guide.html',1,'Usage Guide']]]
+  ['manual_20integration_0',['Manual Integration',['../index.html#autotoc_md16',1,'']]],
+  ['memory_20characteristics_1',['Memory Characteristics',['../api.html#api_memory',1,'']]],
+  ['methods_2',['Methods',['../api.html#api_rp_methods',1,'Methods'],['../api.html#api_sr_methods',1,'Methods']]],
+  ['modern_20c_3',['ARRP - Auto Returning Resource Pool for Modern C++',['../index.html',1,'']]],
+  ['monitoring_20pool_20state_4',['Monitoring Pool State',['../usage_guide.html#ug_monitoring',1,'']]],
+  ['move_20assignment_5',['Move Assignment',['../api.html#autotoc_md12',1,'']]],
+  ['move_20constructor_6',['Move Constructor',['../api.html#autotoc_md11',1,'']]],
+  ['moved_20resources_7',['Invalidating Moved Resources',['../usage_guide.html#ug_invalidate_moved',1,'']]],
+  ['multi_20threaded_20usage_8',['Multi-threaded Usage',['../usage_guide.html#ug_multithreaded',1,'']]]
 ];

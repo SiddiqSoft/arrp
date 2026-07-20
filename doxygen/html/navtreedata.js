@@ -26,85 +26,57 @@ var NAVTREE =
 [
   [ "arrp", "index.html", [
     [ "ARRP - Auto Returning Resource Pool for Modern C++", "index.html", "index" ],
-    [ "API Reference", "api.html", null ],
-    [ "Examples", "examples.html", [
-      [ "Database Connection Pool", "examples.html#ex_database_connections", null ],
-      [ "HTTP Client Connection Pool", "examples.html#ex_http_client", null ],
-      [ "File Handle Pool", "examples.html#ex_file_handles", null ],
-      [ "Thread Pool Integration", "examples.html#ex_thread_pool_integration", null ],
-      [ "Custom Resource Factory", "examples.html#ex_custom_factory", null ],
-      [ "Pool Monitoring", "examples.html#ex_monitoring", null ],
-      [ "Resource Invalidation", "examples.html#ex_resource_invalidation", null ],
-      [ "Error Handling", "examples.html#ex_error_handling", null ],
-      [ "Scoped Resource Usage", "examples.html#ex_scoped_usage", null ]
-    ] ],
-    [ "Getting Started", "getting_started.html", [
-      [ "Installation", "getting_started.html#installation", null ],
-      [ "Compiler Setup", "getting_started.html#compiler_setup", null ],
-      [ "Your First Program", "getting_started.html#first_program", null ],
-      [ "Common Patterns", "getting_started.html#common_patterns", null ],
-      [ "Troubleshooting", "getting_started.html#troubleshooting", null ],
-      [ "Next Steps", "getting_started.html#next_steps", null ]
-    ] ],
-    [ "Quick Reference", "quick_reference.html", [
-      [ "Components at a Glance", "quick_reference.html#qr_components", null ],
-      [ "Include Files", "quick_reference.html#qr_includes", null ],
-      [ "Basic Patterns", "quick_reference.html#qr_basic_patterns", [
-        [ "Basic Pool Usage", "quick_reference.html#qr_pattern_basic", null ],
-        [ "Custom Factory", "quick_reference.html#qr_pattern_factory", null ],
-        [ "Multi-threaded Usage", "quick_reference.html#qr_pattern_multithreaded", null ],
-        [ "Resource Invalidation", "quick_reference.html#qr_pattern_invalidate", null ]
+    [ "API Reference", "api.html", [
+      [ "Overview", "api.html#api_overview", null ],
+      [ "resource_pool Class", "api.html#api_resource_pool", [
+        [ "Template Parameters", "api.html#api_rp_template", null ],
+        [ "Constructors", "api.html#api_rp_constructors", null ],
+        [ "Methods", "api.html#api_rp_methods", null ]
       ] ],
-      [ "Template Parameters", "quick_reference.html#qr_template_params", null ],
-      [ "Common Methods", "quick_reference.html#qr_methods", null ],
-      [ "Requirements", "quick_reference.html#qr_requirements", null ],
-      [ "Compilation", "quick_reference.html#qr_compilation", null ],
-      [ "Tips &amp; Tricks", "quick_reference.html#qr_tips", null ],
-      [ "Type Constraints", "quick_reference.html#qr_constraints", null ],
-      [ "Common Issues", "quick_reference.html#qr_troubleshooting", null ],
-      [ "Performance Tips", "quick_reference.html#qr_performance", null ],
-      [ "Quick Examples", "quick_reference.html#qr_examples", null ],
-      [ "JSON Output Format", "quick_reference.html#qr_json_output", null ]
-    ] ],
-    [ "Security Guide", "security.html", [
-      [ "Overview", "security.html#security_overview", null ],
-      [ "Built-in Security Features", "security.html#security_features", null ],
-      [ "Callback Security", "security.html#callback_security", null ],
-      [ "Deadlock Prevention", "security.html#deadlock_prevention", null ],
-      [ "Locking and Deadlock Prevention", "security.html#locking_considerations", null ],
-      [ "Resource Exhaustion Prevention", "security.html#resource_exhaustion", null ],
-      [ "Exception Handling", "security.html#exception_handling", null ],
-      [ "Thread Safety", "security.html#thread_safety", null ],
-      [ "Shutdown Safety", "security.html#shutdown_safety", null ],
-      [ "Monitoring and Diagnostics", "security.html#monitoring", null ],
-      [ "Security Checklist", "security.html#security_checklist", null ],
-      [ "Vulnerability Reporting", "security.html#vulnerability_reporting", null ],
-      [ "Additional Resources", "security.html#security_resources", null ],
-      [ "FAQ", "security.html#security_faq", null ]
+      [ "scoped_resource Class", "api.html#api_scoped_resource", [
+        [ "Constructors", "api.html#api_sr_constructors", null ],
+        [ "Methods", "api.html#api_sr_methods", null ]
+      ] ],
+      [ "Enumerations", "api.html#api_enums", null ],
+      [ "Exceptions", "api.html#api_exceptions", null ],
+      [ "Thread Safety", "api.html#api_thread_safety", null ],
+      [ "Performance Characteristics", "api.html#api_performance", null ],
+      [ "Memory Characteristics", "api.html#api_memory", null ],
+      [ "Constraints", "api.html#api_constraints", null ],
+      [ "Exception Safety", "api.html#api_exception_safety", null ],
+      [ "Best Practices", "api.html#api_best_practices", null ]
     ] ],
     [ "Usage Guide", "usage_guide.html", [
-      [ "Overview", "usage_guide.html#overview", null ],
-      [ "Resource Pool", "usage_guide.html#resource_pool", [
-        [ "Basic Usage", "usage_guide.html#rp_basic", null ],
-        [ "Capacity Management", "usage_guide.html#rp_capacity", null ],
-        [ "Custom Resource Factory", "usage_guide.html#rp_factory", null ],
-        [ "Resource Pool Methods", "usage_guide.html#rp_methods", null ],
-        [ "Scoped Resource Wrapper", "usage_guide.html#rp_scoped_resource", null ],
-        [ "Multi-threaded Usage", "usage_guide.html#rp_multithreaded", null ]
+      [ "Overview", "usage_guide.html#ug_overview", null ],
+      [ "Basic Usage", "usage_guide.html#ug_basic_usage", [
+        [ "Creating a Pool", "usage_guide.html#ug_create_pool", null ],
+        [ "Populating the Pool", "usage_guide.html#ug_populate_pool", null ],
+        [ "Borrowing Resources", "usage_guide.html#ug_borrow_resource", null ]
       ] ],
-      [ "Best Practices", "usage_guide.html#best_practices", [
-        [ "Lifetime Management", "usage_guide.html#bp_lifetime", null ],
-        [ "Resource Types", "usage_guide.html#bp_resource_types", null ],
-        [ "Capacity Planning", "usage_guide.html#bp_capacity", null ],
-        [ "Error Handling", "usage_guide.html#bp_error_handling", null ],
-        [ "Monitoring", "usage_guide.html#bp_monitoring", null ]
+      [ "Advanced Patterns", "usage_guide.html#ug_advanced_patterns", [
+        [ "Custom Factory Callback", "usage_guide.html#ug_custom_factory", null ],
+        [ "Multi-threaded Usage", "usage_guide.html#ug_multithreaded", null ],
+        [ "Monitoring Pool State", "usage_guide.html#ug_monitoring", null ]
       ] ],
-      [ "Advanced Topics", "usage_guide.html#advanced", [
-        [ "Custom Resource Types", "usage_guide.html#adv_custom_types", null ],
-        [ "JSON Serialization", "usage_guide.html#adv_json_serialization", null ],
-        [ "Resource Invalidation", "usage_guide.html#adv_resource_invalidation", null ]
+      [ "Error Handling", "usage_guide.html#ug_error_handling", [
+        [ "Handling Pool Exhaustion", "usage_guide.html#ug_pool_exhaustion", null ],
+        [ "Exception Safety", "usage_guide.html#ug_exception_safety", null ]
       ] ],
-      [ "Performance Considerations", "usage_guide.html#performance", null ]
+      [ "Resource Types", "usage_guide.html#ug_resource_types", [
+        [ "Using shared_ptr", "usage_guide.html#ug_shared_ptr", null ],
+        [ "Using unique_ptr", "usage_guide.html#ug_unique_ptr", null ],
+        [ "Using Custom Types", "usage_guide.html#ug_custom_types", null ]
+      ] ],
+      [ "Resource Invalidation", "usage_guide.html#ug_invalidation", [
+        [ "Invalidating Moved Resources", "usage_guide.html#ug_invalidate_moved", null ],
+        [ "Invalidating Consumed Resources", "usage_guide.html#ug_invalidate_consumed", null ]
+      ] ],
+      [ "Troubleshooting", "usage_guide.html#ug_troubleshooting", [
+        [ "Avoiding Deadlocks", "usage_guide.html#ug_deadlock", null ],
+        [ "Pool is Empty", "usage_guide.html#ug_pool_empty", null ],
+        [ "Performance Issues", "usage_guide.html#ug_performance", null ]
+      ] ],
+      [ "Best Practices", "usage_guide.html#ug_best_practices", null ]
     ] ],
     [ "Concepts", "concepts.html", "concepts" ],
     [ "Classes", "annotated.html", [

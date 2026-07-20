@@ -1,8 +1,11 @@
 var searchData=
 [
-  ['next_20steps_0',['Next Steps',['../getting_started.html#next_steps',1,'']]],
-  ['nonnumericmoveconstructible_1',['NonNumericMoveConstructible',['../conceptsiddiqsoft_1_1arrp_1_1NonNumericMoveConstructible.html',1,'siddiqsoft::arrp'],['../api.html#autotoc_md46',1,'NonNumericMoveConstructible']]],
-  ['nonnumericmoveconstructible_20concept_2',['NonNumericMoveConstructible Concept',['../quick_reference.html#autotoc_md86',1,'']]],
-  ['not_20call_20pool_20methods_3',['Critical Rule: Factory Callbacks Must Not Call Pool Methods',['../security.html#autotoc_md103',1,'']]],
-  ['nuget_20windows_4',['NuGet Windows',['../getting_started.html#autotoc_md65',1,'Using NuGet (Windows)'],['../index.html#autotoc_md76',1,'Using NuGet (Windows)']]]
+  ['unique_5fptr_0',['Using unique_ptr',['../usage_guide.html#ug_unique_ptr',1,'']]],
+  ['usage_1',['Usage',['../usage_guide.html#ug_basic_usage',1,'Basic Usage'],['../usage_guide.html#ug_multithreaded',1,'Multi-threaded Usage']]],
+  ['usage_20guide_2',['Usage Guide',['../usage_guide.html',1,'']]],
+  ['using_20cmake_20recommended_3',['Using CMake (Recommended)',['../index.html#autotoc_md14',1,'']]],
+  ['using_20custom_20types_4',['Using Custom Types',['../usage_guide.html#ug_custom_types',1,'']]],
+  ['using_20nuget_20windows_5',['Using NuGet (Windows)',['../index.html#autotoc_md15',1,'']]],
+  ['using_20shared_5fptr_6',['Using shared_ptr',['../usage_guide.html#ug_shared_ptr',1,'']]],
+  ['using_20unique_5fptr_7',['Using unique_ptr',['../usage_guide.html#ug_unique_ptr',1,'']]]
 ];

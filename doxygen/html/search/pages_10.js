@@ -1,13 +1,9 @@
 var searchData=
 [
-  ['later_0',['Visual Studio 2019 or later',['../getting_started.html#autotoc_md66',1,'']]],
-  ['license_1',['License',['../index.html#license',1,'']]],
-  ['lifecycle_20methods_2',['Lifecycle Methods',['../api.html#autotoc_md41',1,'']]],
-  ['lifetime_20management_3',['Lifetime Management',['../usage_guide.html#bp_lifetime',1,'']]],
-  ['limitations_4',['Constraints and Limitations',['../api.html#autotoc_md25',1,'']]],
-  ['limits_5',['Capacity Limits',['../security.html#autotoc_md106',1,'']]],
-  ['links_6',['Links',['../index.html#links',1,'']]],
-  ['lock_20ordering_7',['Lock Ordering',['../security.html#autotoc_md101',1,'']]],
-  ['lock_20ordering_20and_20consistency_8',['Lock Ordering and Consistency',['../security.html#autotoc_md104',1,'']]],
-  ['locking_20and_20deadlock_20prevention_9',['Locking and Deadlock Prevention',['../security.html#locking_considerations',1,'']]]
+  ['safety_0',['Safety',['../api.html#api_exception_safety',1,'Exception Safety'],['../usage_guide.html#ug_exception_safety',1,'Exception Safety'],['../api.html#api_thread_safety',1,'Thread Safety']]],
+  ['scoped_5fresource_20class_1',['scoped_resource Class',['../api.html#api_scoped_resource',1,'']]],
+  ['see_20also_2',['See Also',['../index.html#see_also',1,'']]],
+  ['shared_5fptr_3',['Using shared_ptr',['../usage_guide.html#ug_shared_ptr',1,'']]],
+  ['size_4',['size()',['../api.html#autotoc_md4',1,'']]],
+  ['state_5',['Monitoring Pool State',['../usage_guide.html#ug_monitoring',1,'']]]
 ];
