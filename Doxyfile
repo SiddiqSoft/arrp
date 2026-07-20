@@ -436,6 +436,24 @@ IGNORE_PREFIX          =
 # If the GENERATE_HTML tag is set to YES doxygen will generate HTML output
 GENERATE_HTML          = YES
 
+
+# GitHub repository configuration for source links
+REPOSITORY_URL         = https://github.com/SiddiqSoft/arrp
+GITHUB_REPO            = SiddiqSoft/arrp
+GITHUB_BRANCH          = main
+
+# Use GitHub for source file links
+SOURCE_BROWSER         = YES
+USE_HTAGS              = NO
+
+# Strip paths to make GitHub links work
+STRIP_FROM_PATH        = ./
+STRIP_FROM_INC_PATH    = ./include/
+
+# Enable source code links
+REFERENCES_RELATION    = YES
+REFERENCED_BY_RELATION = YES
+
 # The HTML_OUTPUT tag is used to specify where the HTML pages will be put.
 HTML_OUTPUT            = html
 
