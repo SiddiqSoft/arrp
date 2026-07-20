@@ -51,7 +51,7 @@ Callbacks are user-provided code and should be implemented securely.
 
 ```cpp
 // Safe callback with error handling
-auto res = pool.borrow_from_pool();
+auto res = pool.checkout();
 try {
     res->process();
 } catch (const std::exception& ex) {
@@ -59,11 +59,11 @@ try {
 }
 
 // Callback that doesn't block
-auto res = pool.borrow_from_pool();
+auto res = pool.checkout();
 res->update();  // Quick operation
 
 // Callback that respects ownership
-auto res = pool.borrow_from_pool();
+auto res = pool.checkout();
 auto ptr = std::move(*res);
 res.invalidate();  // Don't return moved-out resource
 ```
@@ -72,18 +72,18 @@ res.invalidate();  // Don't return moved-out resource
 
 ```cpp
 // ❌ Accessing invalid memory
-auto res = pool.borrow_from_pool();
+auto res = pool.checkout();
 auto ptr = std::move(*res);
 // ptr is now invalid, don't use it
 
 // ❌ Blocking indefinitely
-auto res = pool.borrow_from_pool();
+auto res = pool.checkout();
 while (true) {  // Blocks thread forever
     res->process();
 }
 
 // ❌ Throwing uncaught exceptions
-auto res = pool.borrow_from_pool();
+auto res = pool.checkout();
 throw std::runtime_error("Unhandled error");
 ```
 
@@ -95,12 +95,12 @@ Never create circular dependencies with resources:
 
 ```cpp
 // ✅ GOOD: Independent resource usage
-auto res1 = pool.borrow_from_pool();
+auto res1 = pool.checkout();
 res1->process();
 
 // ❌ BAD: Circular dependency (if pool is shared)
-auto res = pool.borrow_from_pool();
-auto res2 = pool.borrow_from_pool();  // May deadlock if pool exhausted
+auto res = pool.checkout();
+auto res2 = pool.checkout();  // May deadlock if pool exhausted
 ```
 
 ### Blocking Operations
@@ -109,11 +109,11 @@ Avoid blocking operations when holding resources:
 
 ```cpp
 // ❌ BAD: Blocking operation while holding resource
-auto res = pool.borrow_from_pool();
+auto res = pool.checkout();
 std::this_thread::sleep_for(std::chrono::seconds(10));  // Blocks thread
 
 // ✅ GOOD: Quick operation
-auto res = pool.borrow_from_pool();
+auto res = pool.checkout();
 res->process();  // Quick operation
 ```
 
@@ -125,7 +125,7 @@ If using locks in resource operations, maintain consistent lock ordering:
 // ✅ GOOD: Consistent lock ordering
 std::mutex lock1, lock2;
 
-auto res = pool.borrow_from_pool();
+auto res = pool.checkout();
 std::scoped_lock l(lock1, lock2);  // Always same order
 res->process();
 ```
@@ -157,10 +157,10 @@ This is the most important rule to prevent deadlocks:
 siddiqsoft::arrp::resource_pool<Resource> pool(
     [&pool](auto& p) -> siddiqsoft::arrp::scoped_resource<Resource> {
         // NEVER do this:
-        auto other = pool.borrow_from_pool();  // DEADLOCK!
+        auto other = pool.checkout();  // DEADLOCK!
         return siddiqsoft::arrp::scoped_resource<Resource>(
             Resource::create(),
-            [&p](Resource&& r) { p.return_to_pool(std::move(r)); }
+            [&p](Resource&& r) { p.checkin(std::move(r)); }
         );
     }
 );
@@ -171,7 +171,7 @@ siddiqsoft::arrp::resource_pool<Resource> pool(
         // Only create the resource, don't call pool methods
         return siddiqsoft::arrp::scoped_resource<Resource>(
             Resource::create(),
-            [&p](Resource&& r) { p.return_to_pool(std::move(r)); }
+            [&p](Resource&& r) { p.checkin(std::move(r)); }
         );
     }
 );
@@ -186,7 +186,7 @@ If your resource operations acquire locks, maintain consistent lock ordering:
 std::mutex resource_lock;
 std::mutex other_lock;
 
-auto res = pool.borrow_from_pool();
+auto res = pool.checkout();
 {
     // Always acquire in the same order
     std::scoped_lock l(resource_lock, other_lock);
@@ -221,7 +221,7 @@ siddiqsoft::arrp::resource_pool<Resource, siddiqsoft::arrp::scoped_resource<Reso
 
 // Populate with appropriate number of resources
 for (int i = 0; i < 16; ++i) {
-    pool.return_to_pool(Resource{});
+    pool.checkin(Resource{});
 }
 ```
 
@@ -232,7 +232,7 @@ Handle the case when the pool is exhausted:
 ```cpp
 // ✅ GOOD: Handle pool exhaustion
 try {
-    auto res = pool.borrow_from_pool();
+    auto res = pool.checkout();
     // Use resource
 } catch (const std::runtime_error& e) {
     std::cerr << "Pool exhausted: " << e.what() << std::endl;
@@ -249,7 +249,7 @@ Exceptions during resource operations are handled safely:
 ```cpp
 // Safe exception handling
 try {
-    auto res = pool.borrow_from_pool();
+    auto res = pool.checkout();
     res->process();  // May throw
 } catch (const std::exception& e) {
     std::cerr << "Error: " << e.what() << std::endl;
@@ -264,7 +264,7 @@ Critical exceptions (std::bad_alloc, etc.) are handled specially:
 ```cpp
 // Critical exceptions are identified
 try {
-    auto res = pool.borrow_from_pool();
+    auto res = pool.checkout();
 } catch (const std::bad_alloc& ex) {
     // Handle memory exhaustion
     std::cerr << "Out of memory" << std::endl;
@@ -279,8 +279,8 @@ All pool operations are thread-safe:
 
 ```cpp
 // Safe to call from multiple threads
-std::thread t1([&]() { auto res = pool.borrow_from_pool(); });
-std::thread t2([&]() { auto res = pool.borrow_from_pool(); });
+std::thread t1([&]() { auto res = pool.checkout(); });
+std::thread t2([&]() { auto res = pool.checkout(); });
 t1.join();
 t2.join();
 ```
@@ -291,7 +291,7 @@ Resources are accessed safely through scoped_resource:
 
 ```cpp
 // Safe access through wrapper
-auto res = pool.borrow_from_pool();
+auto res = pool.checkout();
 res->process();  // Safe access
 // Automatically returned when going out of scope
 ```
@@ -307,7 +307,7 @@ Shutdown is graceful and safe:
     siddiqsoft::arrp::resource_pool<Resource> pool;
     
     // Populate and use pool
-    auto res = pool.borrow_from_pool();
+    auto res = pool.checkout();
     res->process();
     
     // Destructor waits for all checked-out resources to be returned
@@ -436,7 +436,7 @@ A: Email security details to github@siddiqsoft.com (do not open public issues).
 A: It prevents using arithmetic types (int, float, etc.) which don't benefit from pooling.
 
 **Q: How do I handle pool exhaustion?**
-A: Catch std::runtime_error from borrow_from_pool() and handle appropriately.
+A: Catch std::runtime_error from checkout() and handle appropriately.
 
 **Q: What is ARRP_USE_RECURSIVE_MUTEX?**
 A: It's a CMake option that enables std::recursive_mutex instead of std::mutex. Use it during development to catch potential deadlock issues.

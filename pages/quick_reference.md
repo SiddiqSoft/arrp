@@ -22,11 +22,11 @@ siddiqsoft::arrp::resource_pool<std::shared_ptr<Resource>> pool;
 
 // Populate
 for (int i = 0; i < 10; ++i) {
-    pool.return_to_pool(std::make_shared<Resource>());
+    pool.checkin(std::make_shared<Resource>());
 }
 
 // Use
-auto res = pool.borrow_from_pool();
+auto res = pool.checkout();
 res->doSomething();
 // Automatically returned
 ```
@@ -38,7 +38,7 @@ siddiqsoft::arrp::resource_pool<Resource> pool{
     [](auto& p) -> siddiqsoft::arrp::scoped_resource<Resource> {
         return siddiqsoft::arrp::scoped_resource<Resource>(
             Resource::create(),
-            [&p](Resource&& r) { p.return_to_pool(std::move(r)); }
+            [&p](Resource&& r) { p.checkin(std::move(r)); }
         );
     }
 };
@@ -50,7 +50,7 @@ siddiqsoft::arrp::resource_pool<Resource> pool{
 std::vector<std::thread> threads;
 for (int t = 0; t < 4; ++t) {
     threads.emplace_back([&pool]() {
-        auto res = pool.borrow_from_pool();
+        auto res = pool.checkout();
         // Use resource
     });
 }
@@ -60,7 +60,7 @@ for (auto& t : threads) t.join();
 @subsection qr_pattern_invalidate Resource Invalidation
 
 ```cpp
-auto res = pool.borrow_from_pool();
+auto res = pool.checkout();
 auto ptr = std::move(*res);
 res.invalidate();  // Don't return
 ```
@@ -77,16 +77,16 @@ res.invalidate();  // Don't return
 
 @section qr_methods Common Methods
 
-### borrow_from_pool()
+### checkout()
 Borrow a resource from the pool
 ```cpp
-auto resource = pool.borrow_from_pool();  // throws if empty and at capacity
+auto resource = pool.checkout();  // throws if empty and at capacity
 ```
 
-### return_to_pool(T&&)
+### checkin(T&&)
 Return a resource to the pool
 ```cpp
-pool.return_to_pool(std::move(resource));
+pool.checkin(std::move(resource));
 ```
 
 ### size()
@@ -144,7 +144,7 @@ target_link_libraries(your_target PRIVATE arrp::arrp)
 
 1. **Pre-populate the pool** - Add resources before using
 2. **Use move semantics** - Always move resources into the pool
-3. **Handle exceptions** - Catch std::runtime_error from borrow_from_pool()
+3. **Handle exceptions** - Catch std::runtime_error from checkout()
 4. **Monitor pool state** - Use to_json() to check diagnostics
 5. **Set capacity appropriately** - Match your thread pool size
 6. **Use shared_ptr** - For shared resource ownership
@@ -186,7 +186,7 @@ concept NonNumericMoveConstructible =
 | Issue | Solution |
 |-------|----------|
 | Compilation error: `deque not found` | Use C++20 or later |
-| `borrow_from_pool()` throws | Pool is empty and at capacity |
+| `checkout()` throws | Pool is empty and at capacity |
 | Resources not returned | Ensure scoped_resource goes out of scope |
 | Deadlock | Avoid circular dependencies |
 | Memory leak | Ensure proper RAII cleanup |
@@ -208,8 +208,8 @@ concept NonNumericMoveConstructible =
 ### Example 1: Basic Pool
 ```cpp
 siddiqsoft::arrp::resource_pool<std::shared_ptr<Connection>> pool;
-pool.return_to_pool(std::make_shared<Connection>());
-auto conn = pool.borrow_from_pool();
+pool.checkin(std::make_shared<Connection>());
+auto conn = pool.checkout();
 conn->query("SELECT * FROM users");
 ```
 
@@ -219,7 +219,7 @@ siddiqsoft::arrp::resource_pool<Connection> pool{
     [](auto& p) -> siddiqsoft::arrp::scoped_resource<Connection> {
         return siddiqsoft::arrp::scoped_resource<Connection>(
             Connection::create(),
-            [&p](Connection&& c) { p.return_to_pool(std::move(c)); }
+            [&p](Connection&& c) { p.checkin(std::move(c)); }
         );
     }
 };
@@ -227,15 +227,15 @@ siddiqsoft::arrp::resource_pool<Connection> pool{
 
 ### Example 3: Multi-threaded
 ```cpp
-std::thread t1([&pool]() { auto res = pool.borrow_from_pool(); });
-std::thread t2([&pool]() { auto res = pool.borrow_from_pool(); });
+std::thread t1([&pool]() { auto res = pool.checkout(); });
+std::thread t2([&pool]() { auto res = pool.checkout(); });
 t1.join(); t2.join();
 ```
 
 ### Example 4: Error Handling
 ```cpp
 try {
-    auto res = pool.borrow_from_pool();
+    auto res = pool.checkout();
 } catch (const std::runtime_error& e) {
     std::cerr << "Pool exhausted: " << e.what() << std::endl;
 }

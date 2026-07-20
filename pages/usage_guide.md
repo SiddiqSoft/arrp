@@ -25,12 +25,12 @@ int main() {
 
     // Populate the pool with resources
     for (int i = 0; i < 10; ++i) {
-        pool.return_to_pool(std::make_shared<DatabaseConnection>());
+        pool.checkin(std::make_shared<DatabaseConnection>());
     }
 
     // Borrow a resource
     {
-        auto conn = pool.borrow_from_pool();
+        auto conn = pool.checkout();
         conn->execute("SELECT * FROM users");
         // Automatically returned when going out of scope
     }
@@ -68,7 +68,7 @@ siddiqsoft::arrp::resource_pool<DatabaseConnection> pool{
         return siddiqsoft::arrp::scoped_resource<DatabaseConnection>(
             std::move(conn),
             [&p](DatabaseConnection&& conn) { 
-                p.return_to_pool(std::move(conn)); 
+                p.checkin(std::move(conn)); 
             }
         );
     }
@@ -76,7 +76,7 @@ siddiqsoft::arrp::resource_pool<DatabaseConnection> pool{
 
 // Resources are created on-demand up to capacity
 for (int i = 0; i < 10; ++i) {
-    auto conn = pool.borrow_from_pool();
+    auto conn = pool.checkout();
     conn.execute("SELECT * FROM users");
     // Automatically returned when going out of scope
 }
@@ -84,26 +84,26 @@ for (int i = 0; i < 10; ++i) {
 
 @subsection rp_methods Resource Pool Methods
 
-#### borrow_from_pool()
+#### checkout()
 
 Borrow a resource from the pool:
 
 ```cpp
-auto resource = pool.borrow_from_pool();  // Returns scoped_resource<T>
+auto resource = pool.checkout();  // Returns scoped_resource<T>
 // Use the resource...
 // Automatically returned when going out of scope
 ```
 
 Throws `std::runtime_error` if the pool is empty and at capacity.
 
-#### return_to_pool()
+#### checkin()
 
 Return a resource to the pool:
 
 ```cpp
-auto resource = pool.borrow_from_pool();
+auto resource = pool.checkout();
 // Use the resource...
-pool.return_to_pool(std::move(*resource));  // Manual return (rarely needed)
+pool.checkin(std::move(*resource));  // Manual return (rarely needed)
 ```
 
 This is typically called automatically by the scoped_resource destructor.
@@ -158,16 +158,16 @@ The `scoped_resource<T>` wrapper implements RAII for automatic resource return:
 
 ```cpp
 // Dereference operator
-auto resource = pool.borrow_from_pool();
+auto resource = pool.checkout();
 (*resource).execute("SELECT * FROM users");
 
 
 // Move semantics
-auto resource1 = pool.borrow_from_pool();
+auto resource1 = pool.checkout();
 auto resource2 = std::move(resource1);  // resource1 is now invalid
 
 // Invalidation
-auto resource = pool.borrow_from_pool();
+auto resource = pool.checkout();
 auto ptr = std::move(*resource);
 resource.invalidate();  // Don't return the moved-out resource
 ```
@@ -184,7 +184,7 @@ siddiqsoft::arrp::resource_pool<std::shared_ptr<DatabaseConnection>> pool;
 
 // Populate pool
 for (int i = 0; i < 10; ++i) {
-    pool.return_to_pool(std::make_shared<DatabaseConnection>());
+    pool.checkin(std::make_shared<DatabaseConnection>());
 }
 
 // Use from multiple threads
@@ -192,7 +192,7 @@ std::vector<std::thread> threads;
 for (int t = 0; t < 5; ++t) {
     threads.emplace_back([&pool]() {
         for (int i = 0; i < 20; ++i) {
-            auto conn = pool.borrow_from_pool();
+            auto conn = pool.checkout();
             conn->execute("SELECT * FROM users");
             // Automatically returned
         }
@@ -217,7 +217,7 @@ for (auto& t : threads) {
     siddiqsoft::arrp::resource_pool<Resource> pool;
     
     // Populate and use pool
-    auto res = pool.borrow_from_pool();
+    auto res = pool.checkout();
     // Use resource...
 }  // Pool destroyed here; all resources cleaned up
 ```
@@ -255,19 +255,19 @@ siddiqsoft::arrp::resource_pool<Resource, siddiqsoft::arrp::scoped_resource<Reso
 
 // Populate with initial resources
 for (int i = 0; i < 8; ++i) {
-    pool.return_to_pool(Resource{});
+    pool.checkin(Resource{});
 }
 ```
 
 @subsection bp_error_handling Error Handling
 
-- Handle `std::runtime_error` from `borrow_from_pool()`
+- Handle `std::runtime_error` from `checkout()`
 - Implement proper exception handling in callbacks
 - Monitor pool state for bottlenecks
 
 ```cpp
 try {
-    auto resource = pool.borrow_from_pool();
+    auto resource = pool.checkout();
     // Use resource...
 } catch (const std::runtime_error& e) {
     std::cerr << "Failed to borrow resource: " << e.what() << std::endl;
@@ -343,7 +343,7 @@ std::cout << json.dump(2) << std::endl;
 Prevent a resource from being returned to the pool:
 
 ```cpp
-auto resource = pool.borrow_from_pool();
+auto resource = pool.checkout();
 
 // Move the resource out
 auto ptr = std::move(*resource);

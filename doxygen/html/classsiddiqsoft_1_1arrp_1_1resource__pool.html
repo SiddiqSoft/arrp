@@ -28,7 +28,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="Siddiq-Software-Avatar.png"/></td>
   <td id="projectalign">
-   <div id="projectname">arrp<span id="projectnumber">&#160;0.0.7</span>
+   <div id="projectname">arrp<span id="projectnumber">&#160;0.0.8</span>
    </div>
    <div id="projectbrief">Auto returning resource pool for modern C++</div>
   </td>
@@ -129,8 +129,8 @@ resource_pool &amp;&#160;</td><td class="memItemRight"><b>operator=</b> (resourc
 <tr class="memdesc:aba5185c6e25c5ea9823d669fe6e55464"><td class="mdescLeft">&#160;</td><td class="mdescRight">Destructor - clears all resources from the pool.  <br /></td></tr>
 <tr class="memitem:ab2d6509105fa951ab2c6536596757869" id="r_ab2d6509105fa951ab2c6536596757869"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ab2d6509105fa951ab2c6536596757869">clear</a> ()</td></tr>
 <tr class="memitem:a93cb33f2a30b893e0eb7276092b6ec3d" id="r_a93cb33f2a30b893e0eb7276092b6ec3d"><td class="memItemLeft">size_t&#160;</td><td class="memItemRight"><a class="el" href="#a93cb33f2a30b893e0eb7276092b6ec3d">size</a> () const</td></tr>
-<tr class="memitem:a7af727d1f38404f4487f65dd93386329" id="r_a7af727d1f38404f4487f65dd93386329"><td class="memItemLeft">auto&#160;</td><td class="memItemRight"><a class="el" href="#a7af727d1f38404f4487f65dd93386329">borrow_from_pool</a> () -&gt; SRT</td></tr>
-<tr class="memitem:a4b545d06b570049d7a96ce545f1bad80" id="r_a4b545d06b570049d7a96ce545f1bad80"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a4b545d06b570049d7a96ce545f1bad80">return_to_pool</a> (T &amp;&amp;raw_resource)</td></tr>
+<tr class="memitem:aabc7e2f49aa9c050b98ff99fd644aba0" id="r_aabc7e2f49aa9c050b98ff99fd644aba0"><td class="memItemLeft">auto&#160;</td><td class="memItemRight"><a class="el" href="#aabc7e2f49aa9c050b98ff99fd644aba0">checkout</a> () -&gt; SRT</td></tr>
+<tr class="memitem:ac311acd0997233faa3c5dc0b7df86bc9" id="r_ac311acd0997233faa3c5dc0b7df86bc9"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#ac311acd0997233faa3c5dc0b7df86bc9">checkin</a> (T &amp;&amp;raw_resource)</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-static-attribs" class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
@@ -164,14 +164,14 @@ class siddiqsoft::arrp::resource_pool&lt; T, SRT, InitCapacity &gt;</div><p>Thre
 <div class="line">    [](resource_pool&amp; p) -&gt; <a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html">scoped_resource&lt;MyResource&gt;</a> {</div>
 <div class="line">        <span class="keywordflow">return</span> <a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html">scoped_resource&lt;MyResource&gt;</a>(</div>
 <div class="line">            MyResource{},</div>
-<div class="line">            [&amp;p](MyResource&amp;&amp; res) { p.return_to_pool(std::move(res)); }</div>
+<div class="line">            [&amp;p](MyResource&amp;&amp; res) { p.checkin(std::move(res)); }</div>
 <div class="line">        );</div>
 <div class="line">    }</div>
 <div class="line">);</div>
 <div class="line"> </div>
 <div class="line"><span class="comment">// Borrow a resource from the pool</span></div>
 <div class="line">{</div>
-<div class="line">    <span class="keyword">auto</span> resource = pool.borrow_from_pool();</div>
+<div class="line">    <span class="keyword">auto</span> resource = pool.checkout();</div>
 <div class="line">    <span class="comment">// Use the resource...</span></div>
 <div class="line">    <span class="comment">// Resource is automatically returned when it goes out of scope</span></div>
 <div class="line">}</div>
@@ -188,7 +188,7 @@ class siddiqsoft::arrp::resource_pool&lt; T, SRT, InitCapacity &gt;</div><p>Thre
 <li>InitCapacity must not exceed resource_pool_limits::MaxCapacity</li>
 <li>Capacity is limited to 255 resources (uint8_t)</li>
 </ul>
-<dl class="section warning"><dt>Warning</dt><dd>Factory callbacks MUST NOT call any methods on the pool (borrow_from_pool, return_to_pool, clear, etc.) as this will cause deadlock. The callback should only create and return a new resource.</dd></dl>
+<dl class="section warning"><dt>Warning</dt><dd>Factory callbacks MUST NOT call any methods on the pool (checkout, checkin, clear, etc.) as this will cause deadlock. The callback should only create and return a new resource.</dd></dl>
 <dl class="section note"><dt>Note</dt><dd>The pool does not own resources directly; it manages <a class="el" href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html" title="RAII wrapper for managing resource lifecycle with automatic return to pool.">scoped_resource</a> wrappers </dd>
 <dd>
 Resources are stored in a FIFO deque for predictable ordering </dd>
@@ -332,8 +332,8 @@ Checked-out resources will be returned to the pool when their <a class="el" href
 </div>
 </div>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
-<a id="a7af727d1f38404f4487f65dd93386329" name="a7af727d1f38404f4487f65dd93386329"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7af727d1f38404f4487f65dd93386329">&#9670;&#160;</a></span>borrow_from_pool()</h2>
+<a id="ac311acd0997233faa3c5dc0b7df86bc9" name="ac311acd0997233faa3c5dc0b7df86bc9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac311acd0997233faa3c5dc0b7df86bc9">&#9670;&#160;</a></span>checkin()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -344,7 +344,36 @@ template&lt;typename T, typename SRT = scoped_resource&lt;T&gt;, uint8_t InitCap
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">auto <a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool</a>&lt; T, SRT, InitCapacity &gt;::borrow_from_pool </td>
+          <td class="memname">void <a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool</a>&lt; T, SRT, InitCapacity &gt;::checkin </td>
+          <td>(</td>
+          <td class="paramtype">T &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em>raw_resource</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00480">480</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
+
+</div>
+</div>
+<a id="aabc7e2f49aa9c050b98ff99fd644aba0" name="aabc7e2f49aa9c050b98ff99fd644aba0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aabc7e2f49aa9c050b98ff99fd644aba0">&#9670;&#160;</a></span>checkout()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T, typename SRT = scoped_resource&lt;T&gt;, uint8_t InitCapacity = resource_pool_limits::DefaultCapacity&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto <a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool</a>&lt; T, SRT, InitCapacity &gt;::checkout </td>
           <td>(</td>
           <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
           <td> -&gt; SRT</td>
@@ -387,35 +416,6 @@ template&lt;typename T, typename SRT = scoped_resource&lt;T&gt;, uint8_t InitCap
 </div><div class="memdoc">
 
 <p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00304">304</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
-
-</div>
-</div>
-<a id="a4b545d06b570049d7a96ce545f1bad80" name="a4b545d06b570049d7a96ce545f1bad80"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4b545d06b570049d7a96ce545f1bad80">&#9670;&#160;</a></span>return_to_pool()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename T, typename SRT = scoped_resource&lt;T&gt;, uint8_t InitCapacity = resource_pool_limits::DefaultCapacity&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void <a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool</a>&lt; T, SRT, InitCapacity &gt;::return_to_pool </td>
-          <td>(</td>
-          <td class="paramtype">T &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em>raw_resource</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00484">484</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
 
 </div>
 </div>

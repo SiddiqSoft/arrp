@@ -75,12 +75,12 @@ int main() {
 
     // Populate the pool
     for (int i = 0; i < 5; ++i) {
-        pool.return_to_pool(std::make_shared<DatabaseConnection>());
+        pool.checkin(std::make_shared<DatabaseConnection>());
     }
 
     // Borrow and use a resource
     {
-        auto conn = pool.borrow_from_pool();
+        auto conn = pool.checkout();
         conn->query("SELECT * FROM users");
         // Automatically returned to pool when going out of scope
     }
@@ -100,7 +100,7 @@ int main() {
             return siddiqsoft::arrp::scoped_resource<DatabaseConnection>(
                 DatabaseConnection::create(),
                 [&p](DatabaseConnection&& conn) { 
-                    p.return_to_pool(std::move(conn)); 
+                    p.checkin(std::move(conn)); 
                 }
             );
         }
@@ -108,7 +108,7 @@ int main() {
 
     // Resources are created on-demand up to capacity
     for (int i = 0; i < 10; ++i) {
-        auto conn = pool.borrow_from_pool();
+        auto conn = pool.checkout();
         conn.query("SELECT * FROM users");
         // Automatically returned when going out of scope
     }
@@ -129,7 +129,7 @@ int main() {
 
     // Populate pool
     for (int i = 0; i < 10; ++i) {
-        pool.return_to_pool(std::make_shared<DatabaseConnection>());
+        pool.checkin(std::make_shared<DatabaseConnection>());
     }
 
     // Use from multiple threads
@@ -137,7 +137,7 @@ int main() {
     for (int t = 0; t < 5; ++t) {
         threads.emplace_back([&pool]() {
             for (int i = 0; i < 20; ++i) {
-                auto conn = pool.borrow_from_pool();
+                auto conn = pool.checkout();
                 conn->query("SELECT * FROM users");
                 // Automatically returned
             }

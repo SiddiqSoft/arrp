@@ -10,7 +10,6 @@ var searchData=
   ['basic_20usage_7',['Basic Usage',['../usage_guide.html#rp_basic',1,'']]],
   ['best_20practices_8',['Best Practices',['../usage_guide.html#best_practices',1,'Best Practices'],['../security.html#autotoc_md115',1,'Monitoring Best Practices']]],
   ['blocking_20operations_9',['Blocking Operations',['../security.html#autotoc_md100',1,'']]],
-  ['borrow_5ffrom_5fpool_10',['borrow_from_pool',['../api.html#autotoc_md19',1,'borrow_from_pool'],['../quick_reference.html#autotoc_md80',1,'borrow_from_pool()'],['../usage_guide.html#autotoc_md116',1,'borrow_from_pool()']]],
-  ['borrowing_11',['Pattern 1: Basic Resource Borrowing',['../getting_started.html#autotoc_md69',1,'']]],
-  ['built_20in_20security_20features_12',['Built-in Security Features',['../security.html#security_features',1,'']]]
+  ['borrowing_10',['Pattern 1: Basic Resource Borrowing',['../getting_started.html#autotoc_md69',1,'']]],
+  ['built_20in_20security_20features_11',['Built-in Security Features',['../security.html#security_features',1,'']]]
 ];

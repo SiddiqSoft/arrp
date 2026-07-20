@@ -28,9 +28,7 @@ var searchData=
   ['resource_20wrapper_20type_25',['SRT - Scoped Resource Wrapper Type',['../api.html#autotoc_md7',1,'']]],
   ['resource_5fpool_26',['resource_pool',['../classsiddiqsoft_1_1arrp_1_1resource__pool.html',1,'siddiqsoft::arrp::resource_pool&lt; T, SRT, InitCapacity &gt;'],['../classsiddiqsoft_1_1arrp_1_1resource__pool.html#a1af18960c0ae03a482e0ff2c245aaff7',1,'siddiqsoft::arrp::resource_pool::resource_pool(auto_add_policy add_policy=auto_add_policy::NoGrow)'],['../classsiddiqsoft_1_1arrp_1_1resource__pool.html#a3f49a8f3ce97a69f0e8df2dcb3c52381',1,'siddiqsoft::arrp::resource_pool::resource_pool(resource_pool &amp;)=delete'],['../classsiddiqsoft_1_1arrp_1_1resource__pool.html#aa321fb35cc3b4e1b12b19253c20ac779',1,'siddiqsoft::arrp::resource_pool::resource_pool(resource_pool &amp;&amp;src)=delete'],['../api.html#autotoc_md2',1,'resource_pool'],['../api.html#autotoc_md58',1,'resource_pool'],['../usage_guide.html#autotoc_md121',1,'resource_pool'],['../quick_reference.html#autotoc_md78',1,'resource_pool&amp;lt;T, SRT, InitCapacity&amp;gt;']]],
   ['resources_27',['Additional Resources',['../security.html#security_resources',1,'']]],
-  ['return_5fto_5fpool_28',['return_to_pool',['../api.html#autotoc_md20',1,'return_to_pool'],['../usage_guide.html#autotoc_md117',1,'return_to_pool()']]],
-  ['return_5fto_5fpool_20t_29',['return_to_pool(T&amp;amp;&amp;amp;)',['../quick_reference.html#autotoc_md81',1,'']]],
-  ['returning_20resource_20pool_20for_20modern_20c_30',['ARRP - Auto Returning Resource Pool for Modern C++',['../index.html',1,'']]],
-  ['rule_3a_20factory_20callbacks_20must_20not_20call_20pool_20methods_31',['Critical Rule: Factory Callbacks Must Not Call Pool Methods',['../security.html#autotoc_md103',1,'']]],
-  ['runtime_20issues_32',['Runtime Issues',['../getting_started.html#autotoc_md74',1,'']]]
+  ['returning_20resource_20pool_20for_20modern_20c_28',['ARRP - Auto Returning Resource Pool for Modern C++',['../index.html',1,'']]],
+  ['rule_3a_20factory_20callbacks_20must_20not_20call_20pool_20methods_29',['Critical Rule: Factory Callbacks Must Not Call Pool Methods',['../security.html#autotoc_md103',1,'']]],
+  ['runtime_20issues_30',['Runtime Issues',['../getting_started.html#autotoc_md74',1,'']]]
 ];

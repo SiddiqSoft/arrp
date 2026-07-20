@@ -28,7 +28,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="Siddiq-Software-Avatar.png"/></td>
   <td id="projectalign">
-   <div id="projectname">arrp<span id="projectnumber">&#160;0.0.7</span>
+   <div id="projectname">arrp<span id="projectnumber">&#160;0.0.8</span>
    </div>
    <div id="projectbrief">Auto returning resource pool for modern C++</div>
   </td>
@@ -115,11 +115,11 @@ Basic Pool Usage</h2>
 <div class="line"> </div>
 <div class="line"><span class="comment">// Populate</span></div>
 <div class="line"><span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; 10; ++i) {</div>
-<div class="line">    pool.return_to_pool(std::make_shared&lt;Resource&gt;());</div>
+<div class="line">    pool.checkin(std::make_shared&lt;Resource&gt;());</div>
 <div class="line">}</div>
 <div class="line"> </div>
 <div class="line"><span class="comment">// Use</span></div>
-<div class="line"><span class="keyword">auto</span> res = pool.borrow_from_pool();</div>
+<div class="line"><span class="keyword">auto</span> res = pool.checkout();</div>
 <div class="line">res-&gt;doSomething();</div>
 <div class="line"><span class="comment">// Automatically returned</span></div>
 <div class="ttc" id="aclasssiddiqsoft_1_1arrp_1_1resource__pool_html"><div class="ttname"><a href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool</a></div><div class="ttdoc">Thread-safe auto-returning resource pool for modern C++.</div><div class="ttdef"><b>Definition</b> <a href="resource__pool_8hpp_source.html#l00123">resource_pool.hpp:124</a></div></div>
@@ -129,7 +129,7 @@ Custom Factory</h2>
 <div class="line">    [](<span class="keyword">auto</span>&amp; p) -&gt; <a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html">siddiqsoft::arrp::scoped_resource&lt;Resource&gt;</a> {</div>
 <div class="line">        <span class="keywordflow">return</span> <a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html">siddiqsoft::arrp::scoped_resource&lt;Resource&gt;</a>(</div>
 <div class="line">            Resource::create(),</div>
-<div class="line">            [&amp;p](Resource&amp;&amp; r) { p.return_to_pool(std::move(r)); }</div>
+<div class="line">            [&amp;p](Resource&amp;&amp; r) { p.checkin(std::move(r)); }</div>
 <div class="line">        );</div>
 <div class="line">    }</div>
 <div class="line">};</div>
@@ -139,14 +139,14 @@ Multi-threaded Usage</h2>
 <div class="fragment"><div class="line">std::vector&lt;std::thread&gt; threads;</div>
 <div class="line"><span class="keywordflow">for</span> (<span class="keywordtype">int</span> t = 0; t &lt; 4; ++t) {</div>
 <div class="line">    threads.emplace_back([&amp;pool]() {</div>
-<div class="line">        <span class="keyword">auto</span> res = pool.borrow_from_pool();</div>
+<div class="line">        <span class="keyword">auto</span> res = pool.checkout();</div>
 <div class="line">        <span class="comment">// Use resource</span></div>
 <div class="line">    });</div>
 <div class="line">}</div>
 <div class="line"><span class="keywordflow">for</span> (<span class="keyword">auto</span>&amp; t : threads) t.join();</div>
 </div><!-- fragment --><h2 class="doxsection"><a class="anchor" id="qr_pattern_invalidate"></a>
 Resource Invalidation</h2>
-<div class="fragment"><div class="line"><span class="keyword">auto</span> res = pool.borrow_from_pool();</div>
+<div class="fragment"><div class="line"><span class="keyword">auto</span> res = pool.checkout();</div>
 <div class="line"><span class="keyword">auto</span> ptr = std::move(*res);</div>
 <div class="line">res.invalidate();  <span class="comment">// Don&#39;t return</span></div>
 </div><!-- fragment --><h1 class="doxsection"><a class="anchor" id="qr_template_params"></a>
@@ -166,11 +166,11 @@ scoped_resource&lt;T&gt;</h3>
 <h1 class="doxsection"><a class="anchor" id="qr_methods"></a>
 Common Methods</h1>
 <h3 class="doxsection"><a class="anchor" id="autotoc_md80"></a>
-borrow_from_pool()</h3>
-<p>Borrow a resource from the pool </p><div class="fragment"><div class="line"><span class="keyword">auto</span> resource = pool.borrow_from_pool();  <span class="comment">// throws if empty and at capacity</span></div>
+checkout()</h3>
+<p>Borrow a resource from the pool </p><div class="fragment"><div class="line"><span class="keyword">auto</span> resource = pool.checkout();  <span class="comment">// throws if empty and at capacity</span></div>
 </div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="autotoc_md81"></a>
-return_to_pool(T&amp;&amp;)</h3>
-<p>Return a resource to the pool </p><div class="fragment"><div class="line">pool.return_to_pool(std::move(resource));</div>
+checkin(T&amp;&amp;)</h3>
+<p>Return a resource to the pool </p><div class="fragment"><div class="line">pool.checkin(std::move(resource));</div>
 </div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="autotoc_md82"></a>
 size()</h3>
 <p>Get current pool size </p><div class="fragment"><div class="line"><span class="keyword">auto</span> sz = pool.size();</div>
@@ -204,7 +204,7 @@ Tips &amp; Tricks</h1>
 <ol type="1">
 <li><b>Pre-populate the pool</b> - Add resources before using</li>
 <li><b>Use move semantics</b> - Always move resources into the pool</li>
-<li><b>Handle exceptions</b> - Catch std::runtime_error from borrow_from_pool()</li>
+<li><b>Handle exceptions</b> - Catch std::runtime_error from checkout()</li>
 <li><b>Monitor pool state</b> - Use to_json() to check diagnostics</li>
 <li><b>Set capacity appropriately</b> - Match your thread pool size</li>
 <li><b>Use shared_ptr</b> - For shared resource ownership</li>
@@ -245,7 +245,7 @@ Common Issues</h1>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">Compilation error: <span class="tt">deque not found</span>  </td><td class="markdownTableBodyNone">Use C++20 or later  </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone"><span class="tt">borrow_from_pool()</span> throws  </td><td class="markdownTableBodyNone">Pool is empty and at capacity  </td></tr>
+<td class="markdownTableBodyNone"><span class="tt">checkout()</span> throws  </td><td class="markdownTableBodyNone">Pool is empty and at capacity  </td></tr>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">Resources not returned  </td><td class="markdownTableBodyNone">Ensure scoped_resource goes out of scope  </td></tr>
 <tr class="markdownTableRowEven">
@@ -274,8 +274,8 @@ Quick Examples</h1>
 <h3 class="doxsection"><a class="anchor" id="autotoc_md87"></a>
 Example 1: Basic Pool</h3>
 <div class="fragment"><div class="line"><a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool&lt;std::shared_ptr&lt;Connection&gt;</a>&gt; pool;</div>
-<div class="line">pool.return_to_pool(std::make_shared&lt;Connection&gt;());</div>
-<div class="line"><span class="keyword">auto</span> conn = pool.borrow_from_pool();</div>
+<div class="line">pool.checkin(std::make_shared&lt;Connection&gt;());</div>
+<div class="line"><span class="keyword">auto</span> conn = pool.checkout();</div>
 <div class="line">conn-&gt;query(<span class="stringliteral">&quot;SELECT * FROM users&quot;</span>);</div>
 </div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="autotoc_md88"></a>
 Example 2: Custom Factory</h3>
@@ -283,19 +283,19 @@ Example 2: Custom Factory</h3>
 <div class="line">    [](<span class="keyword">auto</span>&amp; p) -&gt; <a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html">siddiqsoft::arrp::scoped_resource&lt;Connection&gt;</a> {</div>
 <div class="line">        <span class="keywordflow">return</span> <a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html">siddiqsoft::arrp::scoped_resource&lt;Connection&gt;</a>(</div>
 <div class="line">            Connection::create(),</div>
-<div class="line">            [&amp;p](Connection&amp;&amp; c) { p.return_to_pool(std::move(c)); }</div>
+<div class="line">            [&amp;p](Connection&amp;&amp; c) { p.checkin(std::move(c)); }</div>
 <div class="line">        );</div>
 <div class="line">    }</div>
 <div class="line">};</div>
 </div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="autotoc_md89"></a>
 Example 3: Multi-threaded</h3>
-<div class="fragment"><div class="line">std::thread t1([&amp;pool]() { <span class="keyword">auto</span> res = pool.borrow_from_pool(); });</div>
-<div class="line">std::thread t2([&amp;pool]() { <span class="keyword">auto</span> res = pool.borrow_from_pool(); });</div>
+<div class="fragment"><div class="line">std::thread t1([&amp;pool]() { <span class="keyword">auto</span> res = pool.checkout(); });</div>
+<div class="line">std::thread t2([&amp;pool]() { <span class="keyword">auto</span> res = pool.checkout(); });</div>
 <div class="line">t1.join(); t2.join();</div>
 </div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="autotoc_md90"></a>
 Example 4: Error Handling</h3>
 <div class="fragment"><div class="line"><span class="keywordflow">try</span> {</div>
-<div class="line">    <span class="keyword">auto</span> res = pool.borrow_from_pool();</div>
+<div class="line">    <span class="keyword">auto</span> res = pool.checkout();</div>
 <div class="line">} <span class="keywordflow">catch</span> (<span class="keyword">const</span> std::runtime_error&amp; e) {</div>
 <div class="line">    std::cerr &lt;&lt; <span class="stringliteral">&quot;Pool exhausted: &quot;</span> &lt;&lt; e.what() &lt;&lt; std::endl;</div>
 <div class="line">}</div>

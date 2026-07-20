@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['t_0',['return_to_pool(T&amp;amp;&amp;amp;)',['../quick_reference.html#autotoc_md81',1,'']]],
+  ['t_0',['checkin(T&amp;amp;&amp;amp;)',['../quick_reference.html#autotoc_md81',1,'']]],
   ['t_20resource_20type_1',['T Resource Type',['../api.html#autotoc_md6',1,'T - Resource Type'],['../api.html#autotoc_md32',1,'T - Resource Type']]],
   ['table_20of_20contents_2',['Table of Contents',['../api.html#autotoc_md0',1,'']]],
   ['template_20constraints_20requires_20clause_3',['Template Constraints (Requires Clause)',['../api.html#autotoc_md9',1,'']]],
