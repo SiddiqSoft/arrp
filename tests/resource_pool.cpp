@@ -1457,7 +1457,6 @@ TEST(resource_pool_adversarial, concurrent_clear_rapid_ops_FIXED)
 
 
 #include <future>
-// ...existing code...
 
 TEST(resource_pool, concurrent_clear_deadlock_detection)
 {
@@ -1490,8 +1489,8 @@ TEST(resource_pool, concurrent_clear_deadlock_detection)
         start_barrier.arrive_and_wait();
         // this specific wait is important otherwise the workers
         // will never get a chance to run..
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
-        
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
         while (!stop.load()) {
             pool.clear();
             ++clear_cycles;
