@@ -1,8 +1,12 @@
-# ARRP - Auto Returning Resource Pool for Modern C++
 
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/SiddiqSoft/arrp)
-[![C++20](https://img.shields.io/badge/C%2B%2B-20-blue)](https://en.cppreference.com/w/cpp/20)
-[![License](https://img.shields.io/badge/license-BSD%203--Clause-green)](LICENSE)
+# Auto Returning Resource Pool
+
+<img src="https://gravatar.com/avatar/b22603b65d11dcab44885c65e44f7dc9" align=right>
+
+![](https://img.shields.io/github/v/tag/SiddiqSoft/arrp)
+[![Build Status](https://dev.azure.com/siddiqsoft/siddiqsoft/_apis/build/status%2FSiddiqSoft.arrp?branchName=master)](https://dev.azure.com/siddiqsoft/siddiqsoft/_build/latest?definitionId=33&branchName=master)
+![](https://img.shields.io/nuget/v/SiddiqSoft.arrp)
+![](https://img.shields.io/azure-devops/tests/siddiqsoft/siddiqsoft/33)
 
 A thread-safe, header-only C++20 resource pool library with automatic lifecycle management using RAII principles.
 
@@ -14,7 +18,8 @@ A thread-safe, header-only C++20 resource pool library with automatic lifecycle 
 - **FIFO Ordering**: Predictable resource ordering (first-in, first-out)
 - **Customizable Factory**: Support for custom resource creation callbacks
 - **Exception Safe**: Strong exception guarantees with automatic cleanup
-- **Modern C++20**: Uses only standard library features (no external dependencies)
+- **Modern C++20**: Uses only standard library features (no external dependencies).
+- **Optional**: JSON serialization for pool state monitoring via nlohmann json
 - **Type-Safe**: Leverages C++20 concepts for compile-time type checking
 - **Move Semantics**: Efficient resource transfer with perfect forwarding
 - **JSON Diagnostics**: Optional JSON serialization for pool state monitoring
@@ -130,13 +135,14 @@ for (int i = 0; i < 100; ++i) {
 
 ```cpp
 siddiqsoft::arrp::resource_pool<DatabaseConnection> pool(
-    [](auto& p) -> siddiqsoft::arrp::scoped_resource<DatabaseConnection> {
-        return siddiqsoft::arrp::scoped_resource<DatabaseConnection>(
-            DatabaseConnection::create(),
-            [&p](DatabaseConnection&& conn) { 
-                p.checkin(std::move(conn)); 
-            }
-        );
+    [](auto& my_pool) -> siddiqsoft::arrp::scoped_resource<DatabaseConnection> {
+        // The compiler will create instance in the caller's context.
+        return siddiqsoft::arrp::scoped_resource<DatabaseConnection>{
+            DatabaseConnection::create(),           // store the resource
+            [&my_pool](DatabaseConnection&& conn) { 
+                my_pool.checkin(std::move(conn)); 
+            } // set callback to checkin pool.
+        };
     }
 );
 ```
@@ -177,6 +183,7 @@ for (int t = 0; t < 4; ++t) {
 // Get pool statistics
 auto state = pool.to_json();
 
+// We assume the use of nlohmann::json
 std::cout << "Capacity: " << state["capacity"] << std::endl;
 std::cout << "Available: " << state["size"] << std::endl;
 std::cout << "Checked out: " << state["checkedout"] << std::endl;
@@ -185,17 +192,17 @@ std::cout << "Total borrows: " << state["counters"]["borrow"] << std::endl;
 
 ## API Overview
 
-### resource_pool Methods
+### [resource_pool](https://siddiqsoft.github.io/arrp/doxygen/html/api.html#api_resource_pool) Methods
 
-| Method | Description | Returns |
-|--------|-------------|---------|
-| `checkout()` | Borrow a resource from the pool | `scoped_resource<T>` |
-| `checkin(T&&)` | Return a resource to the pool | `void` |
-| `size()` | Get number of available resources | `size_t` |
-| `clear()` | Remove all resources from pool | `void` |
-| `to_json()` | Get pool state as JSON | `nlohmann::json` |
+| Method -> Returns | Description 
+|--------|----------------------
+| `checkout()` -> `scoped_resource<T>` | Borrow a resource from the pool.<br/>You must be able to handle `std::runtime_error` when the pool is starved.<br/>It is up to you to setup the pool to auto-grow (it ensures that the pool has resources available.)
+| `checkin(T&&)` | Return a resource to the pool.<br/>The move-semantics is required as the resource must be returned exclusively to the pool.<br/>If the `scoped_resource` is marked invalid then the checkin will not claim the resource back.<br/>This approach combined with the auto-grow policy ensures that you have a resource available and invalid resources are removed/not returned to the pool.
+| `size()` -> `size_t` | Get number of available resources
+| `clear()` | Remove all resources from pool
+| `to_json()` ->  `nlohmann::json` | Get pool state as JSON
 
-### scoped_resource Methods
+### [scoped_resource](https://siddiqsoft.github.io/arrp/doxygen/html/api.html#api_scoped_resource) Methods
 
 | Method | Description |
 |--------|-------------|
@@ -212,16 +219,6 @@ All public methods of `resource_pool` are thread-safe:
 - No external synchronization is required
 - Atomic counters for lock-free statistics
 
-## Performance Characteristics
-
-| Operation | Complexity | Notes |
-|-----------|-----------|-------|
-| `checkout()` | O(1) amortized | Resource creation outside lock |
-| `checkin()` | O(1) amortized | Simple push_back operation |
-| `size()` | O(1) | With lock acquisition |
-| `clear()` | O(n) | n = pool size |
-| `to_json()` | O(1) | With lock acquisition |
-
 ## Exception Safety
 
 The resource_pool provides strong exception safety guarantees:
@@ -232,7 +229,7 @@ The resource_pool provides strong exception safety guarantees:
 
 ## Best Practices
 
-1. **Always use RAII**: Let `scoped_resource` handle resource return
+1. **Always use RAII**: Let `scoped_resource` handle resource return. You can use derived classes that--for example--specialize the handling of `CURL*`.
 2. **Pre-populate pools**: Add resources before concurrent access
 3. **Handle exceptions**: Catch `std::runtime_error` from `checkout()`
 4. **Keep factories simple**: Factory callbacks should only create resources
@@ -242,26 +239,23 @@ The resource_pool provides strong exception safety guarantees:
 
 ## Constraints
 
-- Capacity limited to 255 resources (uint8_t)
-- Factory callbacks must not call pool methods (would cause deadlock)
+- Capacity limited to 255 resources (uint8_t). If you'd like more or customizable, please open an issue. Generally, resources are meant to be scarce and therefore the pool must be small.
+- Factory callbacks must not call pool methods (would cause deadlock). The sole purpose of the factory callback would be to perform special initialization for your resource (and chose to not perform such tasks via derived classes.)
 - Resources must be move-constructible and non-arithmetic types
 - Counters wrap around after ~18 quintillion operations (uint64_t)
 
 ## Building and Testing
 
-### Build with CMake
-
 ```bash
-mkdir build
-cd build
-cmake ..
-cmake --build .
+cmake --fresh --preset=Apple-Debug
+cmake --build --preset=Apple-Debug
+ctest --preset=Apple-Debug
 ```
 
-### Run Tests
-
 ```bash
-ctest --output-on-failure
+cmake --fresh --preset=Windows-arm64-Release
+cmake --build --preset=Windows-arm64-Release
+ctest --preset=Windows-arm64-Release
 ```
 
 ## License
