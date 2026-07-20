@@ -8,51 +8,21 @@ This header-only library eliminates boilerplate resource management code and pro
 
 @section features Key Features
 
-- **Resource Pool**: Thread-safe management of reusable resources with automatic return
+- **Thread-Safe**: All operations protected by mutexes for concurrent access
 - **RAII Pattern**: Automatic resource return via scoped_resource wrapper
-- **Capacity Management**: Enforces maximum capacity limits to prevent unbounded growth
-- **FIFO Ordering**: Resources retrieved from front, added to back
+- **Capacity Management**: Enforces maximum capacity limits
+- **FIFO Ordering**: Predictable resource ordering
 - **Customizable Factory**: Support for custom resource creation callbacks
-- **Diagnostic Counters**: Track borrow, return, and auto-add operations
 - **Exception Safe**: Strong exception guarantees with automatic cleanup
 - **Modern C++20**: Uses only standard library features
 - **Type-Safe**: Leverages C++20 concepts for compile-time type checking
-- **Thread-Safe**: All operations protected by mutexes for concurrent access
 - **Move Semantics**: Efficient resource transfer with perfect forwarding
 - **JSON Diagnostics**: Optional JSON serialization for pool state monitoring
 
-@section requirements Requirements
-
-- **C++20 Support**: Requires std::deque, std::mutex, and std::concepts
-- **Compiler Support**: GCC 10+, MSVC 16.11+, Clang 10+
-- **Platform Support**: Windows, Linux, macOS
-- **Optional**: nlohmann/json for JSON serialization support
-
-@section components Main Components
-
-| Component | Description | Use Case |
-|-----------|-------------|----------|
-| @ref siddiqsoft::arrp::resource_pool | Resource pool manager | Connection/resource management |
-| @ref siddiqsoft::arrp::scoped_resource | RAII resource wrapper | Automatic resource return |
-
-@section design Design Principles
-
-- **Move Semantics**: All components use move semantics for efficient resource transfer
-- **RAII**: Proper resource management through constructors and destructors
-- **Thread Safety**: Internal synchronization using mutexes and scoped locks
-- **Zero-Copy**: Minimal data copying through perfect forwarding
-- **Type Safety**: C++20 concepts ensure compile-time type checking
-- **Simplicity**: Clean API that hides complexity of resource management
-- **Performance**: O(1) checkout/checkin operations with minimal contention
-
 @section documentation Documentation
 
-- @ref getting_started - Installation and setup guide
-- @ref usage_guide - Detailed usage examples and best practices
-- @ref examples - Real-world code examples
-- @ref quick_reference - Quick lookup guide for common tasks
 - @ref api - Complete API reference
-- @ref security - Security considerations and best practices
+- @ref usage_guide - Detailed usage examples and best practices
 
 @section installation Installation
 
@@ -95,9 +65,5 @@ Copyright (c) 2026, Abdulkareem Siddiq. All rights reserved.
 
 @section see_also See Also
 
-- @ref getting_started
-- @ref usage_guide
-- @ref examples
-- @ref quick_reference
-- @ref api
-- @ref security
+- @ref api - Complete API reference
+- @ref usage_guide - Usage guide and examples
