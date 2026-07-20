@@ -157,6 +157,8 @@ namespace siddiqsoft::arrp
         /// that they do not call methods that cause deadlocks.
         /// @note Marked as mutable to allow usage within const methods
         mutable std::recursive_mutex m_pool_lock {};
+        // It might be more expensive but the client might find this useful!
+        #warning "You're using std::recursive_mutex which is more expensive"
 #else
         /// @brief Mutex protecting access to the resource pool
         /// @details Uses a standard mutex for optimal performance
@@ -177,8 +179,7 @@ namespace siddiqsoft::arrp
         enum class auto_add_policy
         {
             NoGrow,
-            AutoGrow,
-            Custom
+            AutoGrow
         };
 
         /// @brief This callback is the default and does not grow the resource; it throws a runtime_error
@@ -301,7 +302,7 @@ namespace siddiqsoft::arrp
          * pool.clear();  // Remove all pooled resources
          * @endcode
          */
-        void clear()
+        void clear() noexcept
         {
             std::scoped_lock l(m_pool_lock);
             m_pool.clear();
@@ -330,7 +331,7 @@ namespace siddiqsoft::arrp
          * std::cout << "Available resources: " << available << std::endl;
          * @endcode
          */
-        [[nodiscard]] size_t size() const
+        [[nodiscard]] size_t size() const noexcept
         {
             std::scoped_lock l(m_pool_lock);
             return m_pool.size();
