@@ -83,14 +83,14 @@ namespace siddiqsoft::arrp
      *     [](resource_pool& p) -> scoped_resource<MyResource> {
      *         return scoped_resource<MyResource>(
      *             MyResource{},
-     *             [&p](MyResource&& res) { p.return_to_pool(std::move(res)); }
+     *             [&p](MyResource&& res) { p.checkin(std::move(res)); }
      *         );
      *     }
      * );
      *
      * // Borrow a resource from the pool
      * {
-     *     auto resource = pool.borrow_from_pool();
+     *     auto resource = pool.checkout();
      *     // Use the resource...
      *     // Resource is automatically returned when it goes out of scope
      * }
@@ -108,8 +108,8 @@ namespace siddiqsoft::arrp
      * - InitCapacity must not exceed resource_pool_limits::MaxCapacity
      * - Capacity is limited to 255 resources (uint8_t)
      *
-     * @warning Factory callbacks MUST NOT call any methods on the pool (borrow_from_pool,
-     * return_to_pool, clear, etc.) as this will cause deadlock. The callback should only
+     * @warning Factory callbacks MUST NOT call any methods on the pool (checkout,
+     * checkin, clear, etc.) as this will cause deadlock. The callback should only
      * create and return a new resource.
      *
      * @note The pool does not own resources directly; it manages scoped_resource wrappers
@@ -135,13 +135,13 @@ namespace siddiqsoft::arrp
 
         /// @brief Counter for borrow operations from the pool
         /// @note Only counts successful borrow operations
-        std::atomic_uint64_t m_counter_borrow_from_pool {0};
+        std::atomic_uint64_t m_counter_checkout {0};
 
         /// @brief Counter for ondemand resource additions via factory callback
         std::atomic_uint64_t m_counter_ondemand_adds {0};
 
         /// @brief Counter for return operations to the pool
-        std::atomic_uint64_t m_counter_return_to_pool {0};
+        std::atomic_uint64_t m_counter_checkin {0};
 
         /// @brief Counter for automatic resource additions via factory callback
         std::atomic_uint64_t m_counter_auto_returned {0};
@@ -213,7 +213,7 @@ namespace siddiqsoft::arrp
          *     [](resource_pool& p) -> scoped_resource<MyResource> {
          *         return scoped_resource<MyResource>(
          *             MyResource::create(),
-         *             [&p](MyResource&& res) { p.return_to_pool(std::move(res)); }
+         *             [&p](MyResource&& res) { p.checkin(std::move(res)); }
          *         );
          *     }
          * );
@@ -247,7 +247,7 @@ namespace siddiqsoft::arrp
                     // the resource back to this object.
                     return SRT {T {}, [this](T&& src) {
                                     this->m_counter_auto_returned++;
-                                    this->return_to_pool(std::forward<T&&>(src));
+                                    this->checkin(std::forward<T&&>(src));
                                 }};
                     // Allow the compiler to use NRVO (move elision; do not use std::move here!)
                     // return temp;
@@ -365,7 +365,7 @@ namespace siddiqsoft::arrp
          * @example
          * @code
          * try {
-         *     auto resource = pool.borrow_from_pool();
+         *     auto resource = pool.checkout();
          *     // Use the resource...
          *     // Automatically returned when resource goes out of scope
          * } catch (const std::runtime_error& e) {
@@ -373,7 +373,7 @@ namespace siddiqsoft::arrp
          * }
          * @endcode
          */
-        [[nodiscard]] auto borrow_from_pool() -> SRT
+        [[nodiscard]] auto checkout() -> SRT
         {
             // Create a guard to decrement m_resources_checkedout if the factory callback throws
             // This ensures we don't leak the checkout count if the factory fails
@@ -394,14 +394,14 @@ namespace siddiqsoft::arrp
                     RunOnEnd pop_guard([&]() { m_pool.pop_front(); });
 
                     m_resources_checkedout++;
-                    ++m_counter_borrow_from_pool;
+                    ++m_counter_checkout;
 
                     // Make a wrapper..
                     // Create a SRT element and wire up the auto-return callback to return
                     // the resource back to this object.
                     return SRT {std::move(m_pool.front()), [this](T&& src) {
                                     this->m_counter_auto_returned++;
-                                    this->return_to_pool(std::forward<T&&>(src));
+                                    this->checkin(std::forward<T&&>(src));
                                 }};
                     // Allow the compiler to use NRVO (move elision; do not use std::move here!)
                     // return temp;
@@ -417,7 +417,7 @@ namespace siddiqsoft::arrp
                     // We should unlock the resource and ..
                     l.unlock();
 
-                    ++m_counter_borrow_from_pool;
+                    ++m_counter_checkout;
                     // Update the attempted delegated calls to add new raw resource to pool.
                     ++m_counter_ondemand_adds;
 
@@ -430,13 +430,9 @@ namespace siddiqsoft::arrp
                     std::cerr << std::format("We're under-capacity.. but no dynamic resource provider\n");
                 }
             } // scope end
-            catch (const std::exception& ex) {
-                checkout_guard();
-                std::cerr << std::format("Error in borrow_from_pool: {}\n", ex.what());
-                throw;
-            }
             catch (...) {
-                std::cerr << "Unknown exception in borrow_from_pool\n";
+                checkout_guard();
+                std::cerr << std::format("Error in checkout");
                 throw;
             }
 
@@ -462,7 +458,7 @@ namespace siddiqsoft::arrp
          *
          * @note Increments the return counter
          * @note Resources are added to the back of the deque (FIFO)
-         * @note This method is typically not called directly; use borrow_from_pool() instead
+         * @note This method is typically not called directly; use checkout() instead
          * @note Only valid resources should be checked in (not moved-out or invalid)
          * @note When using shared_ptr, always use std::move to transfer ownership to the pool
          * @note Safe to call multiple times with the same resource (though not recommended)
@@ -471,19 +467,19 @@ namespace siddiqsoft::arrp
          * @code
          * // Typically called automatically:
          * {
-         *     auto resource = pool.borrow_from_pool();
+         *     auto resource = pool.checkout();
          *     // Use resource...
          * }  // Automatically returned here
          *
          * // Manual return (advanced usage):
-         * auto resource = pool.borrow_from_pool();
+         * auto resource = pool.checkout();
          * // ... use resource ...
-         * pool.return_to_pool(std::move(*resource));
+         * pool.checkin(std::move(*resource));
          * @endcode
          */
-        void return_to_pool(T&& raw_resource)
+        void checkin(T&& raw_resource)
         {
-            ++m_counter_return_to_pool;
+            ++m_counter_checkin;
             {
                 std::scoped_lock l(m_pool_lock);
 
@@ -553,8 +549,8 @@ namespace siddiqsoft::arrp
                     {"counters",
                      {{"autoreturns", m_counter_auto_returned.load()},
                       {"newitems", m_counter_ondemand_adds.load()},
-                      {"return", m_counter_return_to_pool.load()},
-                      {"borrow", m_counter_borrow_from_pool.load()}}}};
+                      {"return", m_counter_checkin.load()},
+                      {"borrow", m_counter_checkout.load()}}}};
         }
 #endif
     };

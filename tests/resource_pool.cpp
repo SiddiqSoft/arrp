@@ -72,13 +72,13 @@ TEST(resource_pool, T_shared_ptr_string)
         siddiqsoft::arrp::resource_pool<std::shared_ptr<std::string>> rp {};
 
         EXPECT_EQ(0, rp.size()) << "Pool must be empty at start";
-        rp.return_to_pool(std::shared_ptr<std::string>(new std::string(__TIME__)));
+        rp.checkin(std::shared_ptr<std::string>(new std::string(__TIME__)));
         EXPECT_EQ(1, rp.size()) << "Pool must have only one item";
 
         std::cerr << std::format("{} - 0 - {}\n", __func__, rp.to_json().dump());
 
         {
-            auto item = rp.borrow_from_pool();
+            auto item = rp.checkout();
             EXPECT_EQ(0, rp.size()) << "Pool must be empty!";
             EXPECT_EQ(__TIME__, **item);
             (*item)->append("-ok");
@@ -90,7 +90,7 @@ TEST(resource_pool, T_shared_ptr_string)
         EXPECT_EQ(1, rp.size());
 
         {
-            auto item2 = rp.borrow_from_pool();
+            auto item2 = rp.checkout();
             EXPECT_EQ(0, rp.size());
             EXPECT_TRUE((*item2)->ends_with("-ok"));
         }
@@ -114,11 +114,11 @@ TEST(resource_pool, T_unique_ptr_string)
         siddiqsoft::arrp::resource_pool<std::unique_ptr<std::string>> rp {};
 
         EXPECT_EQ(0, rp.size());
-        rp.return_to_pool(std::unique_ptr<std::string>(new std::string(__TIME__)));
+        rp.checkin(std::unique_ptr<std::string>(new std::string(__TIME__)));
         EXPECT_EQ(1, rp.size());
 
         {
-            auto&& item = rp.borrow_from_pool();
+            auto&& item = rp.checkout();
             EXPECT_EQ(0, rp.size());
             EXPECT_EQ(__TIME__, **item);
             (*item)->append("-ok");
@@ -127,7 +127,7 @@ TEST(resource_pool, T_unique_ptr_string)
         EXPECT_EQ(1, rp.size());
 
         {
-            auto&& item2 = rp.borrow_from_pool();
+            auto&& item2 = rp.checkout();
             EXPECT_EQ(0, rp.size());
             EXPECT_TRUE((*item2)->ends_with("-ok"));
         }
@@ -148,18 +148,18 @@ TEST(resource_pool, T_checkin_checkout_unique_ptr_string)
         siddiqsoft::arrp::resource_pool<std::unique_ptr<std::string>> rp {};
 
         EXPECT_EQ(0, rp.size());
-        rp.return_to_pool(std::unique_ptr<std::string>(new std::string(__TIME__)));
+        rp.checkin(std::unique_ptr<std::string>(new std::string(__TIME__)));
         EXPECT_EQ(1, rp.size());
 
         // Checkout and let it go out of scope to return automatically
         {
-            [[maybe_unused]] auto&& item = rp.borrow_from_pool();
+            [[maybe_unused]] auto&& item = rp.checkout();
         }
         // Resource is automatically returned to pool
         EXPECT_EQ(1, rp.size());
 
         {
-            auto&& item2 = rp.borrow_from_pool();
+            auto&& item2 = rp.checkout();
             EXPECT_EQ(0, rp.size());
             EXPECT_EQ(__TIME__, **item2);
         }
@@ -179,18 +179,18 @@ TEST(resource_pool, T_checkin_checkout_vector_string)
         siddiqsoft::arrp::resource_pool<std::vector<std::string>> rp {};
 
         EXPECT_EQ(0, rp.size());
-        rp.return_to_pool({"A", "B", "C"});
+        rp.checkin({"A", "B", "C"});
         EXPECT_EQ(1, rp.size());
 
         // Checkout and let it go out of scope to return automatically
         {
-            [[maybe_unused]] auto&& item = rp.borrow_from_pool();
+            [[maybe_unused]] auto&& item = rp.checkout();
         }
         // Resource is automatically returned to pool
         EXPECT_EQ(1, rp.size());
 
         {
-            auto item2 = rp.borrow_from_pool();
+            auto item2 = rp.checkout();
             (*item2).emplace_back("1");
             (*item2).emplace_back("2");
             (*item2).emplace_back("3");
@@ -216,7 +216,7 @@ TEST(resource_pool, checkout_empty_throws)
             });
 
 
-    EXPECT_THROW({ [[maybe_unused]] auto v = rp.borrow_from_pool(); }, std::runtime_error);
+    EXPECT_THROW({ [[maybe_unused]] auto v = rp.checkout(); }, std::runtime_error);
 }
 
 
@@ -229,16 +229,16 @@ TEST(resource_pool, clear)
                 throw std::runtime_error("Deliberate throw");
             });
 
-    rp.return_to_pool(std::string("1"));
-    rp.return_to_pool(std::string("2"));
-    rp.return_to_pool(std::string("3"));
+    rp.checkin(std::string("1"));
+    rp.checkin(std::string("2"));
+    rp.checkin(std::string("3"));
     EXPECT_EQ(3u, rp.size());
 
     rp.clear();
     EXPECT_EQ(0u, rp.size());
 
     // After clear, checkout should throw
-    EXPECT_THROW({ [[maybe_unused]] auto v = rp.borrow_from_pool(); }, std::runtime_error);
+    EXPECT_THROW({ [[maybe_unused]] auto v = rp.checkout(); }, std::runtime_error);
 }
 
 
@@ -248,13 +248,13 @@ TEST(resource_pool, multiple_items)
     siddiqsoft::arrp::resource_pool<std::string> rp {};
 
     for (int i = 0; i < 10; i++) {
-        rp.return_to_pool(std::format("{}", i));
+        rp.checkin(std::format("{}", i));
     }
     EXPECT_EQ(10u, rp.size());
 
     // Checkout all items (FIFO order)
     for (int i = 0; i < 10; i++) {
-        auto item = rp.borrow_from_pool();
+        auto item = rp.checkout();
         EXPECT_EQ(std::format("{}", i), *item);
     }
     EXPECT_EQ(10u, rp.size());
@@ -266,16 +266,16 @@ TEST(resource_pool, round_trip_preserves_value)
 {
     siddiqsoft::arrp::resource_pool<std::string> rp {};
 
-    rp.return_to_pool(std::string("hello"));
+    rp.checkin(std::string("hello"));
     {
-        auto item = rp.borrow_from_pool();
+        auto item = rp.checkout();
         EXPECT_EQ("hello", *item);
         *item += " world";
     }
     // item is automatically returned to pool
 
     {
-        auto item2 = rp.borrow_from_pool();
+        auto item2 = rp.checkout();
         EXPECT_EQ("hello world", *item2);
     }
 }
@@ -286,11 +286,11 @@ TEST(resource_pool, json_type)
 {
     siddiqsoft::arrp::resource_pool<nlohmann::json> rp {};
 
-    rp.return_to_pool(nlohmann::json {{"key", "value"}});
+    rp.checkin(nlohmann::json {{"key", "value"}});
     EXPECT_EQ(1u, rp.size());
 
     {
-        auto item = rp.borrow_from_pool();
+        auto item = rp.checkout();
         EXPECT_EQ("value", (*item)["key"].get<std::string>());
         EXPECT_EQ(0u, rp.size());
     }
@@ -306,7 +306,7 @@ TEST(resource_pool, concurrent_access)
 
     // Pre-fill the pool
     for (int i = 0; i < ITERATIONS; i++) {
-        rp.return_to_pool(std::format("resource-{}", i));
+        rp.checkin(std::format("resource-{}", i));
     }
 
     std::vector<std::jthread> threads;
@@ -315,7 +315,7 @@ TEST(resource_pool, concurrent_access)
             for (int i = 0; i < ITERATIONS / 4; i++) {
                 try {
                     {
-                        auto item = rp.borrow_from_pool();
+                        auto item = rp.checkout();
                         checkoutCount++;
                         // Simulate some work
                         std::this_thread::sleep_for(std::chrono::microseconds(10));
@@ -341,7 +341,7 @@ TEST(resource_pool, concurrent_access)
 TEST(resource_pool, double_clear)
 {
     siddiqsoft::arrp::resource_pool<std::string> rp {};
-    rp.return_to_pool(std::string("42"));
+    rp.checkin(std::string("42"));
     rp.clear();
     EXPECT_EQ(0u, rp.size());
 
@@ -368,7 +368,7 @@ TEST(resource_pool, starvation_under_contention)
 
 
     for (int i = 0; i < POOL_SIZE; i++) {
-        rp.return_to_pool(std::format("resource-{}", i));
+        rp.checkin(std::format("resource-{}", i));
     }
 
     std::atomic_int           successCount {0};
@@ -383,7 +383,7 @@ TEST(resource_pool, starvation_under_contention)
             for (int i = 0; i < OPS_PER_THREAD; i++) {
                 try {
                     {
-                        auto item = rp.borrow_from_pool();
+                        auto item = rp.checkout();
                         successCount++;
                         // Simulate work
                         std::this_thread::sleep_for(std::chrono::microseconds(50));
@@ -419,7 +419,7 @@ TEST(resource_pool, high_throughput_cycling)
 
     siddiqsoft::arrp::resource_pool<std::string> rp {};
     for (int i = 0; i < POOL_SIZE; i++) {
-        rp.return_to_pool(std::format("resource-{}", i));
+        rp.checkin(std::format("resource-{}", i));
     }
 
     std::atomic_int           totalCheckouts {0};
@@ -432,7 +432,7 @@ TEST(resource_pool, high_throughput_cycling)
             for (int c = 0; c < CYCLES; c++) {
                 try {
                     {
-                        auto item = rp.borrow_from_pool();
+                        auto item = rp.checkout();
                         totalCheckouts++;
                         // Immediately return
                     }
@@ -463,19 +463,19 @@ TEST(resource_pool, checkout_after_drain_throws)
                 throw std::runtime_error("Deliberate throw");
             });
 
-    rp.return_to_pool(std::string("1"));
-    rp.return_to_pool(std::string("2"));
+    rp.checkin(std::string("1"));
+    rp.checkin(std::string("2"));
 
     {
-        [[maybe_unused]] auto a = rp.borrow_from_pool();
-        [[maybe_unused]] auto b = rp.borrow_from_pool();
+        [[maybe_unused]] auto a = rp.checkout();
+        [[maybe_unused]] auto b = rp.checkout();
         EXPECT_EQ(0u, rp.size());
 
         // This must be checked prior to the a and b going out of
         // scope in which case they'll be put back into the pool
-        // and the check for rp.borrow_from_pool() throwing (due to empty)
+        // and the check for rp.checkout() throwing (due to empty)
         // will fail!
-        EXPECT_THROW({ [[maybe_unused]] auto v = rp.borrow_from_pool(); }, std::runtime_error);
+        EXPECT_THROW({ [[maybe_unused]] auto v = rp.checkout(); }, std::runtime_error);
     }
 }
 
@@ -496,7 +496,7 @@ TEST(resource_pool, size_accuracy_under_concurrency)
             startBarrier.arrive_and_wait();
             for (int i = 0; i < ITEMS_PER_THREAD; i++) {
                 std::string val = std::format("resource-{}-{}", t, i);
-                rp.return_to_pool(std::move(val));
+                rp.checkin(std::move(val));
             }
         });
     }
@@ -518,7 +518,7 @@ TEST(resource_pool, concurrent_unique_ptr)
 
     siddiqsoft::arrp::resource_pool<std::unique_ptr<std::string>> rp {};
     for (int i = 0; i < POOL_SIZE; i++) {
-        rp.return_to_pool(std::make_unique<std::string>(std::format("resource-{}", i)));
+        rp.checkin(std::make_unique<std::string>(std::format("resource-{}", i)));
     }
 
     std::atomic_int           totalCheckouts {0};
@@ -531,7 +531,7 @@ TEST(resource_pool, concurrent_unique_ptr)
             for (int c = 0; c < CYCLES; c++) {
                 try {
                     {
-                        auto&& item = rp.borrow_from_pool();
+                        auto&& item = rp.checkout();
                         EXPECT_NE(nullptr, *item);
                         totalCheckouts++;
                     }
@@ -561,23 +561,23 @@ TEST(resource_pool, multiple_shared_ptr_items)
     auto                                                          ptr2 = std::make_shared<std::string>("resource-2");
     auto                                                          ptr3 = std::make_shared<std::string>("resource-3");
 
-    rp.return_to_pool(std::move(ptr1));
-    rp.return_to_pool(std::move(ptr2));
-    rp.return_to_pool(std::move(ptr3));
+    rp.checkin(std::move(ptr1));
+    rp.checkin(std::move(ptr2));
+    rp.checkin(std::move(ptr3));
 
     EXPECT_EQ(3u, rp.size());
 
     // Checkout in FIFO order
     {
-        auto item1 = rp.borrow_from_pool();
+        auto item1 = rp.checkout();
         EXPECT_EQ("resource-1", **item1);
         EXPECT_EQ(2u, rp.size());
 
-        auto item2 = rp.borrow_from_pool();
+        auto item2 = rp.checkout();
         EXPECT_EQ("resource-2", **item2);
         EXPECT_EQ(1u, rp.size());
 
-        auto item3 = rp.borrow_from_pool();
+        auto item3 = rp.checkout();
         EXPECT_EQ("resource-3", **item3);
         EXPECT_EQ(0u, rp.size());
     }
@@ -602,11 +602,11 @@ TEST(resource_pool, shared_ptr_custom_deleter)
             delete p;
         });
 
-        rp.return_to_pool(std::move(ptr));
+        rp.checkin(std::move(ptr));
         EXPECT_EQ(0, deleteCount.load());
 
         {
-            auto item = rp.borrow_from_pool();
+            auto item = rp.checkout();
             EXPECT_EQ("custom-deleter-test", **item);
         }
         // Item returned to pool
@@ -623,11 +623,11 @@ TEST(resource_pool, shared_ptr_modification_persistence)
 {
     siddiqsoft::arrp::resource_pool<std::shared_ptr<std::string>> rp {};
 
-    rp.return_to_pool(std::make_shared<std::string>("initial"));
+    rp.checkin(std::make_shared<std::string>("initial"));
     EXPECT_EQ(1u, rp.size());
 
     {
-        auto item = rp.borrow_from_pool();
+        auto item = rp.checkout();
         **item += "-modified";
         EXPECT_EQ("initial-modified", **item);
     }
@@ -635,7 +635,7 @@ TEST(resource_pool, shared_ptr_modification_persistence)
     EXPECT_EQ(1u, rp.size());
 
     {
-        auto item2 = rp.borrow_from_pool();
+        auto item2 = rp.checkout();
         EXPECT_EQ("initial-modified", **item2);
         **item2 += "-again";
     }
@@ -643,7 +643,7 @@ TEST(resource_pool, shared_ptr_modification_persistence)
     EXPECT_EQ(1u, rp.size());
 
     {
-        auto item3 = rp.borrow_from_pool();
+        auto item3 = rp.checkout();
         EXPECT_EQ("initial-modified-again", **item3);
     }
 }
@@ -659,7 +659,7 @@ TEST(resource_pool, concurrent_shared_ptr_access)
 
     siddiqsoft::arrp::resource_pool<std::shared_ptr<std::string>> rp {};
     for (int i = 0; i < POOL_SIZE; i++) {
-        rp.return_to_pool(std::make_shared<std::string>(std::format("shared-resource-{}", i)));
+        rp.checkin(std::make_shared<std::string>(std::format("shared-resource-{}", i)));
     }
 
     std::atomic_int           totalCheckouts {0};
@@ -672,7 +672,7 @@ TEST(resource_pool, concurrent_shared_ptr_access)
             for (int c = 0; c < CYCLES; c++) {
                 try {
                     {
-                        auto item = rp.borrow_from_pool();
+                        auto item = rp.checkout();
                         EXPECT_NE(nullptr, *item);
                         EXPECT_FALSE((**item).empty());
                         totalCheckouts++;
@@ -700,9 +700,9 @@ TEST(resource_pool, concurrent_shared_ptr_access)
 TEST(scoped_resource, dereference_operator)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool {};
-    pool.return_to_pool(std::string("test"));
+    pool.checkin(std::string("test"));
 
-    auto resource = pool.borrow_from_pool();
+    auto resource = pool.checkout();
 
     // Test dereference operator
     EXPECT_EQ("test", *resource);
@@ -714,13 +714,13 @@ TEST(scoped_resource, dereference_operator)
 TEST(scoped_resource, invalidate)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool {};
-    pool.return_to_pool(std::string("resource1"));
-    pool.return_to_pool(std::string("resource2"));
+    pool.checkin(std::string("resource1"));
+    pool.checkin(std::string("resource2"));
 
     EXPECT_EQ(2u, pool.size());
 
     {
-        auto resource = pool.borrow_from_pool();
+        auto resource = pool.checkout();
         EXPECT_EQ(1u, pool.size());
 
         // Invalidate the resource
@@ -735,10 +735,10 @@ TEST(scoped_resource, invalidate)
 TEST(scoped_resource, move_semantics)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool {};
-    pool.return_to_pool(std::string("original"));
+    pool.checkin(std::string("original"));
 
     {
-        auto resource1 = pool.borrow_from_pool();
+        auto resource1 = pool.checkout();
         EXPECT_EQ("original", *resource1);
 
         // Move to resource2
@@ -756,12 +756,12 @@ TEST(resource_pool, json_serialization_counters)
     siddiqsoft::arrp::resource_pool<std::string> pool {};
 
     // Add resources
-    pool.return_to_pool(std::string("res1"));
-    pool.return_to_pool(std::string("res2"));
+    pool.checkin(std::string("res1"));
+    pool.checkin(std::string("res2"));
 
     // Borrow and return
     {
-        auto res = pool.borrow_from_pool();
+        auto res = pool.checkout();
     }
 
     auto json = pool.to_json();
@@ -791,7 +791,7 @@ TEST(resource_pool, extreme_stress_high_concurrency)
 
     siddiqsoft::arrp::resource_pool<std::string> pool {};
     for (int i = 0; i < POOL_SIZE; ++i) {
-        pool.return_to_pool(std::format("resource-{}", i));
+        pool.checkin(std::format("resource-{}", i));
     }
 
     std::atomic_int           total_ops {0};
@@ -803,7 +803,7 @@ TEST(resource_pool, extreme_stress_high_concurrency)
             start_barrier.arrive_and_wait();
             for (int i = 0; i < ITERATIONS; ++i) {
                 try {
-                    auto res = pool.borrow_from_pool();
+                    auto res = pool.checkout();
                     total_ops++;
                     // Simulate minimal work
                     std::this_thread::yield();
@@ -830,15 +830,15 @@ TEST(resource_pool, custom_factory_callback)
                                                                auto& p) -> siddiqsoft::arrp::scoped_resource<std::string> {
         creation_count++;
         return siddiqsoft::arrp::scoped_resource<std::string>(std::format("created-{}", creation_count.load()),
-                                                              [&p](std::string&& res) { p.return_to_pool(std::move(res)); });
+                                                              [&p](std::string&& res) { p.checkin(std::move(res)); });
     }};
 
     // Borrow resources - should trigger factory
     {
-        auto res1 = pool.borrow_from_pool();
+        auto res1 = pool.checkout();
         EXPECT_EQ(1, creation_count.load());
 
-        auto res2 = pool.borrow_from_pool();
+        auto res2 = pool.checkout();
         EXPECT_EQ(2, creation_count.load());
     }
 
@@ -852,35 +852,35 @@ TEST(resource_pool, capacity_limits)
     siddiqsoft::arrp::resource_pool<std::string, siddiqsoft::arrp::scoped_resource<std::string>, 4> pool {};
 
     // Add resources up to capacity
-    pool.return_to_pool(std::string("1"));
-    pool.return_to_pool(std::string("2"));
-    pool.return_to_pool(std::string("3"));
-    pool.return_to_pool(std::string("4"));
+    pool.checkin(std::string("1"));
+    pool.checkin(std::string("2"));
+    pool.checkin(std::string("3"));
+    pool.checkin(std::string("4"));
 
     EXPECT_EQ(4u, pool.size());
 
     // Try to borrow all
-    auto r1 = pool.borrow_from_pool();
-    auto r2 = pool.borrow_from_pool();
-    auto r3 = pool.borrow_from_pool();
-    auto r4 = pool.borrow_from_pool();
+    auto r1 = pool.checkout();
+    auto r2 = pool.checkout();
+    auto r3 = pool.checkout();
+    auto r4 = pool.checkout();
 
     EXPECT_EQ(0u, pool.size());
 
     // Should throw when trying to borrow beyond capacity
-    EXPECT_THROW({ auto r5 = pool.borrow_from_pool(); }, std::runtime_error);
+    EXPECT_THROW({ auto r5 = pool.checkout(); }, std::runtime_error);
 }
 
 /// @brief Test rapid allocation/deallocation cycles
 TEST(resource_pool, rapid_cycles)
 {
     siddiqsoft::arrp::resource_pool<std::vector<int>> pool {};
-    pool.return_to_pool(std::vector<int> {1, 2, 3, 4, 5});
+    pool.checkin(std::vector<int> {1, 2, 3, 4, 5});
 
     for (int cycle = 0; cycle < 100; ++cycle) {
         std::cerr << std::format("  >> Working on cycle: {}\n", cycle);
         {
-            auto vec = pool.borrow_from_pool();
+            auto vec = pool.checkout();
             (*vec).push_back(6);
         }
     }
@@ -899,10 +899,10 @@ TEST(resource_pool, large_objects)
 
     // Create large vector
     std::vector<char> large_vec(LARGE_SIZE, 'x');
-    pool.return_to_pool(std::move(large_vec));
+    pool.checkin(std::move(large_vec));
 
     {
-        auto vec = pool.borrow_from_pool();
+        auto vec = pool.checkout();
         EXPECT_EQ(LARGE_SIZE, (*vec).size());
     }
 
@@ -913,10 +913,10 @@ TEST(resource_pool, large_objects)
 TEST(resource_pool, exception_safety)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool {};
-    pool.return_to_pool(std::string("resource"));
+    pool.checkin(std::string("resource"));
 
     try {
-        auto res = pool.borrow_from_pool();
+        auto res = pool.checkout();
         throw std::runtime_error("Test exception");
     }
     catch (const std::runtime_error&) {
@@ -931,11 +931,11 @@ TEST(resource_pool, exception_safety)
 TEST(scoped_resource, move_assignment)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool {};
-    pool.return_to_pool(std::string("res1"));
-    pool.return_to_pool(std::string("res2"));
+    pool.checkin(std::string("res1"));
+    pool.checkin(std::string("res2"));
 
-    auto res1 = pool.borrow_from_pool();
-    auto res2 = pool.borrow_from_pool();
+    auto res1 = pool.checkout();
+    auto res2 = pool.checkout();
 
     EXPECT_EQ("res1", *res1);
     EXPECT_EQ("res2", *res2);
@@ -954,12 +954,12 @@ TEST(resource_pool, multiple_pools)
     siddiqsoft::arrp::resource_pool<std::string> pool1 {};
     siddiqsoft::arrp::resource_pool<std::string> pool2 {};
 
-    pool1.return_to_pool(std::string("pool1-res"));
-    pool2.return_to_pool(std::string("pool2-res"));
+    pool1.checkin(std::string("pool1-res"));
+    pool2.checkin(std::string("pool2-res"));
 
     {
-        auto res1 = pool1.borrow_from_pool();
-        auto res2 = pool2.borrow_from_pool();
+        auto res1 = pool1.checkout();
+        auto res2 = pool2.checkout();
 
         EXPECT_EQ("pool1-res", *res1);
         EXPECT_EQ("pool2-res", *res2);
@@ -975,7 +975,7 @@ TEST(resource_pool, fifo_ordering_concurrent)
     siddiqsoft::arrp::resource_pool<std::string> pool {};
 
     for (int i = 0; i < 10; ++i) {
-        pool.return_to_pool(std::format("item-{}", i));
+        pool.checkin(std::format("item-{}", i));
     }
 
     std::vector<std::string>  retrieved;
@@ -985,7 +985,7 @@ TEST(resource_pool, fifo_ordering_concurrent)
     for (int t = 0; t < 5; ++t) {
         threads.emplace_back([&]() {
             for (int i = 0; i < 2; ++i) {
-                auto res = pool.borrow_from_pool();
+                auto res = pool.checkout();
                 {
                     std::scoped_lock<std::mutex> lock(retrieved_lock);
                     retrieved.push_back(*res);
@@ -1009,11 +1009,11 @@ TEST(resource_pool, fifo_ordering_concurrent)
 TEST(resource_pool_adversarial, rapid_exception_cycles)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool {};
-    pool.return_to_pool(std::string("resource"));
+    pool.checkin(std::string("resource"));
 
     for (int i = 0; i < 1000; ++i) {
         try {
-            auto res = pool.borrow_from_pool();
+            auto res = pool.checkout();
             if (i % 3 == 0) {
                 throw std::runtime_error("Adversarial exception");
             }
@@ -1035,7 +1035,7 @@ TEST(resource_pool_adversarial, concurrent_invalidation)
 
     siddiqsoft::arrp::resource_pool<std::string> pool {};
     for (int i = 0; i < 10; ++i) {
-        pool.return_to_pool(std::format("resource-{}", i));
+        pool.checkin(std::format("resource-{}", i));
     }
 
     std::atomic_int           invalidated {0};
@@ -1047,7 +1047,7 @@ TEST(resource_pool_adversarial, concurrent_invalidation)
             start_barrier.arrive_and_wait();
             for (int i = 0; i < ITERATIONS; ++i) {
                 try {
-                    auto res = pool.borrow_from_pool();
+                    auto res = pool.checkout();
                     if (i % 5 == 0) {
                         res.invalidate();
                         invalidated++;
@@ -1074,12 +1074,12 @@ TEST(resource_pool_adversarial, alternating_clear_borrow)
     for (int cycle = 0; cycle < 100; ++cycle) {
         // Add resources
         for (int i = 0; i < 5; ++i) {
-            pool.return_to_pool(std::format("resource-{}-{}", cycle, i));
+            pool.checkin(std::format("resource-{}-{}", cycle, i));
         }
 
         // Try to borrow
         try {
-            auto res = pool.borrow_from_pool();
+            auto res = pool.checkout();
         }
         catch (const std::runtime_error&) {
             // Expected if pool was cleared
@@ -1107,7 +1107,7 @@ TEST(resource_pool_adversarial, extreme_contention_minimal_pool)
             [](siddiqsoft::arrp::resource_pool<std::string>& pool) -> siddiqsoft::arrp::scoped_resource<std::string> {
                 throw std::runtime_error("Deliberate throw");
             });
-    pool.return_to_pool(std::string("single-resource"));
+    pool.checkin(std::string("single-resource"));
     EXPECT_EQ(1, pool.size());
 
     std::vector<std::jthread> threads;
@@ -1116,7 +1116,7 @@ TEST(resource_pool_adversarial, extreme_contention_minimal_pool)
             start_barrier.arrive_and_wait();
             for (int i = 0; i < ITERATIONS; ++i) {
                 try {
-                    auto res = pool.borrow_from_pool();
+                    auto res = pool.checkout();
                     successes++;
                     std::this_thread::sleep_for(std::chrono::microseconds(50));
                 }
@@ -1141,11 +1141,11 @@ TEST(resource_pool_adversarial, rapid_move_operations)
 {
     siddiqsoft::arrp::resource_pool<std::unique_ptr<std::string>> pool {};
     for (int i = 0; i < 10; ++i) {
-        pool.return_to_pool(std::make_unique<std::string>(std::format("resource-{}", i)));
+        pool.checkin(std::make_unique<std::string>(std::format("resource-{}", i)));
     }
 
     for (int cycle = 0; cycle < 100; ++cycle) {
-        auto res1 = pool.borrow_from_pool();
+        auto res1 = pool.checkout();
         auto res2 = std::move(res1);
         auto res3 = std::move(res2);
         // res3 goes out of scope and returns to pool
@@ -1159,14 +1159,14 @@ TEST(resource_pool_adversarial, interleaved_invalidate_returns)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool {};
     for (int i = 0; i < 20; ++i) {
-        pool.return_to_pool(std::format("resource-{}", i));
+        pool.checkin(std::format("resource-{}", i));
     }
 
     std::vector<siddiqsoft::arrp::scoped_resource<std::string>> resources;
 
     // Borrow all resources
     for (int i = 0; i < 20; ++i) {
-        resources.push_back(pool.borrow_from_pool());
+        resources.push_back(pool.checkout());
     }
 
     EXPECT_EQ(0u, pool.size());
@@ -1192,7 +1192,7 @@ TEST(resource_pool_adversarial, random_delays_stress)
 
     siddiqsoft::arrp::resource_pool<std::string> pool {};
     for (int i = 0; i < 8; ++i) {
-        pool.return_to_pool(std::format("resource-{}", i));
+        pool.checkin(std::format("resource-{}", i));
     }
 
     std::atomic_int           ops {0};
@@ -1205,7 +1205,7 @@ TEST(resource_pool_adversarial, random_delays_stress)
             start_barrier.arrive_and_wait();
             for (int i = 0; i < 100; ++i) {
                 try {
-                    auto res = pool.borrow_from_pool();
+                    auto res = pool.checkout();
                     ops++;
                     // Random delay
                     std::this_thread::sleep_for(std::chrono::microseconds(dis(local_gen)));
@@ -1230,7 +1230,7 @@ TEST(resource_pool_adversarial, concurrent_json_serialization)
 
     // Seed the pool with 10 items..
     for (int i = 0; i < 10; ++i) {
-        pool.return_to_pool(std::format("resource-{}", i));
+        pool.checkin(std::format("resource-{}", i));
     }
 
     EXPECT_EQ(10, pool.size()) << "Expect all 10 items to be added.";
@@ -1246,7 +1246,7 @@ TEST(resource_pool_adversarial, concurrent_json_serialization)
             start_barrier.arrive_and_wait();
             for (int i = 0; i < 100; ++i) {
                 try {
-                    auto res = pool.borrow_from_pool();
+                    auto res = pool.checkout();
                 }
                 catch (const std::runtime_error&) {
                     // Expected
@@ -1285,7 +1285,7 @@ TEST(resource_pool_adversarial, factory_callback_exceptions)
                     std::format("Factory exception calls:{}  exceptions:{}", factory_calls.load(), factory_exceptions.load()));
         }
         return siddiqsoft::arrp::scoped_resource<std::string>(std::format("created-{}", factory_calls.load()),
-                                                              [&p](std::string&& res) { p.return_to_pool(std::move(res)); });
+                                                              [&p](std::string&& res) { p.checkin(std::move(res)); });
     }};
 
     std::atomic_int                              successes {0};
@@ -1296,7 +1296,7 @@ TEST(resource_pool_adversarial, factory_callback_exceptions)
             start_barrier.arrive_and_wait();
             for (int i = 0; i < 600; ++i) {
                 try {
-                    auto res = pool.borrow_from_pool();
+                    auto res = pool.checkout();
                     successes++;
                 }
                 catch (const std::runtime_error&) {
@@ -1332,7 +1332,7 @@ TEST(resource_pool, concurrent_clear_with_operations_FIXED)
     constexpr int                                INITIAL_SIZE = 10; // REDUCED from 20
 
     for (int i = 0; i < INITIAL_SIZE; i++) {
-        rp.return_to_pool(std::format("resource-{}", i));
+        rp.checkin(std::format("resource-{}", i));
     }
 
     std::atomic_bool done {false};
@@ -1354,7 +1354,7 @@ TEST(resource_pool, concurrent_clear_with_operations_FIXED)
 
             // Re-populate
             for (int i = 0; i < 3; i++) { // REDUCED from 5
-                rp.return_to_pool(std::format("resource-{}", i));
+                rp.checkin(std::format("resource-{}", i));
             }
         }
     });
@@ -1371,7 +1371,7 @@ TEST(resource_pool, concurrent_clear_with_operations_FIXED)
 
                 try {
                     {
-                        auto item = rp.borrow_from_pool();
+                        auto item = rp.checkout();
                         std::this_thread::sleep_for(std::chrono::microseconds(50)); // INCREASED from 10
                     }
                     // item is automatically returned to pool
@@ -1398,7 +1398,7 @@ TEST(resource_pool_adversarial, concurrent_clear_rapid_ops_FIXED)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool {siddiqsoft::arrp::resource_pool<std::string>::auto_add_policy::AutoGrow};
     for (int i = 0; i < 20; ++i) {
-        pool.return_to_pool(std::format("resource-{}", i));
+        pool.checkin(std::format("resource-{}", i));
     }
 
     std::atomic_bool stop {false};
@@ -1421,7 +1421,7 @@ TEST(resource_pool_adversarial, concurrent_clear_rapid_ops_FIXED)
 
             // Repopulate
             for (int i = 0; i < 5; ++i) { // REDUCED from 10
-                pool.return_to_pool(std::format("resource-{}", i));
+                pool.checkin(std::format("resource-{}", i));
             }
         }
     });
@@ -1437,7 +1437,7 @@ TEST(resource_pool_adversarial, concurrent_clear_rapid_ops_FIXED)
                 }
 
                 try {
-                    auto res = pool.borrow_from_pool();
+                    auto res = pool.checkout();
                     borrows++;
                 }
                 catch (const std::runtime_error&) {
@@ -1463,7 +1463,7 @@ TEST(resource_pool, concurrent_clear_deadlock_detection)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool;
     for (int i = 0; i < 8; ++i) {
-        pool.return_to_pool(std::format("resource-{}", i));
+        pool.checkin(std::format("resource-{}", i));
     }
 
     std::atomic_bool stop {false};
@@ -1475,7 +1475,7 @@ TEST(resource_pool, concurrent_clear_deadlock_detection)
         start_barrier.arrive_and_wait();
         for (int iteration = 0; iteration < 600 && !stop.load(); ++iteration) {
             try {
-                auto res = pool.borrow_from_pool();
+                auto res = pool.checkout();
                 ++borrow_cycles;
                 std::this_thread::sleep_for(std::chrono::microseconds(10));
             }
@@ -1497,7 +1497,7 @@ TEST(resource_pool, concurrent_clear_deadlock_detection)
             ++clear_cycles;
             std::this_thread::sleep_for(std::chrono::microseconds(50));
             for (int i = 0; i < 4; ++i) {
-                pool.return_to_pool(std::format("resource-{}", i));
+                pool.checkin(std::format("resource-{}", i));
             }
         }
         return true;
@@ -1533,7 +1533,7 @@ TEST(resource_pool, concurrent_json_deadlock_detection)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool;
     for (int i = 0; i < 10; ++i) {
-        pool.return_to_pool(std::format("resource-{}", i));
+        pool.checkin(std::format("resource-{}", i));
     }
 
     std::atomic_int done {0};
@@ -1543,7 +1543,7 @@ TEST(resource_pool, concurrent_json_deadlock_detection)
         start_barrier.arrive_and_wait();
         for (int i = 0; i < 200; ++i) {
             try {
-                auto res = pool.borrow_from_pool();
+                auto res = pool.checkout();
                 std::this_thread::sleep_for(std::chrono::microseconds(5));
             }
             catch (const std::runtime_error&) {

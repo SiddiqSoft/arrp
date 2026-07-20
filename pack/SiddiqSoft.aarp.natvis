@@ -50,8 +50,8 @@
       </ArrayItems>
       <Item Name="[Counters]">
         <Expand>
-          <Item Name="Borrow Operations">m_counter_borrow_from_pool</Item>
-          <Item Name="Return Operations">m_counter_return_to_pool</Item>
+          <Item Name="Borrow Operations">m_counter_checkout</Item>
+          <Item Name="Return Operations">m_counter_checkin</Item>
           <Item Name="On-Demand Adds">m_counter_ondemand_adds</Item>
           <Item Name="Auto-Returned">m_counter_auto_returned</Item>
         </Expand>
@@ -84,8 +84,8 @@
       </ArrayItems>
       <Item Name="[Counters]">
         <Expand>
-          <Item Name="Borrow Operations">m_counter_borrow_from_pool</Item>
-          <Item Name="Return Operations">m_counter_return_to_pool</Item>
+          <Item Name="Borrow Operations">m_counter_checkout</Item>
+          <Item Name="Return Operations">m_counter_checkin</Item>
           <Item Name="On-Demand Adds">m_counter_ondemand_adds</Item>
           <Item Name="Auto-Returned">m_counter_auto_returned</Item>
         </Expand>

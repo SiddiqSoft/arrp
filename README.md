@@ -30,12 +30,12 @@ int main() {
 
     // Populate the pool
     for (int i = 0; i < 5; ++i) {
-        pool.return_to_pool(std::make_shared<DatabaseConnection>());
+        pool.checkin(std::make_shared<DatabaseConnection>());
     }
 
     // Borrow and use a resource
     {
-        auto conn = pool.borrow_from_pool();
+        auto conn = pool.checkout();
         conn->execute("SELECT * FROM users");
         // Automatically returned to pool when going out of scope
     }

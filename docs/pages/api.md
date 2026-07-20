@@ -186,7 +186,7 @@ auto pool = siddiqsoft::arrp::resource_pool<MyResource>(
     [](auto& p) -> scoped_resource<MyResource> {
         return scoped_resource<MyResource>(
             MyResource::create(),
-            [&p](MyResource&& res) { p.return_to_pool(std::move(res)); }
+            [&p](MyResource&& res) { p.checkin(std::move(res)); }
         );
     }
 );
@@ -248,10 +248,10 @@ auto available = pool.size();
 std::cout << "Available resources: " << available << std::endl;
 ```
 
-#### borrow_from_pool
+#### checkout
 
 ```cpp
-[[nodiscard]] auto borrow_from_pool() -> SRT;
+[[nodiscard]] auto checkout() -> SRT;
 ```
 
 Borrows a resource from the pool, wrapping it in a `scoped_resource` that automatically returns it when destroyed.
@@ -277,7 +277,7 @@ Borrows a resource from the pool, wrapping it in a `scoped_resource` that automa
 **Example:**
 ```cpp
 try {
-    auto resource = pool.borrow_from_pool();
+    auto resource = pool.checkout();
     // Use the resource...
     resource->doSomething();
     // Automatically returned when resource goes out of scope
@@ -286,10 +286,10 @@ try {
 }
 ```
 
-#### return_to_pool
+#### checkin
 
 ```cpp
-void return_to_pool(T&& raw_resource);
+void checkin(T&& raw_resource);
 ```
 
 Returns a resource to the pool, making it available for future checkout operations.
@@ -311,14 +311,14 @@ Returns a resource to the pool, making it available for future checkout operatio
 ```cpp
 // Typically called automatically:
 {
-    auto resource = pool.borrow_from_pool();
+    auto resource = pool.checkout();
     // Use resource...
 }  // Automatically returned here
 
 // Manual return (advanced usage):
-auto resource = pool.borrow_from_pool();
+auto resource = pool.checkout();
 // ... use resource ...
-pool.return_to_pool(std::move(*resource));
+pool.checkin(std::move(*resource));
 ```
 
 #### clear
@@ -419,8 +419,8 @@ Default callback that throws when the pool is empty and cannot grow.
 ### Thread Safety
 
 All public methods are thread-safe:
-- `borrow_from_pool()` can be called from multiple threads
-- `return_to_pool()` can be called from multiple threads
+- `checkout()` can be called from multiple threads
+- `checkin()` can be called from multiple threads
 - `size()` is an atomic read
 - `clear()` is protected by mutex
 - `to_json()` is protected by mutex
@@ -498,7 +498,7 @@ auto wrapped = scoped_resource<MyResource>(
 );
 
 // Typical usage via resource_pool
-auto wrapped = pool.borrow_from_pool();
+auto wrapped = pool.checkout();
 ```
 
 ### Move Constructor
@@ -543,7 +543,7 @@ Assigns a new resource to this wrapper and marks it as valid.
 
 **Example:**
 ```cpp
-auto resource = pool.borrow_from_pool();
+auto resource = pool.checkout();
 MyResource new_res;
 resource = std::move(new_res);  // Replace the resource
 ```
@@ -562,7 +562,7 @@ Dereferences the wrapped resource.
 
 **Example:**
 ```cpp
-auto resource = pool.borrow_from_pool();
+auto resource = pool.checkout();
 (*resource).doSomething();  // Access via dereference
 ```
 
@@ -578,7 +578,7 @@ Explicit conversion to the resource type.
 
 **Example:**
 ```cpp
-auto resource = pool.borrow_from_pool();
+auto resource = pool.checkout();
 auto& ref = static_cast<T&>(resource);  // Explicit conversion
 ref.doSomething();
 ```
@@ -603,7 +603,7 @@ Automatically returns resource to pool if valid.
 **Example:**
 ```cpp
 {
-    auto resource = pool.borrow_from_pool();
+    auto resource = pool.checkout();
     // Use resource...
 }  // Destructor called here; resource returned to pool
 ```
@@ -630,13 +630,13 @@ Marks the resource as invalid to prevent automatic return to the pool.
 
 **Example:**
 ```cpp
-auto resource = pool.borrow_from_pool();
+auto resource = pool.checkout();
 auto ptr = std::move(*resource);
 resource.invalidate();  // Don't return the moved-out resource
 // Resource is NOT returned to pool when resource goes out of scope
 
 // Another example: consuming the resource
-auto resource = pool.borrow_from_pool();
+auto resource = pool.checkout();
 process_and_consume(*resource);
 resource.invalidate();  // Resource was consumed, don't return it
 ```
@@ -690,11 +690,11 @@ The constraint prevents using arithmetic types directly with `resource_pool` bec
 ```cpp
 // CORRECT: Use std::string instead of int
 siddiqsoft::arrp::resource_pool<std::string> pool;
-pool.return_to_pool(std::string("resource-1"));
+pool.checkin(std::string("resource-1"));
 
 // CORRECT: Use shared_ptr for managed resources
 siddiqsoft::arrp::resource_pool<std::shared_ptr<DatabaseConnection>> pool;
-pool.return_to_pool(std::make_shared<DatabaseConnection>("localhost"));
+pool.checkin(std::make_shared<DatabaseConnection>("localhost"));
 
 // INCORRECT: int is arithmetic
 // siddiqsoft::arrp::resource_pool<int> pool;  // Compilation error!
@@ -713,11 +713,11 @@ siddiqsoft::arrp::resource_pool<std::shared_ptr<DatabaseConnection>> pool;
 
 // Populate pool
 for (int i = 0; i < 10; ++i) {
-    pool.return_to_pool(std::make_shared<DatabaseConnection>("localhost"));
+    pool.checkin(std::make_shared<DatabaseConnection>("localhost"));
 }
 
 // Use in worker
-auto conn = pool.borrow_from_pool();
+auto conn = pool.checkout();
 conn->execute("SELECT * FROM users");
 // conn automatically returned to pool when scope exits
 ```
@@ -729,13 +729,13 @@ siddiqsoft::arrp::resource_pool<Connection> pool{
     [](auto& p) -> scoped_resource<Connection> {
         return scoped_resource<Connection>(
             Connection::create(),
-            [&p](Connection&& conn) { p.return_to_pool(std::move(conn)); }
+            [&p](Connection&& conn) { p.checkin(std::move(conn)); }
         );
     }
 };
 
 // Resources are created on-demand up to capacity
-auto conn = pool.borrow_from_pool();
+auto conn = pool.checkout();
 ```
 
 ### Resource Pool with Auto-Grow Policy
@@ -747,13 +747,13 @@ auto pool = siddiqsoft::arrp::resource_pool<MyResource>(
 );
 
 // Resources are created on-demand
-auto resource = pool.borrow_from_pool();
+auto resource = pool.checkout();
 ```
 
 ### Resource Invalidation
 
 ```cpp
-auto resource = pool.borrow_from_pool();
+auto resource = pool.checkout();
 auto ptr = std::move(*resource);
 resource.invalidate();  // Don't return the moved-out resource
 // Resource is NOT returned to pool
@@ -777,8 +777,8 @@ std::cout << "Total borrows: " << state["counters"]["borrow"] << std::endl;
 
 All classes are thread-safe for their public interfaces:
 
-- `borrow_from_pool()` can be called from multiple threads
-- `return_to_pool()` can be called from multiple threads
+- `checkout()` can be called from multiple threads
+- `checkin()` can be called from multiple threads
 - `size()` is an atomic read
 - `clear()` is protected by mutex
 - `to_json()` is protected by mutex

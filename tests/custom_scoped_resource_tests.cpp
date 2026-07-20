@@ -215,7 +215,7 @@ void close_and_clear_pool(PoolType& pool)
     // Borrow and close all remaining files in the pool
     while (pool.size() > 0) {
         try {
-            auto file_resource = pool.borrow_from_pool();
+            auto file_resource = pool.checkout();
             if (file_resource.is_valid()) {
                 std::fclose(file_resource.get_file());
                 file_resource.invalidate();  // Prevent returning to pool
@@ -268,11 +268,11 @@ TEST(custom_scoped_resource, basic_file_pool_creation)
         FILE*                                                      file = std::fopen(temp_file.c_str(), "w+");
         ASSERT_NE(nullptr, file);
 
-        pool.return_to_pool(std::move(file));
+        pool.checkin(std::move(file));
         EXPECT_EQ(1u, pool.size());
 
         {
-            auto file_resource = pool.borrow_from_pool();
+            auto file_resource = pool.checkout();
             EXPECT_TRUE(file_resource.is_valid());
         }
 
@@ -300,10 +300,10 @@ TEST(custom_scoped_resource, write_to_file)
         FILE*                                                      file = std::fopen(temp_file.c_str(), "w+");
         ASSERT_NE(nullptr, file);
 
-        pool.return_to_pool(std::move(file));
+        pool.checkin(std::move(file));
 
         {
-            auto   file_resource = pool.borrow_from_pool();
+            auto   file_resource = pool.checkout();
             size_t written       = file_resource.write("Hello, World!");
             EXPECT_EQ(13u, written);
             file_resource.flush();
@@ -340,17 +340,17 @@ TEST(custom_scoped_resource, multiple_file_resources)
     try {
         siddiqsoft::arrp::resource_pool<FILE*, ScopedFileResource> pool {};
 
-        pool.return_to_pool(std::fopen(temp_file1.c_str(), "w+"));
-        pool.return_to_pool(std::fopen(temp_file2.c_str(), "w+"));
-        pool.return_to_pool(std::fopen(temp_file3.c_str(), "w+"));
+        pool.checkin(std::fopen(temp_file1.c_str(), "w+"));
+        pool.checkin(std::fopen(temp_file2.c_str(), "w+"));
+        pool.checkin(std::fopen(temp_file3.c_str(), "w+"));
 
         EXPECT_EQ(3u, pool.size());
 
         // Borrow all files
         {
-            auto res1 = pool.borrow_from_pool();
-            auto res2 = pool.borrow_from_pool();
-            auto res3 = pool.borrow_from_pool();
+            auto res1 = pool.checkout();
+            auto res2 = pool.checkout();
+            auto res3 = pool.checkout();
 
             EXPECT_EQ(0u, pool.size());
 
@@ -389,18 +389,18 @@ TEST(custom_scoped_resource, file_persistence_across_cycles)
     try {
         siddiqsoft::arrp::resource_pool<FILE*, ScopedFileResource> pool {};
 
-        pool.return_to_pool(std::fopen(temp_file.c_str(), "w+"));
+        pool.checkin(std::fopen(temp_file.c_str(), "w+"));
 
         // First cycle: write data
         {
-            auto file_resource = pool.borrow_from_pool();
+            auto file_resource = pool.checkout();
             file_resource.write("First write\n");
             file_resource.flush();
         }
 
         // Second cycle: append more data
         {
-            auto file_resource = pool.borrow_from_pool();
+            auto file_resource = pool.checkout();
             file_resource.write("Second write\n");
             file_resource.flush();
         }
@@ -437,7 +437,7 @@ TEST(custom_scoped_resource, concurrent_file_writes)
 
         // Create multiple file handles
         for (int i = 0; i < 4; ++i) {
-            pool.return_to_pool(std::fopen(temp_file.c_str(), "a+"));
+            pool.checkin(std::fopen(temp_file.c_str(), "a+"));
         }
 
         EXPECT_EQ(4u, pool.size());
@@ -451,7 +451,7 @@ TEST(custom_scoped_resource, concurrent_file_writes)
                 start_barrier.arrive_and_wait();
                 for (int i = 0; i < 10; ++i) {
                     try {
-                        auto        file_resource = pool.borrow_from_pool();
+                        auto        file_resource = pool.checkout();
                         std::string msg           = std::format("Thread {} iteration {}\n", t, i);
                         file_resource.write(msg);
                         file_resource.flush();
@@ -488,13 +488,13 @@ TEST(custom_scoped_resource, file_resource_invalidation)
     try {
         siddiqsoft::arrp::resource_pool<FILE*, ScopedFileResource> pool {};
 
-        pool.return_to_pool(std::fopen(temp_file.c_str(), "w+"));
-        pool.return_to_pool(std::fopen(temp_file.c_str(), "w+"));
+        pool.checkin(std::fopen(temp_file.c_str(), "w+"));
+        pool.checkin(std::fopen(temp_file.c_str(), "w+"));
 
         EXPECT_EQ(2u, pool.size());
 
         {
-            auto file_resource = pool.borrow_from_pool();
+            auto file_resource = pool.checkout();
             EXPECT_EQ(1u, pool.size());
 
             // Invalidate the resource
@@ -523,10 +523,10 @@ TEST(custom_scoped_resource, file_resource_move_semantics)
     try {
         siddiqsoft::arrp::resource_pool<FILE*, ScopedFileResource> pool {};
 
-        pool.return_to_pool(std::fopen(temp_file.c_str(), "w+"));
+        pool.checkin(std::fopen(temp_file.c_str(), "w+"));
 
         {
-            auto resource1 = pool.borrow_from_pool();
+            auto resource1 = pool.checkout();
             EXPECT_TRUE(resource1.is_valid());
 
             // Move to resource2
@@ -563,15 +563,15 @@ TEST(custom_scoped_resource, custom_factory_callback)
                     if (file == nullptr) {
                         throw std::runtime_error("Failed to open file");
                     }
-                    return ScopedFileResource(std::move(file), [&p](FILE*&& f) { p.return_to_pool(std::move(f)); });
+                    return ScopedFileResource(std::move(file), [&p](FILE*&& f) { p.checkin(std::move(f)); });
                 }};
 
         // Borrow resources - should trigger factory
         {
-            auto res1 = pool.borrow_from_pool();
+            auto res1 = pool.checkout();
             EXPECT_EQ(1, creation_count.load());
 
-            auto res2 = pool.borrow_from_pool();
+            auto res2 = pool.checkout();
             EXPECT_EQ(2, creation_count.load());
         }
 
@@ -597,11 +597,11 @@ TEST(custom_scoped_resource, json_serialization)
     try {
         siddiqsoft::arrp::resource_pool<FILE*, ScopedFileResource> pool {};
 
-        pool.return_to_pool(std::fopen(temp_file.c_str(), "w+"));
+        pool.checkin(std::fopen(temp_file.c_str(), "w+"));
 
         // Borrow and return
         {
-            auto res = pool.borrow_from_pool();
+            auto res = pool.checkout();
             res.write("test data");
             res.flush();
         }
@@ -642,7 +642,7 @@ TEST(custom_scoped_resource, high_throughput_file_ops)
 
         // Pre-populate pool
         for (int i = 0; i < 4; ++i) {
-            pool.return_to_pool(std::fopen(temp_file.c_str(), "a+"));
+            pool.checkin(std::fopen(temp_file.c_str(), "a+"));
         }
 
         std::atomic_int           operations {0};
@@ -654,7 +654,7 @@ TEST(custom_scoped_resource, high_throughput_file_ops)
                 start_barrier.arrive_and_wait();
                 for (int i = 0; i < 50; ++i) {
                     try {
-                        auto        file_resource = pool.borrow_from_pool();
+                        auto        file_resource = pool.checkout();
                         std::string msg           = std::format("Op {} from thread {}\n", i, t);
                         file_resource.write(msg);
                         file_resource.flush();
@@ -691,10 +691,10 @@ TEST(custom_scoped_resource, exception_safety)
     try {
         siddiqsoft::arrp::resource_pool<FILE*, ScopedFileResource> pool {};
 
-        pool.return_to_pool(std::fopen(temp_file.c_str(), "w+"));
+        pool.checkin(std::fopen(temp_file.c_str(), "w+"));
 
         try {
-            auto res = pool.borrow_from_pool();
+            auto res = pool.checkout();
             res.write("Before exception");
             throw std::runtime_error("Test exception");
         }
@@ -724,19 +724,19 @@ TEST(custom_scoped_resource, capacity_limits)
     try {
         siddiqsoft::arrp::resource_pool<FILE*, ScopedFileResource, 2> pool {};
 
-        pool.return_to_pool(std::fopen(temp_file.c_str(), "w+"));
-        pool.return_to_pool(std::fopen(temp_file.c_str(), "w+"));
+        pool.checkin(std::fopen(temp_file.c_str(), "w+"));
+        pool.checkin(std::fopen(temp_file.c_str(), "w+"));
 
         EXPECT_EQ(2u, pool.size());
 
         // Borrow both
-        auto r1 = pool.borrow_from_pool();
-        auto r2 = pool.borrow_from_pool();
+        auto r1 = pool.checkout();
+        auto r2 = pool.checkout();
 
         EXPECT_EQ(0u, pool.size());
 
         // Should throw when trying to borrow beyond capacity
-        EXPECT_THROW({ auto r3 = pool.borrow_from_pool(); }, std::runtime_error);
+        EXPECT_THROW({ auto r3 = pool.checkout(); }, std::runtime_error);
         close_and_clear_pool(pool);
     }
     catch (...) {
@@ -757,11 +757,11 @@ TEST(custom_scoped_resource, rapid_file_cycles)
     try {
         siddiqsoft::arrp::resource_pool<FILE*, ScopedFileResource> pool {};
 
-        pool.return_to_pool(std::fopen(temp_file.c_str(), "w+"));
+        pool.checkin(std::fopen(temp_file.c_str(), "w+"));
 
         for (int cycle = 0; cycle < 50; ++cycle) {
             {
-                auto        file_resource = pool.borrow_from_pool();
+                auto        file_resource = pool.checkout();
                 std::string msg           = std::format("Cycle {}\n", cycle);
                 file_resource.write(msg);
                 file_resource.flush();
@@ -789,9 +789,9 @@ TEST(custom_scoped_resource, clear_operation)
     try {
         siddiqsoft::arrp::resource_pool<FILE*, ScopedFileResource> pool {};
 
-        pool.return_to_pool(std::fopen(temp_file.c_str(), "w+"));
-        pool.return_to_pool(std::fopen(temp_file.c_str(), "w+"));
-        pool.return_to_pool(std::fopen(temp_file.c_str(), "w+"));
+        pool.checkin(std::fopen(temp_file.c_str(), "w+"));
+        pool.checkin(std::fopen(temp_file.c_str(), "w+"));
+        pool.checkin(std::fopen(temp_file.c_str(), "w+"));
 
         EXPECT_EQ(3u, pool.size());
 
@@ -799,7 +799,7 @@ TEST(custom_scoped_resource, clear_operation)
         EXPECT_EQ(0u, pool.size());
 
         // After clear, checkout should throw
-        EXPECT_THROW({ auto res = pool.borrow_from_pool(); }, std::runtime_error);
+        EXPECT_THROW({ auto res = pool.checkout(); }, std::runtime_error);
     }
     catch (...) {
         cleanup_temp_file(temp_file);
@@ -837,17 +837,17 @@ TEST(custom_scoped_resource, fifo_ordering)
         std::fflush(file2);
         std::fflush(file3);
 
-        pool.return_to_pool(std::move(file1));
-        pool.return_to_pool(std::move(file2));
-        pool.return_to_pool(std::move(file3));
+        pool.checkin(std::move(file1));
+        pool.checkin(std::move(file2));
+        pool.checkin(std::move(file3));
 
         EXPECT_EQ(3u, pool.size());
 
         // Checkout in FIFO order
         {
-            auto res1 = pool.borrow_from_pool();
-            auto res2 = pool.borrow_from_pool();
-            auto res3 = pool.borrow_from_pool();
+            auto res1 = pool.checkout();
+            auto res2 = pool.checkout();
+            auto res3 = pool.checkout();
 
             EXPECT_EQ(0u, pool.size());
         }

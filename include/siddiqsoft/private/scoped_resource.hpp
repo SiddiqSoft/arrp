@@ -102,7 +102,7 @@ namespace siddiqsoft::arrp
      * @code
      * // Typical usage with resource_pool
      * {
-     *     auto resource = pool.borrow_from_pool();
+     *     auto resource = pool.checkout();
      *     // Use the resource...
      *     resource->doSomething();
      *     // Automatically returned to pool when going out of scope
@@ -110,7 +110,7 @@ namespace siddiqsoft::arrp
      *
      * // Manual invalidation
      * {
-     *     auto resource = pool.borrow_from_pool();
+     *     auto resource = pool.checkout();
      *     auto ptr = std::move(*resource);
      *     resource.invalidate();  // Don't return the moved-out resource
      * }
@@ -183,7 +183,7 @@ namespace siddiqsoft::arrp
          *
          * The constructor is marked explicit to prevent accidental implicit conversions.
          *
-         * @note This constructor is typically called by resource_pool::borrow_from_pool()
+         * @note This constructor is typically called by resource_pool::checkout()
          * @note The callback is optional; if not provided, the resource is simply destroyed
          * @note The resource is moved into the wrapper, not copied
          *
@@ -197,7 +197,7 @@ namespace siddiqsoft::arrp
          * );
          *
          * // Typical usage via resource_pool
-         * auto wrapped = pool.borrow_from_pool();
+         * auto wrapped = pool.checkout();
          * @endcode
          */
         explicit scoped_resource(T&& src, std::function<void(T&&)>&& f = {})
@@ -270,8 +270,8 @@ namespace siddiqsoft::arrp
          *
          * @example
          * @code
-         * auto resource1 = pool.borrow_from_pool();
-         * auto resource2 = pool.borrow_from_pool();
+         * auto resource1 = pool.checkout();
+         * auto resource2 = pool.checkout();
          * resource1 = std::move(resource2);  // resource1 returned, resource2 moved
          * @endcode
          */
@@ -315,7 +315,7 @@ namespace siddiqsoft::arrp
          *
          * @example
          * @code
-         * auto resource = pool.borrow_from_pool();
+         * auto resource = pool.checkout();
          * MyResource new_res;
          * resource = std::move(new_res);  // Replace the resource
          * @endcode
@@ -350,7 +350,7 @@ namespace siddiqsoft::arrp
          *
          * @example
          * @code
-         * auto resource = pool.borrow_from_pool();
+         * auto resource = pool.checkout();
          * (*resource).doSomething();  // Access via dereference
          * @endcode
          */
@@ -381,7 +381,7 @@ namespace siddiqsoft::arrp
          * @example
          * @code
          * {
-         *     auto resource = pool.borrow_from_pool();
+         *     auto resource = pool.checkout();
          *     // Use resource...
          * }  // Destructor called here; resource returned to pool
          * @endcode
@@ -391,9 +391,6 @@ namespace siddiqsoft::arrp
             // Only return resource if it's valid and callback exists
             // This prevents returning uninitialized or moved-out resources to the pool
             if (m_is_valid && m_putback_callback) {
-#if defined(DEBUG)
-                std::cerr << std::format("  - ~scoped_resource: putback  m_is_valid:{}\n", m_is_valid);
-#endif
                 m_putback_callback(std::move(m_rsrc));
                 m_is_valid         = false;
                 m_putback_callback = {};
@@ -423,13 +420,13 @@ namespace siddiqsoft::arrp
          *
          * @example
          * @code
-         * auto resource = pool.borrow_from_pool();
+         * auto resource = pool.checkout();
          * auto ptr = std::move(*resource);
          * resource.invalidate();  // Don't return the moved-out resource
          * // Resource is NOT returned to pool when resource goes out of scope
          *
          * // Another example: consuming the resource
-         * auto resource = pool.borrow_from_pool();
+         * auto resource = pool.checkout();
          * process_and_consume(*resource);
          * resource.invalidate();  // Resource was consumed, don't return it
          * @endcode

@@ -29,14 +29,14 @@ int main() {
     
     // Populate pool with connections
     for (int i = 0; i < 10; ++i) {
-        pool.return_to_pool(
+        pool.checkin(
             std::make_shared<DatabaseConnection>("localhost", 5432)
         );
     }
 
     // Use connections
     {
-        auto conn = pool.borrow_from_pool();
+        auto conn = pool.checkout();
         conn->execute("SELECT * FROM users");
         // Automatically returned to pool
     }
@@ -77,14 +77,14 @@ int main() {
     
     // Populate pool
     for (int i = 0; i < 5; ++i) {
-        pool.return_to_pool(
+        pool.checkin(
             std::make_shared<HttpClient>("https://api.example.com")
         );
     }
 
     // Use clients
     {
-        auto client = pool.borrow_from_pool();
+        auto client = pool.checkout();
         auto response = client->get("/users");
         // Automatically returned to pool
     }
@@ -123,14 +123,14 @@ int main() {
     
     // Populate pool with file handles
     for (int i = 0; i < 5; ++i) {
-        pool.return_to_pool(
+        pool.checkin(
             std::make_shared<FileHandle>("output.log")
         );
     }
 
     // Use file handles
     {
-        auto file = pool.borrow_from_pool();
+        auto file = pool.checkout();
         file->write("Log entry 1");
         file->write("Log entry 2");
         // Automatically returned to pool
@@ -162,7 +162,7 @@ int main() {
     
     // Populate pool
     for (int i = 0; i < 4; ++i) {
-        pool.return_to_pool(std::make_shared<Worker>());
+        pool.checkin(std::make_shared<Worker>());
     }
 
     // Use from multiple threads
@@ -170,7 +170,7 @@ int main() {
     for (int t = 0; t < 4; ++t) {
         threads.emplace_back([&pool]() {
             for (int i = 0; i < 10; ++i) {
-                auto worker = pool.borrow_from_pool();
+                auto worker = pool.checkout();
                 worker->process("task-" + std::to_string(i));
                 // Automatically returned
             }
@@ -219,7 +219,7 @@ int main() {
             return siddiqsoft::arrp::scoped_resource<ExpensiveResource>(
                 ExpensiveResource(++resource_counter),
                 [&p](ExpensiveResource&& res) { 
-                    p.return_to_pool(std::move(res)); 
+                    p.checkin(std::move(res)); 
                 }
             );
         }
@@ -227,7 +227,7 @@ int main() {
 
     // Resources are created on-demand
     for (int i = 0; i < 5; ++i) {
-        auto res = pool.borrow_from_pool();
+        auto res = pool.checkout();
         res.use();
         // Automatically returned
     }
@@ -252,7 +252,7 @@ int main() {
     
     // Populate pool
     for (int i = 0; i < 10; ++i) {
-        pool.return_to_pool(std::make_shared<int>(i));
+        pool.checkin(std::make_shared<int>(i));
     }
 
     // Monitor pool state
@@ -261,9 +261,9 @@ int main() {
         std::cout << "Pool state: " << state.dump(2) << std::endl;
         
         // Borrow some resources
-        std::vector<decltype(pool.borrow_from_pool())> borrowed;
+        std::vector<decltype(pool.checkout())> borrowed;
         for (int j = 0; j < 3; ++j) {
-            borrowed.push_back(pool.borrow_from_pool());
+            borrowed.push_back(pool.checkout());
         }
         
         std::cout << "After borrowing 3 resources:" << std::endl;
@@ -295,12 +295,12 @@ int main() {
     
     // Populate pool
     for (int i = 0; i < 5; ++i) {
-        pool.return_to_pool(std::make_shared<Resource>());
+        pool.checkin(std::make_shared<Resource>());
     }
 
     // Borrow and invalidate
     {
-        auto res = pool.borrow_from_pool();
+        auto res = pool.checkout();
         res->use();
         
         // Take ownership of the resource
@@ -331,16 +331,16 @@ int main() {
     
     // Populate with limited resources
     for (int i = 0; i < 2; ++i) {
-        pool.return_to_pool(std::make_shared<int>(i));
+        pool.checkin(std::make_shared<int>(i));
     }
 
     // Try to borrow more than available
     try {
-        auto res1 = pool.borrow_from_pool();
-        auto res2 = pool.borrow_from_pool();
+        auto res1 = pool.checkout();
+        auto res2 = pool.checkout();
         
         // Pool is now empty and at capacity
-        auto res3 = pool.borrow_from_pool();  // This will throw
+        auto res3 = pool.checkout();  // This will throw
     } catch (const std::runtime_error& e) {
         std::cerr << "Error: " << e.what() << std::endl;
         std::cerr << "Pool exhausted!" << std::endl;
@@ -368,18 +368,18 @@ int main() {
     
     // Populate pool
     for (int i = 0; i < 5; ++i) {
-        pool.return_to_pool(Resource{});
+        pool.checkin(Resource{});
     }
 
     // Dereference operator
     {
-        auto res = pool.borrow_from_pool();
+        auto res = pool.checkout();
         (*res).doSomething();
     }
 
     // Implicit conversion
     {
-        auto res = pool.borrow_from_pool();
+        auto res = pool.checkout();
         // Can pass to functions expecting Resource&
         auto& ref = static_cast<Resource&>(res);
         ref.doSomething();
@@ -387,7 +387,7 @@ int main() {
 
     // Move semantics
     {
-        auto res1 = pool.borrow_from_pool();
+        auto res1 = pool.checkout();
         auto res2 = std::move(res1);
         // res1 is now invalid, only res2 will return the resource
     }

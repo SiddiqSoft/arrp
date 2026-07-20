@@ -64,12 +64,12 @@ int main() {
 
     // Populate the pool with resources
     for (int i = 0; i < 5; ++i) {
-        pool.return_to_pool(std::make_shared<DatabaseConnection>());
+        pool.checkin(std::make_shared<DatabaseConnection>());
     }
 
     // Borrow a resource from the pool
     {
-        auto conn = pool.borrow_from_pool();
+        auto conn = pool.checkout();
         conn->execute("SELECT * FROM users");
         // Resource is automatically returned to the pool when going out of scope
     }
@@ -89,7 +89,7 @@ Borrow a resource, use it, and let it automatically return:
 siddiqsoft::arrp::resource_pool<std::shared_ptr<Connection>> pool;
 
 {
-    auto conn = pool.borrow_from_pool();
+    auto conn = pool.checkout();
     conn->query("SELECT * FROM users");
     // Automatically returned when going out of scope
 }
@@ -104,12 +104,12 @@ siddiqsoft::arrp::resource_pool<Connection> pool{
     [](auto& p) -> siddiqsoft::arrp::scoped_resource<Connection> {
         return siddiqsoft::arrp::scoped_resource<Connection>(
             Connection::create(),
-            [&p](Connection&& conn) { p.return_to_pool(std::move(conn)); }
+            [&p](Connection&& conn) { p.checkin(std::move(conn)); }
         );
     }
 };
 
-auto conn = pool.borrow_from_pool();
+auto conn = pool.checkout();
 ```
 
 ### Pattern 3: Multi-threaded Usage
@@ -120,12 +120,12 @@ Use the pool safely from multiple threads:
 siddiqsoft::arrp::resource_pool<std::shared_ptr<Connection>> pool;
 
 std::thread t1([&pool]() {
-    auto conn = pool.borrow_from_pool();
+    auto conn = pool.checkout();
     // Use connection
 });
 
 std::thread t2([&pool]() {
-    auto conn = pool.borrow_from_pool();
+    auto conn = pool.checkout();
     // Use connection
 });
 
@@ -138,7 +138,7 @@ t2.join();
 Prevent a resource from being returned to the pool:
 
 ```cpp
-auto resource = pool.borrow_from_pool();
+auto resource = pool.checkout();
 auto ptr = std::move(*resource);
 resource.invalidate();  // Don't return the moved-out resource
 // Resource is NOT returned to pool
@@ -162,7 +162,7 @@ resource.invalidate();  // Don't return the moved-out resource
 
 ### Runtime Issues
 
-**Issue**: `borrow_from_pool()` throws std::runtime_error
+**Issue**: `checkout()` throws std::runtime_error
 - **Solution**: The pool is empty and at capacity. Populate the pool first or increase capacity.
 - **Solution**: Ensure resources are being returned to the pool properly.
 
