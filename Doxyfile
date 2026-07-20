@@ -376,12 +376,12 @@ STRIP_CODE_COMMENTS    = YES
 
 # If the REFERENCED_BY_RELATION tag is set to YES then for each documented
 # function all documented functions referencing it will be listed.
-REFERENCED_BY_RELATION = NO
+REFERENCED_BY_RELATION = YES
 
 # If the REFERENCES_RELATION tag is set to YES then for each documented
 # function all documented entities called/referred to by that function will
 # be listed.
-REFERENCES_RELATION    = NO
+REFERENCES_RELATION    = YES
 
 # If the REFERENCES_RELATION_EXTERNAL tag is set to YES then the global list
 # of references will be generated with entries that point to the external
