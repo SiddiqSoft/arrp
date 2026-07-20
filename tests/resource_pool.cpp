@@ -826,12 +826,12 @@ TEST(resource_pool, custom_factory_callback)
 {
     std::atomic_int                              creation_count {0};
 
-    siddiqsoft::arrp::resource_pool<std::string> pool {
-            [&creation_count](auto& p) -> siddiqsoft::arrp::scoped_resource<std::string> {
-                creation_count++;
-                return siddiqsoft::arrp::scoped_resource<std::string>(std::format("created-{}", creation_count.load()),
-                                                                      [&p](std::string&& res) { p.checkin(std::move(res)); });
-            }};
+    siddiqsoft::arrp::resource_pool<std::string> pool {[&creation_count](
+                                                               auto& p) -> siddiqsoft::arrp::scoped_resource<std::string> {
+        creation_count++;
+        return siddiqsoft::arrp::scoped_resource<std::string>(std::format("created-{}", creation_count.load()),
+                                                              [&p](std::string&& res) { p.checkin(std::move(res)); });
+    }};
 
     // Borrow resources - should trigger factory
     {
@@ -1473,7 +1473,7 @@ TEST(resource_pool, concurrent_clear_deadlock_detection)
 
     auto             worker_fn = [&]() {
         start_barrier.arrive_and_wait();
-        for (int iteration = 0; iteration < 1000 && !stop.load(); ++iteration) {
+        for (int iteration = 0; iteration < 600 && !stop.load(); ++iteration) {
             try {
                 auto res = pool.checkout();
                 ++borrow_cycles;
@@ -1490,7 +1490,7 @@ TEST(resource_pool, concurrent_clear_deadlock_detection)
         start_barrier.arrive_and_wait();
         // this specific wait is important otherwise the workers
         // will never get a chance to run..
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
         while (!stop.load()) {
             pool.clear();
@@ -1509,7 +1509,7 @@ TEST(resource_pool, concurrent_clear_deadlock_detection)
     auto clearer = std::async(std::launch::async, clearer_fn);
 
     // give five seconds for the threads to complete..
-    constexpr auto timeout = std::chrono::seconds(10);
+    constexpr auto timeout = std::chrono::seconds(5);
     EXPECT_EQ(std::future_status::ready, worker1.wait_for(timeout));
     EXPECT_EQ(std::future_status::ready, worker2.wait_for(timeout));
 
@@ -1525,12 +1525,8 @@ TEST(resource_pool, concurrent_clear_deadlock_detection)
     std::cerr << "  results... " << worker2.get() << std::endl;
     std::cerr << "  results... " << clearer.get() << std::endl;
 
-    // Relaxed expectations to handle slow build machines
-    EXPECT_GE(borrow_cycles.load(), 0);
-    EXPECT_GE(clear_cycles.load(), 0);
-
-    // At least one of them should have done something
-    EXPECT_GT(borrow_cycles.load() + clear_cycles.load(), 0);
+    EXPECT_GT(borrow_cycles.load(), 0);
+    EXPECT_GT(clear_cycles.load(), 0);
 }
 
 TEST(resource_pool, concurrent_json_deadlock_detection)
