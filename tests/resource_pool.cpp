@@ -1512,6 +1512,7 @@ TEST(resource_pool, concurrent_clear_deadlock_detection)
     EXPECT_EQ(std::future_status::ready, worker1.wait_for(timeout));
     EXPECT_EQ(std::future_status::ready, worker2.wait_for(timeout));
 
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
     // signal for them to stop..
     stop = true;
 
