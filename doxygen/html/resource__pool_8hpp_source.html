@@ -28,7 +28,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="Siddiq-Software-Avatar.png"/></td>
   <td id="projectalign">
-   <div id="projectname">arrp<span id="projectnumber">&#160;0.0.9</span>
+   <div id="projectname">arrp<span id="projectnumber">&#160;0.0.10</span>
    </div>
    <div id="projectbrief">Auto returning resource pool for modern C++</div>
   </td>
@@ -312,62 +312,67 @@ $(function(){initNavTree('resource__pool_8hpp_source.html','',''); });
 <div class="line"><a id="l00431" name="l00431"></a><span class="lineno">  431</span>                    std::cerr &lt;&lt; std::format(<span class="stringliteral">&quot;We&#39;re under-capacity.. but no dynamic resource provider\n&quot;</span>);</div>
 <div class="line"><a id="l00432" name="l00432"></a><span class="lineno">  432</span>                }</div>
 <div class="line"><a id="l00433" name="l00433"></a><span class="lineno">  433</span>            } <span class="comment">// scope end</span></div>
-<div class="line"><a id="l00434" name="l00434"></a><span class="lineno">  434</span>            <span class="keywordflow">catch</span> (...) {</div>
+<div class="line"><a id="l00434" name="l00434"></a><span class="lineno">  434</span>            <span class="keywordflow">catch</span> (std::exception&amp; ex) {</div>
 <div class="line"><a id="l00435" name="l00435"></a><span class="lineno">  435</span>                checkout_guard();</div>
-<div class="line"><a id="l00436" name="l00436"></a><span class="lineno">  436</span>                std::cerr &lt;&lt; std::format(<span class="stringliteral">&quot;Error in checkout&quot;</span>);</div>
+<div class="line"><a id="l00436" name="l00436"></a><span class="lineno">  436</span>                std::cerr &lt;&lt; std::format(<span class="stringliteral">&quot;Error in checkout: {}\n&quot;</span>, ex.what());</div>
 <div class="line"><a id="l00437" name="l00437"></a><span class="lineno">  437</span>                <span class="keywordflow">throw</span>;</div>
 <div class="line"><a id="l00438" name="l00438"></a><span class="lineno">  438</span>            }</div>
-<div class="line"><a id="l00439" name="l00439"></a><span class="lineno">  439</span> </div>
-<div class="line"><a id="l00440" name="l00440"></a><span class="lineno">  440</span>            <span class="keyword">auto</span> msg = std::format(</div>
-<div class="line"><a id="l00441" name="l00441"></a><span class="lineno">  441</span>                    <span class="stringliteral">&quot;Pool Size:{}  checkedout:{}  capacity:{}&quot;</span>, m_pool.size(), m_resources_checkedout.load(), m_capacity);</div>
-<div class="line"><a id="l00442" name="l00442"></a><span class="lineno">  442</span>            <span class="keywordflow">throw</span> std::runtime_error(msg);</div>
-<div class="line"><a id="l00443" name="l00443"></a><span class="lineno">  443</span>        }</div>
-<div class="line"><a id="l00444" name="l00444"></a><span class="lineno">  444</span></div>
-<div class="line"><a id="l00481" name="l00481"></a><span class="lineno">  481</span>        <span class="keywordtype">void</span> checkin(T&amp;&amp; raw_resource)</div>
-<div class="line"><a id="l00482" name="l00482"></a><span class="lineno">  482</span>        {</div>
-<div class="line"><a id="l00483" name="l00483"></a><span class="lineno">  483</span>            ++m_counter_checkin;</div>
-<div class="line"><a id="l00484" name="l00484"></a><span class="lineno">  484</span>            {</div>
-<div class="line"><a id="l00485" name="l00485"></a><span class="lineno">  485</span>                std::scoped_lock l(m_pool_lock);</div>
-<div class="line"><a id="l00486" name="l00486"></a><span class="lineno">  486</span> </div>
-<div class="line"><a id="l00487" name="l00487"></a><span class="lineno">  487</span>                m_pool.push_back(std::move(raw_resource));</div>
-<div class="line"><a id="l00488" name="l00488"></a><span class="lineno">  488</span>                <span class="keywordflow">if</span> (m_resources_checkedout &gt; 0) m_resources_checkedout--;</div>
-<div class="line"><a id="l00489" name="l00489"></a><span class="lineno">  489</span>            } <span class="comment">// lock scope end</span></div>
-<div class="line"><a id="l00490" name="l00490"></a><span class="lineno">  490</span>        }</div>
+<div class="line"><a id="l00439" name="l00439"></a><span class="lineno">  439</span>            <span class="keywordflow">catch</span> (...) {</div>
+<div class="line"><a id="l00440" name="l00440"></a><span class="lineno">  440</span>                checkout_guard();</div>
+<div class="line"><a id="l00441" name="l00441"></a><span class="lineno">  441</span>                std::cerr &lt;&lt; std::format(<span class="stringliteral">&quot;UNKNOWN Error in checkout\n&quot;</span>);</div>
+<div class="line"><a id="l00442" name="l00442"></a><span class="lineno">  442</span>                <span class="keywordflow">throw</span>;</div>
+<div class="line"><a id="l00443" name="l00443"></a><span class="lineno">  443</span>            }</div>
+<div class="line"><a id="l00444" name="l00444"></a><span class="lineno">  444</span> </div>
+<div class="line"><a id="l00445" name="l00445"></a><span class="lineno">  445</span>            <span class="keyword">auto</span> msg = std::format(</div>
+<div class="line"><a id="l00446" name="l00446"></a><span class="lineno">  446</span>                    <span class="stringliteral">&quot;Pool Size:{}  checkedout:{}  capacity:{}&quot;</span>, m_pool.size(), m_resources_checkedout.load(), m_capacity);</div>
+<div class="line"><a id="l00447" name="l00447"></a><span class="lineno">  447</span>            <span class="keywordflow">throw</span> std::runtime_error(msg);</div>
+<div class="line"><a id="l00448" name="l00448"></a><span class="lineno">  448</span>        }</div>
+<div class="line"><a id="l00449" name="l00449"></a><span class="lineno">  449</span></div>
+<div class="line"><a id="l00486" name="l00486"></a><span class="lineno">  486</span>        <span class="keywordtype">void</span> checkin(T&amp;&amp; raw_resource)</div>
+<div class="line"><a id="l00487" name="l00487"></a><span class="lineno">  487</span>        {</div>
+<div class="line"><a id="l00488" name="l00488"></a><span class="lineno">  488</span>            ++m_counter_checkin;</div>
+<div class="line"><a id="l00489" name="l00489"></a><span class="lineno">  489</span>            {</div>
+<div class="line"><a id="l00490" name="l00490"></a><span class="lineno">  490</span>                std::scoped_lock l(m_pool_lock);</div>
 <div class="line"><a id="l00491" name="l00491"></a><span class="lineno">  491</span> </div>
-<div class="line"><a id="l00492" name="l00492"></a><span class="lineno">  492</span><span class="preprocessor">#if defined(NLOHMANN_JSON_VERSION_MAJOR)</span><span class="preprocessor"></span></div>
-<div class="line"><a id="l00540" name="l00540"></a><span class="lineno">  540</span>        nlohmann::json to_json()<span class="keyword"> const</span></div>
-<div class="line"><a id="l00541" name="l00541"></a><span class="lineno">  541</span><span class="keyword">        </span>{</div>
-<div class="line"><a id="l00542" name="l00542"></a><span class="lineno">  542</span>            <span class="keyword">auto</span> myPoolSize = this-&gt;size();</div>
-<div class="line"><a id="l00543" name="l00543"></a><span class="lineno">  543</span> </div>
-<div class="line"><a id="l00544" name="l00544"></a><span class="lineno">  544</span>            <span class="keywordflow">return</span> {{<span class="stringliteral">&quot;_typver&quot;</span>, <span class="stringliteral">&quot;siddiqsoft.arrp.resource_pool/0.0.0&quot;</span>},</div>
-<div class="line"><a id="l00545" name="l00545"></a><span class="lineno">  545</span>                    {<span class="stringliteral">&quot;capacity&quot;</span>, m_capacity},</div>
-<div class="line"><a id="l00546" name="l00546"></a><span class="lineno">  546</span>                    {<span class="stringliteral">&quot;size&quot;</span>, myPoolSize},</div>
-<div class="line"><a id="l00547" name="l00547"></a><span class="lineno">  547</span>                    {<span class="stringliteral">&quot;load&quot;</span>, myPoolSize + m_resources_checkedout.load()},</div>
-<div class="line"><a id="l00548" name="l00548"></a><span class="lineno">  548</span>                    {<span class="stringliteral">&quot;invalidated&quot;</span>, m_invalidated_resources.load()},</div>
-<div class="line"><a id="l00549" name="l00549"></a><span class="lineno">  549</span>                    {<span class="stringliteral">&quot;checkedout&quot;</span>, m_resources_checkedout.load()},</div>
-<div class="line"><a id="l00550" name="l00550"></a><span class="lineno">  550</span>                    {<span class="stringliteral">&quot;counters&quot;</span>,</div>
-<div class="line"><a id="l00551" name="l00551"></a><span class="lineno">  551</span>                     {{<span class="stringliteral">&quot;autoreturns&quot;</span>, m_counter_auto_returned.load()},</div>
-<div class="line"><a id="l00552" name="l00552"></a><span class="lineno">  552</span>                      {<span class="stringliteral">&quot;newitems&quot;</span>, m_counter_ondemand_adds.load()},</div>
-<div class="line"><a id="l00553" name="l00553"></a><span class="lineno">  553</span>                      {<span class="stringliteral">&quot;return&quot;</span>, m_counter_checkin.load()},</div>
-<div class="line"><a id="l00554" name="l00554"></a><span class="lineno">  554</span>                      {<span class="stringliteral">&quot;borrow&quot;</span>, m_counter_checkout.load()}}}};</div>
-<div class="line"><a id="l00555" name="l00555"></a><span class="lineno">  555</span>        }</div>
-<div class="line"><a id="l00556" name="l00556"></a><span class="lineno">  556</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l00557" name="l00557"></a><span class="lineno">  557</span>    };</div>
+<div class="line"><a id="l00492" name="l00492"></a><span class="lineno">  492</span>                m_pool.push_back(std::move(raw_resource));</div>
+<div class="line"><a id="l00493" name="l00493"></a><span class="lineno">  493</span>                <span class="keywordflow">if</span> (m_resources_checkedout &gt; 0) m_resources_checkedout--;</div>
+<div class="line"><a id="l00494" name="l00494"></a><span class="lineno">  494</span>            } <span class="comment">// lock scope end</span></div>
+<div class="line"><a id="l00495" name="l00495"></a><span class="lineno">  495</span>        }</div>
+<div class="line"><a id="l00496" name="l00496"></a><span class="lineno">  496</span> </div>
+<div class="line"><a id="l00497" name="l00497"></a><span class="lineno">  497</span><span class="preprocessor">#if defined(NLOHMANN_JSON_VERSION_MAJOR)</span><span class="preprocessor"></span></div>
+<div class="line"><a id="l00545" name="l00545"></a><span class="lineno">  545</span>        nlohmann::json to_json()<span class="keyword"> const</span></div>
+<div class="line"><a id="l00546" name="l00546"></a><span class="lineno">  546</span><span class="keyword">        </span>{</div>
+<div class="line"><a id="l00547" name="l00547"></a><span class="lineno">  547</span>            <span class="keyword">auto</span> myPoolSize = this-&gt;size();</div>
+<div class="line"><a id="l00548" name="l00548"></a><span class="lineno">  548</span> </div>
+<div class="line"><a id="l00549" name="l00549"></a><span class="lineno">  549</span>            <span class="keywordflow">return</span> {{<span class="stringliteral">&quot;_typver&quot;</span>, <span class="stringliteral">&quot;siddiqsoft.arrp.resource_pool/0.0.0&quot;</span>},</div>
+<div class="line"><a id="l00550" name="l00550"></a><span class="lineno">  550</span>                    {<span class="stringliteral">&quot;capacity&quot;</span>, m_capacity},</div>
+<div class="line"><a id="l00551" name="l00551"></a><span class="lineno">  551</span>                    {<span class="stringliteral">&quot;size&quot;</span>, myPoolSize},</div>
+<div class="line"><a id="l00552" name="l00552"></a><span class="lineno">  552</span>                    {<span class="stringliteral">&quot;load&quot;</span>, myPoolSize + m_resources_checkedout.load()},</div>
+<div class="line"><a id="l00553" name="l00553"></a><span class="lineno">  553</span>                    {<span class="stringliteral">&quot;invalidated&quot;</span>, m_invalidated_resources.load()},</div>
+<div class="line"><a id="l00554" name="l00554"></a><span class="lineno">  554</span>                    {<span class="stringliteral">&quot;checkedout&quot;</span>, m_resources_checkedout.load()},</div>
+<div class="line"><a id="l00555" name="l00555"></a><span class="lineno">  555</span>                    {<span class="stringliteral">&quot;counters&quot;</span>,</div>
+<div class="line"><a id="l00556" name="l00556"></a><span class="lineno">  556</span>                     {{<span class="stringliteral">&quot;autoreturns&quot;</span>, m_counter_auto_returned.load()},</div>
+<div class="line"><a id="l00557" name="l00557"></a><span class="lineno">  557</span>                      {<span class="stringliteral">&quot;newitems&quot;</span>, m_counter_ondemand_adds.load()},</div>
+<div class="line"><a id="l00558" name="l00558"></a><span class="lineno">  558</span>                      {<span class="stringliteral">&quot;return&quot;</span>, m_counter_checkin.load()},</div>
+<div class="line"><a id="l00559" name="l00559"></a><span class="lineno">  559</span>                      {<span class="stringliteral">&quot;borrow&quot;</span>, m_counter_checkout.load()}}}};</div>
+<div class="line"><a id="l00560" name="l00560"></a><span class="lineno">  560</span>        }</div>
+<div class="line"><a id="l00561" name="l00561"></a><span class="lineno">  561</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00562" name="l00562"></a><span class="lineno">  562</span>    };</div>
 </div>
-<div class="line"><a id="l00558" name="l00558"></a><span class="lineno">  558</span> </div>
-<div class="line"><a id="l00559" name="l00559"></a><span class="lineno">  559</span><span class="preprocessor">#if defined(NLOHMANN_JSON_VERSION_MAJOR)</span><span class="preprocessor"></span></div>
-<div class="line"><a id="l00584" name="l00584"></a><span class="lineno">  584</span>    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> T, <span class="keyword">typename</span> SRT = scoped_resource&lt;T&gt;, u<span class="keywordtype">int</span>8_t InitCapacity = arrp::resource_pool_limits::DefaultCapacity&gt;</div>
-<div class="line"><a id="l00585" name="l00585"></a><span class="lineno">  585</span>        <span class="keyword">requires</span>((InitCapacity &lt;= arrp::resource_pool_limits::MaxCapacity)) &amp;&amp; NonNumericMoveConstructible&lt;T&gt; &amp;&amp;</div>
-<div class="line"><a id="l00586" name="l00586"></a><span class="lineno">  586</span>                std::derived_from&lt;SRT, scoped_resource&lt;T&gt;&gt;</div>
-<div class="line"><a id="l00587" name="l00587"></a><span class="lineno">  587</span>    <span class="keyword">static</span> <span class="keywordtype">void</span> to_json(nlohmann::json&amp; dest, <span class="keyword">const</span> siddiqsoft::arrp::resource_pool&lt;T, SRT, InitCapacity&gt;&amp; src)</div>
-<div class="line"><a id="l00588" name="l00588"></a><span class="lineno">  588</span>    {</div>
-<div class="line"><a id="l00589" name="l00589"></a><span class="lineno">  589</span>        dest = src.to_json();</div>
-<div class="line"><a id="l00590" name="l00590"></a><span class="lineno">  590</span>    }</div>
-<div class="line"><a id="l00591" name="l00591"></a><span class="lineno">  591</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l00592" name="l00592"></a><span class="lineno">  592</span> </div>
-<div class="line"><a id="l00593" name="l00593"></a><span class="lineno">  593</span> </div>
-<div class="line"><a id="l00594" name="l00594"></a><span class="lineno">  594</span>} <span class="comment">// namespace siddiqsoft::arrp</span></div>
-<div class="line"><a id="l00595" name="l00595"></a><span class="lineno">  595</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00563" name="l00563"></a><span class="lineno">  563</span> </div>
+<div class="line"><a id="l00564" name="l00564"></a><span class="lineno">  564</span><span class="preprocessor">#if defined(NLOHMANN_JSON_VERSION_MAJOR)</span><span class="preprocessor"></span></div>
+<div class="line"><a id="l00589" name="l00589"></a><span class="lineno">  589</span>    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> T, <span class="keyword">typename</span> SRT = scoped_resource&lt;T&gt;, u<span class="keywordtype">int</span>8_t InitCapacity = arrp::resource_pool_limits::DefaultCapacity&gt;</div>
+<div class="line"><a id="l00590" name="l00590"></a><span class="lineno">  590</span>        <span class="keyword">requires</span>((InitCapacity &lt;= arrp::resource_pool_limits::MaxCapacity)) &amp;&amp; NonNumericMoveConstructible&lt;T&gt; &amp;&amp;</div>
+<div class="line"><a id="l00591" name="l00591"></a><span class="lineno">  591</span>                std::derived_from&lt;SRT, scoped_resource&lt;T&gt;&gt;</div>
+<div class="line"><a id="l00592" name="l00592"></a><span class="lineno">  592</span>    <span class="keyword">static</span> <span class="keywordtype">void</span> to_json(nlohmann::json&amp; dest, <span class="keyword">const</span> siddiqsoft::arrp::resource_pool&lt;T, SRT, InitCapacity&gt;&amp; src)</div>
+<div class="line"><a id="l00593" name="l00593"></a><span class="lineno">  593</span>    {</div>
+<div class="line"><a id="l00594" name="l00594"></a><span class="lineno">  594</span>        dest = src.to_json();</div>
+<div class="line"><a id="l00595" name="l00595"></a><span class="lineno">  595</span>    }</div>
+<div class="line"><a id="l00596" name="l00596"></a><span class="lineno">  596</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00597" name="l00597"></a><span class="lineno">  597</span> </div>
+<div class="line"><a id="l00598" name="l00598"></a><span class="lineno">  598</span> </div>
+<div class="line"><a id="l00599" name="l00599"></a><span class="lineno">  599</span>} <span class="comment">// namespace siddiqsoft::arrp</span></div>
+<div class="line"><a id="l00600" name="l00600"></a><span class="lineno">  600</span><span class="preprocessor">#endif</span></div>
 <div class="ttc" id="aclasssiddiqsoft_1_1arrp_1_1resource__pool_html"><div class="ttname"><a href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool</a></div><div class="ttdoc">Thread-safe auto-returning resource pool for modern C++.</div><div class="ttdef"><b>Definition</b> <a href="#l00123">resource_pool.hpp:124</a></div></div>
 <div class="ttc" id="aclasssiddiqsoft_1_1arrp_1_1resource__pool_html_a0d60256a101cc4801245b8b79025e8a6"><div class="ttname"><a href="classsiddiqsoft_1_1arrp_1_1resource__pool.html#a0d60256a101cc4801245b8b79025e8a6">siddiqsoft::arrp::resource_pool::auto_add_policy</a></div><div class="ttdeci">auto_add_policy</div><div class="ttdoc">This controls the auto-grow (or adding items when the pool is starving) and below capacity (up to the...</div><div class="ttdef"><b>Definition</b> <a href="#l00179">resource_pool.hpp:180</a></div></div>
 <div class="ttc" id="aclasssiddiqsoft_1_1arrp_1_1resource__pool_html_a1af18960c0ae03a482e0ff2c245aaff7"><div class="ttname"><a href="classsiddiqsoft_1_1arrp_1_1resource__pool.html#a1af18960c0ae03a482e0ff2c245aaff7">siddiqsoft::arrp::resource_pool::resource_pool</a></div><div class="ttdeci">resource_pool(auto_add_policy add_policy=auto_add_policy::NoGrow)</div><div class="ttdoc">This is the default constructor.. the policy is to not auto-grow. The client code can as for AutoGrow...</div><div class="ttdef"><b>Definition</b> <a href="#l00237">resource_pool.hpp:237</a></div></div>
