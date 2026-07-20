@@ -1281,7 +1281,8 @@ TEST(resource_pool_adversarial, factory_callback_exceptions)
         factory_calls++;
         if (factory_calls.load() % 2 == 0) {
             factory_exceptions++;
-            throw std::runtime_error("Factory exception");
+            throw std::runtime_error(
+                    std::format("Factory exception calls:{}  exceptions:{}", factory_calls.load(), factory_exceptions.load()));
         }
         return siddiqsoft::arrp::scoped_resource<std::string>(std::format("created-{}", factory_calls.load()),
                                                               [&p](std::string&& res) { p.return_to_pool(std::move(res)); });
@@ -1395,7 +1396,7 @@ TEST(resource_pool, concurrent_clear_with_operations_FIXED)
 /// DEADLOCK FIX: Added timeout mechanism and reduced contention
 TEST(resource_pool_adversarial, concurrent_clear_rapid_ops_FIXED)
 {
-    siddiqsoft::arrp::resource_pool<std::string> pool { siddiqsoft::arrp::resource_pool<std::string>::auto_add_policy::AutoGrow};
+    siddiqsoft::arrp::resource_pool<std::string> pool {siddiqsoft::arrp::resource_pool<std::string>::auto_add_policy::AutoGrow};
     for (int i = 0; i < 20; ++i) {
         pool.return_to_pool(std::format("resource-{}", i));
     }
@@ -1503,9 +1504,9 @@ TEST(resource_pool, concurrent_clear_deadlock_detection)
     };
 
     EXPECT_EQ(8, pool.size());
-    auto           worker1 = std::async(std::launch::async, worker_fn);
-    auto           worker2 = std::async(std::launch::async, worker_fn);
-    auto           clearer = std::async(std::launch::async, clearer_fn);
+    auto worker1 = std::async(std::launch::async, worker_fn);
+    auto worker2 = std::async(std::launch::async, worker_fn);
+    auto clearer = std::async(std::launch::async, clearer_fn);
 
     // give five seconds for the threads to complete..
     constexpr auto timeout = std::chrono::seconds(5);

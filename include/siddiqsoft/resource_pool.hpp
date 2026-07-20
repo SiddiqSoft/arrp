@@ -413,6 +413,14 @@ namespace siddiqsoft::arrp
                     // Update the attempted delegated calls to add new raw resource to pool.
                     ++m_counter_ondemand_adds;
 
+                    // Create a guard to decrement m_resources_checkedout if the factory callback throws
+                    // This ensures we don't leak the checkout count if the factory fails
+                    auto checkout_guard = [this]() {
+                        if (m_resources_checkedout > 0) {
+                            m_resources_checkedout--;
+                        }
+                    };
+
                     // ..delegate the new resource acquisition
                     // outside the lock.
                     return m_callback_to_add_new_raw_resource_to_pool(*this);
@@ -423,6 +431,7 @@ namespace siddiqsoft::arrp
                 }
             } // scope end
             catch (const std::exception& ex) {
+                checkout_guard();
                 std::cerr << std::format("Error in borrow_from_pool: {}\n", ex.what());
                 throw;
             }
