@@ -705,7 +705,7 @@ TEST(stress_capacity, capacity_enforcement_concurrent)
 
     std::atomic_int successes {0};
     std::atomic_int failures {0};
-    std::barrier    start_barrier {CAPACITY+1};
+    std::barrier    start_barrier {CAPACITY + 1};
 
     // Let us first invalidate a few resources..
     {
@@ -716,7 +716,7 @@ TEST(stress_capacity, capacity_enforcement_concurrent)
     std::cerr << std::format("After invalidating one..: {}\n", pool.to_json().dump());
 
     std::vector<std::jthread> threads;
-    for (int t = 0; t < CAPACITY+1; ++t) {
+    for (int t = 0; t < CAPACITY + 1; ++t) {
         threads.emplace_back([&, t]() {
             start_barrier.arrive_and_wait();
             for (int i = 0; i < 10; ++i) {
@@ -738,7 +738,7 @@ TEST(stress_capacity, capacity_enforcement_concurrent)
 
     std::cerr << std::format("Post test: {}\n", pool.to_json().dump());
 
-    EXPECT_EQ(CAPACITY, pool.size()+pool.to_json()["invalidated"].get<int>());
+    EXPECT_EQ(CAPACITY, pool.size() + pool.to_json()["invalidated"].get<int>());
     EXPECT_GT(successes.load(), 0);
     EXPECT_GT(failures.load(), 0);
 }
@@ -1058,17 +1058,23 @@ TEST(stress_invalidation, basic_invalidation)
 
     EXPECT_EQ(2u, pool.size());
 
+    std::cerr << std::format("before 1: {}\n", pool.to_json().dump());
+
     {
         auto res = pool.checkout();
+        std::cerr << std::format("Contents of res: {}\n", res.to_json().dump());
         EXPECT_EQ("resource-1", *res);
-        res.invalidate();  // Don't return this resource
+        res.invalidate(); // Don't return this resource
     }
+
+    std::cerr << std::format("after 1: {}\n", pool.to_json().dump());
 
     // Pool should have only 1 resource now (the invalidated one was not returned)
     EXPECT_EQ(1u, pool.size());
 
     {
         auto res = pool.checkout();
+        std::cerr << std::format("Contents of res: {}\n", res.to_json().dump());
         EXPECT_EQ("resource-2", *res);
         // This one will be returned normally
     }
@@ -1086,10 +1092,10 @@ TEST(stress_invalidation, invalidation_with_move)
     EXPECT_EQ(1u, pool.size());
 
     {
-        auto res = pool.checkout();
+        auto        res       = pool.checkout();
         std::string moved_out = std::move(*res);
         EXPECT_EQ("resource-1", moved_out);
-        res.invalidate();  // Don't return the moved-out resource
+        res.invalidate(); // Don't return the moved-out resource
     }
 
     // Pool should be empty since we invalidated the moved-out resource
@@ -1149,7 +1155,7 @@ TEST(stress_invalidation, concurrent_invalidation)
 TEST(stress_invalidation, invalidation_counter)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool {};
-    
+
     for (int i = 0; i < 10; ++i) {
         pool.checkin(std::format("resource-{}", i));
     }
@@ -1171,16 +1177,15 @@ TEST(stress_invalidation, invalidation_counter)
 /// Validates invalidation behavior with custom factory
 TEST(stress_invalidation, invalidation_with_factory)
 {
-    std::atomic_int created {0};
-    std::atomic_int invalidated_count {0};
+    std::atomic_int                              created {0};
+    std::atomic_int                              invalidated_count {0};
 
     siddiqsoft::arrp::resource_pool<std::string> pool {[&](auto& p) -> siddiqsoft::arrp::scoped_resource<std::string> {
         created++;
         return siddiqsoft::arrp::scoped_resource<std::string>(
-            std::format("created-{}", created.load()),
-            [&p](std::string&& res) { p.checkin(std::move(res)); },
-            [&](std::string&& res) { invalidated_count++; }
-        );
+                std::format("created-{}", created.load()),
+                [&p](std::string&& res) { p.checkin(std::move(res)); },
+                [&](std::string&& res) { invalidated_count++; });
     }};
 
     {

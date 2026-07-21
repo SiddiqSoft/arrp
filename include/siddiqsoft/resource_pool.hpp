@@ -412,7 +412,6 @@ namespace siddiqsoft::arrp
                                     this->m_invalidated_resources++;
                                 }};
                     // Allow the compiler to use NRVO (move elision; do not use std::move here!)
-
                     // The pop_front() happens within this scope and within the lock!
                 }
                 else if ((m_capacity > m_pool.size() + m_resources_checkedout) && m_callback_to_add_new_raw_resource_to_pool) {
@@ -550,11 +549,22 @@ namespace siddiqsoft::arrp
          */
         nlohmann::json to_json() const
         {
-            auto myPoolSize = this->size();
+            auto              myPoolSize = this->size();
+
+            std::stringstream sstr;
+
+            if constexpr (std::is_same_v<T, std::string>)
+            {
+                std::scoped_lock l(m_pool_lock);
+                for (const auto& item : m_pool) {
+                    sstr << item << ",";
+                }
+            }
 
             return {{"_typver", "siddiqsoft.arrp.resource_pool/0.0.0"},
                     {"capacity", m_capacity},
                     {"size", myPoolSize},
+                    {"items", sstr.str()},
                     {"load", myPoolSize + m_resources_checkedout.load()},
                     {"invalidated", m_invalidated_resources.load()},
                     {"checkedout", m_resources_checkedout.load()},
