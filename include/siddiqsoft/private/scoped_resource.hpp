@@ -149,6 +149,10 @@ namespace siddiqsoft::arrp
         ///          resource to the resource_pool for reuse.
         std::function<void(T&&)> m_putback_callback {};
 
+        /// @brief Callback function to inform the pool that a resource has been invalidated
+        /// @details Called by destructor when resource is invalid.
+        std::function<void(T&&)> m_abandon_callback {};
+
         /// @brief Tracks whether the resource is valid and should be returned to pool
         /// @details Prevents returning uninitialized or moved-out resources
         /// - true: resource will be returned to pool on destruction
@@ -200,9 +204,10 @@ namespace siddiqsoft::arrp
          * auto wrapped = pool.checkout();
          * @endcode
          */
-        explicit scoped_resource(T&& src, std::function<void(T&&)>&& f = {})
+        explicit scoped_resource(T&& src, std::function<void(T&&)>&& f = {}, std::function<void(T&&)>&& ff = {})
             : m_rsrc(std::move(src))
             , m_putback_callback(std::move(f))
+            , m_abandon_callback(std::move(ff))
             , m_is_valid(true)
         {
         }
@@ -246,6 +251,7 @@ namespace siddiqsoft::arrp
         scoped_resource(scoped_resource&& src) noexcept
             : m_rsrc(std::move(src.m_rsrc))
             , m_putback_callback(std::move(src.m_putback_callback))
+            , m_abandon_callback(std::move(src.m_abandon_callback))
             , m_is_valid(src.m_is_valid)
         {
             // Reset to ensure that the source does not double return!
@@ -286,10 +292,12 @@ namespace siddiqsoft::arrp
                 // Move from src
                 m_rsrc             = std::move(src.m_rsrc);
                 m_putback_callback = std::move(src.m_putback_callback);
+                m_abandon_callback = std::move(src.m_abandon_callback);
                 m_is_valid         = src.m_is_valid;
 
                 // Reset src
                 src.m_putback_callback = {};
+                src.m_abandon_callback = {};
                 src.m_is_valid         = false;
             }
             return *this;
@@ -395,6 +403,13 @@ namespace siddiqsoft::arrp
                 m_is_valid         = false;
                 m_putback_callback = {};
             }
+            else if (m_abandon_callback) {
+                // Inform the pool that resource was invalidated
+                m_abandon_callback(std::move(m_rsrc));
+                m_is_valid         = false;
+                m_putback_callback = {};
+                m_abandon_callback = {};
+            }
         }
 
         /**
@@ -431,7 +446,11 @@ namespace siddiqsoft::arrp
          * resource.invalidate();  // Resource was consumed, don't return it
          * @endcode
          */
-        void invalidate() { m_is_valid = false; }
+        void invalidate()
+        {
+            m_is_valid         = false;
+            m_putback_callback = {};
+        }
 
 #if defined(NLOHMANN_JSON_VERSION_MAJOR)
         nlohmann::json to_json() const

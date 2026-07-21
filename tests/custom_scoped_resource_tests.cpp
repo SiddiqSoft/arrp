@@ -58,8 +58,10 @@ public:
      * @param file The FILE* to wrap
      * @param callback Optional callback to return resource to pool
      */
-    explicit ScopedFileResource(FILE*&& file, std::function<void(FILE*&&)>&& callback = {})
-        : Base(std::forward<FILE*&&>(file), std::move(callback))
+    explicit ScopedFileResource(FILE*&&                        file,
+                                std::function<void(FILE*&&)>&& callback         = {},
+                                std::function<void(FILE*&&)>&& abandon_callback = {})
+        : Base(std::forward<FILE*&&>(file), std::move(callback), std::move(abandon_callback))
     {
     }
 
@@ -169,15 +171,15 @@ std::string get_temp_file_path()
 #ifdef _WIN32
     char temp_path[MAX_PATH];
     char temp_dir[MAX_PATH];
-    
+
     if (GetTempPathA(MAX_PATH, temp_dir) == 0) {
         throw std::runtime_error("Failed to get temp directory");
     }
-    
+
     if (GetTempFileNameA(temp_dir, "arrp", 0, temp_path) == 0) {
         throw std::runtime_error("Failed to create temp file name");
     }
-    
+
     return std::string(temp_path);
 #else
     char temp_path[] = "/tmp/arrp_test_XXXXXX";
@@ -209,7 +211,7 @@ std::string create_temp_file()
  * @brief Close all files in a pool and clear it
  * @param pool The resource pool to clear
  */
-template<typename PoolType>
+template <typename PoolType>
 void close_and_clear_pool(PoolType& pool)
 {
     // Borrow and close all remaining files in the pool
@@ -218,7 +220,7 @@ void close_and_clear_pool(PoolType& pool)
             auto file_resource = pool.checkout();
             if (file_resource.is_valid()) {
                 std::fclose(file_resource.get_file());
-                file_resource.invalidate();  // Prevent returning to pool
+                file_resource.invalidate(); // Prevent returning to pool
             }
         }
         catch (const std::exception&) {

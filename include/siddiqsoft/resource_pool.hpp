@@ -157,8 +157,8 @@ namespace siddiqsoft::arrp
         /// that they do not call methods that cause deadlocks.
         /// @note Marked as mutable to allow usage within const methods
         mutable std::recursive_mutex m_pool_lock {};
-        // It might be more expensive but the client might find this useful!
-        #warning "You're using std::recursive_mutex which is more expensive"
+// It might be more expensive but the client might find this useful!
+#warning "You're using std::recursive_mutex which is more expensive"
 #else
         /// @brief Mutex protecting access to the resource pool
         /// @details Uses a standard mutex for optimal performance
@@ -246,12 +246,15 @@ namespace siddiqsoft::arrp
                 m_callback_to_add_new_raw_resource_to_pool = [this](resource_pool& pool) -> SRT {
                     // Create a SRT element and wire up the auto-return callback to return
                     // the resource back to this object.
-                    return SRT {T {}, [this](T&& src) {
+                    return SRT {T {},
+                                [this](T&& src) { // this callback puts the resource back..
                                     this->m_counter_auto_returned++;
                                     this->checkin(std::forward<T&&>(src));
+                                },
+                                [this](T&& src) { // this callback is invoked when the resource is abandonded/invalid
+                                    this->m_invalidated_resources++;
                                 }};
                     // Allow the compiler to use NRVO (move elision; do not use std::move here!)
-                    // return temp;
                 };
             }
         }
@@ -400,12 +403,15 @@ namespace siddiqsoft::arrp
                     // Make a wrapper..
                     // Create a SRT element and wire up the auto-return callback to return
                     // the resource back to this object.
-                    return SRT {std::move(m_pool.front()), [this](T&& src) {
+                    return SRT {T {},
+                                [this](T&& src) { // this callback puts the resource back..
                                     this->m_counter_auto_returned++;
                                     this->checkin(std::forward<T&&>(src));
+                                },
+                                [this](T&& src) { // this callback is invoked when the resource is abandonded/invalid
+                                    this->m_invalidated_resources++;
                                 }};
                     // Allow the compiler to use NRVO (move elision; do not use std::move here!)
-                    // return temp;
 
                     // The pop_front() happens within this scope and within the lock!
                 }

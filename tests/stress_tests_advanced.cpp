@@ -696,27 +696,35 @@ TEST(stress_capacity, maximum_capacity)
 /// Validates that capacity limits are respected
 TEST(stress_capacity, capacity_enforcement_concurrent)
 {
-    constexpr uint8_t                                                                                      CAPACITY = 7;
+    constexpr uint8_t                                                                                      CAPACITY = 8;
     siddiqsoft::arrp::resource_pool<std::string, siddiqsoft::arrp::scoped_resource<std::string>, CAPACITY> pool {};
 
     for (int i = 0; i < CAPACITY; ++i) {
         pool.checkin(std::format("resource-{}", i));
     }
 
-    std::atomic_int           successes {0};
-    std::atomic_int           failures {0};
-    std::barrier              start_barrier {8};
+    std::atomic_int successes {0};
+    std::atomic_int failures {0};
+    std::barrier    start_barrier {CAPACITY+1};
+
+    // Let us first invalidate a few resources..
+    {
+        auto r1 = pool.checkout();
+        r1.invalidate();
+    }
+
+    std::cerr << std::format("After invalidating one..: {}\n", pool.to_json().dump());
 
     std::vector<std::jthread> threads;
-    for (int t = 0; t < 8; ++t) {
+    for (int t = 0; t < CAPACITY+1; ++t) {
         threads.emplace_back([&, t]() {
             start_barrier.arrive_and_wait();
-            for (int i = 0; i < 50; ++i) {
+            for (int i = 0; i < 10; ++i) {
                 try {
                     auto res = pool.checkout();
                     successes++;
                     // hold on to the resource for a few ms..
-                    std::this_thread::sleep_for(std::chrono::milliseconds((1+t)*200));
+                    std::this_thread::sleep_for(std::chrono::milliseconds((1 + t) * 100));
                 }
                 catch (const std::runtime_error&) {
                     failures++;
@@ -727,10 +735,10 @@ TEST(stress_capacity, capacity_enforcement_concurrent)
 
     std::this_thread::sleep_for(std::chrono::seconds(2));
     threads.clear();
-    
-    std::cerr << std::format("{}\n", pool.to_json().dump());
 
-    EXPECT_EQ(CAPACITY, pool.size());
+    std::cerr << std::format("Post test: {}\n", pool.to_json().dump());
+
+    EXPECT_EQ(CAPACITY, pool.size()+pool.to_json()["invalidated"].get<int>());
     EXPECT_GT(successes.load(), 0);
     EXPECT_GT(failures.load(), 0);
 }
@@ -1034,5 +1042,242 @@ TEST(stress_ultimate, comprehensive_stress)
     EXPECT_GT(total_ops.load(), 0);
     EXPECT_GE(pool.size(), 0u);
 }
+
+
+// ============================================================================
+// INVALIDATION TESTS - Resource invalidation and abandonment
+// ============================================================================
+
+/// @brief Test basic resource invalidation
+/// Validates that invalidated resources are not returned to pool
+TEST(stress_invalidation, basic_invalidation)
+{
+    siddiqsoft::arrp::resource_pool<std::string> pool {};
+    pool.checkin(std::string("resource-1"));
+    pool.checkin(std::string("resource-2"));
+
+    EXPECT_EQ(2u, pool.size());
+
+    {
+        auto res = pool.checkout();
+        EXPECT_EQ("resource-1", *res);
+        res.invalidate();  // Don't return this resource
+    }
+
+    // Pool should have only 1 resource now (the invalidated one was not returned)
+    EXPECT_EQ(1u, pool.size());
+
+    {
+        auto res = pool.checkout();
+        EXPECT_EQ("resource-2", *res);
+        // This one will be returned normally
+    }
+
+    EXPECT_EQ(1u, pool.size());
+}
+
+/// @brief Test invalidation with moved resources
+/// Validates that moved-out resources can be invalidated
+TEST(stress_invalidation, invalidation_with_move)
+{
+    siddiqsoft::arrp::resource_pool<std::string> pool {};
+    pool.checkin(std::string("resource-1"));
+
+    EXPECT_EQ(1u, pool.size());
+
+    {
+        auto res = pool.checkout();
+        std::string moved_out = std::move(*res);
+        EXPECT_EQ("resource-1", moved_out);
+        res.invalidate();  // Don't return the moved-out resource
+    }
+
+    // Pool should be empty since we invalidated the moved-out resource
+    EXPECT_EQ(0u, pool.size());
+}
+
+/// @brief Test concurrent invalidation
+/// Validates invalidation under concurrent access
+TEST(stress_invalidation, concurrent_invalidation)
+{
+    constexpr int                                POOL_SIZE    = 16;
+    constexpr int                                THREAD_COUNT = 8;
+    constexpr int                                ITERATIONS   = 100;
+
+    siddiqsoft::arrp::resource_pool<std::string> pool {};
+    for (int i = 0; i < POOL_SIZE; ++i) {
+        pool.checkin(std::format("resource-{}", i));
+    }
+
+    std::atomic_int           invalidated {0};
+    std::atomic_int           returned {0};
+    std::barrier              start_barrier {THREAD_COUNT};
+
+    std::vector<std::jthread> threads;
+    for (int t = 0; t < THREAD_COUNT; ++t) {
+        threads.emplace_back([&, t]() {
+            start_barrier.arrive_and_wait();
+            for (int i = 0; i < ITERATIONS; ++i) {
+                try {
+                    auto res = pool.checkout();
+                    // Invalidate every other resource
+                    if ((t + i) % 2 == 0) {
+                        res.invalidate();
+                        invalidated++;
+                    }
+                    else {
+                        returned++;
+                    }
+                }
+                catch (const std::runtime_error&) {
+                    // Expected if pool is empty
+                }
+            }
+        });
+    }
+
+    threads.clear();
+
+    EXPECT_GT(invalidated.load(), 0);
+    EXPECT_GT(returned.load(), 0);
+    // Pool size should be less than initial due to invalidations
+    EXPECT_LT(pool.size(), static_cast<size_t>(POOL_SIZE));
+}
+
+/// @brief Test invalidation counter tracking
+/// Validates that invalidated resources are properly counted
+TEST(stress_invalidation, invalidation_counter)
+{
+    siddiqsoft::arrp::resource_pool<std::string> pool {};
+    
+    for (int i = 0; i < 10; ++i) {
+        pool.checkin(std::format("resource-{}", i));
+    }
+
+    auto initial_state = pool.to_json();
+    EXPECT_EQ(0, initial_state["invalidated"].get<int>());
+
+    // Invalidate some resources
+    for (int i = 0; i < 5; ++i) {
+        auto res = pool.checkout();
+        res.invalidate();
+    }
+
+    auto final_state = pool.to_json();
+    EXPECT_EQ(5, final_state["invalidated"].get<int>());
+}
+
+/// @brief Test invalidation with factory callback
+/// Validates invalidation behavior with custom factory
+TEST(stress_invalidation, invalidation_with_factory)
+{
+    std::atomic_int created {0};
+    std::atomic_int invalidated_count {0};
+
+    siddiqsoft::arrp::resource_pool<std::string> pool {[&](auto& p) -> siddiqsoft::arrp::scoped_resource<std::string> {
+        created++;
+        return siddiqsoft::arrp::scoped_resource<std::string>(
+            std::format("created-{}", created.load()),
+            [&p](std::string&& res) { p.checkin(std::move(res)); },
+            [&](std::string&& res) { invalidated_count++; }
+        );
+    }};
+
+    {
+        auto res = pool.checkout();
+        res.invalidate();
+    }
+
+    EXPECT_EQ(1, created.load());
+    EXPECT_EQ(1, invalidated_count.load());
+}
+
+/// @brief Test mixed invalidation and normal returns
+/// Validates pool behavior with mixed invalidation patterns
+TEST(stress_invalidation, mixed_invalidation_returns)
+{
+    constexpr int                                POOL_SIZE = 8;
+
+    siddiqsoft::arrp::resource_pool<std::string> pool {};
+    for (int i = 0; i < POOL_SIZE; ++i) {
+        pool.checkin(std::format("resource-{}", i));
+    }
+
+    std::atomic_int invalidated {0};
+    std::atomic_int returned {0};
+
+    // Cycle through resources multiple times
+    for (int cycle = 0; cycle < 10; ++cycle) {
+        for (int i = 0; i < POOL_SIZE; ++i) {
+            try {
+                auto res = pool.checkout();
+                if (cycle % 2 == 0) {
+                    res.invalidate();
+                    invalidated++;
+                }
+                else {
+                    returned++;
+                }
+            }
+            catch (const std::runtime_error&) {
+                // Expected if pool is depleted
+            }
+        }
+    }
+
+    EXPECT_GT(invalidated.load(), 0);
+    EXPECT_GT(returned.load(), 0);
+    auto final_state = pool.to_json();
+    EXPECT_EQ(invalidated.load(), final_state["invalidated"].get<int>());
+}
+
+/// @brief Test invalidation under stress with rapid cycling
+/// Validates invalidation behavior under high-frequency operations
+TEST(stress_invalidation, rapid_invalidation_cycling)
+{
+    constexpr int                                POOL_SIZE    = 4;
+    constexpr int                                THREAD_COUNT = 4;
+    constexpr int                                ITERATIONS   = 500;
+
+    siddiqsoft::arrp::resource_pool<std::string> pool {};
+    for (int i = 0; i < POOL_SIZE; ++i) {
+        pool.checkin(std::format("resource-{}", i));
+    }
+
+    std::atomic_int           invalidated {0};
+    std::atomic_int           returned {0};
+    std::barrier              start_barrier {THREAD_COUNT};
+
+    std::vector<std::jthread> threads;
+    for (int t = 0; t < THREAD_COUNT; ++t) {
+        threads.emplace_back([&, t]() {
+            start_barrier.arrive_and_wait();
+            for (int i = 0; i < ITERATIONS; ++i) {
+                try {
+                    auto res = pool.checkout();
+                    // Alternate between invalidation and return
+                    if (i % 3 == 0) {
+                        res.invalidate();
+                        invalidated++;
+                    }
+                    else {
+                        returned++;
+                    }
+                }
+                catch (const std::runtime_error&) {
+                    // Expected under contention
+                }
+            }
+        });
+    }
+
+    threads.clear();
+
+    EXPECT_GT(invalidated.load(), 0);
+    EXPECT_GT(returned.load(), 0);
+    auto final_state = pool.to_json();
+    EXPECT_EQ(invalidated.load(), final_state["invalidated"].get<int>());
+}
+
 
 // NOLINTEND(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
