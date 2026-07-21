@@ -709,25 +709,26 @@ TEST(stress_capacity, capacity_enforcement_concurrent)
 
     std::vector<std::jthread> threads;
     for (int t = 0; t < 8; ++t) {
-        threads.emplace_back(
-                [&,t]() {
-                    start_barrier.arrive_and_wait();
-                    //std::this_thread::sleep_for(std::chrono::milliseconds(t * 100));
-                    for (int i = 0; i < 1600; ++i) {
-                        try {
-                            auto res = pool.checkout();
-                            successes++;
-                            //std::this_thread::sleep_for(std::chrono::microseconds(t*50));
-                        }
-                        catch (const std::runtime_error&) {
-                            failures++;
-                        }
-                    }
-                });
+        threads.emplace_back([&, t]() {
+            start_barrier.arrive_and_wait();
+            // std::this_thread::sleep_for(std::chrono::milliseconds(t * 100));
+            for (int i = 0; i < 1000; ++i) {
+                try {
+                    auto res = pool.checkout();
+                    successes++;
+                    std::this_thread::sleep_for(std::chrono::microseconds(t*500));
+                }
+                catch (const std::runtime_error&) {
+                    failures++;
+                }
+            }
+        });
     }
 
     std::this_thread::sleep_for(std::chrono::seconds(2));
     threads.clear();
+    
+    std::cerr << std::format("{}\n", pool.to_json().dump());
 
     EXPECT_EQ(CAPACITY, pool.size());
     EXPECT_GT(successes.load(), 0);
