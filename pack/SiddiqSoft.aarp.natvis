@@ -25,7 +25,7 @@
     <DisplayString Condition="m_is_valid">scoped_resource&lt;{$T1}&gt; [valid, id:{m_debug_id}]</DisplayString>
     <DisplayString Condition="!m_is_valid">scoped_resource&lt;{$T1}&gt; [invalid, id:{m_debug_id}]</DisplayString>
     <Expand>
-      <Item Name="[Resource]">m_rsrc</Item>
+      <Item Name="[Resource]">mm_rsrc</Item>
       <Item Name="[Valid]">m_is_valid</Item>
       <Item Name="[Debug ID]">m_debug_id</Item>
       <Item Name="[Has Callback]">m_putback_callback != nullptr</Item>
@@ -107,7 +107,7 @@
     <DisplayString Condition="m_is_valid">scoped_resource&lt;{$T1}&gt; [valid, id:{m_debug_id}]</DisplayString>
     <DisplayString Condition="!m_is_valid">scoped_resource&lt;{$T1}&gt; [invalid, id:{m_debug_id}]</DisplayString>
     <Expand>
-      <Item Name="[Resource]">m_rsrc</Item>
+      <Item Name="[Resource]">mm_rsrc</Item>
       <Item Name="[Valid]">m_is_valid</Item>
       <Item Name="[Debug ID]">m_debug_id</Item>
       <Item Name="[Has Callback]">m_putback_callback != nullptr</Item>

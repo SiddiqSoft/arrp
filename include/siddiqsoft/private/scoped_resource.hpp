@@ -142,7 +142,7 @@ namespace siddiqsoft::arrp
     protected:
         /// @brief The actual resource being wrapped
         /// @details Stores the resource object that will be managed by this wrapper
-        T m_rsrc {};
+        T mm_rsrc {};
 
         /// @brief Callback function to return the resource to the pool
         /// @details Called by destructor when resource is valid. Typically returns the
@@ -201,7 +201,7 @@ namespace siddiqsoft::arrp
          * @endcode
          */
         explicit scoped_resource(T&& src, std::function<void(T&&)>&& f = {})
-            : m_rsrc(std::move(src))
+            : mm_rsrc(std::move(src))
             , m_putback_callback(std::move(f))
             , m_is_valid(true)
         {
@@ -244,7 +244,7 @@ namespace siddiqsoft::arrp
          * @endcode
          */
         scoped_resource(scoped_resource&& src) noexcept
-            : m_rsrc(std::move(src.m_rsrc))
+            : mm_rsrc(std::move(src.mm_rsrc))
             , m_putback_callback(std::move(src.m_putback_callback))
             , m_is_valid(src.m_is_valid)
         {
@@ -280,11 +280,11 @@ namespace siddiqsoft::arrp
             if (this != &src) {
                 // Return current resource if valid
                 if (m_is_valid && m_putback_callback) {
-                    m_putback_callback(std::move(m_rsrc));
+                    m_putback_callback(std::move(mm_rsrc));
                 }
 
                 // Move from src
-                m_rsrc             = std::move(src.m_rsrc);
+                mm_rsrc             = std::move(src.mm_rsrc);
                 m_putback_callback = std::move(src.m_putback_callback);
                 m_is_valid         = src.m_is_valid;
 
@@ -322,7 +322,7 @@ namespace siddiqsoft::arrp
          */
         scoped_resource& operator=(T&& src)
         {
-            m_rsrc     = std::move(src);
+            mm_rsrc     = std::move(src);
             m_is_valid = true;
             return *this;
         }
@@ -354,9 +354,9 @@ namespace siddiqsoft::arrp
          * (*resource).doSomething();  // Access via dereference
          * @endcode
          */
-        auto operator*() -> T& { return m_rsrc; }
+        auto operator*() -> T& { return mm_rsrc; }
 
-             operator T&() { return m_rsrc; }
+             operator T&() { return mm_rsrc; }
 
         /**
          * @brief Destructor - automatically returns resource to pool if valid
@@ -391,7 +391,7 @@ namespace siddiqsoft::arrp
             // Only return resource if it's valid and callback exists
             // This prevents returning uninitialized or moved-out resources to the pool
             if (m_is_valid && m_putback_callback) {
-                m_putback_callback(std::move(m_rsrc));
+                m_putback_callback(std::move(mm_rsrc));
                 m_is_valid         = false;
                 m_putback_callback = {};
             }
@@ -436,7 +436,7 @@ namespace siddiqsoft::arrp
 #if defined(NLOHMANN_JSON_VERSION_MAJOR)
         nlohmann::json to_json() const
         {
-            return {{"_typver", "siddiqsoft.arrp.scoped_resource/0.0.0"}, {"capacity", m_is_valid}, {"value", m_rsrc}};
+            return {{"_typver", "siddiqsoft.arrp.scoped_resource/0.0.0"}, {"capacity", m_is_valid}, {"value", mm_rsrc}};
         }
 #endif
     };
