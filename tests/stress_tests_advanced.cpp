@@ -696,7 +696,7 @@ TEST(stress_capacity, maximum_capacity)
 /// Validates that capacity limits are respected
 TEST(stress_capacity, capacity_enforcement_concurrent)
 {
-    constexpr uint8_t                                                                                      CAPACITY = 16;
+    constexpr uint8_t                                                                                      CAPACITY = 7;
     siddiqsoft::arrp::resource_pool<std::string, siddiqsoft::arrp::scoped_resource<std::string>, CAPACITY> pool {};
 
     for (int i = 0; i < CAPACITY; ++i) {
@@ -711,12 +711,12 @@ TEST(stress_capacity, capacity_enforcement_concurrent)
     for (int t = 0; t < 8; ++t) {
         threads.emplace_back([&, t]() {
             start_barrier.arrive_and_wait();
-            // std::this_thread::sleep_for(std::chrono::milliseconds(t * 100));
-            for (int i = 0; i < 1000; ++i) {
+            for (int i = 0; i < 50; ++i) {
                 try {
                     auto res = pool.checkout();
                     successes++;
-                    std::this_thread::sleep_for(std::chrono::microseconds(t*500));
+                    // hold on to the resource for a few ms..
+                    std::this_thread::sleep_for(std::chrono::milliseconds((1+t)*200));
                 }
                 catch (const std::runtime_error&) {
                     failures++;

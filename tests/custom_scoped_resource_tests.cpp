@@ -84,31 +84,31 @@ public:
      * @brief Get the underlying FILE* pointer
      * @return Pointer to the FILE object
      */
-    FILE* get_file() const { return this->mm_rsrc; }
+    FILE* get_file() const { return this->m_rsrc; }
 
     /**
      * @brief Dereference operator to access FILE*
      * @return Reference to FILE*
      */
-    FILE*& operator*() { return this->mm_rsrc; }
+    FILE*& operator*() { return this->m_rsrc; }
 
     /**
      * @brief Const dereference operator
      * @return Const reference to FILE*
      */
-    FILE* const& operator*() const { return this->mm_rsrc; }
+    FILE* const& operator*() const { return this->m_rsrc; }
 
     /**
      * @brief Arrow operator for direct FILE* access
      * @return Pointer to FILE
      */
-    FILE* operator->() { return this->mm_rsrc; }
+    FILE* operator->() { return this->m_rsrc; }
 
     /**
      * @brief Const arrow operator
      * @return Const pointer to FILE
      */
-    FILE* const operator->() const { return this->mm_rsrc; }
+    FILE* const operator->() const { return this->m_rsrc; }
 
     /**
      * @brief Write data to the file
@@ -117,10 +117,10 @@ public:
      */
     size_t write(const std::string& data)
     {
-        if (this->mm_rsrc == nullptr) {
+        if (this->m_rsrc == nullptr) {
             throw std::runtime_error("File pointer is null");
         }
-        return std::fwrite(data.c_str(), 1, data.size(), this->mm_rsrc);
+        return std::fwrite(data.c_str(), 1, data.size(), this->m_rsrc);
     }
 
     /**
@@ -131,10 +131,10 @@ public:
      */
     size_t read(char* buffer, size_t size)
     {
-        if (this->mm_rsrc == nullptr) {
+        if (this->m_rsrc == nullptr) {
             throw std::runtime_error("File pointer is null");
         }
-        return std::fread(buffer, 1, size, this->mm_rsrc);
+        return std::fread(buffer, 1, size, this->m_rsrc);
     }
 
     /**
@@ -142,16 +142,16 @@ public:
      */
     void flush()
     {
-        if (this->mm_rsrc == nullptr) {
+        if (this->m_rsrc == nullptr) {
             throw std::runtime_error("File pointer is null");
         }
-        std::fflush(this->mm_rsrc);
+        std::fflush(this->m_rsrc);
     }
 
     /**
      * @brief Check if file is valid
      */
-    bool is_valid() const { return this->mm_rsrc != nullptr; }
+    bool is_valid() const { return this->m_rsrc != nullptr; }
 };
 
 // ============================================================================
