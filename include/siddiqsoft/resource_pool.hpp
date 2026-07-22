@@ -298,6 +298,13 @@ namespace siddiqsoft::arrp
                 m_json["size"] = m_pool.size();
 
                 for (const auto& item : m_pool) {
+                    if constexpr (std::is_same_v<std::decay<T>, std::string> || std::is_arithmetic_v<T>) {
+                        m_json["items"].push_back(std::format("{}", item));
+                    }
+                    else if constexpr (std::is_pointer_v<T>) {
+                        m_json["items"].push_back(std::format("{:p}", static_cast<const void*>(item)));
+                    }
+
                     // Items are stored in the pool but not serialized individually
                     // to avoid overhead and potential issues with non-serializable types
                     // m_json["items"] += std::format("{}", item);
