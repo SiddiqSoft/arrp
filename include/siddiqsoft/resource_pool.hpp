@@ -308,7 +308,7 @@ namespace siddiqsoft::arrp
         nlohmann::json m_json {{"_typver", "siddiqsoft.arrp.resource_pool/0.0.0"},
                                {"capacity", m_capacity},
                                {"size", 0},
-                               {"items", nlohmann::json::json_array()},
+                               {"items", nlohmann::json::array()},
                                {"load", 0},
                                {"invalidated", 0},
                                {"checkedout", 0},
