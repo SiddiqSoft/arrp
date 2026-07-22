@@ -1184,8 +1184,7 @@ TEST(stress_invalidation, invalidation_with_factory)
         created++;
         return siddiqsoft::arrp::scoped_resource<std::string>(
                 std::format("created-{}", created.load()),
-                [&p](std::string&& res, bool is_valid) { p.checkin(std::move(res), is_valid); },
-                [&](std::string&& res) { invalidated_count++; });
+                [&p](std::string&& res, bool is_valid) { p.checkin(std::move(res), is_valid); });
     }};
 
     {

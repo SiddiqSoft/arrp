@@ -58,10 +58,8 @@ public:
      * @param file The FILE* to wrap
      * @param callback Optional callback to return resource to pool
      */
-    explicit ScopedFileResource(FILE*&&                        file,
-                                std::function<void(FILE*&&)>&& callback         = {},
-                                std::function<void(FILE*&&)>&& abandon_callback = {})
-        : Base(std::forward<FILE*&&>(file), std::move(callback), std::move(abandon_callback))
+    explicit ScopedFileResource(FILE*&& file, std::function<void(FILE*&&,bool)>&& callback = {}, bool is_valid = true)
+        : Base(std::forward<FILE*&&>(file), std::move(callback), is_valid)
     {
     }
 
@@ -565,7 +563,7 @@ TEST(custom_scoped_resource, custom_factory_callback)
                     if (file == nullptr) {
                         throw std::runtime_error("Failed to open file");
                     }
-                    return ScopedFileResource(std::move(file), [&p](FILE*&& f) { p.checkin(std::move(f)); });
+                    return ScopedFileResource(std::move(file), [&p](FILE*&& f,bool v) { p.checkin(std::move(f),v); });
                 }};
 
         // Borrow resources - should trigger factory

@@ -108,10 +108,10 @@ namespace siddiqsoft::arrp
     public:
         scoped_resource() = delete;
 
-        explicit scoped_resource(T&& src, std::function<void(T&&, bool)>&& f = {})
+        explicit scoped_resource(T&& src, std::function<void(T&&, bool)>&& f = {}, bool is_valid=true)
             : m_rsrc(std::move(src))
             , m_putback_callback(std::move(f))
-            , m_is_valid(true)
+            , m_is_valid(is_valid)
         {
         }
 

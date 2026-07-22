@@ -226,7 +226,8 @@ namespace siddiqsoft::arrp
                     // Make a wrapper..
                     // Create a SRT element and wire up the auto-return callback to return
                     // the resource back to this object.
-                    return SRT {std::move(m_pool.front()), [this](T&& src, bool is_valid) { // this callback puts the resource back..
+                    return SRT {std::move(m_pool.front()),
+                                [this](T&& src, bool is_valid) { // this callback puts the resource back..
                                     this->m_counter_auto_returned++;
                                     this->checkin(std::forward<T&&>(src), is_valid);
                                 }};
@@ -299,6 +300,7 @@ namespace siddiqsoft::arrp
                 for (const auto& item : m_pool) {
                     // Items are stored in the pool but not serialized individually
                     // to avoid overhead and potential issues with non-serializable types
+                    //m_json["items"] += std::format("{}", item);
                 }
             }
 
