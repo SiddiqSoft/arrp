@@ -110,15 +110,6 @@ namespace siddiqsoft::arrp
         std::function<SRT(resource_pool&)> m_callback_to_add_new_raw_resource_to_pool {};
 
     public:
-        /// @brief This controls the auto-grow (or adding items when the pool is starving)
-        /// and below capacity (up to the maximum limit).
-        /// The load is calculated as
-        enum class auto_add_policy
-        {
-            NoGrow,
-            AutoGrow
-        };
-
         /// @brief This callback is the default and does not grow the resource; it throws a runtime_error
         static inline std::function<SRT(resource_pool&)> CallbackDoNotAutoAddResource = [](resource_pool&) -> SRT {
             throw std::runtime_error("No items in the pool; add something first.");
@@ -150,9 +141,9 @@ namespace siddiqsoft::arrp
                 m_callback_to_add_new_raw_resource_to_pool = [this](resource_pool& pool) -> SRT {
                     // Create a SRT element and wire up the auto-return callback to return
                     // the resource back to this object.
-                    return SRT {T {}, [this](T&& src, bool is_valid) { // this callback puts the resource back..
+                    return SRT {T {}, [this](T&& src, siddiqsoft::arrp::release_reason rr) { // this callback puts the resource back..
                                     this->m_counter_auto_returned++;
-                                    this->checkin(std::forward<T&&>(src), is_valid);
+                                    this->checkin(std::forward<T&&>(src), rr);
                                 }};
                     // Allow the compiler to use NRVO (move elision; do not use std::move here!)
                 };
@@ -210,6 +201,8 @@ namespace siddiqsoft::arrp
                 }
             };
 
+            m_counter_checkout++;
+
             try {
                 // @note We use a unique_lock vs a scoped_lock to allow ourselves
                 // to create the resource outside the lock!
@@ -221,15 +214,14 @@ namespace siddiqsoft::arrp
                     RunOnEnd pop_guard([&]() { m_pool.pop_front(); });
 
                     m_resources_checkedout++;
-                    ++m_counter_checkout;
 
                     // Make a wrapper..
                     // Create a SRT element and wire up the auto-return callback to return
                     // the resource back to this object.
                     return SRT {std::move(m_pool.front()),
-                                [this](T&& src, bool is_valid) { // this callback puts the resource back..
+                                [this](T&& src, siddiqsoft::arrp::release_reason rr) { // this callback puts the resource back..
                                     this->m_counter_auto_returned++;
-                                    this->checkin(std::forward<T&&>(src), is_valid);
+                                    this->checkin(std::forward<T&&>(src), rr);
                                 }};
                     // Allow the compiler to use NRVO (move elision; do not use std::move here!)
                     // The pop_front() happens within this scope and within the lock!
@@ -243,7 +235,6 @@ namespace siddiqsoft::arrp
                     // We should unlock the resource and ..
                     l.unlock();
 
-                    ++m_counter_checkout;
                     // Update the attempted delegated calls to add new raw resource to pool.
                     ++m_counter_ondemand_adds;
 
@@ -266,25 +257,33 @@ namespace siddiqsoft::arrp
                 std::cerr << std::format("UNKNOWN Error in checkout\n");
                 throw;
             }
-
-            auto msg = std::format(
-                    "Pool Size:{}  checkedout:{}  capacity:{}", m_pool.size(), m_resources_checkedout.load(), m_capacity);
+            
+#if defined(DEBUG)
+            auto msg = std::format("Starving: {}", this->to_json().dump());
             throw std::runtime_error(msg);
+#else
+            throw std::runtime_error("Starving; add more resources");
+#endif
         }
 
-        void checkin(T&& item, bool item_valid = true)
+        void checkin(T&& item, release_reason reason = release_reason::Unknown)
         {
             ++m_counter_checkin;
 
-            if (item_valid) {
+            if (!siddiqsoft::arrp::is_release_reason_abandoned(reason)) {
                 std::scoped_lock l(m_pool_lock);
 
                 m_pool.push_back(std::move(item));
+
                 if (m_resources_checkedout > 0) m_resources_checkedout--;
             } // lock scope end
-            else {
+            else if (siddiqsoft::arrp::is_release_reason_abandoned(reason)) {
                 // Resource was invalidated; do not add back to the pool.
                 m_invalidated_resources++;
+
+#if defined(DEBUG)
+                std::cerr << std::format("Resource was invalidated! {}\n", this->to_json().dump());
+#endif
             }
         }
 
@@ -299,7 +298,7 @@ namespace siddiqsoft::arrp
 
                 for (const auto& item : m_pool) {
                     if constexpr (std::is_same_v<std::decay<T>, std::string> || std::is_arithmetic_v<T>) {
-                        m_json["items"]+= std::format("{}", item);
+                        m_json["items"] += std::format("{}", item);
                     }
                     else if constexpr (std::is_pointer_v<T>) {
                         m_json["items"].push_back(std::format("{:p}", static_cast<const void*>(item)));
@@ -313,10 +312,8 @@ namespace siddiqsoft::arrp
                 m_json["load"]        = m_pool.size() + m_resources_checkedout.load();
                 m_json["invalidated"] = m_invalidated_resources.load();
                 m_json["checkedout"]  = m_resources_checkedout.load();
-                m_json["autoreturns"] = m_counter_auto_returned.load();
-                m_json["newitems"]    = m_counter_ondemand_adds.load();
-                m_json["return"]      = m_counter_checkin.load();
-                m_json["borrow"]      = m_counter_checkout.load();
+                m_json["checkin"]     = m_counter_checkin.load();
+                m_json["checkout"]    = m_counter_checkout.load();
             }
 
             return m_json;
@@ -330,10 +327,8 @@ namespace siddiqsoft::arrp
                                {"load", 0},
                                {"invalidated", 0},
                                {"checkedout", 0},
-                               {"autoreturns", 0},
-                               {"newitems", 0},
-                               {"return", 0},
-                               {"borrow", 0}};
+                               {"checkin", 0},
+                               {"checkout", 0}};
 #endif
     };
 

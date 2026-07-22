@@ -16,6 +16,8 @@
 #include <atomic>
 #include <vector>
 
+#include "nlohmann/json.hpp"
+
 #include "../include/siddiqsoft/resource_pool.hpp"
 
 // NOLINTBEGIN(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
@@ -227,9 +229,9 @@ TEST(scoped_resource_validity, concurrent_with_invalidation)
     // - Pool size = 100 - invalidated (because invalidated ones are not returned)
 
     int total_operations = invalidated_count.load() + returned_count.load();
-    EXPECT_EQ(40, total_operations);  // 4 threads * 10 iterations
-    EXPECT_GT(invalidated_count.load(), 0);  // Some should be invalidated
-    EXPECT_GT(returned_count.load(), 0);  // Some should be returned
+    EXPECT_EQ(40, total_operations);        // 4 threads * 10 iterations
+    EXPECT_GT(invalidated_count.load(), 0); // Some should be invalidated
+    EXPECT_GT(returned_count.load(), 0);    // Some should be returned
 
     // Pool size should be: initial (100) - invalidated + returned
     // But since invalidated ones are NOT returned, it's:
@@ -307,6 +309,6 @@ TEST(scoped_resource_validity, mixed_valid_invalid_concurrent)
     EXPECT_GT(invalid_count.load(), 0);
 }
 
-#endif  // defined(DEBUG)
+#endif // defined(DEBUG)
 
 // NOLINTEND(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)

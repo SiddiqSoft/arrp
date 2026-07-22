@@ -58,7 +58,7 @@ public:
      * @param file The FILE* to wrap
      * @param callback Optional callback to return resource to pool
      */
-    explicit ScopedFileResource(FILE*&& file, std::function<void(FILE*&&,bool)>&& callback = {}, bool is_valid = true)
+    explicit ScopedFileResource(FILE*&& file, std::function<void(FILE*&&, siddiqsoft::arrp::release_reason rr)>&& callback = {}, bool is_valid = true)
         : Base(std::forward<FILE*&&>(file), std::move(callback), is_valid)
     {
     }
@@ -70,6 +70,16 @@ public:
         : Base(std::move(src))
     {
     }
+
+    /**
+     * @brief Copy constructor is deleted
+     */
+    ScopedFileResource(const ScopedFileResource&) = delete;
+
+    /**
+     * @brief Copy assignment operator is deleted
+     */
+    ScopedFileResource& operator=(const ScopedFileResource&) = delete;
 
     /**
      * @brief Move assignment operator
@@ -556,15 +566,18 @@ TEST(custom_scoped_resource, custom_factory_callback)
     try {
         std::atomic_int                                            creation_count {0};
 
-        siddiqsoft::arrp::resource_pool<FILE*, ScopedFileResource> pool {
-                [&creation_count, &temp_file](auto& p) -> ScopedFileResource {
-                    creation_count++;
-                    FILE* file = std::fopen(temp_file.c_str(), "a+");
-                    if (file == nullptr) {
-                        throw std::runtime_error("Failed to open file");
-                    }
-                    return ScopedFileResource(std::move(file), [&p](FILE*&& f,bool v) { p.checkin(std::move(f),v); });
-                }};
+        siddiqsoft::arrp::resource_pool<FILE*, ScopedFileResource> pool {[&creation_count,
+                                                                          &temp_file](auto& p) -> ScopedFileResource {
+            creation_count++;
+            FILE* file = std::fopen(temp_file.c_str(), "a+");
+
+            if (file == nullptr) {
+                throw std::runtime_error("Failed to open file");
+            }
+
+            return ScopedFileResource(
+                    std::move(file), [&p](FILE*&& f, siddiqsoft::arrp::release_reason v) { p.checkin(std::move(f), v); });
+        }};
 
         // Borrow resources - should trigger factory
         {
@@ -614,11 +627,11 @@ TEST(custom_scoped_resource, json_serialization)
         EXPECT_TRUE(json.contains("size"));
         EXPECT_TRUE(json.contains("load"));
         EXPECT_TRUE(json.contains("checkedout"));
-        
+
 
         // Verify counters
-        EXPECT_TRUE(json.contains("borrow"));
-        EXPECT_TRUE(json.contains("return"));
+        EXPECT_TRUE(json.contains("checkout"));
+        EXPECT_TRUE(json.contains("checkin"));
         close_and_clear_pool(pool);
     }
     catch (...) {

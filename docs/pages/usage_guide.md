@@ -116,9 +116,9 @@ std::cout << "Total load: " << state["load"] << std::endl;
 
 // Access operation counters
 auto counters = state["counters"];
-std::cout << "Total borrows: " << counters["borrow"] << std::endl;
-std::cout << "Total returns: " << counters["return"] << std::endl;
-std::cout << "Auto-created: " << counters["newitems"] << std::endl;
+std::cout << "Total borrows: " << counters["checkout"] << std::endl;
+std::cout << "Total returns: " << counters["checkin"] << std::endl;
+
 ```
 
 @section ug_error_handling Error Handling

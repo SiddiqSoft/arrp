@@ -97,7 +97,7 @@ namespace siddiqsoft::arrp
         /// @brief Callback function to return the resource to the pool
         /// @details Called by destructor when resource is valid. Typically returns the
         ///          resource to the resource_pool for reuse.
-        std::function<void(T&&, bool)> m_putback_callback {};
+        std::function<void(T&&, siddiqsoft::arrp::release_reason)> m_putback_callback {};
 
         /// @brief Tracks whether the resource is valid and should be returned to pool
         /// @details Prevents returning uninitialized or moved-out resources
@@ -108,7 +108,9 @@ namespace siddiqsoft::arrp
     public:
         scoped_resource() = delete;
 
-        explicit scoped_resource(T&& src, std::function<void(T&&, bool)>&& f = {}, bool is_valid=true)
+        explicit scoped_resource(T&&                                                             src,
+                                 std::function<void(T&&, siddiqsoft::arrp::release_reason rr)>&& f        = {},
+                                 bool                                                            is_valid = true)
             : m_rsrc(std::move(src))
             , m_putback_callback(std::move(f))
             , m_is_valid(is_valid)
@@ -165,17 +167,15 @@ namespace siddiqsoft::arrp
             // Only return resource if it's valid and callback exists
             // This prevents returning uninitialized or moved-out resources to the pool
             if (m_putback_callback) {
-                m_putback_callback(std::move(m_rsrc), m_is_valid);
+                m_putback_callback(std::move(m_rsrc),
+                                   m_is_valid ? siddiqsoft::arrp::release_reason::Valid
+                                              : siddiqsoft::arrp::release_reason::Invalid);
                 m_is_valid         = false;
                 m_putback_callback = {};
             }
         }
 
-        void invalidate()
-        {
-            m_is_valid         = false;
-            m_putback_callback = {};
-        }
+        void invalidate() { m_is_valid = false; }
 
 #if defined(NLOHMANN_JSON_VERSION_MAJOR)
         nlohmann::json to_json() const

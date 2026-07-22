@@ -772,10 +772,9 @@ TEST(resource_pool, json_serialization_counters)
     EXPECT_TRUE(json.contains("size"));
     EXPECT_TRUE(json.contains("load"));
     EXPECT_TRUE(json.contains("checkedout"));
-    EXPECT_TRUE(json.contains("borrow"));
-    EXPECT_TRUE(json.contains("return"));
-    EXPECT_TRUE(json.contains("autoreturns"));
-    EXPECT_TRUE(json.contains("newitems"));
+    EXPECT_TRUE(json.contains("checkout"));
+    EXPECT_TRUE(json.contains("checkin"));
+
 }
 
 /// @brief Extreme stress test: very high concurrency
@@ -827,7 +826,7 @@ TEST(resource_pool, custom_factory_callback)
                 creation_count++;
                 return siddiqsoft::arrp::scoped_resource<std::string>(
                         std::format("created-{}", creation_count.load()),
-                        [&p](std::string&& res, bool is_valid) { p.checkin(std::move(res), is_valid); });
+                        [&p](std::string&& res, siddiqsoft::arrp::release_reason rr) { p.checkin(std::move(res), rr); });
             }};
 
     // Borrow resources - should trigger factory
@@ -1258,7 +1257,7 @@ TEST(resource_pool_adversarial, concurrent_json_serialization)
         for (int i = 0; i < 50; ++i) {
             auto json = pool.to_json();
             json_calls++;
-            EXPECT_TRUE(json.contains("return"));
+            EXPECT_TRUE(json.contains("checkin"));
         }
     });
 
@@ -1283,7 +1282,7 @@ TEST(resource_pool_adversarial, factory_callback_exceptions)
         }
         return siddiqsoft::arrp::scoped_resource<std::string>(
                 std::format("created-{}", factory_calls.load()),
-                [&p](std::string&& res, bool is_valid) { p.checkin(std::move(res), is_valid); });
+                [&p](std::string&& res, siddiqsoft::arrp::release_reason rr) { p.checkin(std::move(res), rr); });
     }};
 
     std::atomic_int                              successes {0};
@@ -1394,7 +1393,7 @@ TEST(resource_pool, concurrent_clear_with_operations_FIXED)
 /// DEADLOCK FIX: Added timeout mechanism and reduced contention
 TEST(resource_pool_adversarial, concurrent_clear_rapid_ops_FIXED)
 {
-    siddiqsoft::arrp::resource_pool<std::string> pool {siddiqsoft::arrp::resource_pool<std::string>::auto_add_policy::AutoGrow};
+    siddiqsoft::arrp::resource_pool<std::string> pool {siddiqsoft::arrp::auto_add_policy::AutoGrow};
     for (int i = 0; i < 20; ++i) {
         pool.checkin(std::format("resource-{}", i));
     }
@@ -1555,7 +1554,7 @@ TEST(resource_pool, concurrent_json_deadlock_detection)
         start_barrier.arrive_and_wait();
         for (int i = 0; i < 100; ++i) {
             auto json = pool.to_json();
-            EXPECT_TRUE(json.contains("return"));
+            EXPECT_TRUE(json.contains("checkin"));
             std::this_thread::sleep_for(std::chrono::microseconds(10));
         }
         ++done;

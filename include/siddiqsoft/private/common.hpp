@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdint>
 #ifndef ASYNCHRONY_COMMON_HPP
 #define ASYNCHRONY_COMMON_HPP
 
@@ -19,6 +20,31 @@ namespace siddiqsoft::arrp
         DefaultCapacity = 8,
         MaxCapacity     = 128
     };
+
+    /// @brief This controls the auto-grow (or adding items when the pool is starving)
+    /// and below capacity (up to the maximum limit).
+    /// The load is calculated as
+    enum class auto_add_policy
+    {
+        NoGrow,
+        AutoGrow
+    };
+
+    enum class release_reason : uint8_t
+    {
+        Valid,
+        Invalid,  // Return invoked but the item is invalid/abandoned
+        AutoGrow, // new item added via the callback
+        Seed,     // new item added by the client
+        Return,   // Normal return
+        Unknown,  // default is unknown
+    };
+
+    constexpr bool is_release_reason_abandoned(const release_reason& rr)
+    {
+        return rr == release_reason::Invalid;
+    }
+
 
     /**
      * @brief Helper function to determine if an exception is critical and should be rethrown
@@ -96,6 +122,6 @@ namespace siddiqsoft::arrp
             return true;
         }
     }
-} // namespace siddiqsoft
+} // namespace siddiqsoft::arrp
 
 #endif // !ASYNCHRONY_COMMON_HPP
