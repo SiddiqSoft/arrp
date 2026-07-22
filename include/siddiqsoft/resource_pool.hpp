@@ -299,7 +299,7 @@ namespace siddiqsoft::arrp
 
                 for (const auto& item : m_pool) {
                     if constexpr (std::is_same_v<std::decay<T>, std::string> || std::is_arithmetic_v<T>) {
-                        m_json["items"].push_back(std::format("{}", item));
+                        m_json["items"]+= std::format("{}", item);
                     }
                     else if constexpr (std::is_pointer_v<T>) {
                         m_json["items"].push_back(std::format("{:p}", static_cast<const void*>(item)));

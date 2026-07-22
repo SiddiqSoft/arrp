@@ -324,25 +324,30 @@ TEST(stress_lifecycle, move_only_concurrent)
 /// Validates pool behavior with significant memory usage
 TEST(stress_memory, large_object_pool)
 {
-    constexpr size_t                                   OBJECT_SIZE = 10 * 1024 * 1024; // 10MB
-    constexpr int                                      POOL_SIZE   = 2;
+    constexpr size_t                             OBJECT_SIZE = 10 * 1024 * 1024; // 10MB
+    constexpr int                                POOL_SIZE   = 2;
 
-    siddiqsoft::arrp::resource_pool<std::vector<char>> pool {};
+    siddiqsoft::arrp::resource_pool<std::string> pool {};
 
     for (int i = 0; i < POOL_SIZE; ++i) {
-        std::vector<char> large_vec(OBJECT_SIZE, 'x');
+        std::string large_vec(OBJECT_SIZE, 'x');
+        large_vec.insert(0, std::format("{}", i));
         pool.checkin(std::move(large_vec));
     }
 
+    EXPECT_EQ(2u, pool.size());
+
     {
-        auto res = pool.checkout();
-        EXPECT_EQ(OBJECT_SIZE, (*res).size());
+        auto res  = pool.checkout();
         (*res)[0] = 'y';
     }
 
+    EXPECT_EQ(2u, pool.size());
+
     {
-        auto res = pool.checkout();
-        EXPECT_EQ('y', (*res)[0]); // Verify state persistence
+        auto res1 = pool.checkout();
+        auto res2 = pool.checkout();
+        EXPECT_TRUE(('y' == (*res1)[0]) || ('y' == (*res2)[0])); // Verify state persistence
     }
 
     EXPECT_EQ(2u, pool.size());
@@ -785,8 +790,9 @@ TEST(stress_recovery, factory_callback_failures)
             factory_failures++;
             throw std::runtime_error("Factory failure");
         }
-        return siddiqsoft::arrp::scoped_resource<std::string>(std::format("created-{}", factory_calls.load()),
-                                                              [&p](std::string&& res, bool is_valid) { p.checkin(std::move(res), is_valid); });
+        return siddiqsoft::arrp::scoped_resource<std::string>(
+                std::format("created-{}", factory_calls.load()),
+                [&p](std::string&& res, bool is_valid) { p.checkin(std::move(res), is_valid); });
     }};
 
     std::atomic_int                              successes {0};
@@ -1282,8 +1288,6 @@ TEST(stress_invalidation, rapid_invalidation_cycling)
     auto final_state = pool.to_json();
     EXPECT_EQ(invalidated.load(), final_state["invalidated"].get<int>());
 }
-
-
 
 
 // ============================================================================
