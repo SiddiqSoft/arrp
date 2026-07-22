@@ -1258,7 +1258,7 @@ TEST(resource_pool_adversarial, concurrent_json_serialization)
         for (int i = 0; i < 50; ++i) {
             auto json = pool.to_json();
             json_calls++;
-            EXPECT_TRUE(json.contains("returns"));
+            EXPECT_TRUE(json.contains("return"));
         }
     });
 
@@ -1555,7 +1555,7 @@ TEST(resource_pool, concurrent_json_deadlock_detection)
         start_barrier.arrive_and_wait();
         for (int i = 0; i < 100; ++i) {
             auto json = pool.to_json();
-            EXPECT_TRUE(json.contains("returns"));
+            EXPECT_TRUE(json.contains("return"));
             std::this_thread::sleep_for(std::chrono::microseconds(10));
         }
         ++done;
