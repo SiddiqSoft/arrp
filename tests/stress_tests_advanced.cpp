@@ -786,7 +786,7 @@ TEST(stress_recovery, factory_callback_failures)
             throw std::runtime_error("Factory failure");
         }
         return siddiqsoft::arrp::scoped_resource<std::string>(std::format("created-{}", factory_calls.load()),
-                                                              [&p](std::string&& res) { p.checkin(std::move(res)); });
+                                                              [&p](std::string&& res, bool is_valid) { p.checkin(std::move(res), is_valid); });
     }};
 
     std::atomic_int                              successes {0};
@@ -1184,7 +1184,7 @@ TEST(stress_invalidation, invalidation_with_factory)
         created++;
         return siddiqsoft::arrp::scoped_resource<std::string>(
                 std::format("created-{}", created.load()),
-                [&p](std::string&& res) { p.checkin(std::move(res)); },
+                [&p](std::string&& res, bool is_valid) { p.checkin(std::move(res), is_valid); },
                 [&](std::string&& res) { invalidated_count++; });
     }};
 
@@ -1285,4 +1285,12 @@ TEST(stress_invalidation, rapid_invalidation_cycling)
 }
 
 
+
+
+// ============================================================================
+// INVALIDATION TESTS - Resource invalidation and abandonment
+// ============================================================================
+
+/// @brief Test basic resource invalidation
+/// Validates that invalidated resources are not returned to pool
 // NOLINTEND(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)

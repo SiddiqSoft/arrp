@@ -830,7 +830,7 @@ TEST(resource_pool, custom_factory_callback)
                                                                auto& p) -> siddiqsoft::arrp::scoped_resource<std::string> {
         creation_count++;
         return siddiqsoft::arrp::scoped_resource<std::string>(std::format("created-{}", creation_count.load()),
-                                                              [&p](std::string&& res) { p.checkin(std::move(res)); });
+                                                              [&p](std::string&& res, bool is_valid) { p.checkin(std::move(res), is_valid); });
     }};
 
     // Borrow resources - should trigger factory
@@ -1285,7 +1285,7 @@ TEST(resource_pool_adversarial, factory_callback_exceptions)
                     std::format("Factory exception calls:{}  exceptions:{}", factory_calls.load(), factory_exceptions.load()));
         }
         return siddiqsoft::arrp::scoped_resource<std::string>(std::format("created-{}", factory_calls.load()),
-                                                              [&p](std::string&& res) { p.checkin(std::move(res)); });
+                                                              [&p](std::string&& res, bool is_valid) { p.checkin(std::move(res), is_valid); });
     }};
 
     std::atomic_int                              successes {0};
