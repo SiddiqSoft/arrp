@@ -943,7 +943,7 @@ TEST(stress_patterns, mixed_operations)
         start_barrier.arrive_and_wait();
         for (int i = 0; i < 50; ++i) {
             auto json = pool.to_json();
-            EXPECT_TRUE(json.contains("counters"));
+            EXPECT_TRUE(json.contains("returns"));
         }
     });
 
@@ -1018,7 +1018,7 @@ TEST(stress_ultimate, comprehensive_stress)
                 else {
                     // JSON serialization
                     auto json = pool.to_json();
-                    EXPECT_TRUE(json.contains("counters"));
+                    EXPECT_TRUE(json.contains("returns"));
                 }
             }
         });

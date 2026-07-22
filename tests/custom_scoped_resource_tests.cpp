@@ -614,12 +614,11 @@ TEST(custom_scoped_resource, json_serialization)
         EXPECT_TRUE(json.contains("size"));
         EXPECT_TRUE(json.contains("load"));
         EXPECT_TRUE(json.contains("checkedout"));
-        EXPECT_TRUE(json.contains("counters"));
+        
 
         // Verify counters
-        auto counters = json["counters"];
-        EXPECT_TRUE(counters.contains("borrow"));
-        EXPECT_TRUE(counters.contains("return"));
+        EXPECT_TRUE(json.contains("borrow"));
+        EXPECT_TRUE(json.contains("return"));
         close_and_clear_pool(pool);
     }
     catch (...) {

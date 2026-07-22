@@ -300,8 +300,16 @@ namespace siddiqsoft::arrp
                 for (const auto& item : m_pool) {
                     // Items are stored in the pool but not serialized individually
                     // to avoid overhead and potential issues with non-serializable types
-                    //m_json["items"] += std::format("{}", item);
+                    // m_json["items"] += std::format("{}", item);
                 }
+
+                m_json["load"]        = m_pool.size() + m_resources_checkedout.load();
+                m_json["invalidated"] = m_invalidated_resources.load();
+                m_json["checkedout"]  = m_resources_checkedout.load();
+                m_json["autoreturns"] = m_counter_auto_returned.load();
+                m_json["newitems"]    = m_counter_ondemand_adds.load();
+                m_json["return"]      = m_counter_checkin.load();
+                m_json["borrow"]      = m_counter_checkout.load();
             }
 
             return m_json;

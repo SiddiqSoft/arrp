@@ -772,14 +772,10 @@ TEST(resource_pool, json_serialization_counters)
     EXPECT_TRUE(json.contains("size"));
     EXPECT_TRUE(json.contains("load"));
     EXPECT_TRUE(json.contains("checkedout"));
-    EXPECT_TRUE(json.contains("counters"));
-
-    // Verify counters
-    auto counters = json["counters"];
-    EXPECT_TRUE(counters.contains("borrow"));
-    EXPECT_TRUE(counters.contains("return"));
-    EXPECT_TRUE(counters.contains("autoreturns"));
-    EXPECT_TRUE(counters.contains("newitems"));
+    EXPECT_TRUE(json.contains("borrow"));
+    EXPECT_TRUE(json.contains("return"));
+    EXPECT_TRUE(json.contains("autoreturns"));
+    EXPECT_TRUE(json.contains("newitems"));
 }
 
 /// @brief Extreme stress test: very high concurrency
@@ -826,12 +822,13 @@ TEST(resource_pool, custom_factory_callback)
 {
     std::atomic_int                              creation_count {0};
 
-    siddiqsoft::arrp::resource_pool<std::string> pool {[&creation_count](
-                                                               auto& p) -> siddiqsoft::arrp::scoped_resource<std::string> {
-        creation_count++;
-        return siddiqsoft::arrp::scoped_resource<std::string>(std::format("created-{}", creation_count.load()),
-                                                              [&p](std::string&& res, bool is_valid) { p.checkin(std::move(res), is_valid); });
-    }};
+    siddiqsoft::arrp::resource_pool<std::string> pool {
+            [&creation_count](auto& p) -> siddiqsoft::arrp::scoped_resource<std::string> {
+                creation_count++;
+                return siddiqsoft::arrp::scoped_resource<std::string>(
+                        std::format("created-{}", creation_count.load()),
+                        [&p](std::string&& res, bool is_valid) { p.checkin(std::move(res), is_valid); });
+            }};
 
     // Borrow resources - should trigger factory
     {
@@ -1261,7 +1258,7 @@ TEST(resource_pool_adversarial, concurrent_json_serialization)
         for (int i = 0; i < 50; ++i) {
             auto json = pool.to_json();
             json_calls++;
-            EXPECT_TRUE(json.contains("counters"));
+            EXPECT_TRUE(json.contains("returns"));
         }
     });
 
@@ -1284,8 +1281,9 @@ TEST(resource_pool_adversarial, factory_callback_exceptions)
             throw std::runtime_error(
                     std::format("Factory exception calls:{}  exceptions:{}", factory_calls.load(), factory_exceptions.load()));
         }
-        return siddiqsoft::arrp::scoped_resource<std::string>(std::format("created-{}", factory_calls.load()),
-                                                              [&p](std::string&& res, bool is_valid) { p.checkin(std::move(res), is_valid); });
+        return siddiqsoft::arrp::scoped_resource<std::string>(
+                std::format("created-{}", factory_calls.load()),
+                [&p](std::string&& res, bool is_valid) { p.checkin(std::move(res), is_valid); });
     }};
 
     std::atomic_int                              successes {0};
@@ -1557,7 +1555,7 @@ TEST(resource_pool, concurrent_json_deadlock_detection)
         start_barrier.arrive_and_wait();
         for (int i = 0; i < 100; ++i) {
             auto json = pool.to_json();
-            EXPECT_TRUE(json.contains("counters"));
+            EXPECT_TRUE(json.contains("returns"));
             std::this_thread::sleep_for(std::chrono::microseconds(10));
         }
         ++done;
