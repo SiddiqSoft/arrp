@@ -111,13 +111,13 @@ auto state = pool.to_json();
 
 std::cout << "Capacity: " << state["capacity"] << std::endl;
 std::cout << "Available: " << state["size"] << std::endl;
-std::cout << "Checked out: " << state["loan"] << std::endl;
+std::cout << "Checked out: " << state["loans"] << std::endl;
 std::cout << "Total load: " << state["load"] << std::endl;
 
 // Access operation counters
 auto counters = state["counters"];
-std::cout << "Total borrows: " << counters["checkout"] << std::endl;
-std::cout << "Total returns: " << counters["checkin"] << std::endl;
+std::cout << "Total borrows: " << counters["out"] << std::endl;
+std::cout << "Total returns: " << counters["in"] << std::endl;
 
 ```
 

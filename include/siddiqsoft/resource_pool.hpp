@@ -64,7 +64,13 @@ namespace siddiqsoft::arrp
         uint8_t m_capacity {InitCapacity};
 
         /// @brief Number of resources currently checked out from the pool
-        std::atomic_uint16_t m_resources_checkedout {0};
+        /// @note This is a signed number allowing us to detect "bad" loans
+        ///       otherwise known as abandoned/invalid resources which were
+        ///       not added back to the pool.
+        std::atomic_int16_t m_loans {0};
+
+        /// @brief Number of resources currently checked out from the pool
+        std::atomic_int16_t m_resources_checkedout {0};
 
         /// @brief Number of resources that have been invalidated
         /// @note Currently unused; reserved for future use
@@ -212,7 +218,10 @@ namespace siddiqsoft::arrp
                 if (!m_pool.empty()) {
                     // The pool is non-empty; return from the pool
                     // Return first element from the pool and pop it on scope end
-                    RunOnEnd pop_guard([&]() { m_pool.pop_front(); });
+                    RunOnEnd pop_guard([&]() {
+                        m_pool.pop_front();
+                        m_loans++;
+                    });
 
                     m_resources_checkedout++;
 
@@ -228,6 +237,11 @@ namespace siddiqsoft::arrp
                     // The pop_front() happens within this scope and within the lock!
                 }
                 else if ((m_capacity > m_pool.size() + m_resources_checkedout) && m_callback_to_add_new_raw_resource_to_pool) {
+                    // This should not be counted as a loan.. we did not dole out from the pool..
+                    // Moreover, it is not possible to determine if the new resource was properly
+                    // allocated.
+                    // The best time to account for m_loans would be from the pool itself.
+
                     // We have no more items in the pool (we're starting up or everything is
                     // checked out) but we have not reached the limit. The limit is number
                     // of m_resources_checkedout + pool.size() < m_capacity We are
@@ -245,7 +259,7 @@ namespace siddiqsoft::arrp
                 }
                 else if (m_capacity > m_pool.size() + m_resources_checkedout) {
                     // We're under-capacity.. but no dynamic resource provider
-                    std::cerr << std::format("We're under-capacity.. but no dynamic resource provider\n");
+                    throw std::runtime_error(std::format("We're under-capacity.. but no dynamic resource provider\n"));
                 }
             } // scope end
             catch (std::exception& ex) {
@@ -269,6 +283,8 @@ namespace siddiqsoft::arrp
 #endif
         }
 
+        auto is_there_a_pool_deficit() { return m_pool.size() < m_capacity; }
+
         void checkin(T&& item, release_reason reason = release_reason::Unknown)
         {
             ++m_counter_checkin;
@@ -277,8 +293,9 @@ namespace siddiqsoft::arrp
                 std::scoped_lock l(m_pool_lock);
 
                 m_pool.push_back(std::move(item));
+                m_loans--; // we're returning a borrowed item..
 
-                if (m_resources_checkedout > 0) m_resources_checkedout--;
+                m_resources_checkedout--;
             } // lock scope end
             else if (siddiqsoft::arrp::is_release_reason_abandoned(reason)) {
                 // Resource was invalidated; do not add back to the pool.
@@ -286,7 +303,7 @@ namespace siddiqsoft::arrp
                 {
                     std::scoped_lock l(m_pool_lock);
                     m_invalidated_resources++;
-                    if (m_resources_checkedout > 0) m_resources_checkedout--;
+                    m_resources_checkedout--;
                 }
 
 #if defined(DEBUG)
@@ -296,19 +313,19 @@ namespace siddiqsoft::arrp
         }
 
 #if defined(NLOHMANN_JSON_VERSION_MAJOR)
-        auto to_json() -> const nlohmann::json&
+        auto to_json() -> nlohmann::json&
         {
             {
                 std::scoped_lock l(m_pool_lock);
 
                 // Update the poolsize..
-                m_json["size"]       = m_pool.size();
-                m_json["deficit"]    = m_capacity - m_pool.size();
-                m_json["load"]       = m_pool.size() + m_resources_checkedout.load();
-                m_json["abandoned"]    = m_invalidated_resources.load();
-                m_json["loan"] = m_resources_checkedout.load();
-                m_json["checkin"]    = m_counter_checkin.load();
-                m_json["checkout"]   = m_counter_checkout.load();
+                m_json["size"]      = m_pool.size();
+                m_json["deficit"]   = m_capacity - m_pool.size();
+                m_json["load"]      = m_pool.size() + m_resources_checkedout.load();
+                m_json["abandoned"] = m_invalidated_resources.load();
+                m_json["loans"]     = m_loans.load();
+                m_json["in"]   = m_counter_checkin.load();
+                m_json["out"]  = m_counter_checkout.load();
             }
 
             return m_json;
@@ -321,9 +338,9 @@ namespace siddiqsoft::arrp
                                {"load", 0},
                                {"deficit", 0},
                                {"abandoned", 0},
-                               {"loan", 0},
-                               {"checkin", 0},
-                               {"checkout", 0}};
+                               {"loans", 0},
+                               {"in", 0},
+                               {"out", 0}};
 #endif
     };
 

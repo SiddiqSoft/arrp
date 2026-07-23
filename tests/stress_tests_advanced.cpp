@@ -921,7 +921,7 @@ TEST(stress_patterns, mixed_operations)
         start_barrier.arrive_and_wait();
         for (int i = 0; i < 50; ++i) {
             auto json = pool.to_json();
-            EXPECT_TRUE(json.contains("checkin"));
+            EXPECT_TRUE(json.contains("in"));
         }
     });
 
@@ -996,7 +996,7 @@ TEST(stress_ultimate, comprehensive_stress)
                 else {
                     // JSON serialization
                     auto json = pool.to_json();
-                    EXPECT_TRUE(json.contains("checkin"));
+                    EXPECT_TRUE(json.contains("in"));
                 }
             }
         });
@@ -1067,17 +1067,23 @@ TEST(stress_invalidation, basic_invalidation_2)
     pool.checkin(std::string("resource-2"));
 
     EXPECT_EQ(2u, pool.size());
+    // Nothing's been loaned out yet.. should be zero.
+    EXPECT_EQ(0, pool.to_json()["loans"].get<int>());
 
     std::cerr << std::format("before 1: {}\n", pool.to_json().dump());
 
     {
         auto res = pool.checkout();
+        // One item out..
+        EXPECT_EQ(1, pool.to_json()["loans"].get<int>());
         std::cerr << std::format("Contents of res: {}\n", res.to_json().dump());
         EXPECT_EQ("resource-1", *res);
         res.invalidate(); // Don't return this resource
     }
 
     std::cerr << std::format("after 1: {}\n", pool.to_json().dump());
+    // One item out..
+    EXPECT_EQ(1, pool.to_json()["loans"].get<int>());
 
     // Pool should have only 1 resource now (the invalidated one was not returned)
     EXPECT_EQ(1u, pool.size());
@@ -1240,9 +1246,9 @@ TEST(stress_invalidation, mixed_invalidation_returns)
             try {
                 auto res = pool.checkout();
 
-                //std::cerr << std::format("cycle:{} i:{}. cycle%3={}  item:{}\n", cycle, i, cycle % 3, res.to_json().dump());
-                // must be an odd number otherwise the very first cycle
-                // will invalidate all of the items!
+                // std::cerr << std::format("cycle:{} i:{}. cycle%3={}  item:{}\n", cycle, i, cycle % 3, res.to_json().dump());
+                //  must be an odd number otherwise the very first cycle
+                //  will invalidate all of the items!
                 if ((cycle % 3) == 0) {
                     res.invalidate();
                     invalidated++;

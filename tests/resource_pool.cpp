@@ -771,9 +771,9 @@ TEST(resource_pool, json_serialization_counters)
     EXPECT_TRUE(json.contains("capacity"));
     EXPECT_TRUE(json.contains("size"));
     EXPECT_TRUE(json.contains("load"));
-    EXPECT_TRUE(json.contains("loan"));
-    EXPECT_TRUE(json.contains("checkout"));
-    EXPECT_TRUE(json.contains("checkin"));
+    EXPECT_TRUE(json.contains("loans"));
+    EXPECT_TRUE(json.contains("out"));
+    EXPECT_TRUE(json.contains("in"));
 
 }
 
@@ -1257,7 +1257,7 @@ TEST(resource_pool_adversarial, concurrent_json_serialization)
         for (int i = 0; i < 50; ++i) {
             auto json = pool.to_json();
             json_calls++;
-            EXPECT_TRUE(json.contains("checkin"));
+            EXPECT_TRUE(json.contains("in"));
         }
     });
 
@@ -1554,7 +1554,7 @@ TEST(resource_pool, concurrent_json_deadlock_detection)
         start_barrier.arrive_and_wait();
         for (int i = 0; i < 100; ++i) {
             auto json = pool.to_json();
-            EXPECT_TRUE(json.contains("checkin"));
+            EXPECT_TRUE(json.contains("in"));
             std::this_thread::sleep_for(std::chrono::microseconds(10));
         }
         ++done;

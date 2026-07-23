@@ -138,6 +138,8 @@ namespace siddiqsoft::arrp
                 // Move from src
                 m_rsrc     = std::move(src.m_rsrc);
                 m_is_valid = src.m_is_valid;
+                // Make sure we do not have the src checkin
+                src.m_is_valid = false;
             }
             return *this;
         }
@@ -160,14 +162,16 @@ namespace siddiqsoft::arrp
 
         auto             operator*() -> T& { return m_rsrc; }
 
-                         operator T&() { return m_rsrc; }
+        explicit         operator T&() { return m_rsrc; }
 
         ~scoped_resource()
         {
             // Only return resource if it's valid and callback exists
             // This prevents returning uninitialized or moved-out resources to the pool
             if (m_putback_callback) {
-                m_putback_callback(std::move(m_rsrc), m_is_valid?siddiqsoft::arrp::release_reason::Valid : siddiqsoft::arrp::release_reason::Abandoned);
+                m_putback_callback(std::move(m_rsrc),
+                                   m_is_valid ? siddiqsoft::arrp::release_reason::Valid
+                                              : siddiqsoft::arrp::release_reason::Abandoned);
                 m_is_valid         = false;
                 m_putback_callback = {};
             }

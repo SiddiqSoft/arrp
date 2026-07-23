@@ -186,8 +186,8 @@ auto state = pool.to_json();
 // We assume the use of nlohmann::json
 std::cout << "Capacity: " << state["capacity"] << std::endl;
 std::cout << "Available: " << state["size"] << std::endl;
-std::cout << "Checked out: " << state["loan"] << std::endl;
-std::cout << "Total borrows: " << state["counters"]["checkout"] << std::endl;
+std::cout << "Checked out: " << state["loans"] << std::endl;
+std::cout << "Total borrows: " << state["counters"]["out"] << std::endl;
 ```
 
 ## API Overview
