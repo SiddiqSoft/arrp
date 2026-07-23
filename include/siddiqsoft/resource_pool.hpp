@@ -63,17 +63,11 @@ namespace siddiqsoft::arrp
         uint8_t m_capacity {0};
 
         /// @brief Number of resources currently checked out from the pool
-        /// @note This is a signed number allowing us to detect "bad" loans
-        ///       otherwise known as abandoned/invalid resources which were
-        ///       not added back to the pool.
-        std::atomic_int16_t m_loans {0};
-
-        /// @brief Number of resources currently checked out from the pool
         std::atomic_int16_t m_resources_checkedout {0};
 
         /// @brief Number of resources that have been invalidated
         /// @note Currently unused; reserved for future use
-        std::atomic_uint16_t m_invalidated_resources {0};
+        std::atomic_uint16_t m_abandoned {0};
 
         /// @brief Counter for borrow operations from the pool
         /// @note Only counts successful borrow operations
@@ -85,8 +79,7 @@ namespace siddiqsoft::arrp
         /// @brief Counter for return operations to the pool
         std::atomic_uint64_t m_counter_checkin {0};
 
-        /// @brief Counter for automatic resource additions via factory callback
-        std::atomic_uint64_t m_counter_auto_returned {0};
+        std::atomic_uint64_t m_capacity_poolsize {0};
 
         /// @brief Internal deque storing the pooled resources
         /// @details Uses FIFO ordering: resources are added to back, retrieved from front
@@ -147,6 +140,7 @@ namespace siddiqsoft::arrp
         /// @brief Internal method does not require explicit lock
         bool is_pool_starving() { return m_capacity > m_pool.size(); }
         auto is_there_a_pool_deficit() { return m_pool.size() < m_capacity; }
+        auto loan_size() { return m_capacity_poolsize.load() - m_pool.size(); }
 
     public:
         /// @brief This callback is the default and does not grow the resource; it throws a runtime_error
@@ -187,7 +181,7 @@ namespace siddiqsoft::arrp
                     // the resource back to this object.
                     return SRT {T {},
                                 [this](T&& src, siddiqsoft::arrp::release_reason rr) { // this callback puts the resource back..
-                                    this->m_counter_auto_returned++;
+                                    this->m_capacity_poolsize++;
                                     this->checkin(std::forward<T&&>(src), rr);
                                 }};
                     // Allow the compiler to use NRVO (move elision; do not use std::move here!)
@@ -253,7 +247,6 @@ namespace siddiqsoft::arrp
                     RunOnEnd pop_guard([&]() {
                         m_pool.pop_front();
                         m_resources_checkedout++;
-                        m_loans = m_pool.size() - m_resources_checkedout.load();
                     });
 
                     // Make a wrapper..
@@ -261,7 +254,7 @@ namespace siddiqsoft::arrp
                     // the resource back to this object.
                     return SRT {std::move(m_pool.front()),
                                 [this](T&& src, siddiqsoft::arrp::release_reason rr) { // this callback puts the resource back..
-                                    this->m_counter_auto_returned++;
+                                    this->m_capacity_poolsize++;
                                     this->checkin(std::forward<T&&>(src), rr);
                                 }};
                     // Allow the compiler to use NRVO (move elision; do not use std::move here!)
@@ -271,14 +264,13 @@ namespace siddiqsoft::arrp
                     // This should not be counted as a loan.. we did not dole out from the pool..
                     // Moreover, it is not possible to determine if the new resource was properly
                     // allocated.
-                    // The best time to account for m_loans would be from the pool itself.
 
                     // We have no more items in the pool (we're starting up or everything is
                     // checked out) but we have not reached the limit. The limit is number
                     // of m_resources_checkedout + pool.size() < m_capacity We are
                     // under-capacity.. so we can return to the caller a new item..
                     m_resources_checkedout++;
-                    m_loans = m_pool.size() - m_resources_checkedout.load();
+
                     // We should unlock the resource and ..
                     l.unlock();
 
@@ -319,6 +311,8 @@ namespace siddiqsoft::arrp
         void checkin(T&& item, release_reason reason = release_reason::Unknown)
         {
             ++m_counter_checkin;
+            m_capacity_poolsize++;
+            if (m_capacity_poolsize.load() > m_capacity) m_capacity_poolsize = m_capacity;
 
             if (!siddiqsoft::arrp::is_release_reason_abandoned(reason)) {
                 std::scoped_lock l(m_pool_lock);
@@ -326,16 +320,14 @@ namespace siddiqsoft::arrp
                 m_pool.push_back(std::move(item));
 
                 m_resources_checkedout--;
-                m_loans = m_pool.size() - m_resources_checkedout.load();
             } // lock scope end
             else if (siddiqsoft::arrp::is_release_reason_abandoned(reason)) {
                 // Resource was invalidated; do not add back to the pool.
                 // We need to decrement the checkout count under lock to ensure thread safety
                 {
                     std::scoped_lock l(m_pool_lock);
-                    m_invalidated_resources++;
+                    m_abandoned++;
                     m_resources_checkedout--;
-                    m_loans = m_pool.size() - m_resources_checkedout.load();
                 }
 
 #if defined(DEBUG)
@@ -353,9 +345,10 @@ namespace siddiqsoft::arrp
                 // Update the poolsize..
                 m_json["size"]      = m_pool.size();
                 m_json["deficit"]   = size_t(m_capacity) - m_pool.size();
+                m_json["capsize"]   = m_capacity_poolsize.load();
                 m_json["load"]      = m_pool.size() + m_resources_checkedout.load();
-                m_json["abandoned"] = m_invalidated_resources.load();
-                m_json["loans"]     = m_loans.load();
+                m_json["abandoned"] = m_abandoned.load();
+                m_json["loans"]     = loan_size();
                 m_json["in"]        = m_counter_checkin.load();
                 m_json["out"]       = m_counter_checkout.load();
             }

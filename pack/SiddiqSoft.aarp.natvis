@@ -41,7 +41,7 @@
       <Item Name="[Capacity]">m_capacity</Item>
       <Item Name="[Pool Size]">m_pool.size()</Item>
       <Item Name="[Checked Out]">m_resources_checkedout</Item>
-      <Item Name="[Invalidated Resources]">m_invalidated_resources</Item>
+      <Item Name="[Invalidated Resources]">m_abandoned</Item>
       <Item Name="[Load]">m_pool.size() + m_resources_checkedout</Item>
       <Item Name="[Utilization %]">(m_pool.size() + m_resources_checkedout) * 100 / m_capacity</Item>
       <ArrayItems>
@@ -53,7 +53,7 @@
           <Item Name="Borrow Operations">m_counter_checkout</Item>
           <Item Name="Return Operations">m_counter_checkin</Item>
           <Item Name="On-Demand Adds">m_counter_ondemand_adds</Item>
-          <Item Name="Auto-Returned">m_counter_auto_returned</Item>
+          <Item Name="Auto-Returned">m_capacity_poolsize</Item>
         </Expand>
       </Item>
       <Item Name="[Callbacks]">
@@ -75,7 +75,7 @@
       <Item Name="[Capacity]">m_capacity</Item>
       <Item Name="[Pool Size]">m_pool.size()</Item>
       <Item Name="[Checked Out]">m_resources_checkedout</Item>
-      <Item Name="[Invalidated Resources]">m_invalidated_resources</Item>
+      <Item Name="[Invalidated Resources]">m_abandoned</Item>
       <Item Name="[Load]">m_pool.size() + m_resources_checkedout</Item>
       <Item Name="[Utilization %]">(m_pool.size() + m_resources_checkedout) * 100 / m_capacity</Item>
       <ArrayItems>
@@ -87,7 +87,7 @@
           <Item Name="Borrow Operations">m_counter_checkout</Item>
           <Item Name="Return Operations">m_counter_checkin</Item>
           <Item Name="On-Demand Adds">m_counter_ondemand_adds</Item>
-          <Item Name="Auto-Returned">m_counter_auto_returned</Item>
+          <Item Name="Auto-Returned">m_capacity_poolsize</Item>
         </Expand>
       </Item>
       <Item Name="[Callbacks]">

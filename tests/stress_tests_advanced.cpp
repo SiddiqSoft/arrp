@@ -1065,12 +1065,12 @@ TEST(stress_invalidation, basic_invalidation_loan_check)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool {};
 
-    std::cerr << std::format("just created: {}\n", pool.to_json().dump());
+    //std::cerr << std::format("just created: {}\n", pool.to_json().dump());
 
     pool.checkin(std::string("resource-1"));
     pool.checkin(std::string("resource-2"));
 
-    std::cerr << std::format("after seed  : {}\n", pool.to_json().dump());
+    //std::cerr << std::format("after seed  : {}\n", pool.to_json().dump());
 
     EXPECT_EQ(2u, pool.size());
     // Nothing's been loaned out yet.. should be zero.
@@ -1082,7 +1082,7 @@ TEST(stress_invalidation, basic_invalidation_loan_check)
         auto res = pool.checkout();
         // One item out..
         EXPECT_EQ(1, pool.to_json()["loans"].get<int>());
-        std::cerr << std::format("Contents of res: {}\n", res.to_json().dump());
+        //std::cerr << std::format("Contents of res: {}\n", res.to_json().dump());
         EXPECT_EQ("resource-1", *res);
         res.invalidate(); // Don't return this resource
     }
