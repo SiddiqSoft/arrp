@@ -252,10 +252,9 @@ namespace siddiqsoft::arrp
                     // Return first element from the pool and pop it on scope end
                     RunOnEnd pop_guard([&]() {
                         m_pool.pop_front();
-                        m_loans++;
+                        m_resources_checkedout++;
+                        m_loans = m_pool.size() - m_resources_checkedout.load();
                     });
-
-                    m_resources_checkedout++;
 
                     // Make a wrapper..
                     // Create a SRT element and wire up the auto-return callback to return
@@ -279,6 +278,7 @@ namespace siddiqsoft::arrp
                     // of m_resources_checkedout + pool.size() < m_capacity We are
                     // under-capacity.. so we can return to the caller a new item..
                     m_resources_checkedout++;
+                    m_loans = m_pool.size() - m_resources_checkedout.load();
                     // We should unlock the resource and ..
                     l.unlock();
 
@@ -324,9 +324,9 @@ namespace siddiqsoft::arrp
                 std::scoped_lock l(m_pool_lock);
 
                 m_pool.push_back(std::move(item));
-                m_loans--; // we're returning a borrowed item..
 
                 m_resources_checkedout--;
+                m_loans = m_pool.size() - m_resources_checkedout.load();
             } // lock scope end
             else if (siddiqsoft::arrp::is_release_reason_abandoned(reason)) {
                 // Resource was invalidated; do not add back to the pool.
@@ -335,6 +335,7 @@ namespace siddiqsoft::arrp
                     std::scoped_lock l(m_pool_lock);
                     m_invalidated_resources++;
                     m_resources_checkedout--;
+                    m_loans = m_pool.size() - m_resources_checkedout.load();
                 }
 
 #if defined(DEBUG)

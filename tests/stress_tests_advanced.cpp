@@ -1070,11 +1070,13 @@ TEST(stress_invalidation, basic_invalidation_loan_check)
     pool.checkin(std::string("resource-1"));
     pool.checkin(std::string("resource-2"));
 
+    std::cerr << std::format("after seed  : {}\n", pool.to_json().dump());
+
     EXPECT_EQ(2u, pool.size());
     // Nothing's been loaned out yet.. should be zero.
     EXPECT_EQ(0, pool.to_json()["loans"].get<int>());
 
-    std::cerr << std::format("before 1: {}\n", pool.to_json().dump());
+    std::cerr << std::format("before 1    : {}\n", pool.to_json().dump());
 
     {
         auto res = pool.checkout();

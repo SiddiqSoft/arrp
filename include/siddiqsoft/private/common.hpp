@@ -18,7 +18,9 @@ namespace siddiqsoft::arrp
     /// @note Values selected here have no special meaning and are only guides.
     enum resource_pool_limits : uint8_t
     {
-        MinimumCapacity = 1, DefaultCapacity = 8, MaxCapacity = std::numeric_limits<uint8_t>::max()
+        MinimumCapacity = 1,
+        DefaultCapacity = 8,
+        MaxCapacity     = std::numeric_limits<uint8_t>::max()
     };
 
     /// @brief This controls the auto-grow (or adding items when the pool is starving)
