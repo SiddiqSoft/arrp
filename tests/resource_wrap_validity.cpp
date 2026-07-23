@@ -2,7 +2,7 @@
     Test cases for scoped_resource validity tracking fix
 
     These tests verify that the scoped_resource class properly tracks
-    resource validity and prevents returning uninitialized or invalid
+    resource validity and prevents returning uninitialized or Abandoned
     resources to the pool.
 
     NOTE: Tests using invalidate() are only compiled in DEBUG builds
@@ -96,7 +96,7 @@ TEST(scoped_resource_validity, destructor_returns_valid_resource)
 #if defined(DEBUG)
 
 /**
- * @brief Test that invalid resources are not returned to the pool
+ * @brief Test that Abandoned resources are not returned to the pool
  *
  * This test verifies the fix for the critical issue where uninitialized
  * resources could be returned to the pool, corrupting it.
@@ -172,10 +172,10 @@ TEST(scoped_resource_validity, multiple_invalidations)
 /**
  * @brief Test concurrent access with invalidation
  *
- * This test verifies that concurrent access with mixed valid/invalid
+ * This test verifies that concurrent access with mixed valid/Abandoned
  * resources works correctly. The key insight is:
  * - Valid resources are returned to the pool
- * - Invalid resources are NOT returned to the pool
+ * - Abandoned resources are NOT returned to the pool
  * - Final pool size = initial size - invalidated count
  *
  * NOTE: This test is only available in DEBUG builds
@@ -262,7 +262,7 @@ TEST(scoped_resource_validity, destructor_skips_invalid_resource)
 }
 
 /**
- * @brief Test mixed valid and invalid resources in concurrent scenario
+ * @brief Test mixed valid and Abandoned resources in concurrent scenario
  *
  * NOTE: This test is only available in DEBUG builds
  */
@@ -285,7 +285,7 @@ TEST(scoped_resource_validity, mixed_valid_invalid_concurrent)
                 try {
                     auto wrap = pool.checkout();
 
-                    // Alternate between valid and invalid
+                    // Alternate between valid and Abandoned
                     if (i % 2 == 0) {
                         valid_count++;
                         // Let it return normally

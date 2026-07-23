@@ -33,7 +33,7 @@ namespace siddiqsoft::arrp
     enum class release_reason : uint8_t
     {
         Valid,
-        Invalid,  // Return invoked but the item is invalid/abandoned
+        Abandoned,  // Return invoked but the item is invalid/abandoned
         AutoGrow, // new item added via the callback
         Seed,     // new item added by the client
         Return,   // Normal return
@@ -42,7 +42,7 @@ namespace siddiqsoft::arrp
 
     constexpr bool is_release_reason_abandoned(const release_reason& rr)
     {
-        return rr == release_reason::Invalid;
+        return rr == release_reason::Abandoned;
     }
 
 

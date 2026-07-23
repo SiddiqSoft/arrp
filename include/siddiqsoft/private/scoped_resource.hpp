@@ -167,7 +167,7 @@ namespace siddiqsoft::arrp
             // Only return resource if it's valid and callback exists
             // This prevents returning uninitialized or moved-out resources to the pool
             if (m_putback_callback) {
-                m_putback_callback(std::move(m_rsrc), m_is_valid?siddiqsoft::arrp::release_reason::Valid : siddiqsoft::arrp::release_reason::Invalid);
+                m_putback_callback(std::move(m_rsrc), m_is_valid?siddiqsoft::arrp::release_reason::Valid : siddiqsoft::arrp::release_reason::Abandoned);
                 m_is_valid         = false;
                 m_putback_callback = {};
             }

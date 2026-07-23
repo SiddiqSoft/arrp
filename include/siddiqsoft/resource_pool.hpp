@@ -305,7 +305,7 @@ namespace siddiqsoft::arrp
                 m_json["size"]       = m_pool.size();
                 m_json["deficit"]    = m_capacity - m_pool.size();
                 m_json["load"]       = m_pool.size() + m_resources_checkedout.load();
-                m_json["invalid"]    = m_invalidated_resources.load();
+                m_json["abandoned"]    = m_invalidated_resources.load();
                 m_json["loan"] = m_resources_checkedout.load();
                 m_json["checkin"]    = m_counter_checkin.load();
                 m_json["checkout"]   = m_counter_checkout.load();
@@ -320,7 +320,7 @@ namespace siddiqsoft::arrp
                                {"size", 0},
                                {"load", 0},
                                {"deficit", 0},
-                               {"invalid", 0},
+                               {"abandoned", 0},
                                {"loan", 0},
                                {"checkin", 0},
                                {"checkout", 0}};

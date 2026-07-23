@@ -940,7 +940,7 @@ TEST(scoped_resource, move_assignment)
     res1 = std::move(res2);
     EXPECT_EQ("res2", *res1);
 
-    // res2 is now invalid, only res1 will return
+    // res2 is now Abandoned, only res1 will return
     // So we should have 1 resource returned
 }
 

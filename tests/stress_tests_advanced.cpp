@@ -751,7 +751,7 @@ TEST(stress_capacity, capacity_enforcement_concurrent)
 
     std::cerr << std::format("Post test: {}\n", pool.to_json().dump());
 
-    EXPECT_EQ(CAPACITY, pool.size() + pool.to_json()["invalid"].get<int>());
+    EXPECT_EQ(CAPACITY, pool.size() + pool.to_json()["abandoned"].get<int>());
     EXPECT_GT(successes.load(), 0);
     EXPECT_GT(failures.load(), 0);
 }
@@ -1172,7 +1172,7 @@ TEST(stress_invalidation, invalidation_counter)
     }
 
     auto initial_state = pool.to_json();
-    EXPECT_EQ(0, initial_state["invalid"].get<int>());
+    EXPECT_EQ(0, initial_state["abandoned"].get<int>());
 
     // Invalidate some resources
     for (int i = 0; i < 5; ++i) {
@@ -1184,7 +1184,7 @@ TEST(stress_invalidation, invalidation_counter)
 
     std::cerr << std::format("final_state: {}\n", final_state.dump());
 
-    EXPECT_EQ(5, final_state["invalid"].get<int>());
+    EXPECT_EQ(5, final_state["abandoned"].get<int>());
 }
 
 /// @brief Test invalidation with factory callback
@@ -1212,7 +1212,7 @@ TEST(stress_invalidation, invalidation_with_factory)
     std::cerr << std::format("post test: {}\n", stats.dump());
 
     EXPECT_EQ(1, created.load());
-    EXPECT_EQ(1, stats["invalid"].get<int>());
+    EXPECT_EQ(1, stats["abandoned"].get<int>());
 }
 
 /// @brief Test mixed invalidation and normal returns
@@ -1263,13 +1263,13 @@ TEST(stress_invalidation, mixed_invalidation_returns)
     std::cerr << std::format("post test:  {}\n", stats.dump());
 
     EXPECT_EQ(POOL_SIZE, created.load());
-    EXPECT_GT(stats["invalid"].get<int>(), 1);
+    EXPECT_GT(stats["abandoned"].get<int>(), 1);
 
 
     EXPECT_GT(invalidated.load(), 0);
     EXPECT_GT(returned.load(), 0);
     auto final_state = pool.to_json();
-    EXPECT_EQ(invalidated.load(), final_state["invalid"].get<int>());
+    EXPECT_EQ(invalidated.load(), final_state["abandoned"].get<int>());
 }
 
 /// @brief Test invalidation under stress with rapid cycling
@@ -1330,7 +1330,7 @@ TEST(stress_invalidation, rapid_invalidation_cycling)
     EXPECT_GT(invalidated.load(), 0);
     EXPECT_GT(returned.load(), 0);
     auto final_state = pool.to_json();
-    EXPECT_EQ(invalidated.load(), final_state["invalid"].get<int>());
+    EXPECT_EQ(invalidated.load(), final_state["abandoned"].get<int>());
 }
 
 
