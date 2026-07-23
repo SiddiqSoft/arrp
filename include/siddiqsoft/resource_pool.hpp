@@ -141,7 +141,8 @@ namespace siddiqsoft::arrp
                 m_callback_to_add_new_raw_resource_to_pool = [this](resource_pool& pool) -> SRT {
                     // Create a SRT element and wire up the auto-return callback to return
                     // the resource back to this object.
-                    return SRT {T {}, [this](T&& src, siddiqsoft::arrp::release_reason rr) { // this callback puts the resource back..
+                    return SRT {T {},
+                                [this](T&& src, siddiqsoft::arrp::release_reason rr) { // this callback puts the resource back..
                                     this->m_counter_auto_returned++;
                                     this->checkin(std::forward<T&&>(src), rr);
                                 }};
@@ -249,7 +250,9 @@ namespace siddiqsoft::arrp
             } // scope end
             catch (std::exception& ex) {
                 checkout_guard();
+#if defined(DEBUG_TRACE)
                 std::cerr << std::format("Error in checkout: {}\n", ex.what());
+#endif
                 throw;
             }
             catch (...) {
@@ -257,7 +260,7 @@ namespace siddiqsoft::arrp
                 std::cerr << std::format("UNKNOWN Error in checkout\n");
                 throw;
             }
-            
+
 #if defined(DEBUG)
             auto msg = std::format("Starving: {}", this->to_json().dump());
             throw std::runtime_error(msg);
@@ -279,7 +282,12 @@ namespace siddiqsoft::arrp
             } // lock scope end
             else if (siddiqsoft::arrp::is_release_reason_abandoned(reason)) {
                 // Resource was invalidated; do not add back to the pool.
-                m_invalidated_resources++;
+                // We need to decrement the checkout count under lock to ensure thread safety
+                {
+                    std::scoped_lock l(m_pool_lock);
+                    m_invalidated_resources++;
+                    if (m_resources_checkedout > 0) m_resources_checkedout--;
+                }
 
 #if defined(DEBUG)
                 std::cerr << std::format("Resource was invalidated! {}\n", this->to_json().dump());
@@ -294,39 +302,26 @@ namespace siddiqsoft::arrp
                 std::scoped_lock l(m_pool_lock);
 
                 // Update the poolsize..
-                m_json["size"] = m_pool.size();
-
-                for (const auto& item : m_pool) {
-                    if constexpr (std::is_same_v<std::decay<T>, std::string> || std::is_arithmetic_v<T>) {
-                        m_json["items"] += std::format("{}", item);
-                    }
-                    else if constexpr (std::is_pointer_v<T>) {
-                        m_json["items"].push_back(std::format("{:p}", static_cast<const void*>(item)));
-                    }
-
-                    // Items are stored in the pool but not serialized individually
-                    // to avoid overhead and potential issues with non-serializable types
-                    // m_json["items"] += std::format("{}", item);
-                }
-
-                m_json["load"]        = m_pool.size() + m_resources_checkedout.load();
-                m_json["invalidated"] = m_invalidated_resources.load();
-                m_json["checkedout"]  = m_resources_checkedout.load();
-                m_json["checkin"]     = m_counter_checkin.load();
-                m_json["checkout"]    = m_counter_checkout.load();
+                m_json["size"]       = m_pool.size();
+                m_json["deficit"]    = m_capacity - m_pool.size();
+                m_json["load"]       = m_pool.size() + m_resources_checkedout.load();
+                m_json["invalid"]    = m_invalidated_resources.load();
+                m_json["loan"] = m_resources_checkedout.load();
+                m_json["checkin"]    = m_counter_checkin.load();
+                m_json["checkout"]   = m_counter_checkout.load();
             }
 
             return m_json;
         }
 
     private:
-        nlohmann::json m_json {{"_typver", "siddiqsoft.arrp.resource_pool/0.0.0"},
+        nlohmann::json m_json {{"_typver", "resource_pool/0.0.0"},
                                {"capacity", m_capacity},
                                {"size", 0},
-                               {"items", nlohmann::json::array()},
                                {"load", 0},
-                               {"invalidated", 0},
-                               {"checkedout", 0},
+                               {"deficit", 0},
+                               {"invalid", 0},
+                               {"loan", 0},
                                {"checkin", 0},
                                {"checkout", 0}};
 #endif

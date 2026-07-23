@@ -771,7 +771,7 @@ TEST(resource_pool, json_serialization_counters)
     EXPECT_TRUE(json.contains("capacity"));
     EXPECT_TRUE(json.contains("size"));
     EXPECT_TRUE(json.contains("load"));
-    EXPECT_TRUE(json.contains("checkedout"));
+    EXPECT_TRUE(json.contains("loan"));
     EXPECT_TRUE(json.contains("checkout"));
     EXPECT_TRUE(json.contains("checkin"));
 

@@ -626,7 +626,7 @@ TEST(custom_scoped_resource, json_serialization)
         EXPECT_TRUE(json.contains("capacity"));
         EXPECT_TRUE(json.contains("size"));
         EXPECT_TRUE(json.contains("load"));
-        EXPECT_TRUE(json.contains("checkedout"));
+        EXPECT_TRUE(json.contains("loan"));
 
 
         // Verify counters

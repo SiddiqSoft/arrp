@@ -751,7 +751,7 @@ TEST(stress_capacity, capacity_enforcement_concurrent)
 
     std::cerr << std::format("Post test: {}\n", pool.to_json().dump());
 
-    EXPECT_EQ(CAPACITY, pool.size() + pool.to_json()["invalidated"].get<int>());
+    EXPECT_EQ(CAPACITY, pool.size() + pool.to_json()["invalid"].get<int>());
     EXPECT_GT(successes.load(), 0);
     EXPECT_GT(failures.load(), 0);
 }
@@ -1172,7 +1172,7 @@ TEST(stress_invalidation, invalidation_counter)
     }
 
     auto initial_state = pool.to_json();
-    EXPECT_EQ(0, initial_state["invalidated"].get<int>());
+    EXPECT_EQ(0, initial_state["invalid"].get<int>());
 
     // Invalidate some resources
     for (int i = 0; i < 5; ++i) {
@@ -1184,7 +1184,7 @@ TEST(stress_invalidation, invalidation_counter)
 
     std::cerr << std::format("final_state: {}\n", final_state.dump());
 
-    EXPECT_EQ(5, final_state["invalidated"].get<int>());
+    EXPECT_EQ(5, final_state["invalid"].get<int>());
 }
 
 /// @brief Test invalidation with factory callback
@@ -1212,7 +1212,7 @@ TEST(stress_invalidation, invalidation_with_factory)
     std::cerr << std::format("post test: {}\n", stats.dump());
 
     EXPECT_EQ(1, created.load());
-    EXPECT_EQ(1, stats["invalidated"].get<int>());
+    EXPECT_EQ(1, stats["invalid"].get<int>());
 }
 
 /// @brief Test mixed invalidation and normal returns
@@ -1255,20 +1255,20 @@ TEST(stress_invalidation, mixed_invalidation_returns)
     std::cerr << std::format("post test:  {}\n", stats.dump());
 
     EXPECT_EQ(POOL_SIZE, created.load());
-    EXPECT_EQ(1, stats["invalidated"].get<int>());
+    EXPECT_EQ(1, stats["invalid"].get<int>());
 
 
     EXPECT_GT(invalidated.load(), 0);
     EXPECT_GT(returned.load(), 0);
     auto final_state = pool.to_json();
-    EXPECT_EQ(invalidated.load(), final_state["invalidated"].get<int>());
+    EXPECT_EQ(invalidated.load(), final_state["invalid"].get<int>());
 }
 
 /// @brief Test invalidation under stress with rapid cycling
 /// Validates invalidation behavior under high-frequency operations
 TEST(stress_invalidation, rapid_invalidation_cycling)
 {
-    constexpr int                                POOL_SIZE    = 4;
+    constexpr int                                POOL_SIZE    = siddiqsoft::arrp::resource_pool_limits::DefaultCapacity;
     constexpr int                                THREAD_COUNT = 4;
     constexpr int                                ITERATIONS   = 500;
 
@@ -1277,8 +1277,11 @@ TEST(stress_invalidation, rapid_invalidation_cycling)
         pool.checkin(std::format("resource-{}", i));
     }
 
+    std::cerr << std::format("  after seeding: {}\n", pool.to_json().dump());
+
     std::atomic_int           invalidated {0};
     std::atomic_int           returned {0};
+    std::atomic_int           exceptions {0};
     std::barrier              start_barrier {THREAD_COUNT};
 
     std::vector<std::jthread> threads;
@@ -1289,7 +1292,7 @@ TEST(stress_invalidation, rapid_invalidation_cycling)
                 try {
                     auto res = pool.checkout();
                     // Alternate between invalidation and return
-                    if (i % 3 == 0) {
+                    if (i % 2 == 0) {
                         res.invalidate();
                         invalidated++;
                     }
@@ -1299,17 +1302,27 @@ TEST(stress_invalidation, rapid_invalidation_cycling)
                 }
                 catch (const std::runtime_error&) {
                     // Expected under contention
+                    exceptions++;
                 }
             }
         });
     }
 
+    std::cerr << std::format("    after threads..: {}\n", pool.to_json().dump());
+
+    //std::this_thread::sleep_for(std::chrono::seconds(1));
+
+    //std::cerr << std::format("  s after threads..: {}\n", pool.to_json().dump());
+
     threads.clear();
 
+    std::cerr << std::format("    after cleanup..: {}\n", pool.to_json().dump());
+
+    EXPECT_GT(exceptions.load(), 0);
     EXPECT_GT(invalidated.load(), 0);
     EXPECT_GT(returned.load(), 0);
     auto final_state = pool.to_json();
-    EXPECT_EQ(invalidated.load(), final_state["invalidated"].get<int>());
+    EXPECT_EQ(invalidated.load(), final_state["invalid"].get<int>());
 }
 
 
