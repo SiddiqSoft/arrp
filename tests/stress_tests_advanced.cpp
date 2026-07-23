@@ -357,7 +357,8 @@ TEST(stress_memory, large_object_pool)
 /// Validates memory management under variable load
 TEST(stress_memory, variable_size_objects)
 {
-    siddiqsoft::arrp::resource_pool<std::vector<int>> pool {siddiqsoft::arrp::auto_add_policy::AutoGrow};
+    siddiqsoft::arrp::resource_pool<std::vector<int>> pool {siddiqsoft::arrp::resource_pool_limits::DefaultCapacity,
+                                                            siddiqsoft::arrp::auto_add_policy::AutoGrow};
 
     for (int cycle = 0; cycle < 100; ++cycle) {
         {
@@ -680,7 +681,7 @@ TEST(stress_chaos, random_clear_operations)
 TEST(stress_capacity, maximum_capacity)
 {
     constexpr uint8_t MAX_CAPACITY = siddiqsoft::arrp::resource_pool_limits::MaxCapacity;
-    siddiqsoft::arrp::resource_pool<std::string, siddiqsoft::arrp::scoped_resource<std::string>, MAX_CAPACITY> pool {};
+    siddiqsoft::arrp::resource_pool<std::string, siddiqsoft::arrp::scoped_resource<std::string>> pool {MAX_CAPACITY};
 
     // Fill to capacity
     for (int i = 0; i < MAX_CAPACITY; ++i) {
@@ -709,8 +710,8 @@ TEST(stress_capacity, maximum_capacity)
 /// Validates that capacity limits are respected
 TEST(stress_capacity, capacity_enforcement_concurrent)
 {
-    constexpr uint8_t                                                                                      CAPACITY = 8;
-    siddiqsoft::arrp::resource_pool<std::string, siddiqsoft::arrp::scoped_resource<std::string>, CAPACITY> pool {};
+    constexpr uint8_t                                                                            CAPACITY = 8;
+    siddiqsoft::arrp::resource_pool<std::string, siddiqsoft::arrp::scoped_resource<std::string>> pool {CAPACITY};
 
     for (int i = 0; i < CAPACITY; ++i) {
         pool.checkin(std::format("resource-{}", i));
@@ -1060,9 +1061,12 @@ TEST(stress_invalidation, basic_invalidation)
     EXPECT_EQ(1u, pool.size());
 }
 
-TEST(stress_invalidation, basic_invalidation_2)
+TEST(stress_invalidation, basic_invalidation_loan_check)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool {};
+
+    std::cerr << std::format("just created: {}\n", pool.to_json().dump());
+
     pool.checkin(std::string("resource-1"));
     pool.checkin(std::string("resource-2"));
 
@@ -1200,12 +1204,14 @@ TEST(stress_invalidation, invalidation_with_factory)
     std::atomic_int                              created {0};
     std::atomic_int                              invalidated_count {0};
 
-    siddiqsoft::arrp::resource_pool<std::string> pool {[&](auto& p) -> siddiqsoft::arrp::scoped_resource<std::string> {
-        created++;
-        return siddiqsoft::arrp::scoped_resource<std::string>(
-                std::format("created-{}", created.load()),
-                [&p](std::string&& res, siddiqsoft::arrp::release_reason rr) { p.checkin(std::move(res), rr); });
-    }};
+    siddiqsoft::arrp::resource_pool<std::string> pool {
+            siddiqsoft::arrp::resource_pool_limits::DefaultCapacity,
+            [&](auto& p) -> siddiqsoft::arrp::scoped_resource<std::string> {
+                created++;
+                return siddiqsoft::arrp::scoped_resource<std::string>(
+                        std::format("created-{}", created.load()),
+                        [&p](std::string&& res, siddiqsoft::arrp::release_reason rr) { p.checkin(std::move(res), rr); });
+            }};
 
     std::cerr << std::format("post test: {}\n", pool.to_json().dump());
 

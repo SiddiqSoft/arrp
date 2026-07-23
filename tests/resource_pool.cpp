@@ -211,6 +211,7 @@ TEST(resource_pool, checkout_empty_throws)
 {
     // Custom allocator that does not allocate and rather throws..
     siddiqsoft::arrp::resource_pool<std::string> rp(
+            siddiqsoft::arrp::resource_pool_limits::DefaultCapacity,
             [](siddiqsoft::arrp::resource_pool<std::string>& pool) -> siddiqsoft::arrp::scoped_resource<std::string> {
                 throw std::runtime_error("Deliberate throw");
             });
@@ -225,6 +226,7 @@ TEST(resource_pool, clear)
 {
     // Custom allocator that does not allocate and rather throws..
     siddiqsoft::arrp::resource_pool<std::string> rp(
+            siddiqsoft::arrp::resource_pool_limits::DefaultCapacity,
             [](siddiqsoft::arrp::resource_pool<std::string>& pool) -> siddiqsoft::arrp::scoped_resource<std::string> {
                 throw std::runtime_error("Deliberate throw");
             });
@@ -362,6 +364,7 @@ TEST(resource_pool, starvation_under_contention)
 
     // Custom allocator that does not allocate and rather throws..
     siddiqsoft::arrp::resource_pool<std::string> rp(
+            siddiqsoft::arrp::resource_pool_limits::DefaultCapacity,
             [](siddiqsoft::arrp::resource_pool<std::string>& pool) -> siddiqsoft::arrp::scoped_resource<std::string> {
                 throw std::runtime_error("Deliberate throw");
             });
@@ -459,6 +462,7 @@ TEST(resource_pool, checkout_after_drain_throws)
 {
     // Custom allocator that does not allocate and rather throws..
     siddiqsoft::arrp::resource_pool<std::string> rp(
+            siddiqsoft::arrp::resource_pool_limits::DefaultCapacity,
             [](siddiqsoft::arrp::resource_pool<std::string>& pool) -> siddiqsoft::arrp::scoped_resource<std::string> {
                 throw std::runtime_error("Deliberate throw");
             });
@@ -774,7 +778,6 @@ TEST(resource_pool, json_serialization_counters)
     EXPECT_TRUE(json.contains("loans"));
     EXPECT_TRUE(json.contains("out"));
     EXPECT_TRUE(json.contains("in"));
-
 }
 
 /// @brief Extreme stress test: very high concurrency
@@ -822,6 +825,7 @@ TEST(resource_pool, custom_factory_callback)
     std::atomic_int                              creation_count {0};
 
     siddiqsoft::arrp::resource_pool<std::string> pool {
+            siddiqsoft::arrp::resource_pool_limits::DefaultCapacity,
             [&creation_count](auto& p) -> siddiqsoft::arrp::scoped_resource<std::string> {
                 creation_count++;
                 return siddiqsoft::arrp::scoped_resource<std::string>(
@@ -845,7 +849,7 @@ TEST(resource_pool, custom_factory_callback)
 /// @brief Test capacity limits
 TEST(resource_pool, capacity_limits)
 {
-    siddiqsoft::arrp::resource_pool<std::string, siddiqsoft::arrp::scoped_resource<std::string>, 4> pool {};
+    siddiqsoft::arrp::resource_pool<std::string, siddiqsoft::arrp::scoped_resource<std::string>> pool {4};
 
     // Add resources up to capacity
     pool.checkin(std::string("1"));
@@ -1100,6 +1104,7 @@ TEST(resource_pool_adversarial, extreme_contention_minimal_pool)
 
     // Custom allocator that does not allocate and rather throws..
     siddiqsoft::arrp::resource_pool<std::string> pool(
+            siddiqsoft::arrp::resource_pool_limits::DefaultCapacity,
             [](siddiqsoft::arrp::resource_pool<std::string>& pool) -> siddiqsoft::arrp::scoped_resource<std::string> {
                 throw std::runtime_error("Deliberate throw");
             });
@@ -1273,21 +1278,23 @@ TEST(resource_pool_adversarial, factory_callback_exceptions)
     std::atomic_int                              factory_exceptions {0};
     std::barrier                                 start_barrier {4};
 
-    siddiqsoft::arrp::resource_pool<std::string> pool {[&](auto& p) -> siddiqsoft::arrp::scoped_resource<std::string> {
-        factory_calls++;
-        if (factory_calls.load() % 2 == 0) {
-            factory_exceptions++;
-            throw std::runtime_error(
-                    std::format("Factory exception calls:{}  exceptions:{}", factory_calls.load(), factory_exceptions.load()));
-        }
-        return siddiqsoft::arrp::scoped_resource<std::string>(
-                std::format("created-{}", factory_calls.load()),
-                [&p](std::string&& res, siddiqsoft::arrp::release_reason rr) { p.checkin(std::move(res), rr); });
-    }};
+    siddiqsoft::arrp::resource_pool<std::string> pool {
+            siddiqsoft::arrp::resource_pool_limits::DefaultCapacity,
+            [&](auto& p) -> siddiqsoft::arrp::scoped_resource<std::string> {
+                factory_calls++;
+                if (factory_calls.load() % 2 == 0) {
+                    factory_exceptions++;
+                    throw std::runtime_error(std::format(
+                            "Factory exception calls:{}  exceptions:{}", factory_calls.load(), factory_exceptions.load()));
+                }
+                return siddiqsoft::arrp::scoped_resource<std::string>(
+                        std::format("created-{}", factory_calls.load()),
+                        [&p](std::string&& res, siddiqsoft::arrp::release_reason rr) { p.checkin(std::move(res), rr); });
+            }};
 
-    std::atomic_int                              successes {0};
-    std::atomic_int                              failures {0};
-    std::vector<std::jthread>                    workers;
+    std::atomic_int           successes {0};
+    std::atomic_int           failures {0};
+    std::vector<std::jthread> workers;
     for (int t = 0; t < 4; t++) {
         workers.emplace_back([&]() {
             start_barrier.arrive_and_wait();
@@ -1393,7 +1400,8 @@ TEST(resource_pool, concurrent_clear_with_operations_FIXED)
 /// DEADLOCK FIX: Added timeout mechanism and reduced contention
 TEST(resource_pool_adversarial, concurrent_clear_rapid_ops_FIXED)
 {
-    siddiqsoft::arrp::resource_pool<std::string> pool {siddiqsoft::arrp::auto_add_policy::AutoGrow};
+    siddiqsoft::arrp::resource_pool<std::string> pool {siddiqsoft::arrp::resource_pool_limits::DefaultCapacity,
+                                                       siddiqsoft::arrp::auto_add_policy::AutoGrow};
     for (int i = 0; i < 20; ++i) {
         pool.checkin(std::format("resource-{}", i));
     }

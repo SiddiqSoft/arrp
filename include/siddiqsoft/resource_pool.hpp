@@ -54,14 +54,13 @@
 
 namespace siddiqsoft::arrp
 {
-    template <typename T, typename SRT = scoped_resource<T>, uint8_t InitCapacity = resource_pool_limits::DefaultCapacity>
-        requires((InitCapacity <= resource_pool_limits::MaxCapacity)) && NonNumericMoveConstructible<T> &&
-                std::derived_from<SRT, scoped_resource<T>>
+    template <typename T, typename SRT = scoped_resource<T>>
+        requires NonNumericMoveConstructible<T> && std::derived_from<SRT, scoped_resource<T>>
     class resource_pool
     {
     private:
         /// @brief Maximum number of resources that can be in the pool
-        uint8_t m_capacity {InitCapacity};
+        uint8_t m_capacity {0};
 
         /// @brief Number of resources currently checked out from the pool
         /// @note This is a signed number allowing us to detect "bad" loans
@@ -115,14 +114,50 @@ namespace siddiqsoft::arrp
         /// @warning MUST NOT call any pool methods to avoid deadlock
         std::function<SRT(resource_pool&)> m_callback_to_add_new_raw_resource_to_pool {};
 
+        /// @brief Sets the capacity. This is internal and can only be called from the constructor.
+        /// The capacity of the internal queue must not be altered once set.
+        void set_capacity(uint8_t init_capacity)
+        {
+#if defined(DEBUG)
+            std::cerr << std::format("{} - capacity: {}  init_capacity:{}\n", __func__, m_capacity, init_capacity);
+#endif
+
+            // We're going to be inside construction context and we're assured
+            // of only one inovcation!
+            if (m_capacity == 0) {
+                if (init_capacity > resource_pool_limits::MaxCapacity) {
+                    m_capacity = resource_pool_limits::MaxCapacity;
+                }
+                else if (init_capacity < resource_pool_limits::MinimumCapacity) {
+                    m_capacity = resource_pool_limits::MinimumCapacity;
+                }
+                else {
+                    m_capacity = init_capacity;
+                }
+
+                // Updated the capacity in the stats..
+                m_json["capacity"] = m_capacity;
+
+#if defined(DEBUG)
+                std::cerr << std::format("{} - capacity: {}  init_capacity:{}\n", __func__, m_capacity, init_capacity);
+#endif
+            }
+        }
+
+        /// @brief Internal method does not require explicit lock
+        bool is_pool_starving() { return m_capacity > m_pool.size(); }
+        auto is_there_a_pool_deficit() { return m_pool.size() < m_capacity; }
+
     public:
         /// @brief This callback is the default and does not grow the resource; it throws a runtime_error
         static inline std::function<SRT(resource_pool&)> CallbackDoNotAutoAddResource = [](resource_pool&) -> SRT {
             throw std::runtime_error("No items in the pool; add something first.");
         };
 
-        resource_pool(std::function<SRT(resource_pool&)>&& new_resource_callback)
+        resource_pool(uint8_t init_capacity, std::function<SRT(resource_pool&)>&& new_resource_callback)
         {
+            set_capacity(init_capacity);
+
             if (new_resource_callback) {
                 m_callback_to_add_new_raw_resource_to_pool = std::move(new_resource_callback);
             }
@@ -135,8 +170,11 @@ namespace siddiqsoft::arrp
         /// @brief This is the default constructor.. the policy is to not auto-grow.
         /// The client code can as for AutoGrow in which case we will use the lambda
         /// to get the derived-class to build its custom pool.
-        resource_pool(auto_add_policy add_policy = auto_add_policy::NoGrow)
+        resource_pool(uint8_t         init_capacity = resource_pool_limits::DefaultCapacity,
+                      auto_add_policy add_policy    = auto_add_policy::NoGrow)
         {
+            set_capacity(init_capacity);
+
             if (add_policy == auto_add_policy::NoGrow) {
                 m_callback_to_add_new_raw_resource_to_pool = CallbackDoNotAutoAddResource;
             }
@@ -182,12 +220,6 @@ namespace siddiqsoft::arrp
             std::scoped_lock l(m_pool_lock);
 
             // reset all stats..
-            m_resources_checkedout.exchange(0, std::memory_order_release);
-            m_invalidated_resources.exchange(0, std::memory_order_release);
-            m_counter_checkout.exchange(0, std::memory_order_release);
-            m_counter_ondemand_adds.exchange(0, std::memory_order_release);
-            m_counter_checkin.exchange(0, std::memory_order_release);
-            m_counter_auto_returned.exchange(0, std::memory_order_release);
 
             m_pool.clear();
         }
@@ -236,7 +268,7 @@ namespace siddiqsoft::arrp
                     // Allow the compiler to use NRVO (move elision; do not use std::move here!)
                     // The pop_front() happens within this scope and within the lock!
                 }
-                else if ((m_capacity > m_pool.size() + m_resources_checkedout) && m_callback_to_add_new_raw_resource_to_pool) {
+                else if (is_pool_starving() && m_callback_to_add_new_raw_resource_to_pool) {
                     // This should not be counted as a loan.. we did not dole out from the pool..
                     // Moreover, it is not possible to determine if the new resource was properly
                     // allocated.
@@ -257,7 +289,7 @@ namespace siddiqsoft::arrp
                     // outside the lock.
                     return m_callback_to_add_new_raw_resource_to_pool(*this);
                 }
-                else if (m_capacity > m_pool.size() + m_resources_checkedout) {
+                else if (is_pool_starving()) {
                     // We're under-capacity.. but no dynamic resource provider
                     throw std::runtime_error(std::format("We're under-capacity.. but no dynamic resource provider\n"));
                 }
@@ -283,7 +315,6 @@ namespace siddiqsoft::arrp
 #endif
         }
 
-        auto is_there_a_pool_deficit() { return m_pool.size() < m_capacity; }
 
         void checkin(T&& item, release_reason reason = release_reason::Unknown)
         {
@@ -320,12 +351,12 @@ namespace siddiqsoft::arrp
 
                 // Update the poolsize..
                 m_json["size"]      = m_pool.size();
-                m_json["deficit"]   = m_capacity - m_pool.size();
+                m_json["deficit"]   = size_t(m_capacity) - m_pool.size();
                 m_json["load"]      = m_pool.size() + m_resources_checkedout.load();
                 m_json["abandoned"] = m_invalidated_resources.load();
                 m_json["loans"]     = m_loans.load();
-                m_json["in"]   = m_counter_checkin.load();
-                m_json["out"]  = m_counter_checkout.load();
+                m_json["in"]        = m_counter_checkin.load();
+                m_json["out"]       = m_counter_checkout.load();
             }
 
             return m_json;
@@ -346,10 +377,9 @@ namespace siddiqsoft::arrp
 
 #if defined(NLOHMANN_JSON_VERSION_MAJOR)
 
-    template <typename T, typename SRT = scoped_resource<T>, uint8_t InitCapacity = arrp::resource_pool_limits::DefaultCapacity>
-        requires((InitCapacity <= arrp::resource_pool_limits::MaxCapacity)) && NonNumericMoveConstructible<T> &&
-                std::derived_from<SRT, scoped_resource<T>>
-    static void to_json(nlohmann::json& dest, const siddiqsoft::arrp::resource_pool<T, SRT, InitCapacity>& src)
+    template <typename T, typename SRT = scoped_resource<T>>
+        requires NonNumericMoveConstructible<T> && std::derived_from<SRT, scoped_resource<T>>
+    static void to_json(nlohmann::json& dest, const siddiqsoft::arrp::resource_pool<T, SRT>& src)
     {
         dest = src.to_json();
     }

@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <limits>
 #ifndef ASYNCHRONY_COMMON_HPP
 #define ASYNCHRONY_COMMON_HPP
 
@@ -17,8 +18,7 @@ namespace siddiqsoft::arrp
     /// @note Values selected here have no special meaning and are only guides.
     enum resource_pool_limits : uint8_t
     {
-        DefaultCapacity = 8,
-        MaxCapacity     = 128
+        MinimumCapacity = 1, DefaultCapacity = 8, MaxCapacity = std::numeric_limits<uint8_t>::max()
     };
 
     /// @brief This controls the auto-grow (or adding items when the pool is starving)
@@ -33,11 +33,11 @@ namespace siddiqsoft::arrp
     enum class release_reason : uint8_t
     {
         Valid,
-        Abandoned,  // Return invoked but the item is invalid/abandoned
-        AutoGrow, // new item added via the callback
-        Seed,     // new item added by the client
-        Return,   // Normal return
-        Unknown,  // default is unknown
+        Abandoned, // Return invoked but the item is invalid/abandoned
+        AutoGrow,  // new item added via the callback
+        Seed,      // new item added by the client
+        Return,    // Normal return
+        Unknown,   // default is unknown
     };
 
     constexpr bool is_release_reason_abandoned(const release_reason& rr)

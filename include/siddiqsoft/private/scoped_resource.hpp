@@ -84,9 +84,8 @@ namespace siddiqsoft::arrp
     class scoped_resource
     {
         // Allow resource_pool to access protected members
-        template <typename U, typename SRT, uint8_t IC>
-            requires((IC <= resource_pool_limits::MaxCapacity)) && NonNumericMoveConstructible<U> &&
-                    std::derived_from<SRT, scoped_resource<U>>
+        template <typename U, typename SRT>
+            requires NonNumericMoveConstructible<U> && std::derived_from<SRT, scoped_resource<U>>
         friend class resource_pool;
 
     protected:
@@ -177,7 +176,8 @@ namespace siddiqsoft::arrp
             }
         }
 
-        void invalidate() { m_is_valid = false; }
+        virtual void invalidate() { m_is_valid = false; }
+        virtual bool is_valid() const { return m_is_valid; }
 
 #if defined(NLOHMANN_JSON_VERSION_MAJOR)
         nlohmann::json to_json() const

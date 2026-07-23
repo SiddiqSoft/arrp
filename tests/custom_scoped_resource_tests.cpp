@@ -58,7 +58,9 @@ public:
      * @param file The FILE* to wrap
      * @param callback Optional callback to return resource to pool
      */
-    explicit ScopedFileResource(FILE*&& file, std::function<void(FILE*&&, siddiqsoft::arrp::release_reason rr)>&& callback = {}, bool is_valid = true)
+    explicit ScopedFileResource(FILE*&&                                                             file,
+                                std::function<void(FILE*&&, siddiqsoft::arrp::release_reason rr)>&& callback = {},
+                                bool                                                                is_valid = true)
         : Base(std::forward<FILE*&&>(file), std::move(callback), is_valid)
     {
     }
@@ -161,7 +163,7 @@ public:
     /**
      * @brief Check if file is valid
      */
-    bool is_valid() const { return this->m_rsrc != nullptr; }
+    bool is_valid() const { return (this->m_rsrc != nullptr); }
 };
 
 // ============================================================================
@@ -566,18 +568,19 @@ TEST(custom_scoped_resource, custom_factory_callback)
     try {
         std::atomic_int                                            creation_count {0};
 
-        siddiqsoft::arrp::resource_pool<FILE*, ScopedFileResource> pool {[&creation_count,
-                                                                          &temp_file](auto& p) -> ScopedFileResource {
-            creation_count++;
-            FILE* file = std::fopen(temp_file.c_str(), "a+");
+        siddiqsoft::arrp::resource_pool<FILE*, ScopedFileResource> pool {
+                siddiqsoft::arrp::resource_pool_limits::DefaultCapacity,
+                [&creation_count, &temp_file](auto& p) -> ScopedFileResource {
+                    creation_count++;
+                    FILE* file = std::fopen(temp_file.c_str(), "a+");
 
-            if (file == nullptr) {
-                throw std::runtime_error("Failed to open file");
-            }
+                    if (file == nullptr) {
+                        throw std::runtime_error("Failed to open file");
+                    }
 
-            return ScopedFileResource(
-                    std::move(file), [&p](FILE*&& f, siddiqsoft::arrp::release_reason v) { p.checkin(std::move(f), v); });
-        }};
+                    return ScopedFileResource(std::move(file),
+                                              [&p](FILE*&& f, siddiqsoft::arrp::release_reason v) { p.checkin(std::move(f), v); });
+                }};
 
         // Borrow resources - should trigger factory
         {
@@ -734,7 +737,7 @@ TEST(custom_scoped_resource, capacity_limits)
     std::string temp_file = create_temp_file();
 
     try {
-        siddiqsoft::arrp::resource_pool<FILE*, ScopedFileResource, 2> pool {};
+        siddiqsoft::arrp::resource_pool<FILE*, ScopedFileResource> pool {2};
 
         pool.checkin(std::fopen(temp_file.c_str(), "w+"));
         pool.checkin(std::fopen(temp_file.c_str(), "w+"));
