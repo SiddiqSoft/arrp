@@ -69,6 +69,14 @@ namespace siddiqsoft::arrp
         /// @note Currently unused; reserved for future use
         std::atomic_uint16_t m_abandoned {0};
 
+        /// @brief Counter for resources successfully returned to the pool
+        /// @details Tracks how many times a resource was returned and added back to the pool
+        std::atomic_uint64_t m_counter_valid_returns {0};
+
+        /// @brief Counter for resources returned as invalid during this session
+        /// @details Tracks how many times a resource was returned with an abandoned/invalid reason
+        std::atomic_uint64_t m_counter_invalid_returns {0};
+
         /// @brief Counter for borrow operations from the pool
         /// @note Only counts successful borrow operations
         std::atomic_uint64_t m_counter_checkout {0};
@@ -140,7 +148,7 @@ namespace siddiqsoft::arrp
         /// @brief Internal method does not require explicit lock
         bool is_pool_starving() { return m_capacity > m_pool.size(); }
         auto is_there_a_pool_deficit() { return m_pool.size() < m_capacity; }
-        auto loan_size() { return m_capacity_poolsize.load() - m_pool.size(); }
+        auto loan_size() { return m_resources_checkedout.load(); }
 
     public:
         /// @brief This callback is the default and does not grow the resource; it throws a runtime_error
@@ -318,7 +326,7 @@ namespace siddiqsoft::arrp
                 std::scoped_lock l(m_pool_lock);
 
                 m_pool.push_back(std::move(item));
-
+                ++m_counter_valid_returns;
                 m_resources_checkedout--;
             } // lock scope end
             else if (siddiqsoft::arrp::is_release_reason_abandoned(reason)) {
@@ -327,10 +335,11 @@ namespace siddiqsoft::arrp
                 {
                     std::scoped_lock l(m_pool_lock);
                     m_abandoned++;
+                    ++m_counter_invalid_returns;
                     m_resources_checkedout--;
                 }
 
-#if defined(DEBUG)
+#if defined(DEBUG_TRACE)
                 std::cerr << std::format("Resource was invalidated! {}\n", this->to_json().dump());
 #endif
             }
@@ -351,6 +360,9 @@ namespace siddiqsoft::arrp
                 m_json["loans"]     = loan_size();
                 m_json["in"]        = m_counter_checkin.load();
                 m_json["out"]       = m_counter_checkout.load();
+                m_json["valid_returns"] = m_counter_valid_returns.load();
+                m_json["invalid_returns"] = m_counter_invalid_returns.load();
+                m_json["checked_out"] = m_resources_checkedout.load();
             }
 
             return m_json;
