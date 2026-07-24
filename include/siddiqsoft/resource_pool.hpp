@@ -392,5 +392,129 @@ namespace siddiqsoft::arrp
 #endif
 
 
+
 } // namespace siddiqsoft::arrp
 #endif
+
+/// @brief Specialization of std::formatter for resource_pool
+/// @details Provides formatted output for resource_pool instances using std::format
+/// @note Only available if nlohmann/json is included
+template <typename T, typename SRT = siddiqsoft::arrp::scoped_resource<T>>
+    requires siddiqsoft::arrp::NonNumericMoveConstructible<T> &&
+             std::derived_from<SRT, siddiqsoft::arrp::scoped_resource<T>>
+struct std::formatter<siddiqsoft::arrp::resource_pool<T, SRT>>
+{
+    /// @brief Format specification for controlling output style
+    /// Supported specs:
+    /// - 'c' (compact): Single-line compact format
+    /// - 'j' (json): Full JSON format (requires nlohmann/json)
+    /// - 'd' (detailed): Multi-line detailed format (default)
+    /// - 's' (summary): Brief summary format
+    enum class format_style
+    {
+        detailed,  ///< Multi-line detailed format (default)
+        compact,   ///< Single-line compact format
+        json,      ///< Full JSON format
+        summary    ///< Brief summary format
+    };
+
+    format_style style {format_style::detailed};
+
+    /// @brief Parse format specification
+    /// @param ctx Format context
+    /// @return Iterator to end of format spec
+    template <typename ParseContext>
+    constexpr auto parse(ParseContext& ctx)
+    {
+        auto it = ctx.begin();
+        if (it != ctx.end()) {
+            switch (*it) {
+                case 'c': style = format_style::compact; ++it; break;
+                case 'j': style = format_style::json; ++it; break;
+                case 'd': style = format_style::detailed; ++it; break;
+                case 's': style = format_style::summary; ++it; break;
+                default: break;
+            }
+        }
+        if (it != ctx.end() && *it != '}') {
+            throw std::format_error("Invalid format specification for resource_pool");
+        }
+        return it;
+    }
+
+    /// @brief Format the resource_pool
+    /// @param pool The resource_pool to format
+    /// @param ctx Format context
+    /// @return Iterator to end of formatted output
+    template <typename FormatContext>
+    auto format(const siddiqsoft::arrp::resource_pool<T, SRT>& pool, FormatContext& ctx) const
+    {
+        switch (style) {
+            case format_style::compact:
+                return format_compact(pool, ctx);
+            case format_style::json:
+                return format_json(pool, ctx);
+            case format_style::summary:
+                return format_summary(pool, ctx);
+            case format_style::detailed:
+            default:
+                return format_detailed(pool, ctx);
+        }
+    }
+
+private:
+    template <typename FormatContext>
+    auto format_compact(const siddiqsoft::arrp::resource_pool<T, SRT>& pool, FormatContext& ctx) const
+    {
+        return std::format_to(ctx.out(), "pool[size:{}, capacity:{}, loans:{}, in:{}, out:{}]",
+                              pool.size(), pool.m_capacity, pool.m_resources_checkedout.load(),
+                              pool.m_counter_checkin.load(), pool.m_counter_checkout.load());
+    }
+
+    template <typename FormatContext>
+    auto format_summary(const siddiqsoft::arrp::resource_pool<T, SRT>& pool, FormatContext& ctx) const
+    {
+        return std::format_to(ctx.out(), "ResourcePool(size={}, capacity={}, utilization={:.1f}%)",
+                              pool.size(), pool.m_capacity,
+                              pool.m_capacity > 0 ? (100.0 * pool.m_resources_checkedout.load() / pool.m_capacity) : 0.0);
+    }
+
+    template <typename FormatContext>
+    auto format_detailed(const siddiqsoft::arrp::resource_pool<T, SRT>& pool, FormatContext& ctx) const
+    {
+        return std::format_to(ctx.out(),
+                              "ResourcePool {{\n"
+                              "  capacity: {},\n"
+                              "  size: {},\n"
+                              "  deficit: {},\n"
+                              "  loans: {},\n"
+                              "  abandoned: {},\n"
+                              "  checkins: {},\n"
+                              "  checkouts: {},\n"
+                              "  valid_returns: {},\n"
+                              "  invalid_returns: {}\n"
+                              "}}",
+                              pool.m_capacity, pool.size(),
+                              size_t(pool.m_capacity) - pool.size(),
+                              pool.m_resources_checkedout.load(),
+                              pool.m_abandoned.load(),
+                              pool.m_counter_checkin.load(),
+                              pool.m_counter_checkout.load(),
+                              pool.m_counter_valid_returns.load(),
+                              pool.m_counter_invalid_returns.load());
+    }
+
+#if defined(NLOHMANN_JSON_VERSION_MAJOR)
+    template <typename FormatContext>
+    auto format_json(const siddiqsoft::arrp::resource_pool<T, SRT>& pool, FormatContext& ctx) const
+    {
+        return std::format_to(ctx.out(), "{}", pool.to_json().dump());
+    }
+#else
+    template <typename FormatContext>
+    auto format_json(const siddiqsoft::arrp::resource_pool<T, SRT>& pool, FormatContext& ctx) const
+    {
+        return std::format_to(ctx.out(), "{{ json format requires nlohmann/json library }}");
+    }
+#endif
+};
