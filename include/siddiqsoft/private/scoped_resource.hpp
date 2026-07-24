@@ -76,13 +76,27 @@ namespace siddiqsoft::arrp
      * @endcode
      */
     template <typename T>
-    concept NonNumericMoveConstructible = std::move_constructible<T> && !std::is_arithmetic_v<T>;
+    concept NonNumericMoveConstructible =
+            std::is_move_constructible_v<T> && std::is_move_assignable_v<T> && !std::is_arithmetic_v<T>;
+
+    template <typename F, typename... Args>
+    concept NothrowInvocable = requires(F&& f, Args&&... args) {
+        // Requires that the statement inside evaluates to true at compile time
+        requires noexcept(f(std::forward<Args>(args)...));
+    };
 
 
     template <typename T>
         requires NonNumericMoveConstructible<T>
     class scoped_resource
     {
+        /// @brief This callback allows the implementor that is asking for the scoped_resource the ability to
+        ///        recall it back or perform any additional tasks.
+        ///        The callback must not throw and must not invoke any other method in the pool that requires
+        ///        lock manipulation.
+        using PutbackCallbackFunc = std::function<void(T&&, siddiqsoft::arrp::release_reason rr)>;
+
+
         // Allow resource_pool to access protected members
         template <typename U, typename SRT>
             requires NonNumericMoveConstructible<U> && std::derived_from<SRT, scoped_resource<U>>
@@ -96,7 +110,7 @@ namespace siddiqsoft::arrp
         /// @brief Callback function to return the resource to the pool
         /// @details Called by destructor when resource is valid. Typically returns the
         ///          resource to the resource_pool for reuse.
-        std::function<void(T&&, siddiqsoft::arrp::release_reason)> m_putback_callback {};
+        PutbackCallbackFunc m_putback_callback {};
 
         /// @brief Tracks whether the resource is valid and should be returned to pool
         /// @details Prevents returning uninitialized or moved-out resources
@@ -107,12 +121,10 @@ namespace siddiqsoft::arrp
     public:
         scoped_resource() = delete;
 
-        explicit scoped_resource(T&&                                                             src,
-                                 std::function<void(T&&, siddiqsoft::arrp::release_reason rr)>&& f        = {},
-                                 bool                                                            is_valid = true)
+        explicit scoped_resource(PutbackCallbackFunc&& f, T&& src)
             : m_rsrc(std::move(src))
             , m_putback_callback(std::move(f))
-            , m_is_valid(is_valid)
+            , m_is_valid(true)
         {
         }
 
@@ -126,6 +138,14 @@ namespace siddiqsoft::arrp
             // Reset to ensure that the source does not double return!
             src.m_putback_callback = {};
             src.m_is_valid         = false;
+        }
+
+        template <typename... Args>
+        scoped_resource(PutbackCallbackFunc&& f, Args&&... args)
+            : m_rsrc(T(std::forward<Args>(args)...))
+            , m_putback_callback(std::move(f))
+            , m_is_valid(true)
+        {
         }
 
         scoped_resource& operator=(scoped_resource&& src) noexcept
