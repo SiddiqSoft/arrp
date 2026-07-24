@@ -50,6 +50,12 @@
 
 namespace siddiqsoft::arrp
 {
+
+    template <typename T>
+    concept HasStdToStringImpl = requires(T t) {
+        { std::to_string(t) } -> std::same_as<std::string>;
+    };
+
     /**
      * @concept NonNumericMoveConstructible
      * @brief Concept for types that are move-constructible but not arithmetic
@@ -79,6 +85,7 @@ namespace siddiqsoft::arrp
     concept NonNumericMoveConstructible =
             std::is_move_constructible_v<T> && std::is_move_assignable_v<T> && !std::is_arithmetic_v<T>;
 
+
     template <typename F, typename... Args>
     concept NothrowInvocable = requires(F&& f, Args&&... args) {
         // Requires that the statement inside evaluates to true at compile time
@@ -95,7 +102,6 @@ namespace siddiqsoft::arrp
         ///        The callback must not throw and must not invoke any other method in the pool that requires
         ///        lock manipulation.
         using PutbackCallbackFunc = std::function<void(T&&, siddiqsoft::arrp::release_reason rr)>;
-
 
         // Allow resource_pool to access protected members
         template <typename U, typename SRT>
@@ -142,7 +148,7 @@ namespace siddiqsoft::arrp
 
         template <typename... Args>
         scoped_resource(PutbackCallbackFunc&& f, Args&&... args)
-            : m_rsrc(T(std::forward<Args>(args)...))
+            : m_rsrc(std::move(T(std::forward<Args>(args)...)))
             , m_putback_callback(std::move(f))
             , m_is_valid(true)
         {
@@ -188,9 +194,14 @@ namespace siddiqsoft::arrp
             // Only return resource if it's valid and callback exists
             // This prevents returning uninitialized or moved-out resources to the pool
             if (m_putback_callback) {
-                m_putback_callback(std::move(m_rsrc),
-                                   m_is_valid ? siddiqsoft::arrp::release_reason::Valid
-                                              : siddiqsoft::arrp::release_reason::Abandoned);
+                try {
+                    m_putback_callback(std::move(m_rsrc),
+                                       m_is_valid ? siddiqsoft::arrp::release_reason::Valid
+                                                  : siddiqsoft::arrp::release_reason::Abandoned);
+                }
+                catch (...) {
+                    std::cerr << "scoped_resource destructor: exception while returning resource to pool!\n";
+                }
                 m_is_valid         = false;
                 m_putback_callback = {};
             }
@@ -202,10 +213,34 @@ namespace siddiqsoft::arrp
 #if defined(NLOHMANN_JSON_VERSION_MAJOR)
         nlohmann::json to_json() const
         {
-            return {{"_typver", "siddiqsoft.arrp.scoped_resource/0.0.0"}, {"capacity", m_is_valid}, {"value", m_rsrc}};
+            if constexpr (std::is_same_v<T, std::string> || std::is_arithmetic_v<T>)
+                return {{"_typver", "siddiqsoft.arrp.scoped_resource/0.0.0"}, {"valid", m_is_valid}, {"value", m_rsrc}};
+            else if constexpr (HasStdToStringImpl<T>)
+                return {{"_typver", "siddiqsoft.arrp.scoped_resource/0.0.0"},
+                        {"valid", m_is_valid},
+                        {"value", std::to_string(m_rsrc)}};
+            else
+                return {{"_typver", "siddiqsoft.arrp.scoped_resource/0.0.0"}, {"valid", m_is_valid}, {"value", "-noserializer-"}};
         }
 #endif
     };
 } // namespace siddiqsoft::arrp
+
+
+template <typename T>
+struct std::formatter<siddiqsoft::arrp::scoped_resource<T>>
+{
+    template <typename FormatContext>
+    auto format(const siddiqsoft::arrp::scoped_resource<T>& sr, FormatContext& ctx) const
+    {
+#if defined(NLOHMANN_JSON_VERSION_MAJOR)
+        return std::format_to(ctx.out(), "{}", sr.to_json().dump());
+#else
+        return std::format_to(
+                ctx.out(), "{{ type: \"siddiqsoft.arrp.scoped_resource\", valid: \"{}\", value: {} }}", sr.is_valid(), *sr);
+#endif
+    }
+};
+
 
 #endif

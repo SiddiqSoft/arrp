@@ -1,8 +1,8 @@
 #pragma once
 #include <cstdint>
 #include <limits>
-#ifndef ASYNCHRONY_COMMON_HPP
-#define ASYNCHRONY_COMMON_HPP
+#ifndef ARRP_COMMON_HPP
+#define ARRP_COMMON_HPP
 
 #include <exception>
 
@@ -36,9 +36,6 @@ namespace siddiqsoft::arrp
     {
         Valid,
         Abandoned, // Return invoked but the item is invalid/abandoned
-        AutoGrow,  // new item added via the callback
-        Seed,      // new item added by the client
-        Return,    // Normal return
         Unknown,   // default is unknown
     };
 
@@ -126,4 +123,39 @@ namespace siddiqsoft::arrp
     }
 } // namespace siddiqsoft::arrp
 
-#endif // !ASYNCHRONY_COMMON_HPP
+
+template <class ct>
+struct std::formatter<siddiqsoft::arrp::release_reason, ct> : std::formatter<ct>
+{
+    template <typename FormatContext>
+    auto format(const siddiqsoft::arrp::release_reason& rr, FormatContext& ctx) const
+    {
+        std::string_view val {};
+        switch (rr) {
+            case siddiqsoft::arrp::release_reason::Valid: val = "Valid"; break;
+            case siddiqsoft::arrp::release_reason::Abandoned: val = "Abandoned"; break;
+            default: val = "Unknown"; break;
+        }
+
+        return std::format_to(ctx.out(), "{}", val);
+    }
+};
+
+template <class ct>
+struct std::formatter<siddiqsoft::arrp::auto_add_policy, ct> : std::formatter<ct>
+{
+    template <typename FormatContext>
+    auto format(const siddiqsoft::arrp::auto_add_policy& aap, FormatContext& ctx) const
+    {
+        std::string_view val {};
+        switch (aap) {
+            case siddiqsoft::arrp::auto_add_policy::NoGrow: val = "NoGrow"; break;
+            case siddiqsoft::arrp::auto_add_policy::AutoGrow: val = "AutoGrow"; break;
+            default: val = "Unknown"; break;
+        }
+
+        return std::format_to(ctx.out(), "{}", val);
+    }
+};
+
+#endif // !ARRP_COMMON_HPP

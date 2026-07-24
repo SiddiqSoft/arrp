@@ -1,6 +1,16 @@
 if(${${PROJECT_NAME}_BUILD_TESTS})
     set(TESTPROJ ${PROJECT_NAME}_tests)
 
+    # Cleanup the previous gcda files..
+    # Find all .gcda files recursively in the binary/output directory
+    file(GLOB_RECURSE GCDA_FILES "${CMAKE_BINARY_DIR}/*.gcda")
+
+    # Remove the found files if the list is not empty
+    if(GCDA_FILES)
+        file(REMOVE ${GCDA_FILES})
+        message(STATUS "Removed old .gcda files: ${GCDA_FILES}")
+    endif()
+
     add_executable(${TESTPROJ})
 
     target_compile_features(${TESTPROJ} PRIVATE cxx_std_${CMAKE_CXX_STANDARD})
@@ -105,6 +115,7 @@ if(${${PROJECT_NAME}_BUILD_TESTS})
     target_link_libraries(${TESTPROJ} PRIVATE
             nlohmann_json::nlohmann_json
             RunOnEnd::RunOnEnd
+            RWLContainer::RWLContainer
             GTest::gtest_main)
 
     include(GoogleTest)

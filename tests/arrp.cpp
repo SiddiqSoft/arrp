@@ -57,7 +57,10 @@ TEST(scoped_resource, T_string)
 
     EXPECT_NO_THROW({
         siddiqsoft::arrp::scoped_resource<std::string> sr(
-                [](auto&&, auto rr) { std::cerr << "scoped_resource-T_string - This is called when object is out of scope!\n"; },
+                [](auto&&, auto rr) {
+                    std::cerr << std::format("scoped_resource-T_string - This is called when object is out of scope! rr: {}\n ",
+                                             rr);
+                },
                 "ﷵ");
         std::cerr << std::format("stat: {}\n", sr.to_json().dump());
         passTest = true;
@@ -66,21 +69,126 @@ TEST(scoped_resource, T_string)
     EXPECT_TRUE(passTest);
 }
 
-TEST(scoped_resource, T_custom1)
+TEST(scoped_resource, T_struct)
 {
     bool passTest {false};
     struct custom1
     {
-        int         val {0};
-        std::string nam {"dummy"};
+        int              val {0};
+        std::string      nam {"dummy"};
+        bool             bval {false};
+        std::vector<int> vec {};
     };
 
     EXPECT_NO_THROW({
         siddiqsoft::arrp::scoped_resource<custom1> sr(
-                [](auto&&, auto rr) { std::cerr << "scoped_resource-T_custom1 - This is called when object is out of scope!\n"; },
+                [](auto&&, siddiqsoft::arrp::release_reason rr) {
+                    std::cerr << std::format("scoped_resource-T_struct - This is called when object is out of scope! rr: {}\n ",
+                                             rr);
+                },
+                custom1 {99, "ﷵ", true, {1, 2, 3}});
+        std::cerr << std::format("stat: {}\n", sr.to_json().dump());
+        sr.invalidate();
+        passTest = true;
+    });
+
+    EXPECT_TRUE(passTest);
+}
+
+
+TEST(scoped_resource, T_class1)
+{
+    bool passTest {false};
+    class custom2
+    {
+        int              val {0};
+        std::string      nam {"dummy"};
+        bool             bval {false};
+        std::vector<int> vec {};
+
+    public:
+        custom2() = default;
+        explicit custom2(int v, const std::string& s, bool b, std::vector<int>&& vv)
+            : val(v)
+            , nam(std::move(s))
+            , bval(b)
+            , vec(std::move(vv))
+        {
+        }
+    };
+
+    EXPECT_NO_THROW({
+        siddiqsoft::arrp::scoped_resource<custom2> sr(
+                [](auto&&, siddiqsoft::arrp::release_reason rr) {
+                    std::cerr << std::format("scoped_resource-T_class1 - This is called when object is out of scope! rr: {}\n ",
+                                             rr);
+                },
                 99,
-                "ﷵ");
-        // std::cerr << std::format("stat: {}\n", sr.to_json().dump());
+                std::string("ﷵ"),
+                true,
+                std::vector<int> {1, 1, 2, 3});
+        std::cerr << std::format("stat: {}\n", sr.to_json().dump());
+        sr.invalidate();
+        passTest = true;
+    });
+
+    EXPECT_TRUE(passTest);
+}
+
+TEST(scoped_resource, T_class2)
+{
+    bool passTest {false};
+    class custom2
+    {
+        int              val {0};
+        std::string      nam {"dummy"};
+        bool             bval {false};
+        std::vector<int> vec {};
+
+    public:
+        custom2() = default;
+        explicit custom2(int v, std::string s, bool b, std::vector<int> vv)
+            : val(v)
+            , nam(std::move(s))
+            , bval(b)
+            , vec(std::move(vv))
+        {
+        }
+    };
+
+    EXPECT_NO_THROW({
+        siddiqsoft::arrp::scoped_resource<custom2> sr(
+                [](auto&&, siddiqsoft::arrp::release_reason rr) {
+                    std::cerr << std::format("scoped_resource-T_class1 - This is called when object is out of scope! rr: {}\n ",
+                                             rr);
+                },
+                custom2 {99, "ﷵ", true, {1, 1, 2, 3}}); // this approach allows the compiler to deduce the proper arguments and
+                                                        // perform copy/move elision
+        std::cerr << std::format("stat: {}\n", sr.to_json().dump());
+        sr.invalidate();
+        passTest = true;
+    });
+
+    EXPECT_TRUE(passTest);
+}
+
+TEST(scoped_resource, T_pair)
+{
+    bool passTest {false};
+    using custom2 = std::pair<int, std::string>;
+
+    EXPECT_NO_THROW({
+        siddiqsoft::arrp::scoped_resource<custom2> sr(
+                [](auto&& o, auto rr) {
+                    std::cerr << std::format(
+                            "scoped_resource-T_pair - This is called when object <{},{}> is out of scope! rr: {}\n",
+                            o.first,
+                            o.second,
+                            rr);
+                },
+                {99, "ﷵ"});
+        // sr.invalidate();
+        std::cerr << std::format("stat: {}\n", sr.to_json().dump());
         passTest = true;
     });
 
