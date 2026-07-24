@@ -159,7 +159,7 @@ TEST(scoped_resource, T_class2)
     EXPECT_NO_THROW({
         siddiqsoft::arrp::scoped_resource<custom2> sr(
                 [](auto&&, siddiqsoft::arrp::release_reason rr) {
-                    std::cerr << std::format("scoped_resource-T_class1 - This is called when object is out of scope! rr: {}\n ",
+                    std::cerr << std::format("scoped_resource-T_class2 - This is called when object is out of scope! rr: {}\n ",
                                              rr);
                 },
                 custom2 {99, "ﷵ", true, {1, 1, 2, 3}}); // this approach allows the compiler to deduce the proper arguments and
