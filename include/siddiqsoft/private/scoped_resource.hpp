@@ -34,7 +34,7 @@
  */
 
 #pragma once
-#include <chrono>
+
 #ifndef SCOPED_RESOURCE_HPP
 #define SCOPED_RESOURCE_HPP
 
@@ -86,13 +86,20 @@ namespace siddiqsoft::arrp
             std::is_move_constructible_v<T> && std::is_move_assignable_v<T> && !std::is_arithmetic_v<T>;
 
 
-    template <typename F, typename... Args>
-    concept NothrowInvocable = requires(F&& f, Args&&... args) {
-        // Requires that the statement inside evaluates to true at compile time
-        requires noexcept(f(std::forward<Args>(args)...));
-    };
-
-
+    /**
+     * @class scoped_resource
+     * @brief RAII wrapper for managing resource lifecycle in a resource pool
+     *
+     * @details
+     * scoped_resource automatically returns resources to the pool when destroyed.
+     * It enforces move-only semantics to prevent resource ownership ambiguity.
+     *
+     * @warning This class is NOT thread-safe. Each scoped_resource instance
+     * should be accessed by only one thread at a time. The resource_pool itself
+     * is thread-safe, but individual scoped_resource instances are not.
+     *
+     * @tparam T The resource type (must be move-constructible and non-arithmetic)
+     */
     template <typename T>
         requires NonNumericMoveConstructible<T>
     class scoped_resource
@@ -134,6 +141,11 @@ namespace siddiqsoft::arrp
         {
         }
 
+        /**
+         * @brief Copy constructor is deleted
+         * @details scoped_resource is move-only to prevent resource ownership ambiguity
+         * and ensure proper RAII semantics. Only one scoped_resource can own a resource.
+         */
         explicit scoped_resource(const T&) = delete;
 
         scoped_resource(scoped_resource&& src) noexcept
@@ -185,11 +197,28 @@ namespace siddiqsoft::arrp
          */
         scoped_resource& operator=(const scoped_resource&) = delete;
 
-        auto             operator*() -> T& { return m_rsrc; }
+        /**
+         * @brief Dereference operator to access the wrapped resource
+         * @return Reference to the wrapped resource
+         * @warning Behavior is undefined if resource has been invalidated
+         */
+        auto operator*() -> T& { return m_rsrc; }
 
-        explicit         operator T&() { return m_rsrc; }
+        /**
+         * @brief Explicit conversion to resource reference
+         * @return Reference to the wrapped resource
+         * @warning Behavior is undefined if resource has been invalidated
+         */
+        explicit operator T&() { return m_rsrc; }
 
-        ~scoped_resource()
+        /**
+         * @brief Pointer-like access to the wrapped resource
+         * @return Pointer to the wrapped resource
+         * @note Returns nullptr if resource is invalid
+         */
+        auto operator->() -> T* { return m_is_valid ? &m_rsrc : nullptr; }
+
+        ~scoped_resource() noexcept
         {
             // Only return resource if it's valid and callback exists
             // This prevents returning uninitialized or moved-out resources to the pool
