@@ -60,7 +60,9 @@ namespace siddiqsoft::arrp
     {
     private:
         /// @brief Maximum number of resources that can be in the pool
-        uint8_t m_capacity {0};
+        uint8_t          m_capacity {0};
+
+        std::atomic_bool m_is_shutdown {false};
 
         /// @brief Number of resources currently checked out from the pool
         std::atomic_int16_t m_resources_checkedout {0};
@@ -212,6 +214,11 @@ namespace siddiqsoft::arrp
 
         ~resource_pool()
         {
+            {
+                std::scoped_lock l(m_pool_lock);
+                m_is_shutdown = true;
+            }
+
             // The destructor is being called. No need to worry about obtaining exclusive lock
             // The fact that we're inside the destructor is pretty much exclusive.
             m_pool.clear();
@@ -219,6 +226,8 @@ namespace siddiqsoft::arrp
 
         void clear() noexcept
         {
+            if (m_is_shutdown) return;
+
             std::scoped_lock l(m_pool_lock);
 
             // reset all stats..
@@ -228,12 +237,17 @@ namespace siddiqsoft::arrp
 
         [[nodiscard]] size_t size() const noexcept
         {
+            if (m_is_shutdown) return {};
+
             std::scoped_lock l(m_pool_lock);
             return m_pool.size();
         }
 
         [[nodiscard]] auto checkout() -> SRT
         {
+            if (m_is_shutdown) throw std::runtime_error(std::format("We're shutting down\n"));
+
+
             // Create a guard to decrement m_resources_checkedout if the factory callback throws
             // This ensures we don't leak the checkout count if the factory fails
             auto checkout_guard = [this]() {
@@ -316,8 +330,9 @@ namespace siddiqsoft::arrp
         }
 
 
-        void checkin(T&& item, bool isvalid=true)
+        void checkin(T&& item, bool isvalid = true)
         {
+            if (m_is_shutdown) return;
             ++m_counter_checkin;
             m_capacity_poolsize++;
             if (m_capacity_poolsize.load() > m_capacity) m_capacity_poolsize = m_capacity;
@@ -348,6 +363,8 @@ namespace siddiqsoft::arrp
 #if defined(NLOHMANN_JSON_VERSION_MAJOR)
         auto to_json() -> nlohmann::json&
         {
+            if (m_is_shutdown) throw std::runtime_error("Shutdown started.");
+
             {
                 std::scoped_lock l(m_pool_lock);
 
