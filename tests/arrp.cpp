@@ -57,7 +57,7 @@ TEST(scoped_resource, T_string)
 
     EXPECT_NO_THROW({
         siddiqsoft::arrp::scoped_resource<std::string> sr(
-                [](auto& item) {
+                [](auto&& item, bool isvalid) {
                     std::cerr << std::format("scoped_resource-T_string - This is called when object is out of scope! \n ");
                 },
                 "ﷵ");
@@ -81,9 +81,9 @@ TEST(scoped_resource, T_struct)
 
     EXPECT_NO_THROW({
         siddiqsoft::arrp::scoped_resource<custom1> sr(
-                [](auto& item) {
+                [](auto&& item, bool isvalid) {
                     std::cerr << std::format("scoped_resource-T_struct - This is called when object is out of scope! rr: {}\n ",
-                                             item.to_json().dump());
+                                             isvalid);
                 },
                 custom1 {99, "ﷵ", true, {1, 2, 3}});
         std::cerr << std::format("stat: {}\n", sr.to_json().dump());
@@ -118,9 +118,9 @@ TEST(scoped_resource, T_class1)
 
     EXPECT_NO_THROW({
         siddiqsoft::arrp::scoped_resource<custom2> sr(
-                [](auto& item) {
+                [](auto&& item, bool isvalid) {
                     std::cerr << std::format("scoped_resource-T_class1 - This is called when object is out of scope! rr: {}\n ",
-                                             item.to_json().dump());
+                                             isvalid);
                 },
                 99,
                 std::string("ﷵ"),
@@ -157,9 +157,9 @@ TEST(scoped_resource, T_class2)
 
     EXPECT_NO_THROW({
         siddiqsoft::arrp::scoped_resource<custom2> sr(
-                [](auto& item) {
+                [](auto&& item, bool isvalid) {
                     std::cerr << std::format("scoped_resource-T_class2 - This is called when object is out of scope! rr: {}\n ",
-                                             item.to_json().dump());
+                                             isvalid);
                 },
                 custom2 {99, "ﷵ", true, {1, 1, 2, 3}}); // this approach allows the compiler to deduce the proper arguments and
                                                         // perform copy/move elision
@@ -178,10 +178,9 @@ TEST(scoped_resource, T_pair)
 
     EXPECT_NO_THROW({
         siddiqsoft::arrp::scoped_resource<custom2> sr(
-                [](siddiqsoft::arrp::scoped_resource<custom2>& o) {
+                [](auto&& item, bool isvalid) {
                     std::cerr << std::format("scoped_resource-T_pair - This is called when object <> is out of scope! rr: {}\n",
-
-                                             o.is_valid());
+                                             isvalid);
                 },
                 {99, "ﷵ"});
         // sr.invalidate();
@@ -199,8 +198,8 @@ TEST(resource_pool, serializer_1)
     siddiqsoft::arrp::resource_pool<std::string> rp {};
 
     EXPECT_NO_THROW({
-        rp.checkin_old("peace");
-        rp.checkin_old("ﷵ");
+        rp.checkin("peace");
+        rp.checkin("ﷵ");
 
         EXPECT_EQ(2, rp.size());
         std::cerr << std::format("resource_pool::serializer_1 - after adding      stats:{}\n", rp);
@@ -227,8 +226,8 @@ TEST(resource_pool, serializer_pair)
     siddiqsoft::arrp::resource_pool<custom2> rp {};
 
     EXPECT_NO_THROW({
-        rp.checkin_old({10, "peace"});
-        rp.checkin_old({20, "ﷵ"});
+        rp.checkin({10, "peace"});
+        rp.checkin({20, "ﷵ"});
 
         EXPECT_EQ(2, rp.size());
 

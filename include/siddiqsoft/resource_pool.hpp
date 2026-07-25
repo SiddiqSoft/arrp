@@ -187,9 +187,9 @@ namespace siddiqsoft::arrp
                 m_callback_to_add_new_raw_resource_to_pool = [this](resource_pool& pool) -> SRT {
                     // Create a SRT element and wire up the auto-return callback to return
                     // the resource back to this object.
-                    return SRT {[this](SRT& src) { // this callback puts the resource back..
+                    return SRT {[this](T&& src, bool isvalid) { // this callback puts the resource back..
                                     this->m_capacity_poolsize++;
-                                    this->checkin(std::forward<SRT&>(src));
+                                    this->checkin(std::forward<T&&>(src), isvalid);
                                 },
                                 T {}};
                     // Allow the compiler to use NRVO (move elision; do not use std::move here!)
@@ -260,9 +260,9 @@ namespace siddiqsoft::arrp
                     // Make a wrapper..
                     // Create a SRT element and wire up the auto-return callback to return
                     // the resource back to this object.
-                    return SRT {[this](SRT& src) { // this callback puts the resource back..
+                    return SRT {[this](T&& src, bool isvalid) { // this callback puts the resource back..
                                     this->m_capacity_poolsize++;
-                                    this->checkin(std::forward<SRT&>(src));
+                                    this->checkin(std::forward<T&&>(src), isvalid);
                                 },
                                 std::move(m_pool.front())};
                     // Allow the compiler to use NRVO (move elision; do not use std::move here!)
@@ -316,35 +316,20 @@ namespace siddiqsoft::arrp
         }
 
 
-        void checkin(SRT& item)
+        void checkin(T&& item, bool isvalid=true)
         {
             ++m_counter_checkin;
             m_capacity_poolsize++;
             if (m_capacity_poolsize.load() > m_capacity) m_capacity_poolsize = m_capacity;
 
-            if (item.is_valid()) {
-                std::scoped_lock l(m_pool_lock);
-
-                m_pool.push_back(std::move(item.m_rsrc));
-                ++m_counter_valid_returns;
-                m_resources_checkedout--;
-            }
-        }
-
-        void checkin_old(T&& item, release_reason reason = release_reason::Unknown)
-        {
-            ++m_counter_checkin;
-            m_capacity_poolsize++;
-            if (m_capacity_poolsize.load() > m_capacity) m_capacity_poolsize = m_capacity;
-
-            if (!siddiqsoft::arrp::is_release_reason_abandoned(reason)) {
+            if (isvalid) {
                 std::scoped_lock l(m_pool_lock);
 
                 m_pool.push_back(std::move(item));
                 ++m_counter_valid_returns;
                 m_resources_checkedout--;
             } // lock scope end
-            else if (siddiqsoft::arrp::is_release_reason_abandoned(reason)) {
+            else {
                 // Resource was invalidated; do not add back to the pool.
                 // We need to decrement the checkout count under lock to ensure thread safety
                 {

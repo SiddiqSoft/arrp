@@ -108,7 +108,7 @@ namespace siddiqsoft::arrp
         ///        recall it back or perform any additional tasks.
         ///        The callback must not throw and must not invoke any other method in the pool that requires
         ///        lock manipulation.
-        using PutbackCallbackFuncV1 = std::function<void(T&&, siddiqsoft::arrp::release_reason rr)>;
+        using PutbackCallbackFunc = std::function<void(T&&, bool)>;
 
 
         // Allow resource_pool to access protected members
@@ -120,7 +120,7 @@ namespace siddiqsoft::arrp
         ///        recall it back or perform any additional tasks.
         ///        The callback must not throw and must not invoke any other method in the pool that requires
         ///        lock manipulation.
-        using PutbackCallbackFunc = std::function<void(scoped_resource<T>&)>;
+        using PutbackCallbackFuncV2 = std::function<void(scoped_resource<T>&)>;
 
     protected:
         /// @brief The actual resource being wrapped
@@ -231,7 +231,7 @@ namespace siddiqsoft::arrp
             // This prevents returning uninitialized or moved-out resources to the pool
             if (m_putback_callback) {
                 try {
-                    m_putback_callback(*this);
+                    m_putback_callback(std::move(m_rsrc), m_is_valid);
                 }
                 catch (...) {
                     std::cerr << "scoped_resource destructor: exception while returning resource to pool!\n";
