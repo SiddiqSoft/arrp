@@ -195,4 +195,60 @@ TEST(scoped_resource, T_pair)
     EXPECT_TRUE(passTest);
 }
 
+
+TEST(resource_pool, serializer_1)
+{
+    bool                                         passTest {false};
+    siddiqsoft::arrp::resource_pool<std::string> rp {};
+
+    EXPECT_NO_THROW({
+        rp.checkin("peace");
+        rp.checkin("ﷵ");
+
+        EXPECT_EQ(2, rp.size());
+        std::cerr << std::format("resource_pool::serializer_1 - after adding      stats:{}\n", rp);
+
+        auto p1 = rp.checkout();
+        *p1     = "updated-" + *p1;
+        auto p2 = rp.checkout();
+        *p2     = "updated-" + *p2;
+
+        EXPECT_EQ(0, rp.size());
+
+        passTest = true;
+    });
+    // All the items should've been returned..
+    EXPECT_EQ(2, rp.size());
+
+    EXPECT_TRUE(passTest);
+}
+
+TEST(resource_pool, serializer_pair)
+{
+    bool passTest {false};
+    using custom2 = std::pair<int, std::string>;
+    siddiqsoft::arrp::resource_pool<custom2> rp {};
+
+    EXPECT_NO_THROW({
+        rp.checkin({10, "peace"});
+        rp.checkin({20, "ﷵ"});
+
+        EXPECT_EQ(2, rp.size());
+
+        auto p1 = rp.checkout();
+        auto p2 = rp.checkout();
+        p2.invalidate();
+
+        EXPECT_EQ(0, rp.size());
+
+        passTest = true;
+    });
+    // All the items should've been returned..
+    // one was invalidated
+    EXPECT_EQ(1, rp.size());
+        std::cerr << std::format("resource_pool::serializer_pair -    stats:{}\n", rp);
+
+    EXPECT_TRUE(passTest);
+}
+
 // NOLINTEND(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)

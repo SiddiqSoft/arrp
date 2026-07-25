@@ -187,11 +187,11 @@ namespace siddiqsoft::arrp
                 m_callback_to_add_new_raw_resource_to_pool = [this](resource_pool& pool) -> SRT {
                     // Create a SRT element and wire up the auto-return callback to return
                     // the resource back to this object.
-                    return SRT {T {},
-                                [this](T&& src, siddiqsoft::arrp::release_reason rr) { // this callback puts the resource back..
+                    return SRT {[this](T&& src, siddiqsoft::arrp::release_reason rr) { // this callback puts the resource back..
                                     this->m_capacity_poolsize++;
                                     this->checkin(std::forward<T&&>(src), rr);
-                                }};
+                                },
+                                T {}};
                     // Allow the compiler to use NRVO (move elision; do not use std::move here!)
                 };
             }
@@ -260,11 +260,11 @@ namespace siddiqsoft::arrp
                     // Make a wrapper..
                     // Create a SRT element and wire up the auto-return callback to return
                     // the resource back to this object.
-                    return SRT {std::move(m_pool.front()),
-                                [this](T&& src, siddiqsoft::arrp::release_reason rr) { // this callback puts the resource back..
+                    return SRT {[this](T&& src, siddiqsoft::arrp::release_reason rr) { // this callback puts the resource back..
                                     this->m_capacity_poolsize++;
                                     this->checkin(std::forward<T&&>(src), rr);
-                                }};
+                                },
+                                std::move(m_pool.front())};
                     // Allow the compiler to use NRVO (move elision; do not use std::move here!)
                     // The pop_front() happens within this scope and within the lock!
                 }
@@ -315,6 +315,11 @@ namespace siddiqsoft::arrp
 #endif
         }
 
+        template <typename... Args>
+        void checkin(Args&&... args)
+        {
+            checkin(std::move(T(std::forward<Args>(args)...)), release_reason::Valid);
+        }
 
         void checkin(T&& item, release_reason reason = release_reason::Unknown)
         {
@@ -352,24 +357,26 @@ namespace siddiqsoft::arrp
                 std::scoped_lock l(m_pool_lock);
 
                 // Update the poolsize..
-                m_json["size"]      = m_pool.size();
-                m_json["deficit"]   = size_t(m_capacity) - m_pool.size();
-                m_json["capsize"]   = m_capacity_poolsize.load();
-                m_json["load"]      = m_pool.size() + m_resources_checkedout.load();
-                m_json["abandoned"] = m_abandoned.load();
-                m_json["loans"]     = loan_size();
-                m_json["in"]        = m_counter_checkin.load();
-                m_json["out"]       = m_counter_checkout.load();
-                m_json["valid_returns"] = m_counter_valid_returns.load();
+                m_json["size"]            = m_pool.size();
+                m_json["deficit"]         = size_t(m_capacity) - m_pool.size();
+                m_json["capsize"]         = m_capacity_poolsize.load();
+                m_json["load"]            = m_pool.size() + m_resources_checkedout.load();
+                m_json["abandoned"]       = m_abandoned.load();
+                m_json["loans"]           = loan_size();
+                m_json["in"]              = m_counter_checkin.load();
+                m_json["out"]             = m_counter_checkout.load();
+                m_json["valid_returns"]   = m_counter_valid_returns.load();
                 m_json["invalid_returns"] = m_counter_invalid_returns.load();
-                m_json["checked_out"] = m_resources_checkedout.load();
+                m_json["checked_out"]     = m_resources_checkedout.load();
+                // This stage requires the type T have a json serializer
+                m_json["items"] = m_pool;
             }
 
             return m_json;
         }
 
     private:
-        nlohmann::json m_json {{"_typver", "resource_pool/0.0.0"},
+        nlohmann::json m_json {{"_typver", "siddiqsoft.arrp.resource_pool/0.0.0"},
                                {"capacity", m_capacity},
                                {"size", 0},
                                {"load", 0},
@@ -392,129 +399,30 @@ namespace siddiqsoft::arrp
 #endif
 
 
-
 } // namespace siddiqsoft::arrp
 #endif
 
+
+#if defined(DEBUG)
 /// @brief Specialization of std::formatter for resource_pool
 /// @details Provides formatted output for resource_pool instances using std::format
 /// @note Only available if nlohmann/json is included
-template <typename T, typename SRT = siddiqsoft::arrp::scoped_resource<T>>
-    requires siddiqsoft::arrp::NonNumericMoveConstructible<T> &&
-             std::derived_from<SRT, siddiqsoft::arrp::scoped_resource<T>>
-struct std::formatter<siddiqsoft::arrp::resource_pool<T, SRT>>
+template <typename T, typename SRT>
+    requires siddiqsoft::arrp::NonNumericMoveConstructible<T> && std::derived_from<SRT, siddiqsoft::arrp::scoped_resource<T>>
+struct std::formatter<siddiqsoft::arrp::resource_pool<T, SRT>> : std::formatter<char>
 {
-    /// @brief Format specification for controlling output style
-    /// Supported specs:
-    /// - 'c' (compact): Single-line compact format
-    /// - 'j' (json): Full JSON format (requires nlohmann/json)
-    /// - 'd' (detailed): Multi-line detailed format (default)
-    /// - 's' (summary): Brief summary format
-    enum class format_style
-    {
-        detailed,  ///< Multi-line detailed format (default)
-        compact,   ///< Single-line compact format
-        json,      ///< Full JSON format
-        summary    ///< Brief summary format
-    };
-
-    format_style style {format_style::detailed};
-
-    /// @brief Parse format specification
-    /// @param ctx Format context
-    /// @return Iterator to end of format spec
-    template <typename ParseContext>
-    constexpr auto parse(ParseContext& ctx)
-    {
-        auto it = ctx.begin();
-        if (it != ctx.end()) {
-            switch (*it) {
-                case 'c': style = format_style::compact; ++it; break;
-                case 'j': style = format_style::json; ++it; break;
-                case 'd': style = format_style::detailed; ++it; break;
-                case 's': style = format_style::summary; ++it; break;
-                default: break;
-            }
-        }
-        if (it != ctx.end() && *it != '}') {
-            throw std::format_error("Invalid format specification for resource_pool");
-        }
-        return it;
-    }
-
     /// @brief Format the resource_pool
     /// @param pool The resource_pool to format
     /// @param ctx Format context
     /// @return Iterator to end of formatted output
     template <typename FormatContext>
-    auto format(const siddiqsoft::arrp::resource_pool<T, SRT>& pool, FormatContext& ctx) const
+    auto format(siddiqsoft::arrp::resource_pool<T, SRT>& pool, FormatContext& ctx) const
     {
-        switch (style) {
-            case format_style::compact:
-                return format_compact(pool, ctx);
-            case format_style::json:
-                return format_json(pool, ctx);
-            case format_style::summary:
-                return format_summary(pool, ctx);
-            case format_style::detailed:
-            default:
-                return format_detailed(pool, ctx);
-        }
-    }
-
-private:
-    template <typename FormatContext>
-    auto format_compact(const siddiqsoft::arrp::resource_pool<T, SRT>& pool, FormatContext& ctx) const
-    {
-        return std::format_to(ctx.out(), "pool[size:{}, capacity:{}, loans:{}, in:{}, out:{}]",
-                              pool.size(), pool.m_capacity, pool.m_resources_checkedout.load(),
-                              pool.m_counter_checkin.load(), pool.m_counter_checkout.load());
-    }
-
-    template <typename FormatContext>
-    auto format_summary(const siddiqsoft::arrp::resource_pool<T, SRT>& pool, FormatContext& ctx) const
-    {
-        return std::format_to(ctx.out(), "ResourcePool(size={}, capacity={}, utilization={:.1f}%)",
-                              pool.size(), pool.m_capacity,
-                              pool.m_capacity > 0 ? (100.0 * pool.m_resources_checkedout.load() / pool.m_capacity) : 0.0);
-    }
-
-    template <typename FormatContext>
-    auto format_detailed(const siddiqsoft::arrp::resource_pool<T, SRT>& pool, FormatContext& ctx) const
-    {
-        return std::format_to(ctx.out(),
-                              "ResourcePool {{\n"
-                              "  capacity: {},\n"
-                              "  size: {},\n"
-                              "  deficit: {},\n"
-                              "  loans: {},\n"
-                              "  abandoned: {},\n"
-                              "  checkins: {},\n"
-                              "  checkouts: {},\n"
-                              "  valid_returns: {},\n"
-                              "  invalid_returns: {}\n"
-                              "}}",
-                              pool.m_capacity, pool.size(),
-                              size_t(pool.m_capacity) - pool.size(),
-                              pool.m_resources_checkedout.load(),
-                              pool.m_abandoned.load(),
-                              pool.m_counter_checkin.load(),
-                              pool.m_counter_checkout.load(),
-                              pool.m_counter_valid_returns.load(),
-                              pool.m_counter_invalid_returns.load());
-    }
-
 #if defined(NLOHMANN_JSON_VERSION_MAJOR)
-    template <typename FormatContext>
-    auto format_json(const siddiqsoft::arrp::resource_pool<T, SRT>& pool, FormatContext& ctx) const
-    {
         return std::format_to(ctx.out(), "{}", pool.to_json().dump());
-    }
 #else
-    template <typename FormatContext>
-    auto format_json(const siddiqsoft::arrp::resource_pool<T, SRT>& pool, FormatContext& ctx) const
-    {
         return std::format_to(ctx.out(), "{{ json format requires nlohmann/json library }}");
-    }
 #endif
+    }
 };
+#endif
