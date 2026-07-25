@@ -57,9 +57,8 @@ TEST(scoped_resource, T_string)
 
     EXPECT_NO_THROW({
         siddiqsoft::arrp::scoped_resource<std::string> sr(
-                [](auto&&, auto rr) {
-                    std::cerr << std::format("scoped_resource-T_string - This is called when object is out of scope! rr: {}\n ",
-                                             rr);
+                [](auto& item) {
+                    std::cerr << std::format("scoped_resource-T_string - This is called when object is out of scope! \n ");
                 },
                 "ﷵ");
         std::cerr << std::format("stat: {}\n", sr.to_json().dump());
@@ -82,9 +81,9 @@ TEST(scoped_resource, T_struct)
 
     EXPECT_NO_THROW({
         siddiqsoft::arrp::scoped_resource<custom1> sr(
-                [](auto&&, siddiqsoft::arrp::release_reason rr) {
+                [](auto& item) {
                     std::cerr << std::format("scoped_resource-T_struct - This is called when object is out of scope! rr: {}\n ",
-                                             rr);
+                                             item.to_json().dump());
                 },
                 custom1 {99, "ﷵ", true, {1, 2, 3}});
         std::cerr << std::format("stat: {}\n", sr.to_json().dump());
@@ -119,9 +118,9 @@ TEST(scoped_resource, T_class1)
 
     EXPECT_NO_THROW({
         siddiqsoft::arrp::scoped_resource<custom2> sr(
-                [](auto&&, siddiqsoft::arrp::release_reason rr) {
+                [](auto& item) {
                     std::cerr << std::format("scoped_resource-T_class1 - This is called when object is out of scope! rr: {}\n ",
-                                             rr);
+                                             item.to_json().dump());
                 },
                 99,
                 std::string("ﷵ"),
@@ -158,9 +157,9 @@ TEST(scoped_resource, T_class2)
 
     EXPECT_NO_THROW({
         siddiqsoft::arrp::scoped_resource<custom2> sr(
-                [](auto&&, siddiqsoft::arrp::release_reason rr) {
+                [](auto& item) {
                     std::cerr << std::format("scoped_resource-T_class2 - This is called when object is out of scope! rr: {}\n ",
-                                             rr);
+                                             item.to_json().dump());
                 },
                 custom2 {99, "ﷵ", true, {1, 1, 2, 3}}); // this approach allows the compiler to deduce the proper arguments and
                                                         // perform copy/move elision
@@ -179,12 +178,10 @@ TEST(scoped_resource, T_pair)
 
     EXPECT_NO_THROW({
         siddiqsoft::arrp::scoped_resource<custom2> sr(
-                [](auto&& o, auto rr) {
-                    std::cerr << std::format(
-                            "scoped_resource-T_pair - This is called when object <{},{}> is out of scope! rr: {}\n",
-                            o.first,
-                            o.second,
-                            rr);
+                [](siddiqsoft::arrp::scoped_resource<custom2>& o) {
+                    std::cerr << std::format("scoped_resource-T_pair - This is called when object <> is out of scope! rr: {}\n",
+
+                                             o.is_valid());
                 },
                 {99, "ﷵ"});
         // sr.invalidate();
@@ -202,8 +199,8 @@ TEST(resource_pool, serializer_1)
     siddiqsoft::arrp::resource_pool<std::string> rp {};
 
     EXPECT_NO_THROW({
-        rp.checkin("peace");
-        rp.checkin("ﷵ");
+        rp.checkin_old("peace");
+        rp.checkin_old("ﷵ");
 
         EXPECT_EQ(2, rp.size());
         std::cerr << std::format("resource_pool::serializer_1 - after adding      stats:{}\n", rp);
@@ -230,8 +227,8 @@ TEST(resource_pool, serializer_pair)
     siddiqsoft::arrp::resource_pool<custom2> rp {};
 
     EXPECT_NO_THROW({
-        rp.checkin({10, "peace"});
-        rp.checkin({20, "ﷵ"});
+        rp.checkin_old({10, "peace"});
+        rp.checkin_old({20, "ﷵ"});
 
         EXPECT_EQ(2, rp.size());
 
@@ -246,7 +243,7 @@ TEST(resource_pool, serializer_pair)
     // All the items should've been returned..
     // one was invalidated
     EXPECT_EQ(1, rp.size());
-        std::cerr << std::format("resource_pool::serializer_pair -    stats:{}\n", rp);
+    std::cerr << std::format("resource_pool::serializer_pair -    stats:{}\n", rp);
 
     EXPECT_TRUE(passTest);
 }

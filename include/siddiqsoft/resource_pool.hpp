@@ -187,9 +187,9 @@ namespace siddiqsoft::arrp
                 m_callback_to_add_new_raw_resource_to_pool = [this](resource_pool& pool) -> SRT {
                     // Create a SRT element and wire up the auto-return callback to return
                     // the resource back to this object.
-                    return SRT {[this](T&& src, siddiqsoft::arrp::release_reason rr) { // this callback puts the resource back..
+                    return SRT {[this](SRT& src) { // this callback puts the resource back..
                                     this->m_capacity_poolsize++;
-                                    this->checkin(std::forward<T&&>(src), rr);
+                                    this->checkin(std::forward<SRT&>(src));
                                 },
                                 T {}};
                     // Allow the compiler to use NRVO (move elision; do not use std::move here!)
@@ -260,9 +260,9 @@ namespace siddiqsoft::arrp
                     // Make a wrapper..
                     // Create a SRT element and wire up the auto-return callback to return
                     // the resource back to this object.
-                    return SRT {[this](T&& src, siddiqsoft::arrp::release_reason rr) { // this callback puts the resource back..
+                    return SRT {[this](SRT& src) { // this callback puts the resource back..
                                     this->m_capacity_poolsize++;
-                                    this->checkin(std::forward<T&&>(src), rr);
+                                    this->checkin(std::forward<SRT&>(src));
                                 },
                                 std::move(m_pool.front())};
                     // Allow the compiler to use NRVO (move elision; do not use std::move here!)
@@ -315,13 +315,23 @@ namespace siddiqsoft::arrp
 #endif
         }
 
-        template <typename... Args>
-        void checkin(Args&&... args)
+
+        void checkin(SRT& item)
         {
-            checkin(std::move(T(std::forward<Args>(args)...)), release_reason::Valid);
+            ++m_counter_checkin;
+            m_capacity_poolsize++;
+            if (m_capacity_poolsize.load() > m_capacity) m_capacity_poolsize = m_capacity;
+
+            if (item.is_valid()) {
+                std::scoped_lock l(m_pool_lock);
+
+                m_pool.push_back(std::move(item.m_rsrc));
+                ++m_counter_valid_returns;
+                m_resources_checkedout--;
+            }
         }
 
-        void checkin(T&& item, release_reason reason = release_reason::Unknown)
+        void checkin_old(T&& item, release_reason reason = release_reason::Unknown)
         {
             ++m_counter_checkin;
             m_capacity_poolsize++;
