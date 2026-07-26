@@ -188,7 +188,7 @@ namespace siddiqsoft::arrp
                     // the resource back to this object.
                     return SRT {[this](T&& src, bool isvalid) -> std::expected<void, pool_error> {
                                     // this callback puts the resource back..
-                                    return this->checkin(std::forward<T&&>(src), isvalid);
+                                    return this->return_to_pool(std::forward<T&&>(src), isvalid);
                                 },
                                 T {}};
                     // Allow the compiler to use NRVO (move elision; do not use std::move here!)
@@ -237,13 +237,13 @@ namespace siddiqsoft::arrp
             return m_pool.size();
         }
 
-        [[nodiscard]] auto checkout() -> std::expected<SRT, pool_error>
+        [[nodiscard]] auto borrow_from_pool() -> std::expected<SRT, pool_error>
         {
             if (m_is_shutdown) return std::unexpected(pool_error::ShutdownInitiated);
 
 
             // Create a guard to decrement m_resources_checkedout if the factory callback throws
-            // This ensures we don't leak the checkout count if the factory fails
+            // This ensures we don't leak the borrow_from_pool count if the factory fails
             auto checkout_guard = [this]() {
                 if (m_resources_checkedout > 0) {
                     m_resources_checkedout--;
@@ -256,6 +256,10 @@ namespace siddiqsoft::arrp
                 // @note We use a unique_lock vs a scoped_lock to allow ourselves
                 // to create the resource outside the lock!
                 std::unique_lock l(m_pool_lock);
+
+                // Now that we're inside the lock, we should check again to ensure that
+                // the shutdown is not in progress..
+                if (m_is_shutdown) return std::unexpected(pool_error::ShutdownInitiated);
 
                 if (!m_pool.empty()) {
                     // The pool is non-empty; return from the pool
@@ -270,7 +274,7 @@ namespace siddiqsoft::arrp
                     // the resource back to this object.
                     return SRT {[this](T&& src, bool isvalid) -> std::expected<void, pool_error> {
                                     // this callback puts the resource back..
-                                    return this->checkin(std::forward<T&&>(src), isvalid);
+                                    return this->return_to_pool(std::forward<T&&>(src), isvalid);
                                 },
                                 std::move(m_pool.front())};
                     // Allow the compiler to use NRVO (move elision; do not use std::move here!)
@@ -305,26 +309,46 @@ namespace siddiqsoft::arrp
             catch (std::exception& ex) {
                 checkout_guard();
 #if defined(DEBUG_TRACE)
-                std::cerr << std::format("Error in checkout: {}\n", ex.what());
+                std::cerr << std::format("Error in borrow_from_pool: {}\n", ex.what());
 #endif
                 return std::unexpected(pool_error::Unknown);
             }
             catch (...) {
                 checkout_guard();
-                std::cerr << std::format("UNKNOWN Error in checkout\n");
+                std::cerr << std::format("UNKNOWN Error in borrow_from_pool\n");
                 return std::unexpected(pool_error::Unknown);
             }
 
             return std::unexpected(pool_error::NoMoreResources);
         }
 
-
-        auto checkin(T&& item, bool isvalid = true) -> std::expected<void, pool_error>
+        template <typename ...Args>
+        auto add_to_pool(Args... args) -> std::expected<void, pool_error>
         {
+            std::scoped_lock l(m_pool_lock);
+
+            // Check inside the lock..
             if (m_is_shutdown) return std::unexpected(pool_error::ShutdownInitiated);
 
+            m_pool.push_back(T{std::forward<Args>(args)...});
+
+            ++m_counter_valid_returns;
+            m_resources_checkedout--;
+            m_capacity_poolsize++;
+
+            if (m_capacity_poolsize.load() > m_capacity) m_capacity_poolsize = m_capacity;
+
+            return {};
+        }
+
+    protected:
+        auto return_to_pool(T&& item, bool isvalid = true) -> std::expected<void, pool_error>
+        {
             if (isvalid) {
                 std::scoped_lock l(m_pool_lock);
+
+                // Check inside the lock..
+                if (m_is_shutdown) return std::unexpected(pool_error::ShutdownInitiated);
 
                 m_pool.push_back(std::move(item));
 
@@ -336,8 +360,11 @@ namespace siddiqsoft::arrp
             } // lock scope end
             else {
                 // Resource was invalidated; do not add back to the pool.
-                // We need to decrement the checkout count under lock to ensure thread safety
+                // We need to decrement the borrow_from_pool count under lock to ensure thread safety
                 std::scoped_lock l(m_pool_lock);
+
+                // check inside the lock..
+                if (m_is_shutdown) return std::unexpected(pool_error::ShutdownInitiated);
 
                 m_abandoned++;
                 ++m_counter_invalid_returns;
@@ -348,13 +375,14 @@ namespace siddiqsoft::arrp
             return {};
         }
 
+    public:
 #if defined(NLOHMANN_JSON_VERSION_MAJOR)
         auto to_json() -> std::expected<std::reference_wrapper<nlohmann::json>, siddiqsoft::arrp::pool_error>
         {
-            if (m_is_shutdown) return std::unexpected(siddiqsoft::arrp::pool_error::ShutdownInitiated);
-
             {
                 std::scoped_lock l(m_pool_lock);
+
+                if (m_is_shutdown) return std::unexpected(siddiqsoft::arrp::pool_error::ShutdownInitiated);
 
                 // Update the poolsize..
                 m_json["size"]            = m_pool.size();

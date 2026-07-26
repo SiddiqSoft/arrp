@@ -176,7 +176,7 @@ namespace siddiqsoft::arrp
                 // Move from src
                 m_rsrc     = std::move(src.m_rsrc);
                 m_is_valid = src.m_is_valid;
-                // Make sure we do not have the src checkin
+                // Make sure we do not have the src return_to_pool
                 src.m_is_valid = false;
             }
             return *this;

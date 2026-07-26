@@ -204,20 +204,20 @@ TEST(resource_pool, serializer_1)
     siddiqsoft::arrp::resource_pool<std::string> rp {};
 
     EXPECT_NO_THROW({
-        rp.checkin("peace");
-        rp.checkin("ﷵ");
+        rp.add_to_pool("peace");
+        rp.add_to_pool("ﷵ");
 
         EXPECT_EQ(2, rp.size());
         std::cerr << std::format("resource_pool::serializer_1 - after adding      stats:{}\n", rp);
 
-        auto p1 = rp.checkout().transform([](auto item) {
+        auto p1 = rp.borrow_from_pool().transform([](auto item) {
             *item = std::string("updated-").append(*item);
             return item;
         });
 
         EXPECT_EQ(1, rp.size());
         // This expression makes sense only for this test.
-        auto p2 = rp.checkout().transform([](auto item) {
+        auto p2 = rp.borrow_from_pool().transform([](auto item) {
             *item = std::string("updated-").append(*item);
             return item;
         });
@@ -241,13 +241,13 @@ TEST(resource_pool, serializer_pair)
     siddiqsoft::arrp::resource_pool<custom2> rp {};
 
     EXPECT_NO_THROW({
-        rp.checkin({10, "peace"});
-        rp.checkin({20, "ﷵ"});
+        rp.add_to_pool(custom2{10, "peace"});
+        rp.add_to_pool(custom2{20, "ﷵ"});
 
         EXPECT_EQ(2, rp.size());
 
-        auto p1 = rp.checkout();
-        auto p2 = rp.checkout().transform([](auto&& item) {
+        auto p1 = rp.borrow_from_pool();
+        auto p2 = rp.borrow_from_pool().transform([](auto&& item) {
             item.invalidate();
             (*item).first = 2020;
             return std::move(item);
