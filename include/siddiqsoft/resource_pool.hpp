@@ -227,6 +227,8 @@ namespace siddiqsoft::arrp
             // reset all stats..
 
             m_pool.clear();
+
+            return {};
         }
 
         [[nodiscard]] auto size() const -> std::expected<size_t, pool_error>
@@ -322,7 +324,7 @@ namespace siddiqsoft::arrp
             return std::unexpected(pool_error::NoMoreResources);
         }
 
-        template <typename ...Args>
+        template <typename... Args>
         auto add_to_pool(Args... args) -> std::expected<void, pool_error>
         {
             std::scoped_lock l(m_pool_lock);
@@ -397,7 +399,7 @@ namespace siddiqsoft::arrp
                 m_json["invalid_returns"] = m_counter_invalid_returns.load();
                 m_json["checked_out"]     = m_resources_checkedout.load();
                 // This stage requires the type T have a json serializer
-                m_json["items"] = m_pool;
+                //m_json["items"] = m_pool;
             }
 
             return std::ref(m_json);

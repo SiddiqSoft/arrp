@@ -104,7 +104,7 @@ if(${${PROJECT_NAME}_BUILD_TESTS})
     target_sources(${TESTPROJ}
                     PRIVATE
                     ${PROJECT_SOURCE_DIR}/tests/arrp.cpp
-                    #${PROJECT_SOURCE_DIR}/tests/scoped_resource.cpp
+                    ${PROJECT_SOURCE_DIR}/tests/scoped_resource.cpp
                     #${PROJECT_SOURCE_DIR}/tests/resource_pool.cpp
                     #${PROJECT_SOURCE_DIR}/tests/stress_tests_advanced.cpp
                     #${PROJECT_SOURCE_DIR}/tests/resource_wrap_validity.cpp
