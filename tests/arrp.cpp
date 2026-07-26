@@ -199,6 +199,7 @@ TEST(scoped_resource, T_pair)
 
 TEST(resource_pool, serializer_1)
 {
+    using namespace std;
     bool                                         passTest {false};
     siddiqsoft::arrp::resource_pool<std::string> rp {};
 
@@ -209,10 +210,17 @@ TEST(resource_pool, serializer_1)
         EXPECT_EQ(2, rp.size());
         std::cerr << std::format("resource_pool::serializer_1 - after adding      stats:{}\n", rp);
 
-        auto p1 = rp.checkout().value();
-        *p1     = "updated-" + *p1;
-        auto p2 = rp.checkout().value();
-        *p2     = "updated-" + *p2;
+        auto p1 = rp.checkout().transform([](auto item) {
+            *item = std::string("updated-").append(*item);
+            return item;
+        });
+
+        EXPECT_EQ(1, rp.size());
+        // This expression makes sense only for this test.
+        auto p2 = rp.checkout().transform([](auto item) {
+            *item = std::string("updated-").append(*item);
+            return item;
+        });
 
         EXPECT_EQ(0, rp.size());
 
@@ -220,6 +228,8 @@ TEST(resource_pool, serializer_1)
     });
     // All the items should've been returned..
     EXPECT_EQ(2, rp.size());
+
+    std::cerr << std::format("resource_pool::serializer_1 - post test      stats:{}\n", rp);
 
     EXPECT_TRUE(passTest);
 }
