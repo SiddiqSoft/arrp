@@ -75,7 +75,7 @@ TEST(resource_pool, T_shared_ptr_string)
         rp.add_to_pool(std::shared_ptr<std::string>(new std::string(__TIME__)));
         EXPECT_EQ(1, rp.size()) << "Pool must have only one item";
 
-        std::cerr << std::format("{} - 0 - {}\n", __func__, rp);
+        std::cerr << std::format("{} - 0 - {}\n", __func__, rp.to_json().value().get().dump());
 
         {
             auto item_result = rp.borrow_from_pool();
@@ -85,7 +85,7 @@ TEST(resource_pool, T_shared_ptr_string)
             EXPECT_EQ(__TIME__, **item);
             (*item)->append("-ok");
 
-            std::cerr << std::format("{} - 1 -  {}\n", __func__, rp);
+            std::cerr << std::format("{} - 1 -  {}\n", __func__, rp.to_json().value().get().dump());
         }
 
         // item is automatically returned to pool when it goes out of scope
@@ -246,9 +246,8 @@ TEST(resource_pool, clear)
     // Custom allocator that does not allocate and rather throws..
     siddiqsoft::arrp::resource_pool<std::string> rp(
             siddiqsoft::arrp::resource_pool_limits::DefaultCapacity,
-            [](siddiqsoft::arrp::resource_pool<std::string>& pool)
-                    -> std::expected<siddiqsoft::arrp::scoped_resource<std::string>, siddiqsoft::arrp::pool_error> {
-                return std::unexpected(siddiqsoft::arrp::pool_error::NoMoreResources);
+            [](siddiqsoft::arrp::resource_pool<std::string>& pool) -> siddiqsoft::arrp::scoped_resource<std::string> {
+                throw std::runtime_error("Deliberate throw");
             });
 
     rp.add_to_pool(std::string("1"));
@@ -314,15 +313,21 @@ TEST(resource_pool, round_trip_preserves_value)
 TEST(resource_pool, json_type)
 {
     siddiqsoft::arrp::resource_pool<nlohmann::json> rp {};
+    nlohmann::json                                  dummy = {{"key", "value"}, {"age", 101}};
 
-    rp.add_to_pool(nlohmann::json {{"key", "value"}});
+    std::cerr << dummy.dump();
+
+    rp.add_to_pool(std::move(dummy));
+    EXPECT_TRUE(dummy.is_null());
     EXPECT_EQ(1u, rp.size());
+
+    std::cerr << dummy.dump();
 
     {
         auto item_result = rp.borrow_from_pool();
         EXPECT_TRUE(item_result.has_value());
-        auto item = std::move(item_result.value());
-        EXPECT_EQ("value", (*item)["key"].get<std::string>());
+        auto& item = *item_result;
+        EXPECT_EQ("value", item->value("key", ""));
         EXPECT_EQ(0u, rp.size());
     }
 }
@@ -359,7 +364,7 @@ TEST(resource_pool, concurrent_access)
     threads.clear();
 
     // All items should be back in the pool
-    EXPECT_EQ(ITERATIONS, static_cast<int>(rp.size().value_or(0)));
+    EXPECT_EQ(ITERATIONS, static_cast<int>(rp.size().value()));
 }
 
 
@@ -802,7 +807,7 @@ TEST(resource_pool, json_serialization_counters)
         auto res = std::move(res_result.value());
     }
 
-    auto json = pool.to_json().value().get();
+    auto& json = pool.to_json().value().get();
 
     // Verify JSON structure
     EXPECT_TRUE(json.contains("_typver"));
@@ -1334,7 +1339,7 @@ TEST(resource_pool_adversarial, concurrent_json_serialization)
     threads.emplace_back([&]() {
         start_barrier.arrive_and_wait();
         for (int i = 0; i < 50; ++i) {
-            auto json = pool.to_json().value().get();
+            auto& json = pool.to_json().value().get();
             json_calls++;
             EXPECT_TRUE(json.contains("in"));
         }
@@ -1354,7 +1359,7 @@ TEST(resource_pool_adversarial, factory_callback_exceptions)
 
     siddiqsoft::arrp::resource_pool<std::string> pool {
             siddiqsoft::arrp::resource_pool_limits::DefaultCapacity,
-            [&](auto& p) -> std::expected<siddiqsoft::arrp::scoped_resource<std::string>, siddiqsoft::arrp::pool_error> {
+            [&](auto& p) -> siddiqsoft::arrp::scoped_resource<std::string> {
                 factory_calls++;
                 if (factory_calls.load() % 2 == 0) {
                     factory_exceptions++;
@@ -1645,8 +1650,8 @@ TEST(resource_pool, concurrent_json_deadlock_detection)
     EXPECT_EQ(std::future_status::ready, serializer.wait_for(timeout));
     EXPECT_EQ(2, done.load());
 
-    auto res_w = worker.get();
-    auto res_s = serializer.get();
+    worker.get();
+    serializer.get();
 }
 
 // NOLINTEND(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
