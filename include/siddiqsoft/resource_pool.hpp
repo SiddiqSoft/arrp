@@ -333,9 +333,8 @@ namespace siddiqsoft::arrp
         void checkin(T&& item, bool isvalid = true)
         {
             if (m_is_shutdown) return;
+
             ++m_counter_checkin;
-            m_capacity_poolsize++;
-            if (m_capacity_poolsize.load() > m_capacity) m_capacity_poolsize = m_capacity;
 
             if (isvalid) {
                 std::scoped_lock l(m_pool_lock);
@@ -343,20 +342,16 @@ namespace siddiqsoft::arrp
                 m_pool.push_back(std::move(item));
                 ++m_counter_valid_returns;
                 m_resources_checkedout--;
+                m_capacity_poolsize++;
+                if (m_capacity_poolsize.load() > m_capacity) m_capacity_poolsize = m_capacity;
             } // lock scope end
             else {
                 // Resource was invalidated; do not add back to the pool.
                 // We need to decrement the checkout count under lock to ensure thread safety
-                {
-                    std::scoped_lock l(m_pool_lock);
-                    m_abandoned++;
-                    ++m_counter_invalid_returns;
-                    m_resources_checkedout--;
-                }
-
-#if defined(DEBUG_TRACE)
-                std::cerr << std::format("Resource was invalidated! {}\n", this->to_json().dump());
-#endif
+                std::scoped_lock l(m_pool_lock);
+                m_abandoned++;
+                ++m_counter_invalid_returns;
+                m_resources_checkedout--;
             }
         }
 
