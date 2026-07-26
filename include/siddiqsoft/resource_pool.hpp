@@ -415,7 +415,6 @@ namespace siddiqsoft::arrp
 #endif
 
 
-#if defined(DEBUG)
 /// @brief Specialization of std::formatter for resource_pool
 /// @details Provides formatted output for resource_pool instances using std::format
 /// @note Only available if nlohmann/json is included
@@ -437,4 +436,3 @@ struct std::formatter<siddiqsoft::arrp::resource_pool<T, SRT>> : std::formatter<
 #endif
     }
 };
-#endif
