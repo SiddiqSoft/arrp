@@ -1,9 +1,10 @@
 #pragma once
-#include <cstdint>
-#include <limits>
 #ifndef ARRP_COMMON_HPP
 #define ARRP_COMMON_HPP
 
+#include <cstdint>
+#include <limits>
+#include <expected>
 #include <exception>
 
 
@@ -39,6 +40,14 @@ namespace siddiqsoft::arrp
         Unknown,   // default is unknown
     };
 
+    enum class pool_error
+    {
+        NoMoreResources,
+        UnderCapacityNoAutoGrow,
+        ShutdownInitiated,
+        Unknown
+    };
+    
     constexpr bool is_release_reason_abandoned(const release_reason& rr)
     {
         return rr == release_reason::Abandoned;

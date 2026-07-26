@@ -204,9 +204,9 @@ TEST(resource_pool, serializer_1)
         EXPECT_EQ(2, rp.size());
         std::cerr << std::format("resource_pool::serializer_1 - after adding      stats:{}\n", rp);
 
-        auto p1 = rp.checkout();
+        auto p1 = rp.checkout().value();
         *p1     = "updated-" + *p1;
-        auto p2 = rp.checkout();
+        auto p2 = rp.checkout().value();
         *p2     = "updated-" + *p2;
 
         EXPECT_EQ(0, rp.size());
@@ -233,7 +233,7 @@ TEST(resource_pool, serializer_pair)
 
         auto p1 = rp.checkout();
         auto p2 = rp.checkout();
-        p2.invalidate();
+        p2.value().invalidate();
 
         EXPECT_EQ(0, rp.size());
 

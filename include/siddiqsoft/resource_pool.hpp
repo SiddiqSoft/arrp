@@ -47,6 +47,7 @@
 #include <stdexcept>
 #include <type_traits>
 #include <memory>
+#include <expected>
 
 #include "private/common.hpp"
 #include "private/scoped_resource.hpp"
@@ -115,7 +116,7 @@ namespace siddiqsoft::arrp
         /// @details Invoked when the pool needs a resource and is within capacity limits.
         /// The client cannot directly add resources; instead, they provide this factory callback.
         /// @warning MUST NOT call any pool methods to avoid deadlock
-        std::function<SRT(resource_pool&)> m_callback_to_add_new_raw_resource_to_pool {};
+        std::function<std::expected<SRT, pool_error>(resource_pool&)> m_callback_to_add_new_raw_resource_to_pool {};
 
         /// @brief Sets the capacity. This is internal and can only be called from the constructor.
         /// The capacity of the internal queue must not be altered once set.
@@ -154,11 +155,12 @@ namespace siddiqsoft::arrp
 
     public:
         /// @brief This callback is the default and does not grow the resource; it throws a runtime_error
-        static inline std::function<SRT(resource_pool&)> CallbackDoNotAutoAddResource = [](resource_pool&) -> SRT {
-            throw std::runtime_error("No items in the pool; add something first.");
+        static inline std::function<std::expected<SRT, pool_error>(resource_pool&)> CallbackDoNotAutoAddResource =
+                [](resource_pool&) -> std::expected<SRT, pool_error> {
+            return std::unexpected(pool_error::NoMoreResources);
         };
 
-        resource_pool(uint8_t init_capacity, std::function<SRT(resource_pool&)>&& new_resource_callback)
+        resource_pool(uint8_t init_capacity, std::function<std::expected<SRT, pool_error>(resource_pool&)>&& new_resource_callback)
         {
             set_capacity(init_capacity);
 
@@ -186,7 +188,7 @@ namespace siddiqsoft::arrp
                 // This method is declared here as lambda to capture the this pointer
                 // whereas if we attempted to declared it earlier as a static inline then the
                 // this pointer would not be captured.
-                m_callback_to_add_new_raw_resource_to_pool = [this](resource_pool& pool) -> SRT {
+                m_callback_to_add_new_raw_resource_to_pool = [this](resource_pool& pool) -> std::expected<SRT, pool_error> {
                     // Create a SRT element and wire up the auto-return callback to return
                     // the resource back to this object.
                     return SRT {[this](T&& src, bool isvalid) { // this callback puts the resource back..
@@ -214,19 +216,16 @@ namespace siddiqsoft::arrp
 
         ~resource_pool()
         {
-            {
-                std::scoped_lock l(m_pool_lock);
-                m_is_shutdown = true;
-            }
-
+            std::scoped_lock l(m_pool_lock);
+            m_is_shutdown = true;
             // The destructor is being called. No need to worry about obtaining exclusive lock
             // The fact that we're inside the destructor is pretty much exclusive.
             m_pool.clear();
         }
 
-        void clear() noexcept
+        auto clear() -> std::expected<void, pool_error>
         {
-            if (m_is_shutdown) return;
+            if (m_is_shutdown) return std::unexpected(pool_error::ShutdownInitiated);
 
             std::scoped_lock l(m_pool_lock);
 
@@ -235,17 +234,17 @@ namespace siddiqsoft::arrp
             m_pool.clear();
         }
 
-        [[nodiscard]] size_t size() const noexcept
+        [[nodiscard]] auto size() const -> std::expected<size_t, pool_error>
         {
-            if (m_is_shutdown) return {};
+            if (m_is_shutdown) return std::unexpected(pool_error::ShutdownInitiated);
 
             std::scoped_lock l(m_pool_lock);
             return m_pool.size();
         }
 
-        [[nodiscard]] auto checkout() -> SRT
+        [[nodiscard]] auto checkout() -> std::expected<SRT, pool_error>
         {
-            if (m_is_shutdown) throw std::runtime_error(std::format("We're shutting down\n"));
+            if (m_is_shutdown) return std::unexpected(pool_error::ShutdownInitiated);
 
 
             // Create a guard to decrement m_resources_checkedout if the factory callback throws
@@ -305,7 +304,7 @@ namespace siddiqsoft::arrp
                 }
                 else if (is_pool_starving()) {
                     // We're under-capacity.. but no dynamic resource provider
-                    throw std::runtime_error(std::format("We're under-capacity.. but no dynamic resource provider\n"));
+                    return std::unexpected(siddiqsoft::arrp::pool_error::UnderCapacityNoAutoGrow);
                 }
             } // scope end
             catch (std::exception& ex) {
@@ -313,52 +312,51 @@ namespace siddiqsoft::arrp
 #if defined(DEBUG_TRACE)
                 std::cerr << std::format("Error in checkout: {}\n", ex.what());
 #endif
-                throw;
+                return std::unexpected(pool_error::Unknown);
             }
             catch (...) {
                 checkout_guard();
                 std::cerr << std::format("UNKNOWN Error in checkout\n");
-                throw;
+                return std::unexpected(pool_error::Unknown);
             }
 
-#if defined(DEBUG)
-            auto msg = std::format("Starving: {}", this->to_json().dump());
-            throw std::runtime_error(msg);
-#else
-            throw std::runtime_error("Starving; add more resources");
-#endif
+            return std::unexpected(pool_error::NoMoreResources);
         }
 
 
-        void checkin(T&& item, bool isvalid = true)
+        auto checkin(T&& item, bool isvalid = true) -> std::expected<void, pool_error>
         {
-            if (m_is_shutdown) return;
-
-            ++m_counter_checkin;
+            if (m_is_shutdown) return std::unexpected(pool_error::ShutdownInitiated);
 
             if (isvalid) {
                 std::scoped_lock l(m_pool_lock);
 
                 m_pool.push_back(std::move(item));
+
                 ++m_counter_valid_returns;
                 m_resources_checkedout--;
                 m_capacity_poolsize++;
+
                 if (m_capacity_poolsize.load() > m_capacity) m_capacity_poolsize = m_capacity;
             } // lock scope end
             else {
                 // Resource was invalidated; do not add back to the pool.
                 // We need to decrement the checkout count under lock to ensure thread safety
                 std::scoped_lock l(m_pool_lock);
+
                 m_abandoned++;
                 ++m_counter_invalid_returns;
                 m_resources_checkedout--;
             }
+            ++m_counter_checkin;
+
+            return {};
         }
 
 #if defined(NLOHMANN_JSON_VERSION_MAJOR)
-        auto to_json() -> nlohmann::json&
+        auto to_json() -> std::expected<std::reference_wrapper<nlohmann::json>, siddiqsoft::arrp::pool_error>
         {
-            if (m_is_shutdown) throw std::runtime_error("Shutdown started.");
+            if (m_is_shutdown) return std::unexpected(siddiqsoft::arrp::pool_error::ShutdownInitiated);
 
             {
                 std::scoped_lock l(m_pool_lock);
@@ -379,7 +377,7 @@ namespace siddiqsoft::arrp
                 m_json["items"] = m_pool;
             }
 
-            return m_json;
+            return std::ref(m_json);
         }
 
     private:
@@ -425,7 +423,9 @@ struct std::formatter<siddiqsoft::arrp::resource_pool<T, SRT>> : std::formatter<
     auto format(siddiqsoft::arrp::resource_pool<T, SRT>& pool, FormatContext& ctx) const
     {
 #if defined(NLOHMANN_JSON_VERSION_MAJOR)
-        return std::format_to(ctx.out(), "{}", pool.to_json().dump());
+        if (auto jv = pool.to_json(); jv.has_value()) {
+            return std::format_to(ctx.out(), "{}", jv.value().get().dump());
+        }
 #else
         return std::format_to(ctx.out(), "{{ json format requires nlohmann/json library }}");
 #endif
