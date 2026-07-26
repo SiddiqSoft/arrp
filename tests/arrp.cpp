@@ -55,10 +55,11 @@ TEST(scoped_resource, T_string)
 {
     bool passTest {false};
 
-    EXPECT_NO_THROW({siddiqsoft::arrp::scoped_resource<std::string> sr(
-            [](auto&& item, bool isvalid) -> std::expected<void, siddiqsoft::arrp::pool_error> {
-                std::cerr << std::format("scoped_resource-T_string - This is called when object is out of scope! \n ");
-                return {};
+    EXPECT_NO_THROW({
+        siddiqsoft::arrp::scoped_resource<std::string> sr(
+                [](auto&& item, bool isvalid) -> std::expected<void, siddiqsoft::arrp::pool_error> {
+                    std::cerr << std::format("scoped_resource-T_string - This is called when object is out of scope! \n ");
+                    return {};
                 },
                 "ﷵ");
         std::cerr << std::format("stat: {}\n", sr.to_json().dump());
@@ -79,11 +80,12 @@ TEST(scoped_resource, T_struct)
         std::vector<int> vec {};
     };
 
-    EXPECT_NO_THROW({siddiqsoft::arrp::scoped_resource<custom1> sr(
-            [](auto&& item, bool isvalid) -> std::expected<void, siddiqsoft::arrp::pool_error> {
-                std::cerr << std::format("scoped_resource-T_struct - This is called when object is out of scope! rr: {}\n ",
-                                         isvalid);
-                return {};
+    EXPECT_NO_THROW({
+        siddiqsoft::arrp::scoped_resource<custom1> sr(
+                [](auto&& item, bool isvalid) -> std::expected<void, siddiqsoft::arrp::pool_error> {
+                    std::cerr << std::format("scoped_resource-T_struct - This is called when object is out of scope! rr: {}\n ",
+                                             isvalid);
+                    return {};
                 },
                 custom1 {99, "ﷵ", true, {1, 2, 3}});
         std::cerr << std::format("stat: {}\n", sr.to_json().dump());
@@ -116,11 +118,12 @@ TEST(scoped_resource, T_class1)
         }
     };
 
-    EXPECT_NO_THROW({siddiqsoft::arrp::scoped_resource<custom2> sr(
-            [](auto&& item, bool isvalid) -> std::expected<void, siddiqsoft::arrp::pool_error> {
-                std::cerr << std::format("scoped_resource-T_class1 - This is called when object is out of scope! rr: {}\n ",
-                                         isvalid);
-                return {};
+    EXPECT_NO_THROW({
+        siddiqsoft::arrp::scoped_resource<custom2> sr(
+                [](auto&& item, bool isvalid) -> std::expected<void, siddiqsoft::arrp::pool_error> {
+                    std::cerr << std::format("scoped_resource-T_class1 - This is called when object is out of scope! rr: {}\n ",
+                                             isvalid);
+                    return {};
                 },
                 99,
                 std::string("ﷵ"),
@@ -155,11 +158,12 @@ TEST(scoped_resource, T_class2)
         }
     };
 
-    EXPECT_NO_THROW({siddiqsoft::arrp::scoped_resource<custom2> sr(
-            [](auto&& item, bool isvalid) -> std::expected<void, siddiqsoft::arrp::pool_error> {
-                std::cerr << std::format("scoped_resource-T_class2 - This is called when object is out of scope! rr: {}\n ",
-                                         isvalid);
-                return {};
+    EXPECT_NO_THROW({
+        siddiqsoft::arrp::scoped_resource<custom2> sr(
+                [](auto&& item, bool isvalid) -> std::expected<void, siddiqsoft::arrp::pool_error> {
+                    std::cerr << std::format("scoped_resource-T_class2 - This is called when object is out of scope! rr: {}\n ",
+                                             isvalid);
+                    return {};
                 },
                 custom2 {99, "ﷵ", true, {1, 1, 2, 3}}); // this approach allows the compiler to deduce the proper arguments and
                                                         // perform copy/move elision
@@ -176,11 +180,12 @@ TEST(scoped_resource, T_pair)
     bool passTest {false};
     using custom2 = std::pair<int, std::string>;
 
-    EXPECT_NO_THROW({siddiqsoft::arrp::scoped_resource<custom2> sr(
-            [](auto&& item, bool isvalid) -> std::expected<void, siddiqsoft::arrp::pool_error> {
-                std::cerr << std::format("scoped_resource-T_pair - This is called when object <> is out of scope! rr: {}\n",
-                                         isvalid);
-                return {};
+    EXPECT_NO_THROW({
+        siddiqsoft::arrp::scoped_resource<custom2> sr(
+                [](auto&& item, bool isvalid) -> std::expected<void, siddiqsoft::arrp::pool_error> {
+                    std::cerr << std::format("scoped_resource-T_pair - This is called when object <> is out of scope! rr: {}\n",
+                                             isvalid);
+                    return {};
                 },
                 {99, "ﷵ"});
         // sr.invalidate();
@@ -232,17 +237,23 @@ TEST(resource_pool, serializer_pair)
         EXPECT_EQ(2, rp.size());
 
         auto p1 = rp.checkout();
-        auto p2 = rp.checkout();
-        p2.value().invalidate();
+        auto p2 = rp.checkout().transform([](auto&& item) {
+            item.invalidate();
+            (*item).first = 2020;
+            return std::move(item);
+        });
+
+        std::cerr << std::format("resource_pool::serializer_pair -    stats:{}\n", rp);
 
         EXPECT_EQ(0, rp.size());
 
         passTest = true;
     });
+
+    std::cerr << std::format("resource_pool::serializer_pair -    stats:{}\n", rp);
     // All the items should've been returned..
     // one was invalidated
     EXPECT_EQ(1, rp.size());
-    std::cerr << std::format("resource_pool::serializer_pair -    stats:{}\n", rp);
 
     EXPECT_TRUE(passTest);
 }
