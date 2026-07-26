@@ -58,7 +58,7 @@ TEST(scoped_resource, T_string)
     EXPECT_NO_THROW({
         siddiqsoft::arrp::scoped_resource<std::string> sr(
                 [](auto&& item, bool isvalid) -> std::expected<void, siddiqsoft::arrp::pool_error> {
-                    std::cerr << std::format("scoped_resource-T_string - This is called when object is out of scope! \n ");
+                    std::cerr << std::format("scoped_resource-T_string - Callback invoked on destruction! isvalid: {}\n", isvalid);
                     return {};
                 },
                 "ﷵ");
@@ -83,7 +83,7 @@ TEST(scoped_resource, T_struct)
     EXPECT_NO_THROW({
         siddiqsoft::arrp::scoped_resource<custom1> sr(
                 [](auto&& item, bool isvalid) -> std::expected<void, siddiqsoft::arrp::pool_error> {
-                    std::cerr << std::format("scoped_resource-T_struct - This is called when object is out of scope! rr: {}\n ",
+                    std::cerr << std::format("scoped_resource-T_struct - Callback invoked on destruction! isvalid: {}\n",
                                              isvalid);
                     return {};
                 },
@@ -121,7 +121,7 @@ TEST(scoped_resource, T_class1)
     EXPECT_NO_THROW({
         siddiqsoft::arrp::scoped_resource<custom2> sr(
                 [](auto&& item, bool isvalid) -> std::expected<void, siddiqsoft::arrp::pool_error> {
-                    std::cerr << std::format("scoped_resource-T_class1 - This is called when object is out of scope! rr: {}\n ",
+                    std::cerr << std::format("scoped_resource-T_class1 - Callback invoked on destruction! isvalid: {}\n",
                                              isvalid);
                     return {};
                 },
@@ -161,7 +161,7 @@ TEST(scoped_resource, T_class2)
     EXPECT_NO_THROW({
         siddiqsoft::arrp::scoped_resource<custom2> sr(
                 [](auto&& item, bool isvalid) -> std::expected<void, siddiqsoft::arrp::pool_error> {
-                    std::cerr << std::format("scoped_resource-T_class2 - This is called when object is out of scope! rr: {}\n ",
+                    std::cerr << std::format("scoped_resource-T_class2 - Callback invoked on destruction! isvalid: {}\n",
                                              isvalid);
                     return {};
                 },
@@ -183,7 +183,7 @@ TEST(scoped_resource, T_pair)
     EXPECT_NO_THROW({
         siddiqsoft::arrp::scoped_resource<custom2> sr(
                 [](auto&& item, bool isvalid) -> std::expected<void, siddiqsoft::arrp::pool_error> {
-                    std::cerr << std::format("scoped_resource-T_pair - This is called when object <> is out of scope! rr: {}\n",
+                    std::cerr << std::format("scoped_resource-T_pair - Callback invoked on destruction! isvalid: {}\n",
                                              isvalid);
                     return {};
                 },
