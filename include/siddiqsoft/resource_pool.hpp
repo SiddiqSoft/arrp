@@ -191,9 +191,10 @@ namespace siddiqsoft::arrp
                 m_callback_to_add_new_raw_resource_to_pool = [this](resource_pool& pool) -> std::expected<SRT, pool_error> {
                     // Create a SRT element and wire up the auto-return callback to return
                     // the resource back to this object.
-                    return SRT {[this](T&& src, bool isvalid) { // this callback puts the resource back..
+                    return SRT {[this](T&&  src,
+                                       bool isvalid) -> std::expected<void, pool_error> { // this callback puts the resource back..
                                     this->m_capacity_poolsize++;
-                                    this->checkin(std::forward<T&&>(src), isvalid);
+                                    return this->checkin(std::forward<T&&>(src), isvalid);
                                 },
                                 T {}};
                     // Allow the compiler to use NRVO (move elision; do not use std::move here!)
@@ -273,9 +274,10 @@ namespace siddiqsoft::arrp
                     // Make a wrapper..
                     // Create a SRT element and wire up the auto-return callback to return
                     // the resource back to this object.
-                    return SRT {[this](T&& src, bool isvalid) { // this callback puts the resource back..
+                    return SRT {[this](T&&  src,
+                                       bool isvalid) -> std::expected<void, pool_error> { // this callback puts the resource back..
                                     this->m_capacity_poolsize++;
-                                    this->checkin(std::forward<T&&>(src), isvalid);
+                                    return this->checkin(std::forward<T&&>(src), isvalid);
                                 },
                                 std::move(m_pool.front())};
                     // Allow the compiler to use NRVO (move elision; do not use std::move here!)
@@ -426,6 +428,9 @@ struct std::formatter<siddiqsoft::arrp::resource_pool<T, SRT>> : std::formatter<
         if (auto jv = pool.to_json(); jv.has_value()) {
             return std::format_to(ctx.out(), "{}", jv.value().get().dump());
         }
+
+        return std::format_to(ctx.out(), "Error from to_json() invocation.");
+
 #else
         return std::format_to(ctx.out(), "{{ json format requires nlohmann/json library }}");
 #endif
