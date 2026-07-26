@@ -161,16 +161,11 @@ namespace siddiqsoft::arrp
         };
 
         resource_pool(uint8_t init_capacity, std::function<std::expected<SRT, pool_error>(resource_pool&)>&& new_resource_callback)
+            : m_callback_to_add_new_raw_resource_to_pool(new_resource_callback ? std::move(new_resource_callback)
+                                                                               : CallbackDoNotAutoAddResource)
+
         {
             set_capacity(init_capacity);
-
-            if (new_resource_callback) {
-                m_callback_to_add_new_raw_resource_to_pool = std::move(new_resource_callback);
-            }
-            else {
-                // This is just in case someone sends an empty callback!
-                m_callback_to_add_new_raw_resource_to_pool = CallbackDoNotAutoAddResource;
-            }
         }
 
         /// @brief This is the default constructor.. the policy is to not auto-grow.
@@ -191,9 +186,8 @@ namespace siddiqsoft::arrp
                 m_callback_to_add_new_raw_resource_to_pool = [this](resource_pool& pool) -> std::expected<SRT, pool_error> {
                     // Create a SRT element and wire up the auto-return callback to return
                     // the resource back to this object.
-                    return SRT {[this](T&&  src,
-                                       bool isvalid) -> std::expected<void, pool_error> { // this callback puts the resource back..
-                                    this->m_capacity_poolsize++;
+                    return SRT {[this](T&& src, bool isvalid) -> std::expected<void, pool_error> {
+                                    // this callback puts the resource back..
                                     return this->checkin(std::forward<T&&>(src), isvalid);
                                 },
                                 T {}};
@@ -274,9 +268,8 @@ namespace siddiqsoft::arrp
                     // Make a wrapper..
                     // Create a SRT element and wire up the auto-return callback to return
                     // the resource back to this object.
-                    return SRT {[this](T&&  src,
-                                       bool isvalid) -> std::expected<void, pool_error> { // this callback puts the resource back..
-                                    this->m_capacity_poolsize++;
+                    return SRT {[this](T&& src, bool isvalid) -> std::expected<void, pool_error> {
+                                    // this callback puts the resource back..
                                     return this->checkin(std::forward<T&&>(src), isvalid);
                                 },
                                 std::move(m_pool.front())};
