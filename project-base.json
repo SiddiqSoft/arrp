@@ -8,7 +8,7 @@
             "cacheVariables": {
                 "CMAKE_PROJECT_NAME": "aarp",
                 "CMAKE_PROJECT_DESCRIPTION": "Auto returning resource pool for modern C++",
-                "CMAKE_CXX_STANDARD": "20",
+                "CMAKE_CXX_STANDARD": "23",
                 "arrp_BUILD_TESTS": "ON",
                 "CI_BUILDID": "0.0.0"
             },
