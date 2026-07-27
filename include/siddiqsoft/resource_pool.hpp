@@ -324,15 +324,34 @@ namespace siddiqsoft::arrp
             return std::unexpected(pool_error::NoMoreResources);
         }
 
+        
         template <typename... Args>
-        auto add_to_pool(Args... args) -> std::expected<void, pool_error>
+        auto add_to_pool(Args&&... args) -> std::expected<void, pool_error>
         {
             std::scoped_lock l(m_pool_lock);
 
             // Check inside the lock..
             if (m_is_shutdown) return std::unexpected(pool_error::ShutdownInitiated);
 
-            m_pool.push_back(T{std::forward<Args>(args)...});
+            m_pool.emplace_back(T {std::forward<Args&&>(args)...});
+
+            ++m_counter_valid_returns;
+            m_resources_checkedout--;
+            m_capacity_poolsize++;
+
+            if (m_capacity_poolsize.load() > m_capacity) m_capacity_poolsize = m_capacity;
+
+            return {};
+        }
+
+        auto add_to_pool(T&& item) -> std::expected<void, pool_error>
+        {
+            std::scoped_lock l(m_pool_lock);
+
+            // Check inside the lock..
+            if (m_is_shutdown) return std::unexpected(pool_error::ShutdownInitiated);
+
+            m_pool.emplace_back(std::move(item));
 
             ++m_counter_valid_returns;
             m_resources_checkedout--;
@@ -399,7 +418,9 @@ namespace siddiqsoft::arrp
                 m_json["invalid_returns"] = m_counter_invalid_returns.load();
                 m_json["checked_out"]     = m_resources_checkedout.load();
                 // This stage requires the type T have a json serializer
-                //m_json["items"] = m_pool;
+                if constexpr (std::is_same_v<T, nlohmann::json> || std::is_same_v<T, std::string>) {
+                    m_json["items"] = m_pool;
+                }
             }
 
             return std::ref(m_json);

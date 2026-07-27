@@ -312,26 +312,67 @@ TEST(resource_pool, round_trip_preserves_value)
 /// @brief Test with nlohmann::json type
 TEST(resource_pool, json_type)
 {
+    bool                                            passTest = false;
     siddiqsoft::arrp::resource_pool<nlohmann::json> rp {};
-    nlohmann::json                                  dummy = {{"key", "value"}, {"age", 101}};
+    nlohmann::json                                  dummy = {{"key", "value"}, {"age", 101}, {"something", "nothing"}};
 
     std::cerr << dummy.dump();
 
+     rp.add_to_pool(nlohmann::json::object({{"name", "surname"}, {"lift", 909}, {"everything", "nothing"}}));
     rp.add_to_pool(std::move(dummy));
     EXPECT_TRUE(dummy.is_null());
-    EXPECT_EQ(1u, rp.size());
+    EXPECT_EQ(2u, rp.size());
 
-    std::cerr << dummy.dump();
+    std::cerr << rp.to_json().value().get().dump();
 
-    {
+    try {
         auto item_result = rp.borrow_from_pool();
         EXPECT_TRUE(item_result.has_value());
-        auto& item = *item_result;
-        EXPECT_EQ("value", item->value("key", ""));
-        EXPECT_EQ(0u, rp.size());
+        auto item = *(item_result.value());
+
+        std::cerr << item.dump();
+        EXPECT_EQ("value", item["key"]);
+        EXPECT_EQ(1u, rp.size());
+        passTest = true;
     }
+    catch (std::exception& ex) {
+        std::cerr << ex.what();
+        passTest = false;
+    }
+
+    EXPECT_EQ(true, passTest);
 }
 
+
+/// @brief Test with nlohmann::json type
+TEST(resource_pool, pair_type)
+{
+    bool                                                         passTest = false;
+    siddiqsoft::arrp::resource_pool<std::pair<int, std::string>> rp {};
+
+    // Note that the args... constructor calls the specific args.. add_to_pool(args...)
+    rp.add_to_pool(99, "hello");
+    EXPECT_EQ(1u, rp.size());
+
+    try {
+        auto item_result = rp.borrow_from_pool();
+        EXPECT_TRUE(item_result.has_value());
+        auto item = *(item_result.value());
+
+        EXPECT_EQ(99, item.first);
+        EXPECT_EQ("hello", item.second);
+        std::cerr << std::format("contents of the item: <{},{}>\n", item.first, item.second);
+
+        EXPECT_EQ(0u, rp.size());
+        passTest = true;
+    }
+    catch (std::exception& ex) {
+        std::cerr << ex.what();
+        passTest = false;
+    }
+
+    EXPECT_EQ(true, passTest);
+}
 
 /// @brief Test concurrent add/borrow from multiple threads
 TEST(resource_pool, concurrent_access)
