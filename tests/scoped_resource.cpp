@@ -318,7 +318,7 @@ TEST(resource_pool, json_type)
 
     std::cerr << dummy.dump();
 
-     rp.add_to_pool(nlohmann::json::object({{"name", "surname"}, {"lift", 909}, {"everything", "nothing"}}));
+    rp.add_to_pool(nlohmann::json::object({{"name", "surname"}, {"lift", 909}, {"everything", "nothing"}}));
     rp.add_to_pool(std::move(dummy));
     EXPECT_TRUE(dummy.is_null());
     EXPECT_EQ(2u, rp.size());
@@ -331,7 +331,7 @@ TEST(resource_pool, json_type)
         auto item = *(item_result.value());
 
         std::cerr << item.dump();
-        EXPECT_EQ("value", item["key"]);
+        EXPECT_EQ("nothing", item["everything"]);
         EXPECT_EQ(1u, rp.size());
         passTest = true;
     }
