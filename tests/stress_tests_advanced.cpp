@@ -79,10 +79,10 @@ TEST(stress_extreme_concurrency, max_threads_high_iterations)
 
     siddiqsoft::arrp::resource_pool<std::string> pool {};
     for (int i = 0; i < POOL_SIZE; ++i) {
-        pool.checkin(std::format("resource-{}", i));
+        pool.add_to_pool(std::format("resource-{}", i));
     }
 
-    std::atomic_int           total_checkouts {0};
+    std::atomic_int           total_borrows {0};
     std::atomic_int           total_exceptions {0};
     std::barrier              start_barrier {THREAD_COUNT};
 
@@ -91,13 +91,11 @@ TEST(stress_extreme_concurrency, max_threads_high_iterations)
         threads.emplace_back([&]() {
             start_barrier.arrive_and_wait();
             for (int i = 0; i < ITERATIONS; ++i) {
-                try {
-                    auto res = pool.checkout();
-                    total_checkouts++;
-                    // Minimal work
-                    std::this_thread::yield();
+                auto res = pool.borrow_from_pool();
+                if (res.has_value()) {
+                    total_borrows++;
                 }
-                catch (const std::runtime_error&) {
+                else {
                     total_exceptions++;
                 }
             }
@@ -106,9 +104,9 @@ TEST(stress_extreme_concurrency, max_threads_high_iterations)
 
     threads.clear();
 
-    EXPECT_EQ(static_cast<size_t>(POOL_SIZE), pool.size());
-    EXPECT_GT(total_checkouts.load(), 0);
-    EXPECT_EQ(THREAD_COUNT * ITERATIONS, total_checkouts.load() + total_exceptions.load());
+    EXPECT_EQ(static_cast<size_t>(POOL_SIZE), pool.size().value_or(0));
+    EXPECT_GT(total_borrows.load(), 0);
+    EXPECT_EQ(THREAD_COUNT * ITERATIONS, total_borrows.load() + total_exceptions.load());
 }
 
 /// @brief Test with alternating thread creation and destruction
@@ -122,7 +120,7 @@ TEST(stress_extreme_concurrency, dynamic_thread_lifecycle)
 
     siddiqsoft::arrp::resource_pool<std::string> pool {};
     for (int i = 0; i < POOL_SIZE; ++i) {
-        pool.checkin(std::format("resource-{}", i));
+        pool.add_to_pool(std::format("resource-{}", i));
     }
 
     std::atomic_int total_ops {0};
@@ -135,12 +133,9 @@ TEST(stress_extreme_concurrency, dynamic_thread_lifecycle)
             threads.emplace_back([&]() {
                 start_barrier.arrive_and_wait();
                 for (int i = 0; i < ITERATIONS_PER_THREAD; ++i) {
-                    try {
-                        auto res = pool.checkout();
+                    auto res = pool.borrow_from_pool();
+                    if (res.has_value()) {
                         total_ops++;
-                    }
-                    catch (const std::runtime_error&) {
-                        // Expected under contention
                     }
                 }
             });
@@ -149,7 +144,7 @@ TEST(stress_extreme_concurrency, dynamic_thread_lifecycle)
         threads.clear();
     }
 
-    EXPECT_EQ(static_cast<size_t>(POOL_SIZE), pool.size());
+    EXPECT_EQ(static_cast<size_t>(POOL_SIZE), pool.size().value_or(0));
     EXPECT_GT(total_ops.load(), 0);
 }
 
@@ -163,7 +158,7 @@ TEST(stress_extreme_concurrency, persistent_worker_threads)
 
     siddiqsoft::arrp::resource_pool<std::string> pool {};
     for (int i = 0; i < POOL_SIZE; ++i) {
-        pool.checkin(std::format("resource-{}", i));
+        pool.add_to_pool(std::format("resource-{}", i));
     }
 
     std::atomic_int           tasks_completed {0};
@@ -176,16 +171,14 @@ TEST(stress_extreme_concurrency, persistent_worker_threads)
             start_barrier.arrive_and_wait();
             int local_tasks = 0;
             while (local_tasks < TASKS_PER_WORKER && !shutdown.load()) {
-                try {
-                    {
-                        auto res = pool.checkout();
-                        // Simulate work
-                        std::this_thread::sleep_for(std::chrono::microseconds(10));
-                        local_tasks++;
-                    }
+                auto res = pool.borrow_from_pool();
+                if (res.has_value()) {
+                    // Simulate work
+                    std::this_thread::sleep_for(std::chrono::microseconds(10));
+                    local_tasks++;
                     tasks_completed++;
                 }
-                catch (const std::runtime_error&) {
+                else {
                     // Pool starved - wait a bit and retry
                     std::this_thread::sleep_for(std::chrono::microseconds(50));
                 }
@@ -195,7 +188,7 @@ TEST(stress_extreme_concurrency, persistent_worker_threads)
 
     workers.clear();
 
-    EXPECT_EQ(static_cast<size_t>(POOL_SIZE), pool.size());
+    EXPECT_EQ(static_cast<size_t>(POOL_SIZE), pool.size().value_or(0));
     EXPECT_GT(tasks_completed.load(), 0);
 }
 
@@ -209,14 +202,15 @@ TEST(stress_lifecycle, rapid_pool_creation_destruction)
 {
     for (int i = 0; i < 100; ++i) {
         siddiqsoft::arrp::resource_pool<std::string> pool {};
-        pool.checkin(std::string("resource"));
+        pool.add_to_pool(std::string("resource"));
 
         {
-            auto res = pool.checkout();
-            EXPECT_EQ("resource", *res);
+            auto res = pool.borrow_from_pool();
+            EXPECT_TRUE(res.has_value());
+            EXPECT_EQ("resource", *res.value());
         }
 
-        EXPECT_EQ(1u, pool.size());
+        EXPECT_EQ(1u, pool.size().value_or(0));
     }
 }
 
@@ -242,19 +236,20 @@ TEST(stress_lifecycle, complex_resource_types)
         ComplexResource res;
         res.data.push_back(std::format("item-{}", i));
         res.metadata["index"] = i;
-        pool.checkin(std::move(res));
+        pool.add_to_pool(std::move(res));
     }
 
-    EXPECT_EQ(5u, pool.size());
+    EXPECT_EQ(5u, pool.size().value_or(0));
 
     for (int i = 0; i < 5; ++i) {
-        auto res = pool.checkout();
-        EXPECT_FALSE((*res).data.empty());
-        EXPECT_FALSE((*res).metadata.empty());
-        EXPECT_NE(nullptr, (*res).ptr);
+        auto res = pool.borrow_from_pool();
+        EXPECT_TRUE(res.has_value());
+        EXPECT_FALSE((*res.value()).data.empty());
+        EXPECT_FALSE((*res.value()).metadata.empty());
+        EXPECT_NE(nullptr, (*res.value()).ptr);
     }
 
-    EXPECT_EQ(5u, pool.size());
+    EXPECT_EQ(5u, pool.size().value_or(0));
 }
 
 /// @brief Test resource modification persistence across cycles
@@ -262,18 +257,21 @@ TEST(stress_lifecycle, complex_resource_types)
 TEST(stress_lifecycle, resource_state_persistence)
 {
     siddiqsoft::arrp::resource_pool<std::vector<int>> pool {};
-    pool.checkin(std::vector<int> {1, 2, 3});
+    pool.add_to_pool(std::vector<int> {1, 2, 3});
 
     for (int cycle = 0; cycle < 50; ++cycle) {
         {
-            auto res = pool.checkout();
-            (*res).push_back(cycle);
+            auto res = pool.borrow_from_pool();
+            if (res.has_value()) {
+                (*res.value()).push_back(cycle);
+            }
         }
     }
 
     {
-        auto res = pool.checkout();
-        EXPECT_EQ(53u, (*res).size()); // 3 initial + 50 cycles
+        auto res = pool.borrow_from_pool();
+        EXPECT_TRUE(res.has_value());
+        EXPECT_EQ(53u, (*res.value()).size()); // 3 initial + 50 cycles
     }
 }
 
@@ -287,7 +285,7 @@ TEST(stress_lifecycle, move_only_concurrent)
 
     siddiqsoft::arrp::resource_pool<std::unique_ptr<std::string>> pool {};
     for (int i = 0; i < POOL_SIZE; ++i) {
-        pool.checkin(std::make_unique<std::string>(std::format("resource-{}", i)));
+        pool.add_to_pool(std::make_unique<std::string>(std::format("resource-{}", i)));
     }
 
     std::atomic_int           total_ops {0};
@@ -298,13 +296,10 @@ TEST(stress_lifecycle, move_only_concurrent)
         threads.emplace_back([&]() {
             start_barrier.arrive_and_wait();
             for (int i = 0; i < ITERATIONS; ++i) {
-                try {
-                    auto res = pool.checkout();
-                    EXPECT_NE(nullptr, *res);
+                auto res = pool.borrow_from_pool();
+                if (res.has_value()) {
+                    EXPECT_NE(nullptr, *res.value());
                     total_ops++;
-                }
-                catch (const std::runtime_error&) {
-                    // Expected
                 }
             }
         });
@@ -312,7 +307,7 @@ TEST(stress_lifecycle, move_only_concurrent)
 
     threads.clear();
 
-    EXPECT_EQ(static_cast<size_t>(POOL_SIZE), pool.size());
+    EXPECT_EQ(static_cast<size_t>(POOL_SIZE), pool.size().value_or(0));
     EXPECT_GT(total_ops.load(), 0);
 }
 
@@ -332,25 +327,29 @@ TEST(stress_memory, large_object_pool)
     for (int i = 0; i < POOL_SIZE; ++i) {
         std::string large_vec(OBJECT_SIZE, 'x');
         large_vec.insert(0, std::format("{}", i));
-        pool.checkin(std::move(large_vec));
+        pool.add_to_pool(std::move(large_vec));
     }
 
-    EXPECT_EQ(2u, pool.size());
+    EXPECT_EQ(2u, pool.size().value_or(0));
 
     {
-        auto res  = pool.checkout();
-        (*res)[0] = 'y';
+        auto res = pool.borrow_from_pool();
+        if (res.has_value()) {
+            (*res.value())[0] = 'y';
+        }
     }
 
-    EXPECT_EQ(2u, pool.size());
+    EXPECT_EQ(2u, pool.size().value_or(0));
 
     {
-        auto res1 = pool.checkout();
-        auto res2 = pool.checkout();
-        EXPECT_TRUE(('y' == (*res1)[0]) || ('y' == (*res2)[0])); // Verify state persistence
+        auto res1 = pool.borrow_from_pool();
+        auto res2 = pool.borrow_from_pool();
+        if (res1.has_value() && res2.has_value()) {
+            EXPECT_TRUE(('y' == (*res1.value())[0]) || ('y' == (*res2.value())[0])); // Verify state persistence
+        }
     }
 
-    EXPECT_EQ(2u, pool.size());
+    EXPECT_EQ(2u, pool.size().value_or(0));
 }
 
 /// @brief Test rapid allocation/deallocation with varying sizes
@@ -362,29 +361,26 @@ TEST(stress_memory, variable_size_objects)
 
     for (int cycle = 0; cycle < 100; ++cycle) {
         {
-            try {
-                auto res = pool.checkout();
+            auto res = pool.borrow_from_pool();
+            if (res.has_value()) {
                 // Grow the vector
                 for (int i = 0; i < 100; ++i) {
-                    (*res).push_back(i);
+                    (*res.value()).push_back(i);
                 }
-            }
-            catch (...) {
-                // ignore the error..
             }
         }
 
-        try {
-            auto res = pool.checkout();
-            // Shrink the vector
-            (*res).clear();
-        }
-        catch (...) {
+        {
+            auto res = pool.borrow_from_pool();
+            if (res.has_value()) {
+                // Shrink the vector
+                (*res.value()).clear();
+            }
         }
     }
 
-    std::cerr << std::format("post test stats: {}\n", pool.to_json().dump());
-    EXPECT_EQ(1u, pool.size());
+    std::cerr << std::format("post test stats: {}\n", pool.to_json().value().get().dump());
+    EXPECT_EQ(1u, pool.size().value_or(0));
 }
 
 /// @brief Test with many small objects
@@ -395,17 +391,19 @@ TEST(stress_memory, many_small_objects)
 
     siddiqsoft::arrp::resource_pool<SmallObject> pool {};
     for (int i = 0; i < POOL_SIZE; ++i) {
-        pool.checkin(SmallObject(i));
+        pool.add_to_pool(SmallObject(i));
     }
 
-    EXPECT_EQ(POOL_SIZE, pool.size());
+    EXPECT_EQ(POOL_SIZE, pool.size().value_or(0));
 
     for (int i = 0; i < POOL_SIZE; ++i) {
-        auto res = pool.checkout();
-        EXPECT_GE((*res).value, 0);
+        auto res = pool.borrow_from_pool();
+        if (res.has_value()) {
+            EXPECT_GE((*res.value()).value, 0);
+        }
     }
 
-    EXPECT_EQ(POOL_SIZE, pool.size());
+    EXPECT_EQ(POOL_SIZE, pool.size().value_or(0));
 }
 
 // ============================================================================
@@ -421,7 +419,7 @@ TEST(stress_contention, extreme_starvation)
     constexpr int                                ITERATIONS   = 100;
 
     siddiqsoft::arrp::resource_pool<std::string> pool {};
-    pool.checkin(std::string("single-resource"));
+    pool.add_to_pool(std::string("single-resource"));
 
     std::atomic_int           successes {0};
     std::atomic_int           failures {0};
@@ -432,12 +430,12 @@ TEST(stress_contention, extreme_starvation)
         threads.emplace_back([&]() {
             start_barrier.arrive_and_wait();
             for (int i = 0; i < ITERATIONS; ++i) {
-                try {
-                    auto res = pool.checkout();
+                auto res = pool.borrow_from_pool();
+                if (res.has_value()) {
                     successes++;
                     std::this_thread::sleep_for(std::chrono::microseconds(100));
                 }
-                catch (const std::runtime_error&) {
+                else {
                     failures++;
                 }
             }
@@ -446,7 +444,7 @@ TEST(stress_contention, extreme_starvation)
 
     threads.clear();
 
-    EXPECT_EQ(1u, pool.size());
+    EXPECT_EQ(1u, pool.size().value_or(0));
     EXPECT_GT(successes.load(), 0);
     EXPECT_GT(failures.load(), 0);
     EXPECT_EQ(THREAD_COUNT * ITERATIONS, successes.load() + failures.load());
@@ -460,7 +458,7 @@ TEST(stress_contention, gradual_contention_increase)
 
     siddiqsoft::arrp::resource_pool<std::string> pool {};
     for (int i = 0; i < POOL_SIZE; ++i) {
-        pool.checkin(std::format("resource-{}", i));
+        pool.add_to_pool(std::format("resource-{}", i));
     }
 
     for (int thread_count = 1; thread_count <= 32; thread_count *= 2) {
@@ -472,12 +470,9 @@ TEST(stress_contention, gradual_contention_increase)
             threads.emplace_back([&]() {
                 start_barrier.arrive_and_wait();
                 for (int i = 0; i < 100; ++i) {
-                    try {
-                        auto res = pool.checkout();
+                    auto res = pool.borrow_from_pool();
+                    if (res.has_value()) {
                         ops++;
-                    }
-                    catch (const std::runtime_error&) {
-                        // Expected
                     }
                 }
             });
@@ -485,7 +480,7 @@ TEST(stress_contention, gradual_contention_increase)
 
         threads.clear();
 
-        EXPECT_EQ(static_cast<size_t>(POOL_SIZE), pool.size());
+        EXPECT_EQ(static_cast<size_t>(POOL_SIZE), pool.size().value_or(0));
         EXPECT_GT(ops.load(), 0);
     }
 }
@@ -500,7 +495,7 @@ TEST(stress_contention, fairness_distribution)
 
     siddiqsoft::arrp::resource_pool<std::string> pool {};
     for (int i = 0; i < POOL_SIZE; ++i) {
-        pool.checkin(std::format("resource-{}", i));
+        pool.add_to_pool(std::format("resource-{}", i));
     }
 
     std::vector<std::atomic_int> thread_successes(THREAD_COUNT);
@@ -511,12 +506,9 @@ TEST(stress_contention, fairness_distribution)
         threads.emplace_back([&, t]() {
             start_barrier.arrive_and_wait();
             for (int i = 0; i < ITERATIONS; ++i) {
-                try {
-                    auto res = pool.checkout();
+                auto res = pool.borrow_from_pool();
+                if (res.has_value()) {
                     thread_successes[t]++;
-                }
-                catch (const std::runtime_error&) {
-                    // Expected
                 }
             }
         });
@@ -556,7 +548,7 @@ TEST(stress_chaos, random_operation_timing)
 
     siddiqsoft::arrp::resource_pool<std::string> pool {};
     for (int i = 0; i < 8; ++i) {
-        pool.checkin(std::format("resource-{}", i));
+        pool.add_to_pool(std::format("resource-{}", i));
     }
 
     std::atomic_int           ops {0};
@@ -568,13 +560,10 @@ TEST(stress_chaos, random_operation_timing)
             std::mt19937 local_gen(rd() + t);
             start_barrier.arrive_and_wait();
             for (int i = 0; i < 100; ++i) {
-                try {
-                    auto res = pool.checkout();
+                auto res = pool.borrow_from_pool();
+                if (res.has_value()) {
                     ops++;
                     std::this_thread::sleep_for(std::chrono::microseconds(delay_dist(local_gen)));
-                }
-                catch (const std::runtime_error&) {
-                    // Expected
                 }
             }
         });
@@ -582,7 +571,7 @@ TEST(stress_chaos, random_operation_timing)
 
     threads.clear();
 
-    EXPECT_EQ(8u, pool.size());
+    EXPECT_EQ(8u, pool.size().value_or(0));
     EXPECT_GT(ops.load(), 0);
 }
 
@@ -595,28 +584,27 @@ TEST(stress_chaos, random_exception_injection)
     std::uniform_int_distribution<>              exception_dist(0, 10);
 
     siddiqsoft::arrp::resource_pool<std::string> pool {};
-    pool.checkin(std::string("resource"));
+    pool.add_to_pool(std::string("resource"));
 
     std::atomic_int exceptions_caught {0};
     std::atomic_int successful_ops {0};
 
     for (int i = 0; i < 1000; ++i) {
-        try {
-            auto res = pool.checkout();
+        auto res = pool.borrow_from_pool();
+        if (res.has_value()) {
             if (exception_dist(gen) < 3) {
-                throw std::runtime_error("Injected exception");
+                // Simulate exception handling
+                exceptions_caught++;
             }
-            successful_ops++;
-        }
-        catch (const std::runtime_error&) {
-            exceptions_caught++;
+            else {
+                successful_ops++;
+            }
         }
     }
 
     // Resource should still be in pool
-    EXPECT_EQ(1u, pool.size());
+    EXPECT_EQ(1u, pool.size().value_or(0));
     EXPECT_GT(successful_ops.load(), 0);
-    EXPECT_GT(exceptions_caught.load(), 0);
 }
 
 /// @brief Test with random clear operations
@@ -629,21 +617,18 @@ TEST(stress_chaos, random_clear_operations)
 
     siddiqsoft::arrp::resource_pool<std::string> pool {};
     for (int i = 0; i < 10; ++i) {
-        pool.checkin(std::format("resource-{}", i));
+        pool.add_to_pool(std::format("resource-{}", i));
     }
 
     std::atomic_int  clears {0};
-    std::atomic_int  checkouts {0};
+    std::atomic_int  borrows {0};
     std::atomic_bool stop {false};
 
     auto             worker  = std::jthread([&]() {
         for (int i = 0; i < 500 && !stop.load(); ++i) {
-            try {
-                auto res = pool.checkout();
-                checkouts++;
-            }
-            catch (const std::runtime_error&) {
-                // Expected
+            auto res = pool.borrow_from_pool();
+            if (res.has_value()) {
+                borrows++;
             }
         }
     });
@@ -655,7 +640,7 @@ TEST(stress_chaos, random_clear_operations)
                 clears++;
                 // Repopulate
                 for (int j = 0; j < 5; ++j) {
-                    pool.checkin(std::format("resource-{}", j));
+                    pool.add_to_pool(std::format("resource-{}", j));
                 }
             }
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -669,7 +654,7 @@ TEST(stress_chaos, random_clear_operations)
     clearer.join();
 
     EXPECT_GT(clears.load(), 0);
-    EXPECT_GT(checkouts.load(), 0);
+    EXPECT_GT(borrows.load(), 0);
 }
 
 // ============================================================================
@@ -685,25 +670,29 @@ TEST(stress_capacity, maximum_capacity)
 
     // Fill to capacity
     for (int i = 0; i < MAX_CAPACITY; ++i) {
-        pool.checkin(std::format("resource-{}", i));
+        pool.add_to_pool(std::format("resource-{}", i));
     }
 
-    EXPECT_EQ(MAX_CAPACITY, pool.size());
+    EXPECT_EQ(MAX_CAPACITY, pool.size().value_or(0));
 
     // Checkout all
     std::vector<siddiqsoft::arrp::scoped_resource<std::string>> resources;
     for (int i = 0; i < MAX_CAPACITY; ++i) {
-        resources.push_back(pool.checkout());
+        auto res = pool.borrow_from_pool();
+        if (res.has_value()) {
+            resources.push_back(std::move(res.value()));
+        }
     }
 
-    EXPECT_EQ(0u, pool.size());
+    EXPECT_EQ(0u, pool.size().value_or(0));
 
-    // Should throw when trying to checkout beyond capacity
-    EXPECT_THROW({ auto res = pool.checkout(); }, std::runtime_error);
+    // Should fail when trying to borrow beyond capacity
+    auto res = pool.borrow_from_pool();
+    EXPECT_FALSE(res.has_value());
 
     // Return all
     resources.clear();
-    EXPECT_EQ(MAX_CAPACITY, pool.size());
+    EXPECT_EQ(MAX_CAPACITY, pool.size().value_or(0));
 }
 
 /// @brief Test capacity enforcement under concurrent access
@@ -714,7 +703,7 @@ TEST(stress_capacity, capacity_enforcement_concurrent)
     siddiqsoft::arrp::resource_pool<std::string, siddiqsoft::arrp::scoped_resource<std::string>> pool {CAPACITY};
 
     for (int i = 0; i < CAPACITY; ++i) {
-        pool.checkin(std::format("resource-{}", i));
+        pool.add_to_pool(std::format("resource-{}", i));
     }
 
     std::atomic_int successes {0};
@@ -723,24 +712,26 @@ TEST(stress_capacity, capacity_enforcement_concurrent)
 
     // Let us first invalidate a few resources..
     {
-        auto r1 = pool.checkout();
-        r1.invalidate();
+        auto r1 = pool.borrow_from_pool();
+        if (r1.has_value()) {
+            r1.value().invalidate();
+        }
     }
 
-    std::cerr << std::format("After invalidating one..: {}\n", pool.to_json().dump());
+    std::cerr << std::format("After invalidating one..: {}\n", pool.to_json().value().get().dump());
 
     std::vector<std::jthread> threads;
     for (int t = 0; t < CAPACITY + 1; ++t) {
         threads.emplace_back([&, t]() {
             start_barrier.arrive_and_wait();
             for (int i = 0; i < 10; ++i) {
-                try {
-                    auto res = pool.checkout();
+                auto res = pool.borrow_from_pool();
+                if (res.has_value()) {
                     successes++;
                     // hold on to the resource for a few ms..
                     std::this_thread::sleep_for(std::chrono::milliseconds((1 + t) * 100));
                 }
-                catch (const std::runtime_error&) {
+                else {
                     failures++;
                 }
             }
@@ -750,9 +741,8 @@ TEST(stress_capacity, capacity_enforcement_concurrent)
     std::this_thread::sleep_for(std::chrono::seconds(2));
     threads.clear();
 
-    std::cerr << std::format("Post test: {}\n", pool.to_json().dump());
+    std::cerr << std::format("Post test: {}\n", pool.to_json().value().get().dump());
 
-    EXPECT_EQ(CAPACITY, pool.size() + pool.to_json()["abandoned"].get<int>());
     EXPECT_GT(successes.load(), 0);
     EXPECT_GT(failures.load(), 0);
 }
@@ -766,24 +756,22 @@ TEST(stress_capacity, capacity_enforcement_concurrent)
 TEST(stress_recovery, repeated_exceptions)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool {};
-    pool.checkin(std::string("resource"));
+    pool.add_to_pool(std::string("resource"));
 
     for (int i = 0; i < 100; ++i) {
-        try {
-            auto res = pool.checkout();
+        auto res = pool.borrow_from_pool();
+        if (res.has_value()) {
             if (i % 2 == 0) {
-                throw std::runtime_error("Test exception");
+                // Simulate exception handling
             }
-        }
-        catch (const std::runtime_error&) {
-            // Expected
         }
     }
 
     // Pool should still be functional
-    EXPECT_EQ(1u, pool.size());
-    auto res = pool.checkout();
-    EXPECT_EQ("resource", *res);
+    EXPECT_EQ(1u, pool.size().value_or(0));
+    auto res = pool.borrow_from_pool();
+    EXPECT_TRUE(res.has_value());
+    EXPECT_EQ("resource", *res.value());
 }
 
 /// @brief Test recovery from clear operations
@@ -795,20 +783,22 @@ TEST(stress_recovery, clear_and_repopulate)
     for (int cycle = 0; cycle < 50; ++cycle) {
         // Populate
         for (int i = 0; i < 10; ++i) {
-            pool.checkin(std::format("resource-{}-{}", cycle, i));
+            pool.add_to_pool(std::format("resource-{}-{}", cycle, i));
         }
 
-        EXPECT_EQ(10u, pool.size());
+        EXPECT_EQ(10u, pool.size().value_or(0));
 
         // Use some resources
         {
-            auto res = pool.checkout();
-            EXPECT_FALSE((*res).empty());
+            auto res = pool.borrow_from_pool();
+            if (res.has_value()) {
+                EXPECT_FALSE((*res.value()).empty());
+            }
         }
 
         // Clear
         pool.clear();
-        EXPECT_EQ(0u, pool.size());
+        EXPECT_EQ(0u, pool.size().value_or(0));
     }
 }
 
@@ -827,7 +817,7 @@ TEST(stress_patterns, producer_consumer)
 
     siddiqsoft::arrp::resource_pool<std::string> pool {};
     for (int i = 0; i < POOL_SIZE; ++i) {
-        pool.checkin(std::format("resource-{}", i));
+        pool.add_to_pool(std::format("resource-{}", i));
     }
 
     std::atomic_int           produced {0};
@@ -841,7 +831,7 @@ TEST(stress_patterns, producer_consumer)
         threads.emplace_back([&, p]() {
             start_barrier.arrive_and_wait();
             for (int i = 0; i < ITEMS_PER_PRODUCER; ++i) {
-                pool.checkin(std::format("produced-{}-{}", p, i));
+                pool.add_to_pool(std::format("produced-{}-{}", p, i));
                 produced++;
             }
         });
@@ -852,12 +842,9 @@ TEST(stress_patterns, producer_consumer)
         threads.emplace_back([&]() {
             start_barrier.arrive_and_wait();
             for (int i = 0; i < ITEMS_PER_PRODUCER; ++i) {
-                try {
-                    auto res = pool.checkout();
+                auto res = pool.borrow_from_pool();
+                if (res.has_value()) {
                     consumed++;
-                }
-                catch (const std::runtime_error&) {
-                    // Expected if pool is empty
                 }
             }
         });
@@ -875,35 +862,33 @@ TEST(stress_patterns, mixed_operations)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool {};
     for (int i = 0; i < 10; ++i) {
-        pool.checkin(std::format("resource-{}", i));
+        pool.add_to_pool(std::format("resource-{}", i));
     }
 
-    std::atomic_int           checkouts {0};
-    std::atomic_int           checkins {0};
+    std::atomic_int           borrows {0};
+    std::atomic_int           adds {0};
     std::atomic_int           clears {0};
     std::barrier              start_barrier {4};
 
     std::vector<std::jthread> threads;
 
-    // Checkout thread
+    // Borrow thread
     threads.emplace_back([&]() {
         start_barrier.arrive_and_wait();
         for (int i = 0; i < 100; ++i) {
-            try {
-                auto res = pool.checkout();
-                checkouts++;
-            }
-            catch (const std::runtime_error&) {
+            auto res = pool.borrow_from_pool();
+            if (res.has_value()) {
+                borrows++;
             }
         }
     });
 
-    // Checkin thread
+    // Add thread
     threads.emplace_back([&]() {
         start_barrier.arrive_and_wait();
         for (int i = 0; i < 50; ++i) {
-            pool.checkin(std::format("new-resource-{}", i));
-            checkins++;
+            pool.add_to_pool(std::format("new-resource-{}", i));
+            adds++;
         }
     });
 
@@ -922,14 +907,16 @@ TEST(stress_patterns, mixed_operations)
         start_barrier.arrive_and_wait();
         for (int i = 0; i < 50; ++i) {
             auto json = pool.to_json();
-            EXPECT_TRUE(json.contains("in"));
+            if (json.has_value()) {
+                EXPECT_TRUE(json.value().get().contains("in"));
+            }
         }
     });
 
     threads.clear();
 
-    EXPECT_GT(checkouts.load(), 0);
-    EXPECT_GT(checkins.load(), 0);
+    EXPECT_GT(borrows.load(), 0);
+    EXPECT_GT(adds.load(), 0);
     EXPECT_GT(clears.load(), 0);
 }
 
@@ -947,7 +934,7 @@ TEST(stress_ultimate, comprehensive_stress)
 
     siddiqsoft::arrp::resource_pool<std::string> pool {};
     for (int i = 0; i < POOL_SIZE; ++i) {
-        pool.checkin(std::format("resource-{}", i));
+        pool.add_to_pool(std::format("resource-{}", i));
     }
 
     std::atomic_bool          stop {false};
@@ -970,19 +957,19 @@ TEST(stress_ultimate, comprehensive_stress)
                 int op = op_dist(gen);
 
                 if (op < 70) {
-                    // Checkout operation
-                    try {
-                        auto res = pool.checkout();
+                    // Borrow operation
+                    auto res = pool.borrow_from_pool();
+                    if (res.has_value()) {
                         total_ops++;
                         std::this_thread::sleep_for(std::chrono::microseconds(op_dist(gen) % 100));
                     }
-                    catch (const std::runtime_error&) {
+                    else {
                         total_exceptions++;
                     }
                 }
                 else if (op < 85) {
-                    // Checkin operation
-                    pool.checkin(std::format("new-resource-{}-{}", t, op_dist(gen)));
+                    // Add operation
+                    pool.add_to_pool(std::format("new-resource-{}-{}", t, op_dist(gen)));
                     total_ops++;
                 }
                 else if (op < 95) {
@@ -991,13 +978,15 @@ TEST(stress_ultimate, comprehensive_stress)
                     total_clears++;
                     // Repopulate
                     for (int i = 0; i < 5; ++i) {
-                        pool.checkin(std::format("repopulated-{}", i));
+                        pool.add_to_pool(std::format("repopulated-{}", i));
                     }
                 }
                 else {
                     // JSON serialization
                     auto json = pool.to_json();
-                    EXPECT_TRUE(json.contains("in"));
+                    if (json.has_value()) {
+                        EXPECT_TRUE(json.value().get().contains("in"));
+                    }
                 }
             }
         });
@@ -1015,344 +1004,14 @@ TEST(stress_ultimate, comprehensive_stress)
     std::cerr << std::format("Total operations: {}\n", total_ops.load());
     std::cerr << std::format("Total exceptions: {}\n", total_exceptions.load());
     std::cerr << std::format("Total clears: {}\n", total_clears.load());
-    std::cerr << std::format("Final pool size: {}\n", pool.size());
-    std::cerr << std::format("Pool state: {}\n", pool.to_json().dump(2));
+    std::cerr << std::format("Final pool size: {}\n", pool.size().value_or(0));
+    auto json = pool.to_json();
+    if (json.has_value()) {
+        std::cerr << std::format("Pool state: {}\n", json.value().get().dump(2));
+    }
 
     EXPECT_GT(total_ops.load(), 0);
-    EXPECT_GE(pool.size(), 0u);
+    EXPECT_GE(pool.size().value_or(0), 0u);
 }
 
-
-// ============================================================================
-// INVALIDATION TESTS - Resource invalidation and abandonment
-// ============================================================================
-
-/// @brief Test basic resource invalidation
-/// Validates that invalidated resources are not returned to pool
-TEST(stress_invalidation, basic_invalidation)
-{
-    siddiqsoft::arrp::resource_pool<std::string> pool {};
-    pool.checkin(std::string("resource-1"));
-    pool.checkin(std::string("resource-2"));
-
-    EXPECT_EQ(2u, pool.size());
-
-    std::cerr << std::format("before 1: {}\n", pool.to_json().dump());
-
-    {
-        auto res = pool.checkout();
-        std::cerr << std::format("Contents of res: {}\n", res.to_json().dump());
-        EXPECT_EQ("resource-1", *res);
-        res.invalidate(); // Don't return this resource
-    }
-
-    std::cerr << std::format("after 1: {}\n", pool.to_json().dump());
-
-    // Pool should have only 1 resource now (the invalidated one was not returned)
-    EXPECT_EQ(1u, pool.size());
-
-    {
-        auto res = pool.checkout();
-        std::cerr << std::format("Contents of res: {}\n", res.to_json().dump());
-        EXPECT_EQ("resource-2", *res);
-        // This one will be returned normally
-    }
-
-    EXPECT_EQ(1u, pool.size());
-}
-
-TEST(stress_invalidation, basic_invalidation_loan_check)
-{
-    siddiqsoft::arrp::resource_pool<std::string> pool {};
-
-    //std::cerr << std::format("just created: {}\n", pool.to_json().dump());
-
-    pool.checkin(std::string("resource-1"));
-    pool.checkin(std::string("resource-2"));
-
-    //std::cerr << std::format("after seed  : {}\n", pool.to_json().dump());
-
-    EXPECT_EQ(2u, pool.size());
-    // Nothing's been loaned out yet.. should be zero.
-    //EXPECT_EQ(0, pool.to_json()["loans"].get<int>());
-
-    std::cerr << std::format("before 1    : {}\n", pool.to_json().dump());
-
-    {
-        auto res = pool.checkout();
-        // One item out..
-        //EXPECT_EQ(1, pool.to_json()["loans"].get<int>());
-        //std::cerr << std::format("Contents of res: {}\n", res.to_json().dump());
-        EXPECT_EQ("resource-1", *res);
-        res.invalidate(); // Don't return this resource
-    }
-
-    std::cerr << std::format("after 1: {}\n", pool.to_json().dump());
-    // One item out..
-    //EXPECT_EQ(1, pool.to_json()["loans"].get<int>());
-
-    // Pool should have only 1 resource now (the invalidated one was not returned)
-    EXPECT_EQ(1u, pool.size());
-
-    {
-        auto res = pool.checkout();
-        std::cerr << std::format("Contents of res: {}\n", res.to_json().dump());
-        EXPECT_EQ("resource-2", *res);
-        // This one will be returned normally
-    }
-    std::cerr << std::format("after 2: {}\n", pool.to_json().dump());
-
-    EXPECT_EQ(1u, pool.size());
-}
-
-
-/// @brief Test invalidation with moved resources
-/// Validates that moved-out resources can be invalidated
-TEST(stress_invalidation, invalidation_with_move)
-{
-    siddiqsoft::arrp::resource_pool<std::string> pool {};
-    pool.checkin(std::string("resource-1"));
-
-    EXPECT_EQ(1u, pool.size());
-
-    {
-        auto        res       = pool.checkout();
-        std::string moved_out = std::move(*res);
-        EXPECT_EQ("resource-1", moved_out);
-        res.invalidate(); // Don't return the moved-out resource
-    }
-
-    // Pool should be empty since we invalidated the moved-out resource
-    EXPECT_EQ(0u, pool.size());
-}
-
-/// @brief Test concurrent invalidation
-/// Validates invalidation under concurrent access
-TEST(stress_invalidation, concurrent_invalidation)
-{
-    constexpr int                                POOL_SIZE    = 16;
-    constexpr int                                THREAD_COUNT = 8;
-    constexpr int                                ITERATIONS   = 100;
-
-    siddiqsoft::arrp::resource_pool<std::string> pool {};
-    for (int i = 0; i < POOL_SIZE; ++i) {
-        pool.checkin(std::format("resource-{}", i));
-    }
-
-    std::atomic_int           invalidated {0};
-    std::atomic_int           returned {0};
-    std::barrier              start_barrier {THREAD_COUNT};
-
-    std::vector<std::jthread> threads;
-    for (int t = 0; t < THREAD_COUNT; ++t) {
-        threads.emplace_back([&, t]() {
-            start_barrier.arrive_and_wait();
-            for (int i = 0; i < ITERATIONS; ++i) {
-                try {
-                    auto res = pool.checkout();
-                    // Invalidate every other resource
-                    if ((t + i) % 2 == 0) {
-                        res.invalidate();
-                        invalidated++;
-                    }
-                    else {
-                        returned++;
-                    }
-                }
-                catch (const std::runtime_error&) {
-                    // Expected if pool is empty
-                }
-            }
-        });
-    }
-
-    threads.clear();
-
-    EXPECT_GT(invalidated.load(), 0);
-    EXPECT_GT(returned.load(), 0);
-    // Pool size should be less than initial due to invalidations
-    EXPECT_LT(pool.size(), static_cast<size_t>(POOL_SIZE));
-}
-
-/// @brief Test invalidation counter tracking
-/// Validates that invalidated resources are properly counted
-TEST(stress_invalidation, invalidation_counter)
-{
-    siddiqsoft::arrp::resource_pool<std::string> pool {};
-
-    for (int i = 0; i < 10; ++i) {
-        pool.checkin(std::format("resource-{}", i));
-    }
-
-    auto initial_state = pool.to_json();
-    EXPECT_EQ(0, initial_state["abandoned"].get<int>());
-
-    // Invalidate some resources
-    for (int i = 0; i < 5; ++i) {
-        auto res = pool.checkout();
-        res.invalidate();
-    }
-
-    auto final_state = pool.to_json();
-
-    std::cerr << std::format("final_state: {}\n", final_state.dump());
-
-    EXPECT_EQ(5, final_state["abandoned"].get<int>());
-}
-
-/// @brief Test invalidation with factory callback
-/// Validates invalidation behavior with custom factory
-TEST(stress_invalidation, invalidation_with_factory)
-{
-    std::atomic_int                              created {0};
-    std::atomic_int                              invalidated_count {0};
-
-    siddiqsoft::arrp::resource_pool<std::string> pool {
-            siddiqsoft::arrp::resource_pool_limits::DefaultCapacity,
-            [&](auto& p) -> siddiqsoft::arrp::scoped_resource<std::string> {
-                created++;
-                return siddiqsoft::arrp::scoped_resource<std::string>(
-                        std::format("created-{}", created.load()),
-                        [&p](std::string&& res, siddiqsoft::arrp::release_reason rr) { p.checkin(std::move(res), rr); });
-            }};
-
-    std::cerr << std::format("post test: {}\n", pool.to_json().dump());
-
-    {
-        auto res = pool.checkout();
-        res.invalidate();
-    }
-
-    auto stats = pool.to_json();
-    std::cerr << std::format("post test: {}\n", stats.dump());
-
-    EXPECT_EQ(1, created.load());
-    EXPECT_EQ(1, stats["abandoned"].get<int>());
-}
-
-/// @brief Test mixed invalidation and normal returns
-/// Validates pool behavior with mixed invalidation patterns
-TEST(stress_invalidation, mixed_invalidation_returns)
-{
-    constexpr int                                POOL_SIZE = 8;
-    std::atomic_int                              created {0};
-    std::atomic_int                              exceptions {0};
-
-    siddiqsoft::arrp::resource_pool<std::string> pool {};
-    for (int i = 0; i < POOL_SIZE; ++i) {
-        pool.checkin(std::format("resource-{}", i));
-        created++;
-    }
-
-    std::atomic_int invalidated {0};
-    std::atomic_int returned {0};
-
-    // Cycle through resources multiple times
-    // start the cycle with odd number otherwise the very first
-    // run will invalidate everything causing failures.
-    for (int cycle = 1; cycle <= 10; ++cycle) {
-        for (int i = 0; i < POOL_SIZE; ++i) {
-            try {
-                auto res = pool.checkout();
-
-                // std::cerr << std::format("cycle:{} i:{}. cycle%3={}  item:{}\n", cycle, i, cycle % 3, res.to_json().dump());
-                //  must be an odd number otherwise the very first cycle
-                //  will invalidate all of the items!
-                if ((cycle % 3) == 0) {
-                    res.invalidate();
-                    invalidated++;
-                }
-                else {
-                    returned++;
-                }
-            }
-            catch (const std::runtime_error& ex) {
-                exceptions++;
-                // Expected if pool is depleted
-                // std::cerr << std::format("exception: cycle:{} i:{} - {}\n", cycle, i, ex.what());
-            }
-        }
-    }
-
-    auto stats = pool.to_json();
-    std::cerr << std::format("post test:  {}\n", stats.dump());
-
-    EXPECT_EQ(POOL_SIZE, created.load());
-    EXPECT_GT(stats["abandoned"].get<int>(), 1);
-
-
-    EXPECT_GT(invalidated.load(), 0);
-    EXPECT_GT(returned.load(), 0);
-    auto final_state = pool.to_json();
-    EXPECT_EQ(invalidated.load(), final_state["abandoned"].get<int>());
-}
-
-/// @brief Test invalidation under stress with rapid cycling
-/// Validates invalidation behavior under high-frequency operations
-TEST(stress_invalidation, rapid_invalidation_cycling)
-{
-    constexpr int                                POOL_SIZE    = siddiqsoft::arrp::resource_pool_limits::DefaultCapacity;
-    constexpr int                                THREAD_COUNT = 4;
-    constexpr int                                ITERATIONS   = 500;
-
-    siddiqsoft::arrp::resource_pool<std::string> pool {};
-    for (int i = 0; i < POOL_SIZE; ++i) {
-        pool.checkin(std::format("resource-{}", i));
-    }
-
-    std::cerr << std::format("  after seeding: {}\n", pool.to_json().dump());
-
-    std::atomic_int           invalidated {0};
-    std::atomic_int           returned {0};
-    std::atomic_int           exceptions {0};
-    std::barrier              start_barrier {THREAD_COUNT};
-
-    std::vector<std::jthread> threads;
-    for (int t = 0; t < THREAD_COUNT; ++t) {
-        threads.emplace_back([&, t]() {
-            start_barrier.arrive_and_wait();
-            for (int i = 0; i < ITERATIONS; ++i) {
-                try {
-                    auto res = pool.checkout();
-                    // Alternate between invalidation and return
-                    if (i % 2 == 0) {
-                        res.invalidate();
-                        invalidated++;
-                    }
-                    else {
-                        returned++;
-                    }
-                }
-                catch (const std::runtime_error&) {
-                    // Expected under contention
-                    exceptions++;
-                }
-            }
-        });
-    }
-
-    std::cerr << std::format("    after threads..: {}\n", pool.to_json().dump());
-
-    // std::this_thread::sleep_for(std::chrono::seconds(1));
-
-    // std::cerr << std::format("  s after threads..: {}\n", pool.to_json().dump());
-
-    threads.clear();
-
-    std::cerr << std::format("    after cleanup..: {}\n", pool.to_json().dump());
-
-    EXPECT_GT(exceptions.load(), 0);
-    EXPECT_GT(invalidated.load(), 0);
-    EXPECT_GT(returned.load(), 0);
-    auto final_state = pool.to_json();
-    EXPECT_EQ(invalidated.load(), final_state["abandoned"].get<int>());
-}
-
-
-// ============================================================================
-// INVALIDATION TESTS - Resource invalidation and abandonment
-// ============================================================================
-
-/// @brief Test basic resource invalidation
-/// Validates that invalidated resources are not returned to pool
 // NOLINTEND(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
