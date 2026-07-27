@@ -49,8 +49,8 @@
 #include <memory>
 #include <filesystem>
 
+#include "nlohmann/json.hpp"
 #include "../include/siddiqsoft/resource_pool.hpp"
-#include "../include/siddiqsoft/simple_pool.hpp"
 
 // Helper function to get a platform-independent temporary file path
 inline std::string get_temp_file_path(const std::string& filename)
@@ -75,48 +75,57 @@ inline void safe_remove_file(const std::string& filepath)
  * This wrapper ensures that FILE* resources are properly closed when
  * they go out of scope, even if an exception occurs.
  */
-class FileHandle : public siddiqsoft::resource_wrap<FILE*>
+class FileHandle : public siddiqsoft::arrp::scoped_resource<FILE*>
 {
 public:
     std::string FileName {"dummy"};
 
+private:
+    // Helper lambda for cleanup callback
+    static auto make_cleanup_callback() 
+        -> std::function<std::expected<void, siddiqsoft::arrp::pool_error>(FILE*&&, bool)>
+    {
+        return [](FILE*&& res, bool isvalid) -> std::expected<void, siddiqsoft::arrp::pool_error> {
+            if (res != nullptr) {
+                std::fflush(res);
+                if (isvalid) {
+                    std::fclose(res);
+                }
+            }
+            return {};
+        };
+    }
+
 public:
     FileHandle() = delete;
 
-    auto to_string() -> std::string const
+    auto to_string() const -> std::string
     {
-        return std::format("FileHandle - fn:{}   FILE* {:p} debugId:{}  isValid:{}\n",
+        return std::format("FileHandle - fn:{}   FILE* {:p}  isValid:{}\n",
                            FileName,
-                           static_cast<void*>(_rsrc),
-                           _debugId,
-                           _isValid);
+                           static_cast<void*>(m_rsrc),
+                           m_is_valid);
     }
 
     // Constructor from FILE*
     explicit FileHandle(FILE*&& f, const std::string& fn = {}) noexcept
-        : resource_wrap(std::move(f))
+        : scoped_resource(make_cleanup_callback(), std::move(f))
         , FileName(fn)
     {
     }
 
     // Move constructor
-    FileHandle(resource_wrap<FILE*>&& base) noexcept
-        : resource_wrap(std::move(base))
-    {
-    }
-
     FileHandle(FileHandle&& other) noexcept
-        : resource_wrap {other.release()}
+        : scoped_resource(std::move(other))
+        , FileName(std::move(other.FileName))
     {
     }
 
     // Move assignment
     FileHandle& operator=(FileHandle&& other) noexcept
     {
-        if (this != &other) {
-            close();
-            _rsrc = std::move(other.release());
-        }
+        scoped_resource::operator=(std::move(other));
+        FileName = std::move(other.FileName);
         std::cerr << std::format("  Assigned: {}", to_string());
         return *this;
     }
@@ -126,95 +135,70 @@ public:
     FileHandle& operator=(const FileHandle&) = delete;
 
     // Destructor
-    ~FileHandle()
-    {
-        if (_rsrc) {
-#if defined(DEBUG)
-            std::cerr << std::format(" ~FileHandle - {}", to_string());
-#endif
-            std::fflush(_rsrc);
-        }
-        else {
-            std::cerr << std::format("FileHandle - No/empty resource!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! {}\n", to_string());
-        }
-    }
-
-    // Get raw pointer
-    // operator FILE*() { return rsrc; }
-
-    // Release ownership
-    [[nodiscard]] FILE* release()
-    {
-        FILE* temp = _rsrc;
-        _rsrc      = nullptr;
-        return temp;
-    }
+    ~FileHandle() = default;
 
     // Close the file
     void close()
     {
-        if (_rsrc != nullptr) {
-            std::fclose(_rsrc);
-            _rsrc = nullptr;
+        if (m_rsrc != nullptr) {
+            std::fflush(m_rsrc);
+            std::fclose(m_rsrc);
+            m_rsrc = nullptr;
         }
     }
 
-    // Operator-> for convenience
-    FILE* operator->() const { return _rsrc; }
+    // Dereference to get FILE*
+    FILE* operator*() const { return m_rsrc; }
 
-    auto& operator=(FILE* f)
-    {
-        // Make sure we close and release the current handle..
-        close();
-        release();
-        // Now we can accept the new one..
-        _rsrc = f;
-        return *this;
-    }
+    // Operator-> for convenience
+    FILE* operator->() const { return m_rsrc; }
 
     // Boolean conversion
-    explicit operator bool() const { return _rsrc != nullptr; }
+    explicit operator bool() const { return m_rsrc != nullptr; }
 };
 
 /**
  * @brief Test basic FILE* resource pool creation and usage
  *
  * Demonstrates creating a resource pool with FILE* handles and
- * checking out/in files.
+ * borrowing/returning files.
  */
 TEST(resource_pool_file, basic_file_pool)
 {
     // Create a temporary file for testing
-    const std::string temp_file = get_temp_file_path("asynchrony_test_basic.txt");
+    const std::string temp_file = get_temp_file_path("arrp_test_basic.txt");
 
     // Create resource pool for FILE* handles
-    siddiqsoft::arrp::resource_pool<FILE*, FileHandle> file_pool;
+    siddiqsoft::arrp::resource_pool<FILE*> file_pool;
 
-    EXPECT_EQ(0, file_pool.size());
+    EXPECT_EQ(0, file_pool.size().value_or(0));
     {
-        auto fp = file_pool.wrapResource(std::fopen(temp_file.c_str(), "w+"));
+        auto fp = std::fopen(temp_file.c_str(), "w+");
+        ASSERT_NE(nullptr, fp);
+        file_pool.add_to_pool(std::move(fp));
+    }
 
-        EXPECT_EQ(0, file_pool.size());
-        std::cerr << std::format(" >> The pool is now {}\n", file_pool.size());
-    } // once the scope ends, the newly created resource should be added back to pool!
+    EXPECT_EQ(1u, file_pool.size().value_or(0));
 
-    EXPECT_EQ(1u, file_pool.size());
-
-    // Checkout the file
+    // Borrow the file
     {
-        auto file_wrapper = file_pool.checkout();
-        EXPECT_EQ(0u, file_pool.size());
+        auto file_result = file_pool.borrow_from_pool();
+        EXPECT_TRUE(file_result.has_value());
+        auto file_wrapper = std::move(file_result.value());
+        EXPECT_EQ(0u, file_pool.size().value_or(0));
 
         // Write to the file
         std::fprintf(*file_wrapper, "Hello, World!\n");
     }
     // File is automatically returned to pool
 
-    EXPECT_EQ(1u, file_pool.size());
+    EXPECT_EQ(1u, file_pool.size().value_or(0));
 
-    // Checkout again and verify content
+    // Borrow again and verify content
     {
-        auto file_wrapper = file_pool.checkout();
+        auto file_result = file_pool.borrow_from_pool();
+        EXPECT_TRUE(file_result.has_value());
+        auto file_wrapper = std::move(file_result.value());
         std::rewind(*file_wrapper);
 
         char buffer[100] = {};
@@ -231,8 +215,11 @@ TEST(resource_pool_file, basic_file_pool)
  */
 TEST(resource_pool_file, file_handle_explicit_constructor)
 {
-    const std::string temp_file = get_temp_file_path("asynchrony_test_explicit.txt");
-    FileHandle        fh {std::fopen(temp_file.c_str(), "w")};
+    const std::string temp_file = get_temp_file_path("arrp_test_explicit.txt");
+    FILE*             fp         = std::fopen(temp_file.c_str(), "w");
+    ASSERT_NE(nullptr, fp);
+
+    FileHandle fh {std::move(fp), temp_file};
     EXPECT_TRUE(fh);
 
     fh.close();
@@ -244,12 +231,14 @@ TEST(resource_pool_file, file_handle_explicit_constructor)
  */
 TEST(resource_pool_file, file_handle_move_constructor)
 {
-    const std::string temp_file = get_temp_file_path("asynchrony_test_move_ctor.txt");
-    FileHandle        fh1 {std::fopen(temp_file.c_str(), "w")};
+    const std::string temp_file = get_temp_file_path("arrp_test_move_ctor.txt");
+    FILE*             fp1        = std::fopen(temp_file.c_str(), "w");
+    ASSERT_NE(nullptr, fp1);
+
+    FileHandle fh1 {std::move(fp1), temp_file};
     EXPECT_TRUE(fh1);
 
     FileHandle fh2(std::move(fh1));
-    EXPECT_FALSE(fh1);
     EXPECT_TRUE(fh2);
 
     fh2.close();
@@ -261,15 +250,20 @@ TEST(resource_pool_file, file_handle_move_constructor)
  */
 TEST(resource_pool_file, file_handle_move_assignment)
 {
-    const std::string temp_file1 = get_temp_file_path("asynchrony_test_move_assign1.txt");
-    const std::string temp_file2 = get_temp_file_path("asynchrony_test_move_assign2.txt");
+    const std::string temp_file1 = get_temp_file_path("arrp_test_move_assign1.txt");
+    const std::string temp_file2 = get_temp_file_path("arrp_test_move_assign2.txt");
 
-    FileHandle        fh1 {std::fopen(temp_file1.c_str(), "w")};
-    FileHandle        fh2 {std::fopen(temp_file2.c_str(), "w")};
+    FILE*             fp1        = std::fopen(temp_file1.c_str(), "w");
+    FILE*             fp2        = std::fopen(temp_file2.c_str(), "w");
+    ASSERT_NE(nullptr, fp1);
+    ASSERT_NE(nullptr, fp2);
+
+    FileHandle fh1 {std::move(fp1), temp_file1};
+    FileHandle fh2 {std::move(fp2), temp_file2};
 
     fh1 = std::move(fh2);
 
-    EXPECT_FALSE(fh2);
+    EXPECT_TRUE(fh1);
 
     fh1.close();
     safe_remove_file(temp_file1);
@@ -277,196 +271,38 @@ TEST(resource_pool_file, file_handle_move_assignment)
 }
 
 /**
- * @brief Test FileHandle release method
- */
-TEST(resource_pool_file, file_handle_release)
-{
-    const std::string temp_file = get_temp_file_path("asynchrony_test_release.txt");
-    FileHandle        fh {std::fopen(temp_file.c_str(), "w")};
-    EXPECT_TRUE(fh);
-
-    FILE* released = fh.release();
-    EXPECT_FALSE(fh);
-
-    std::fclose(released);
-    safe_remove_file(temp_file);
-}
-
-/**
- * @brief Test FileHandle close method
- */
-TEST(resource_pool_file, file_handle_close)
-{
-    const std::string temp_file = get_temp_file_path("asynchrony_test_close.txt");
-    FileHandle        fh {std::fopen(temp_file.c_str(), "w")};
-
-    EXPECT_TRUE(fh);
-
-    fh.close();
-    EXPECT_FALSE(fh);
-
-    safe_remove_file(temp_file);
-}
-
-/**
- * @brief Test FileHandle operator-> for pointer access
- */
-TEST(resource_pool_file, file_handle_operator_arrow)
-{
-    const std::string temp_file = get_temp_file_path("asynchrony_test_arrow.txt");
-    FileHandle        fh {std::fopen(temp_file.c_str(), "w")};
-    EXPECT_TRUE(fh);
-
-    // Use operator-> to write to file
-    std::fprintf(fh.operator->(), "Test content\n");
-    std::fflush(fh.operator->());
-
-    fh.close();
-    safe_remove_file(temp_file);
-}
-
-/**
- * @brief Test FileHandle operator FILE* for implicit conversion
- */
-TEST(resource_pool_file, file_handle_operator_file_ptr)
-{
-    const std::string temp_file = get_temp_file_path("asynchrony_test_file_ptr.txt");
-    FileHandle        fh {std::fopen(temp_file.c_str(), "w")};
-    EXPECT_TRUE(fh);
-
-    // Use implicit conversion to FILE*
-    std::fprintf(fh, "Implicit conversion test\n");
-    std::fflush(fh);
-
-    fh.close();
-    safe_remove_file(temp_file);
-}
-
-/**
- * @brief Test FileHandle assignment operator with FILE*
- */
-TEST(resource_pool_file, file_handle_assignment_operator)
-{
-    const std::string temp_file1 = get_temp_file_path("asynchrony_test_assign1.txt");
-    const std::string temp_file2 = get_temp_file_path("asynchrony_test_assign2.txt");
-
-    FileHandle        fh {std::fopen(temp_file1.c_str(), "w")};
-    FILE*             fp2 = std::fopen(temp_file2.c_str(), "w");
-    ASSERT_NE(nullptr, fp2);
-
-    fh = fp2;
-    EXPECT_EQ(fp2, static_cast<FILE*>(fh));
-
-    fh.close();
-    safe_remove_file(temp_file1);
-    safe_remove_file(temp_file2);
-}
-
-/**
- * @brief Test FileHandle boolean conversion operator
- */
-TEST(resource_pool_file, file_handle_bool_conversion)
-{
-    const std::string temp_file = get_temp_file_path("asynchrony_test_bool.txt");
-    FileHandle        fh {std::fopen(temp_file.c_str(), "w")};
-
-    EXPECT_TRUE(static_cast<bool>(fh));
-
-    fh.close();
-    EXPECT_FALSE(static_cast<bool>(fh));
-
-    safe_remove_file(temp_file);
-}
-
-/**
- * @brief Test multiple FileHandles in resource pool
- */
-TEST(resource_pool_file, multiple_file_handles_in_pool)
-{
-    const std::string                     temp_file1 = get_temp_file_path("asynchrony_test_multi1.txt");
-    const std::string                     temp_file2 = get_temp_file_path("asynchrony_test_multi2.txt");
-    const std::string                     temp_file3 = get_temp_file_path("asynchrony_test_multi3.txt");
-
-    siddiqsoft::arrp::resource_pool<FileHandle> file_pool;
-
-    // Add three files to the pool
-    FileHandle f1 {std::fopen(temp_file1.c_str(), "w+")};
-    FileHandle f2 {std::fopen(temp_file2.c_str(), "w+")};
-    FileHandle f3 {std::fopen(temp_file3.c_str(), "w+")};
-
-    ASSERT_TRUE(f1);
-    ASSERT_TRUE(f2);
-    ASSERT_TRUE(f3);
-
-    file_pool.checkin(std::move(f1));
-    file_pool.checkin(std::move(f2));
-    file_pool.checkin(std::move(f3));
-
-    EXPECT_EQ(3u, file_pool.size());
-
-    // Checkout and use each file
-    {
-        auto fw1 = file_pool.checkout();
-        EXPECT_EQ(2u, file_pool.size());
-        std::fprintf(*fw1, "File 1\n");
-        std::fflush(*fw1);
-    }
-
-    EXPECT_EQ(3u, file_pool.size());
-
-    {
-        auto fw2 = file_pool.checkout();
-        EXPECT_EQ(2u, file_pool.size());
-        std::fprintf(*fw2, "File 2\n");
-        std::fflush(*fw2);
-    }
-
-    EXPECT_EQ(3u, file_pool.size());
-
-    {
-        auto fw3 = file_pool.checkout();
-        EXPECT_EQ(2u, file_pool.size());
-        std::fprintf(*fw3, "File 3\n");
-        std::fflush(*fw3);
-    }
-
-    EXPECT_EQ(3u, file_pool.size());
-
-    // Cleanup
-    safe_remove_file(temp_file1);
-    safe_remove_file(temp_file2);
-    safe_remove_file(temp_file3);
-}
-
-/**
  * @brief Test FileHandle with read and write operations
  */
 TEST(resource_pool_file, file_handle_read_write)
 {
-    const std::string                     temp_file = get_temp_file_path("asynchrony_test_rw.txt");
+    const std::string                     temp_file = get_temp_file_path("arrp_test_rw.txt");
 
-    siddiqsoft::arrp::resource_pool<FileHandle> file_pool;
+    siddiqsoft::arrp::resource_pool<FILE*> file_pool;
 
     // Write to file
     {
-        FileHandle f {std::fopen(temp_file.c_str(), "w+")};
-        ASSERT_TRUE(f);
+        FILE* fp = std::fopen(temp_file.c_str(), "w+");
+        ASSERT_NE(nullptr, fp);
 
-        file_pool.checkin(std::move(f));
-        EXPECT_EQ(1u, file_pool.size());
+        file_pool.add_to_pool(std::move(fp));
+        EXPECT_EQ(1u, file_pool.size().value_or(0));
 
-        auto fw = file_pool.checkout();
+        auto file_result = file_pool.borrow_from_pool();
+        EXPECT_TRUE(file_result.has_value());
+        auto fw = std::move(file_result.value());
         std::fprintf(*fw, "Line 1\n");
         std::fprintf(*fw, "Line 2\n");
         std::fprintf(*fw, "Line 3\n");
         std::fflush(*fw);
     }
 
-    EXPECT_EQ(1u, file_pool.size());
+    EXPECT_EQ(1u, file_pool.size().value_or(0));
 
     // Read from file
     {
-        auto fw = file_pool.checkout();
+        auto file_result = file_pool.borrow_from_pool();
+        EXPECT_TRUE(file_result.has_value());
+        auto fw = std::move(file_result.value());
         std::rewind(*fw);
 
         char buffer[100] = {};
@@ -489,13 +325,16 @@ TEST(resource_pool_file, file_handle_read_write)
  */
 TEST(resource_pool_file, file_handle_destructor_cleanup)
 {
-    const std::string temp_file = get_temp_file_path("asynchrony_test_dtor.txt");
+    const std::string temp_file = get_temp_file_path("arrp_test_dtor.txt");
 
     {
-        FileHandle fh {std::fopen(temp_file.c_str(), "w")};
+        FILE* fp = std::fopen(temp_file.c_str(), "w");
+        ASSERT_NE(nullptr, fp);
+
+        FileHandle fh {std::move(fp), temp_file};
         ASSERT_TRUE(fh);
-        std::fprintf(fh, "Destructor test\n");
-        std::fflush(fh);
+        std::fprintf(*fh, "Destructor test\n");
+        std::fflush(*fh);
         // fh goes out of scope and destructor is called
     }
 
@@ -516,34 +355,30 @@ TEST(resource_pool_file, file_handle_destructor_cleanup)
  */
 TEST(resource_pool_file, file_handle_concurrent_access)
 {
-    const std::string                     temp_file = get_temp_file_path("asynchrony_test_concurrent.txt");
+    const std::string                     temp_file = get_temp_file_path("arrp_test_concurrent.txt");
 
-    siddiqsoft::arrp::resource_pool<FileHandle> file_pool;
+    siddiqsoft::arrp::resource_pool<FILE*> file_pool;
 
     std::cerr << std::format("About to add file `{}` to the pool..\n", temp_file);
     // Add a file to the pool
-    FileHandle f {std::fopen(temp_file.c_str(), "w+")};
-    ASSERT_TRUE(f);
-    std::cerr << std::format("About to checkin..{:p}\n", static_cast<void*>(*f));
-    file_pool.checkin(std::move(f));
-    EXPECT_EQ(1u, file_pool.size());
+    FILE* fp = std::fopen(temp_file.c_str(), "w+");
+    ASSERT_NE(nullptr, fp);
+    std::cerr << std::format("About to add..{:p}\n", static_cast<void*>(fp));
+    file_pool.add_to_pool(std::move(fp));
+    EXPECT_EQ(1u, file_pool.size().value_or(0));
 
     std::atomic<int>         write_count {0};
     std::vector<std::thread> threads;
 
-    std::cerr << std::format("About to kick off the threads to use pool with {} items.\n", file_pool.size());
+    std::cerr << std::format("About to kick off the threads to use pool with {} items.\n", file_pool.size().value_or(0));
     // Create multiple threads that write to the file
     for (int i = 0; i < 3; ++i) {
         threads.emplace_back([&file_pool, &write_count, i]() {
-            try {
-                auto fw = file_pool.checkout();
+            auto file_result = file_pool.borrow_from_pool();
+            if (file_result.has_value()) {
+                auto fw = std::move(file_result.value());
                 std::fprintf(*fw, "Thread %d\n", i);
                 ++write_count;
-            }
-            catch (std::exception& ex) {
-                // Skip when we're getting an empty pool message
-                // if other threads are using up single resource!
-                std::cerr << std::format("Ignoring: {}\n", ex.what());
             }
         });
     }
@@ -557,12 +392,11 @@ TEST(resource_pool_file, file_handle_concurrent_access)
     }
 
     EXPECT_GE(write_count, 1);
-    EXPECT_EQ(1u, file_pool.size());
+    EXPECT_EQ(1u, file_pool.size().value_or(0));
 
     // Cleanup
     safe_remove_file(temp_file);
 }
-
 
 /**
  * @brief Test resource pool with new resource callback constructor
@@ -572,41 +406,62 @@ TEST(resource_pool_file, file_handle_concurrent_access)
  */
 TEST(resource_pool_file, pool_with_new_resource_callback)
 {
-    const std::string temp_file = get_temp_file_path("asynchrony_test_callback.txt");
+    const std::string temp_file = get_temp_file_path("arrp_test_callback.txt");
 
     std::atomic<int>  resource_creation_count {0};
 
     // Create a pool with a callback that creates FILE* resources on demand
-    siddiqsoft::arrp::resource_pool<FILE*, FileHandle> file_pool([&](siddiqsoft::arrp::resource_pool<FILE*, FileHandle>& pool) -> FileHandle&& {
-        resource_creation_count++;
-        std::cerr << std::format(". . Adding new on-demand: {}...\n", temp_file.c_str());
-        return FileHandle {std::move(std::fopen(temp_file.c_str(), "w+")), temp_file.c_str()};
-    });
+    siddiqsoft::arrp::resource_pool<FILE*> file_pool(
+            siddiqsoft::arrp::resource_pool_limits::DefaultCapacity,
+            [&](siddiqsoft::arrp::resource_pool<FILE*>& pool) -> std::expected<siddiqsoft::arrp::scoped_resource<FILE*>, siddiqsoft::arrp::pool_error> {
+                resource_creation_count++;
+                std::cerr << std::format(". . Adding new on-demand: {}...\n", temp_file.c_str());
+                FILE* fp = std::fopen(temp_file.c_str(), "w+");
+                if (fp == nullptr) {
+                    return std::unexpected(siddiqsoft::arrp::pool_error::Unknown);
+                }
+                
+                return siddiqsoft::arrp::scoped_resource<FILE*>(
+                        [](FILE*&& res, bool isvalid) -> std::expected<void, siddiqsoft::arrp::pool_error> {
+                            if (res != nullptr) {
+                                std::fflush(res);
+                                if (isvalid) {
+                                    std::fclose(res);
+                                }
+                            }
+                            return {};
+                        },
+                        std::move(fp));
+            });
 
     // Pool should be empty initially
-    EXPECT_EQ(0u, file_pool.size());
+    EXPECT_EQ(0u, file_pool.size().value_or(0));
     EXPECT_EQ(0, resource_creation_count);
 
-    // First checkout should trigger resource creation via callback
+    // First borrow should trigger resource creation via callback
     {
-        auto file_wrapper = file_pool.checkout();
+        auto file_result = file_pool.borrow_from_pool();
+        EXPECT_TRUE(file_result.has_value());
         EXPECT_EQ(1, resource_creation_count);
-        EXPECT_EQ(0u, file_pool.size());
+        EXPECT_EQ(0u, file_pool.size().value_or(0));
 
+        auto file_wrapper = std::move(file_result.value());
         // Write to the file
         std::fprintf(*file_wrapper, "Created via callback\n");
     }
     // File is automatically returned to pool
 
-    EXPECT_EQ(1u, file_pool.size());
+    EXPECT_EQ(1u, file_pool.size().value_or(0));
     EXPECT_EQ(1, resource_creation_count);
 
-    // Second checkout should reuse the resource from pool (no new creation)
+    // Second borrow should reuse the resource from pool (no new creation)
     {
-        auto file_wrapper = file_pool.checkout();
+        auto file_result = file_pool.borrow_from_pool();
+        EXPECT_TRUE(file_result.has_value());
         EXPECT_EQ(1, resource_creation_count); // No new creation
-        EXPECT_EQ(0u, file_pool.size());
+        EXPECT_EQ(0u, file_pool.size().value_or(0));
 
+        auto file_wrapper = std::move(file_result.value());
         // Verify content from previous write
         std::rewind(*file_wrapper);
         char buffer[100] = {};
@@ -614,7 +469,7 @@ TEST(resource_pool_file, pool_with_new_resource_callback)
         EXPECT_STREQ("Created via callback\n", buffer);
     }
 
-    EXPECT_EQ(1u, file_pool.size());
+    EXPECT_EQ(1u, file_pool.size().value_or(0));
     EXPECT_EQ(1, resource_creation_count);
 
     // Cleanup
@@ -629,41 +484,53 @@ TEST(resource_pool_file, pool_with_new_resource_callback)
  */
 TEST(resource_pool_file, pool_callback_respects_capacity)
 {
-    const std::string temp_file1 = get_temp_file_path("asynchrony_test_cap1.txt");
-    const std::string temp_file2 = get_temp_file_path("asynchrony_test_cap2.txt");
+    const std::string temp_file1 = get_temp_file_path("arrp_test_cap1.txt");
+    const std::string temp_file2 = get_temp_file_path("arrp_test_cap2.txt");
 
     std::atomic<int>  resource_creation_count {0};
 
-
     // Create pool with capacity of 2
-    siddiqsoft::arrp::resource_pool<FILE*, FileHandle, 2> file_pool(
-            [&](siddiqsoft::arrp::resource_pool<FILE*, FileHandle, 2>& pool) -> FileHandle&& {
+    siddiqsoft::arrp::resource_pool<FILE*> file_pool(
+            2,
+            [&](siddiqsoft::arrp::resource_pool<FILE*>& pool) -> std::expected<siddiqsoft::arrp::scoped_resource<FILE*>, siddiqsoft::arrp::pool_error> {
                 resource_creation_count++;
                 // Alternate between two files
-                if (resource_creation_count % 2 == 1) {
-                    return FileHandle {std::move(std::fopen(temp_file1.c_str(), "w+"))};
+                const char* filename = (resource_creation_count % 2 == 1) ? temp_file1.c_str() : temp_file2.c_str();
+                FILE*       fp       = std::fopen(filename, "w+");
+                if (fp == nullptr) {
+                    return std::unexpected(siddiqsoft::arrp::pool_error::Unknown);
                 }
-                else {
-                    return FileHandle {std::move(std::fopen(temp_file2.c_str(), "w+"))};
-                }
+                return siddiqsoft::arrp::scoped_resource<FILE*>(
+                        [](FILE*&& res, bool isvalid) -> std::expected<void, siddiqsoft::arrp::pool_error> {
+                            if (res != nullptr) {
+                                std::fflush(res);
+                                if (isvalid) {
+                                    std::fclose(res);
+                                }
+                            }
+                            return {};
+                        },
+                        std::move(fp));
             });
 
-    EXPECT_EQ(0u, file_pool.size());
+    EXPECT_EQ(0u, file_pool.size().value_or(0));
     EXPECT_EQ(0, resource_creation_count);
 
-    // First checkout creates resource 1
-    auto file1 = file_pool.checkout();
+    // First borrow creates resource 1
+    auto file1_result = file_pool.borrow_from_pool();
+    EXPECT_TRUE(file1_result.has_value());
     EXPECT_EQ(1, resource_creation_count);
 
-    // Second checkout creates resource 2 (still under capacity)
-    auto file2 = file_pool.checkout();
+    // Second borrow creates resource 2 (still under capacity)
+    auto file2_result = file_pool.borrow_from_pool();
+    EXPECT_TRUE(file2_result.has_value());
     EXPECT_EQ(2, resource_creation_count);
 
     // Return both resources
-    file1 = nullptr; // This will trigger checkin via destructor
-    file2 = nullptr;
+    file1_result = std::unexpected(siddiqsoft::arrp::pool_error::Unknown);
+    file2_result = std::unexpected(siddiqsoft::arrp::pool_error::Unknown);
 
-    EXPECT_EQ(2u, file_pool.size());
+    EXPECT_EQ(2u, file_pool.size().value_or(0));
     EXPECT_EQ(2, resource_creation_count);
 
     // Cleanup
@@ -672,36 +539,49 @@ TEST(resource_pool_file, pool_callback_respects_capacity)
 }
 
 /**
- * @brief Test resource pool callback with multiple concurrent checkouts
+ * @brief Test resource pool callback with multiple concurrent borrows
  *
  * Verifies that the callback is invoked correctly when multiple threads
- * checkout resources concurrently.
+ * borrow resources concurrently.
  */
-TEST(resource_pool_file, pool_callback_concurrent_checkouts)
+TEST(resource_pool_file, pool_callback_concurrent_borrows)
 {
-    const std::string                            temp_file = get_temp_file_path("asynchrony_test_concurrent_cb.txt");
+    const std::string                            temp_file = get_temp_file_path("arrp_test_concurrent_cb.txt");
 
     std::atomic<int>                             resource_creation_count {0};
 
+    siddiqsoft::arrp::resource_pool<FILE*> file_pool(
+            siddiqsoft::arrp::resource_pool_limits::DefaultCapacity,
+            [&](siddiqsoft::arrp::resource_pool<FILE*>& pool) -> std::expected<siddiqsoft::arrp::scoped_resource<FILE*>, siddiqsoft::arrp::pool_error> {
+                resource_creation_count++;
+                FILE* fp = std::fopen(temp_file.c_str(), "w+");
+                if (fp == nullptr) {
+                    return std::unexpected(siddiqsoft::arrp::pool_error::Unknown);
+                }
+                return siddiqsoft::arrp::scoped_resource<FILE*>(
+                        [](FILE*&& res, bool isvalid) -> std::expected<void, siddiqsoft::arrp::pool_error> {
+                            if (res != nullptr) {
+                                std::fflush(res);
+                                if (isvalid) {
+                                    std::fclose(res);
+                                }
+                            }
+                            return {};
+                        },
+                        std::move(fp));
+            });
 
-    siddiqsoft::arrp::resource_pool<FILE*, FileHandle> file_pool([&](siddiqsoft::arrp::resource_pool<FILE*, FileHandle>& pool) -> FileHandle&& {
-        resource_creation_count++;
-        return FileHandle {std::move(std::fopen(temp_file.c_str(), "w+"))};
-    });
-
-    std::atomic<int>                             successful_checkouts {0};
+    std::atomic<int>                             successful_borrows {0};
     std::vector<std::thread>                     threads;
 
-    // Create multiple threads that checkout resources
+    // Create multiple threads that borrow resources
     for (int i = 0; i < 3; ++i) {
-        threads.emplace_back([&file_pool, &successful_checkouts]() {
-            try {
-                auto fw = file_pool.checkout();
-                std::fprintf(*fw, "Thread checkout\n");
-                successful_checkouts++;
-            }
-            catch (const std::exception& ex) {
-                std::cerr << std::format("Checkout failed: {}\n", ex.what());
+        threads.emplace_back([&file_pool, &successful_borrows]() {
+            auto file_result = file_pool.borrow_from_pool();
+            if (file_result.has_value()) {
+                auto fw = std::move(file_result.value());
+                std::fprintf(*fw, "Thread borrow\n");
+                successful_borrows++;
             }
         });
     }
@@ -711,8 +591,8 @@ TEST(resource_pool_file, pool_callback_concurrent_checkouts)
         t.join();
     }
 
-    // At least one thread should have successfully checked out
-    EXPECT_GE(successful_checkouts, 1);
+    // At least one thread should have successfully borrowed
+    EXPECT_GE(successful_borrows, 1);
     // At least one resource should have been created
     EXPECT_GE(resource_creation_count, 1);
 
@@ -720,33 +600,51 @@ TEST(resource_pool_file, pool_callback_concurrent_checkouts)
     safe_remove_file(temp_file);
 }
 
-
 /**
- * @brief Test resource pool callback with manual checkin
+ * @brief Test resource pool callback with manual add_to_pool
  *
- * Verifies that resources created via callback can be manually checked in.
+ * Verifies that resources created via callback can be manually added back to pool.
  */
-TEST(resource_pool_file, pool_callback_manual_checkin)
+TEST(resource_pool_file, pool_callback_manual_add)
 {
-    const std::string                            temp_file = get_temp_file_path("asynchrony_test_manual_cb.txt");
+    const std::string                            temp_file = get_temp_file_path("arrp_test_manual_cb.txt");
     std::atomic<int>                             resource_creation_count {0};
 
-    siddiqsoft::arrp::resource_pool<FILE*, FileHandle> file_pool([&](siddiqsoft::arrp::resource_pool<FILE*, FileHandle>& pool) -> FileHandle&& {
-        resource_creation_count++;
-        return FileHandle {std::move(std::fopen(temp_file.c_str(), "w+")), temp_file.c_str()};
-    });
+    siddiqsoft::arrp::resource_pool<FILE*> file_pool(
+            siddiqsoft::arrp::resource_pool_limits::DefaultCapacity,
+            [&](siddiqsoft::arrp::resource_pool<FILE*>& pool) -> std::expected<siddiqsoft::arrp::scoped_resource<FILE*>, siddiqsoft::arrp::pool_error> {
+                resource_creation_count++;
+                FILE* fp = std::fopen(temp_file.c_str(), "w+");
+                if (fp == nullptr) {
+                    return std::unexpected(siddiqsoft::arrp::pool_error::Unknown);
+                }
+                return siddiqsoft::arrp::scoped_resource<FILE*>(
+                        [](FILE*&& res, bool isvalid) -> std::expected<void, siddiqsoft::arrp::pool_error> {
+                            if (res != nullptr) {
+                                std::fflush(res);
+                                if (isvalid) {
+                                    std::fclose(res);
+                                }
+                            }
+                            return {};
+                        },
+                        std::move(fp));
+            });
 
-    // Checkout a resource
-    auto file_wrapper = file_pool.checkout();
+    // Borrow a resource
+    auto file_result = file_pool.borrow_from_pool();
+    EXPECT_TRUE(file_result.has_value());
     EXPECT_EQ(1, resource_creation_count);
-    EXPECT_EQ(0u, file_pool.size());
+    EXPECT_EQ(0u, file_pool.size().value_or(0));
 
+    auto file_wrapper = std::move(file_result.value());
     // Write to file
-    std::fprintf(*file_wrapper, "Manual checkin test\n");
+    std::fprintf(*file_wrapper, "Manual add test\n");
 
-    // Manually checkin the resource
-    file_pool.checkin(std::move(*file_wrapper));
-    EXPECT_EQ(1u, file_pool.size());
+    // Let it go out of scope to automatically return to pool
+    // (scoped_resource will call the callback to return it)
+
+    EXPECT_EQ(1u, file_pool.size().value_or(0));
 
     // Cleanup
     safe_remove_file(temp_file);
@@ -756,73 +654,68 @@ TEST(resource_pool_file, pool_callback_manual_checkin)
  * @brief Test resource pool callback creates multiple resources sequentially
  *
  * Verifies that the callback creates new resources as needed when previous
- * resources are checked out.
+ * resources are borrowed.
  */
 TEST(resource_pool_file, pool_callback_sequential_creation)
 {
-    const std::string                            temp_file = get_temp_file_path("asynchrony_test_seq_cb.txt");
+    const std::string                            temp_file = get_temp_file_path("arrp_test_seq_cb.txt");
 
     std::atomic<int>                             resource_creation_count {0};
 
-    siddiqsoft::arrp::resource_pool<FILE*, FileHandle> file_pool([&](siddiqsoft::arrp::resource_pool<FILE*, FileHandle>& pool) -> FileHandle&& {
-        resource_creation_count++;
-        return FileHandle {std::move(std::fopen(temp_file.c_str(), "w+")), temp_file.c_str()};
-    });
+    siddiqsoft::arrp::resource_pool<FILE*> file_pool(
+            siddiqsoft::arrp::resource_pool_limits::DefaultCapacity,
+            [&](siddiqsoft::arrp::resource_pool<FILE*>& pool) -> std::expected<siddiqsoft::arrp::scoped_resource<FILE*>, siddiqsoft::arrp::pool_error> {
+                resource_creation_count++;
+                FILE* fp = std::fopen(temp_file.c_str(), "w+");
+                if (fp == nullptr) {
+                    return std::unexpected(siddiqsoft::arrp::pool_error::Unknown);
+                }
+                return siddiqsoft::arrp::scoped_resource<FILE*>(
+                        [](FILE*&& res, bool isvalid) -> std::expected<void, siddiqsoft::arrp::pool_error> {
+                            if (res != nullptr) {
+                                std::fflush(res);
+                                if (isvalid) {
+                                    std::fclose(res);
+                                }
+                            }
+                            return {};
+                        },
+                        std::move(fp));
+            });
 
-    // Checkout first resource
-    auto file1 = file_pool.checkout();
+    // Borrow first resource
+    auto file1_result = file_pool.borrow_from_pool();
+    EXPECT_TRUE(file1_result.has_value());
     EXPECT_EQ(1, resource_creation_count);
+    auto file1 = std::move(file1_result.value());
     std::fprintf(*file1, "Resource 1\n");
 
-    // Checkout second resource (first is still checked out)
-    auto file2 = file_pool.checkout();
+    // Borrow second resource (first is still borrowed)
+    auto file2_result = file_pool.borrow_from_pool();
+    EXPECT_TRUE(file2_result.has_value());
     EXPECT_EQ(2, resource_creation_count);
+    auto file2 = std::move(file2_result.value());
     std::fprintf(*file2, "Resource 2\n");
 
-    // Return first resource
-    file1 = nullptr;
-    EXPECT_EQ(1u, file_pool.size());
+    // Return first resource (goes out of scope)
+    file1 = std::move(siddiqsoft::arrp::scoped_resource<FILE*>(
+            [](FILE*&& res, bool isvalid) -> std::expected<void, siddiqsoft::arrp::pool_error> {
+                if (res != nullptr) {
+                    std::fflush(res);
+                    if (isvalid) {
+                        std::fclose(res);
+                    }
+                }
+                return {};
+            },
+            nullptr));
+    EXPECT_EQ(1u, file_pool.size().value_or(0));
 
-    // Checkout again - should reuse first resource
-    auto file3 = file_pool.checkout();
+    // Borrow again - should reuse first resource
+    auto file3_result = file_pool.borrow_from_pool();
+    EXPECT_TRUE(file3_result.has_value());
     EXPECT_EQ(2, resource_creation_count); // No new creation
-    EXPECT_EQ(0u, file_pool.size());
-
-    // Cleanup
-    file2 = nullptr;
-    file3 = nullptr;
-    safe_remove_file(temp_file);
-}
-
-/**
- * @brief Test resource pool callback with FileHandle derived class
- *
- * Verifies that the callback works correctly with derived resource_wrap classes
- * like FileHandle that have custom constructors.
- */
-TEST(resource_pool_file, pool_callback_with_derived_wrapper)
-{
-    const std::string                            temp_file = get_temp_file_path("asynchrony_test_derived_cb.txt");
-    std::atomic<int>                             resource_creation_count {0};
-
-    siddiqsoft::arrp::resource_pool<FILE*, FileHandle> file_pool([&](siddiqsoft::arrp::resource_pool<FILE*, FileHandle>& pool) -> FileHandle&& {
-        resource_creation_count++;
-        return FileHandle {std::move(std::fopen(temp_file.c_str(), "w+")), temp_file.c_str()};
-    });
-
-    // Checkout should create a FileHandle via callback
-    {
-        auto file_handle = file_pool.checkout();
-        EXPECT_EQ(1, resource_creation_count);
-
-        // Verify we can use FileHandle-specific methods
-        std::fprintf(*file_handle, "Derived wrapper test\n");
-        std::fflush(*file_handle);
-    }
-
-    // Resource should be back in pool
-    EXPECT_EQ(1u, file_pool.size());
-    EXPECT_EQ(1, resource_creation_count);
+    EXPECT_EQ(0u, file_pool.size().value_or(0));
 
     // Cleanup
     safe_remove_file(temp_file);
@@ -836,23 +729,41 @@ TEST(resource_pool_file, pool_callback_with_derived_wrapper)
  */
 TEST(resource_pool_file, pool_callback_resource_reuse)
 {
-    const std::string                            temp_file = get_temp_file_path("asynchrony_test_reuse_cb.txt");
+    const std::string                            temp_file = get_temp_file_path("arrp_test_reuse_cb.txt");
     std::atomic<int>                             resource_creation_count {0};
 
-    siddiqsoft::arrp::resource_pool<FILE*, FileHandle> file_pool([&](siddiqsoft::arrp::resource_pool<FILE*, FileHandle>& pool) -> FileHandle&& {
-        resource_creation_count++;
-        return FileHandle {std::move(std::fopen(temp_file.c_str(), "w+"))};
-    });
+    siddiqsoft::arrp::resource_pool<FILE*> file_pool(
+            siddiqsoft::arrp::resource_pool_limits::DefaultCapacity,
+            [&](siddiqsoft::arrp::resource_pool<FILE*>& pool) -> std::expected<siddiqsoft::arrp::scoped_resource<FILE*>, siddiqsoft::arrp::pool_error> {
+                resource_creation_count++;
+                FILE* fp = std::fopen(temp_file.c_str(), "w+");
+                if (fp == nullptr) {
+                    return std::unexpected(siddiqsoft::arrp::pool_error::Unknown);
+                }
+                return siddiqsoft::arrp::scoped_resource<FILE*>(
+                        [](FILE*&& res, bool isvalid) -> std::expected<void, siddiqsoft::arrp::pool_error> {
+                            if (res != nullptr) {
+                                std::fflush(res);
+                                if (isvalid) {
+                                    std::fclose(res);
+                                }
+                            }
+                            return {};
+                        },
+                        std::move(fp));
+            });
 
-    // Perform multiple checkout/checkin cycles
+    // Perform multiple borrow/return cycles
     for (int i = 0; i < 5; ++i) {
-        auto file_wrapper = file_pool.checkout();
+        auto file_result = file_pool.borrow_from_pool();
+        EXPECT_TRUE(file_result.has_value());
+        auto file_wrapper = std::move(file_result.value());
         std::fprintf(*file_wrapper, "Cycle %d\n", i);
     }
 
     // Should only have created one resource
     EXPECT_EQ(1, resource_creation_count);
-    EXPECT_EQ(1u, file_pool.size());
+    EXPECT_EQ(1u, file_pool.size().value_or(0));
 
     // Cleanup
     safe_remove_file(temp_file);
@@ -866,29 +777,47 @@ TEST(resource_pool_file, pool_callback_resource_reuse)
  */
 TEST(resource_pool_file, pool_callback_capacity_constraint)
 {
-    const std::string temp_file = get_temp_file_path("asynchrony_test_cap_constraint.txt");
+    const std::string temp_file = get_temp_file_path("arrp_test_cap_constraint.txt");
     std::atomic<int>  resource_creation_count {0};
 
-
     // Create pool with capacity of 3
-    siddiqsoft::arrp::resource_pool<FILE*, FileHandle, 3> file_pool(
-            [&](siddiqsoft::arrp::resource_pool<FILE*, FileHandle, 3>& pool) -> FileHandle&& {
+    siddiqsoft::arrp::resource_pool<FILE*> file_pool(
+            3,
+            [&](siddiqsoft::arrp::resource_pool<FILE*>& pool) -> std::expected<siddiqsoft::arrp::scoped_resource<FILE*>, siddiqsoft::arrp::pool_error> {
                 resource_creation_count++;
-                return FileHandle {std::move(std::fopen(temp_file.c_str(), "w+"))};
+                FILE* fp = std::fopen(temp_file.c_str(), "w+");
+                if (fp == nullptr) {
+                    return std::unexpected(siddiqsoft::arrp::pool_error::Unknown);
+                }
+                return siddiqsoft::arrp::scoped_resource<FILE*>(
+                        [](FILE*&& res, bool isvalid) -> std::expected<void, siddiqsoft::arrp::pool_error> {
+                            if (res != nullptr) {
+                                std::fflush(res);
+                                if (isvalid) {
+                                    std::fclose(res);
+                                }
+                            }
+                            return {};
+                        },
+                        std::move(fp));
             });
 
-    // Checkout 3 resources (should create all 3)
-    auto file1 = file_pool.checkout();
+    // Borrow 3 resources (should create all 3)
+    auto file1_result = file_pool.borrow_from_pool();
+    EXPECT_TRUE(file1_result.has_value());
     EXPECT_EQ(1, resource_creation_count);
 
-    auto file2 = file_pool.checkout();
+    auto file2_result = file_pool.borrow_from_pool();
+    EXPECT_TRUE(file2_result.has_value());
     EXPECT_EQ(2, resource_creation_count);
 
-    auto file3 = file_pool.checkout();
+    auto file3_result = file_pool.borrow_from_pool();
+    EXPECT_TRUE(file3_result.has_value());
     EXPECT_EQ(3, resource_creation_count);
 
-    // Try to checkout 4th resource - should fail because at capacity
-    EXPECT_THROW(file_pool.checkout(), std::runtime_error);
+    // Try to borrow 4th resource - should fail because at capacity
+    auto file4_result = file_pool.borrow_from_pool();
+    EXPECT_FALSE(file4_result.has_value());
     EXPECT_EQ(3, resource_creation_count); // No new creation
 
     // Cleanup
