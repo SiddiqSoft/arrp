@@ -107,8 +107,8 @@ if(${${PROJECT_NAME}_BUILD_TESTS})
                     ${PROJECT_SOURCE_DIR}/tests/scoped_resource.cpp
                     #${PROJECT_SOURCE_DIR}/tests/resource_pool_file.cpp
                     ${PROJECT_SOURCE_DIR}/tests/stress_tests_advanced.cpp
-                    #${PROJECT_SOURCE_DIR}/tests/resource_wrap_validity.cpp
-                    #${PROJECT_SOURCE_DIR}/tests/custom_scoped_resource_tests.cpp
+                    ${PROJECT_SOURCE_DIR}/tests/resource_wrap_validity.cpp
+                    ${PROJECT_SOURCE_DIR}/tests/custom_scoped_resource_tests.cpp
     )
 
     # Link dependencies..

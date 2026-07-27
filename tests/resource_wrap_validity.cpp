@@ -31,21 +31,23 @@
 TEST(scoped_resource_validity, valid_resource_returned)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool;
-    pool.checkin(std::string("42"));
+    pool.add_to_pool(std::string("42"));
 
-    EXPECT_EQ(1u, pool.size());
+    EXPECT_EQ(1u, pool.size().value_or(0));
 
     {
-        auto wrap = pool.checkout();
-        EXPECT_EQ(0u, pool.size());
+        auto wrap = pool.borrow_from_pool();
+        EXPECT_TRUE(wrap.has_value());
+        EXPECT_EQ(0u, pool.size().value_or(0));
         // Don't invalidate - resource should be returned
     }
 
     // Pool should have the resource back
-    EXPECT_EQ(1u, pool.size());
+    EXPECT_EQ(1u, pool.size().value_or(0));
 
-    auto item = pool.checkout();
-    EXPECT_EQ("42", *item);
+    auto item = pool.borrow_from_pool();
+    EXPECT_TRUE(item.has_value());
+    EXPECT_EQ("42", *item.value());
 }
 
 /**
@@ -54,23 +56,25 @@ TEST(scoped_resource_validity, valid_resource_returned)
 TEST(scoped_resource_validity, assignment_maintains_validity)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool;
-    pool.checkin(std::string("42"));
-    pool.checkin(std::string("99"));
+    pool.add_to_pool(std::string("42"));
+    pool.add_to_pool(std::string("99"));
 
     {
-        auto wrap1 = pool.checkout();
-        auto wrap2 = pool.checkout();
+        auto wrap1 = pool.borrow_from_pool();
+        auto wrap2 = pool.borrow_from_pool();
 
-        EXPECT_EQ(0u, pool.size());
+        EXPECT_TRUE(wrap1.has_value());
+        EXPECT_TRUE(wrap2.has_value());
+        EXPECT_EQ(0u, pool.size().value_or(0));
 
         // Assign wrap2's resource to wrap1
-        *wrap1 = std::move(*wrap2);
+        *wrap1.value() = std::move(*wrap2.value());
 
         // Both should still be valid and return their resources
     }
 
     // Both resources should be back in the pool
-    EXPECT_EQ(2u, pool.size());
+    EXPECT_EQ(2u, pool.size().value_or(0));
 }
 
 /**
@@ -79,18 +83,20 @@ TEST(scoped_resource_validity, assignment_maintains_validity)
 TEST(scoped_resource_validity, destructor_returns_valid_resource)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool;
-    pool.checkin(std::string("100"));
+    pool.add_to_pool(std::string("100"));
 
     {
-        auto wrap = pool.checkout();
-        EXPECT_EQ(0u, pool.size());
+        auto wrap = pool.borrow_from_pool();
+        EXPECT_TRUE(wrap.has_value());
+        EXPECT_EQ(0u, pool.size().value_or(0));
         // Don't invalidate - destructor should return it
     }
 
     // Resource should be back in pool
-    EXPECT_EQ(1u, pool.size());
-    auto item = pool.checkout();
-    EXPECT_EQ("100", *item);
+    EXPECT_EQ(1u, pool.size().value_or(0));
+    auto item = pool.borrow_from_pool();
+    EXPECT_TRUE(item.has_value());
+    EXPECT_EQ("100", *item.value());
 }
 
 #if defined(DEBUG)
@@ -108,21 +114,22 @@ TEST(scoped_resource_validity, destructor_returns_valid_resource)
 TEST(scoped_resource_validity, no_corruption_on_invalid_resource)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool;
-    pool.checkin(std::string("42"));
+    pool.add_to_pool(std::string("42"));
 
-    EXPECT_EQ(1u, pool.size());
+    EXPECT_EQ(1u, pool.size().value_or(0));
 
     {
-        auto wrap = pool.checkout();
-        EXPECT_EQ(0u, pool.size());
+        auto wrap = pool.borrow_from_pool();
+        EXPECT_TRUE(wrap.has_value());
+        EXPECT_EQ(0u, pool.size().value_or(0));
 
         // Invalidate the resource to simulate it being moved out
-        wrap.invalidate();
+        wrap.value().invalidate();
         // After invalidation, the resource is NOT returned to pool
     }
 
     // Pool should be empty because we invalidated the resource
-    EXPECT_EQ(0u, pool.size());
+    EXPECT_EQ(0u, pool.size().value_or(0));
 }
 
 /**
@@ -133,20 +140,21 @@ TEST(scoped_resource_validity, no_corruption_on_invalid_resource)
 TEST(scoped_resource_validity, unique_ptr_invalidation)
 {
     siddiqsoft::arrp::resource_pool<std::unique_ptr<std::string>> pool;
-    pool.checkin(std::make_unique<std::string>("42"));
+    pool.add_to_pool(std::make_unique<std::string>("42"));
 
-    EXPECT_EQ(1u, pool.size());
+    EXPECT_EQ(1u, pool.size().value_or(0));
 
     {
-        auto wrap = pool.checkout();
-        EXPECT_EQ(0u, pool.size());
+        auto wrap = pool.borrow_from_pool();
+        EXPECT_TRUE(wrap.has_value());
+        EXPECT_EQ(0u, pool.size().value_or(0));
 
         // Invalidate to prevent returning the resource
-        wrap.invalidate();
+        wrap.value().invalidate();
     }
 
     // Pool should be empty because we invalidated the resource
-    EXPECT_EQ(0u, pool.size());
+    EXPECT_EQ(0u, pool.size().value_or(0));
 }
 
 /**
@@ -157,16 +165,17 @@ TEST(scoped_resource_validity, unique_ptr_invalidation)
 TEST(scoped_resource_validity, multiple_invalidations)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool;
-    pool.checkin(std::string("42"));
+    pool.add_to_pool(std::string("42"));
 
     {
-        auto wrap = pool.checkout();
-        wrap.invalidate();
-        wrap.invalidate(); // Should be safe to call multiple times
+        auto wrap = pool.borrow_from_pool();
+        EXPECT_TRUE(wrap.has_value());
+        wrap.value().invalidate();
+        wrap.value().invalidate(); // Should be safe to call multiple times
     }
 
     // Pool should be empty because we invalidated
-    EXPECT_EQ(0u, pool.size());
+    EXPECT_EQ(0u, pool.size().value_or(0));
 }
 
 /**
@@ -187,10 +196,10 @@ TEST(scoped_resource_validity, concurrent_with_invalidation)
     // Pre-fill the pool with enough resources
     // We use 100 to ensure no contention
     for (int i = 0; i < 100; i++) {
-        pool.checkin(std::format("resource-{}", i));
+        pool.add_to_pool(std::format("resource-{}", i));
     }
 
-    EXPECT_EQ(100u, pool.size());
+    EXPECT_EQ(100u, pool.size().value_or(0));
 
     std::vector<std::jthread> threads;
     std::atomic_int           invalidated_count {0};
@@ -199,23 +208,18 @@ TEST(scoped_resource_validity, concurrent_with_invalidation)
     for (int t = 0; t < 4; t++) {
         threads.emplace_back([&]() {
             for (int i = 0; i < 10; i++) {
-                try {
-                    auto wrap = pool.checkout();
-
+                auto wrap = pool.borrow_from_pool();
+                if (wrap.has_value()) {
                     // Pattern: invalidate on i % 3 == 0
                     // i=0,3,6,9 → invalidate (4 times)
                     // i=1,2,4,5,7,8 → return (6 times)
                     if (i % 3 == 0) {
-                        wrap.invalidate();
+                        wrap.value().invalidate();
                         invalidated_count++;
                     }
                     else {
                         returned_count++;
                     }
-                }
-                catch (const std::runtime_error&) {
-                    // Pool was empty - this shouldn't happen with 100 items
-                    // but we don't fail the test if it does
                 }
             }
         });
@@ -237,7 +241,7 @@ TEST(scoped_resource_validity, concurrent_with_invalidation)
     // But since invalidated ones are NOT returned, it's:
     // = 100 - invalidated
     size_t expected_pool_size = 100u - invalidated_count.load();
-    EXPECT_EQ(expected_pool_size, pool.size());
+    EXPECT_EQ(expected_pool_size, pool.size().value_or(0));
 }
 
 /**
@@ -248,17 +252,18 @@ TEST(scoped_resource_validity, concurrent_with_invalidation)
 TEST(scoped_resource_validity, destructor_skips_invalid_resource)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool;
-    pool.checkin(std::string("200"));
+    pool.add_to_pool(std::string("200"));
 
     {
-        auto wrap = pool.checkout();
-        EXPECT_EQ(0u, pool.size());
-        wrap.invalidate();
+        auto wrap = pool.borrow_from_pool();
+        EXPECT_TRUE(wrap.has_value());
+        EXPECT_EQ(0u, pool.size().value_or(0));
+        wrap.value().invalidate();
         // Destructor should NOT return it
     }
 
     // Resource should NOT be in pool
-    EXPECT_EQ(0u, pool.size());
+    EXPECT_EQ(0u, pool.size().value_or(0));
 }
 
 /**
@@ -272,7 +277,7 @@ TEST(scoped_resource_validity, mixed_valid_invalid_concurrent)
 
     // Pre-fill with 20 items
     for (int i = 0; i < 20; i++) {
-        pool.checkin(std::format("resource-{}", i));
+        pool.add_to_pool(std::format("resource-{}", i));
     }
 
     std::atomic_int           valid_count {0};
@@ -282,9 +287,8 @@ TEST(scoped_resource_validity, mixed_valid_invalid_concurrent)
     for (int t = 0; t < 4; t++) {
         threads.emplace_back([&]() {
             for (int i = 0; i < 5; i++) {
-                try {
-                    auto wrap = pool.checkout();
-
+                auto wrap = pool.borrow_from_pool();
+                if (wrap.has_value()) {
                     // Alternate between valid and Abandoned
                     if (i % 2 == 0) {
                         valid_count++;
@@ -292,11 +296,8 @@ TEST(scoped_resource_validity, mixed_valid_invalid_concurrent)
                     }
                     else {
                         invalid_count++;
-                        wrap.invalidate();
+                        wrap.value().invalidate();
                     }
-                }
-                catch (const std::runtime_error&) {
-                    // Pool empty
                 }
             }
         });
@@ -305,7 +306,7 @@ TEST(scoped_resource_validity, mixed_valid_invalid_concurrent)
     threads.clear();
 
     // Pool should have exactly the valid count
-    EXPECT_EQ(static_cast<size_t>(valid_count.load()), pool.size());
+    EXPECT_EQ(static_cast<size_t>(valid_count.load()), pool.size().value_or(0));
     EXPECT_GT(invalid_count.load(), 0);
 }
 
