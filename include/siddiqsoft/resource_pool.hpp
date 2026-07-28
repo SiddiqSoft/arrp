@@ -171,7 +171,7 @@ namespace siddiqsoft::arrp
         }
 
         /// @brief Internal method does not require explicit lock
-        bool is_pool_starving() { return m_capacity > m_pool.size(); }
+        bool is_pool_starving() { return m_resources_checkedout.load() + m_pool.size() < m_capacity; }
         auto is_there_a_pool_deficit() { return m_pool.size() < m_capacity; }
         auto loan_size() { return m_resources_checkedout.load(); }
 
@@ -375,18 +375,6 @@ namespace siddiqsoft::arrp
         /// @endcode
         [[nodiscard]] auto borrow_from_pool() -> std::expected<SRT, pool_error>
         {
-            if (m_is_shutdown) return std::unexpected(pool_error::ShutdownInitiated);
-
-
-            // Create a guard to decrement m_resources_checkedout if the factory callback throws
-            // This ensures we don't leak the borrow_from_pool count if the factory fails
-            auto checkout_guard = [this]() {
-                if (m_resources_checkedout > 0) {
-                    m_resources_checkedout--;
-                }
-            };
-
-
             try {
                 // @note We use a unique_lock vs a scoped_lock to allow ourselves
                 // to create the resource outside the lock!
@@ -421,17 +409,14 @@ namespace siddiqsoft::arrp
                     // checked out) but we have not reached the limit. The limit is number
                     // of m_resources_checkedout + pool.size() < m_capacity We are
                     // under-capacity.. so we can return to the caller a new item..
-                    m_resources_checkedout++;
-
                     // We should unlock the resource and ..
                     l.unlock();
 
                     // Update the attempted delegated calls to add new raw resource to pool.
-
-                    // ..delegate the new resource acquisition
-                    // outside the lock.
+                    // ..delegate the new resource acquisition outside the lock.
                     return m_callback_to_add_new_raw_resource_to_pool(*this).and_then(
                             [&](auto item) -> std::expected<SRT, pool_error> {
+                                m_resources_checkedout++;
                                 // This is a borrow even though it was not from our pool..
                                 m_counter_borrows++;
                                 // Guarenteed to count after the invocation to the callback
@@ -446,14 +431,12 @@ namespace siddiqsoft::arrp
                 }
             } // scope end
             catch (std::exception& ex) {
-                checkout_guard();
 #if defined(DEBUG_TRACE)
                 std::cerr << std::format("Error in borrow_from_pool: {}\n", ex.what());
 #endif
                 return std::unexpected(pool_error::Unknown);
             }
             catch (...) {
-                checkout_guard();
                 std::cerr << std::format("UNKNOWN Error in borrow_from_pool\n");
                 return std::unexpected(pool_error::Unknown);
             }
@@ -482,7 +465,6 @@ namespace siddiqsoft::arrp
 
             m_pool.emplace_back(T {std::forward<Args&&>(args)...});
             m_counter_adds++;
-            m_resources_checkedout--;
             m_capacity_poolsize++;
 
             if (m_capacity_poolsize.load() > m_capacity) m_capacity_poolsize = m_capacity;
@@ -508,7 +490,6 @@ namespace siddiqsoft::arrp
 
             m_pool.emplace_back(std::move(item));
             m_counter_adds++;
-            m_resources_checkedout--;
             m_capacity_poolsize++;
 
             if (m_capacity_poolsize.load() > m_capacity) m_capacity_poolsize = m_capacity;
@@ -594,7 +575,7 @@ namespace siddiqsoft::arrp
                 m_json["capsize"]   = m_capacity_poolsize.load();
                 m_json["abandoned"] = m_abandoned.load();
                 m_json["adds"]      = m_counter_adds.load();
-                m_json["autoadds"]  = m_counter_ondemand_adds++;
+                m_json["autoadds"]  = m_counter_ondemand_adds.load();
                 m_json["returns"]   = m_counter_returns.load();
                 m_json["borrows"]   = m_counter_borrows.load();
                 if constexpr (std::is_same_v<T, nlohmann::json> || std::is_same_v<T, std::string>) {
