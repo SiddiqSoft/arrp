@@ -38,12 +38,10 @@
 #ifndef SCOPED_RESOURCE_HPP
 #define SCOPED_RESOURCE_HPP
 
-#include <atomic>
 #include <concepts>
 #include <cstdint>
 #include <format>
 #include <functional>
-#include <stdexcept>
 #include <type_traits>
 
 #include "common.hpp"

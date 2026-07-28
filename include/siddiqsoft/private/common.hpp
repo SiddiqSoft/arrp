@@ -39,8 +39,8 @@ namespace siddiqsoft::arrp
     /// @note AutoGrow: Pool creates new resources on-demand up to capacity limit
     enum class auto_add_policy
     {
-        NoGrow,   ///< Do not automatically add resources when pool is starving
-        AutoGrow  ///< Automatically add resources when pool is starving and under capacity
+        NoGrow,  ///< Do not automatically add resources when pool is starving
+        AutoGrow ///< Automatically add resources when pool is starving and under capacity
     };
 
     /// @brief Reason for releasing a resource back to the pool
@@ -50,9 +50,9 @@ namespace siddiqsoft::arrp
     /// Valid resources are reused; abandoned resources are discarded.
     enum class release_reason : uint8_t
     {
-        Valid,      ///< Resource is valid and should be reused
-        Abandoned,  ///< Resource is invalid/abandoned and should be discarded
-        Unknown,    ///< Default/unknown reason
+        Valid,     ///< Resource is valid and should be reused
+        Abandoned, ///< Resource is invalid/abandoned and should be discarded
+        Unknown,   ///< Default/unknown reason
     };
 
     /// @brief Error codes for resource pool operations
@@ -61,98 +61,11 @@ namespace siddiqsoft::arrp
     /// Indicates various error conditions that can occur during pool operations.
     enum class pool_error
     {
-        NoMoreResources,           ///< Pool is exhausted and no factory callback available
-        UnderCapacityNoAutoGrow,   ///< Pool is under capacity but auto-grow is disabled
-        ShutdownInitiated,         ///< Pool is shutting down
-        Unknown                    ///< Unknown error
+        NoMoreResources,         ///< Pool is exhausted and no factory callback available
+        UnderCapacityNoAutoGrow, ///< Pool is under capacity but auto-grow is disabled
+        ShutdownInitiated,       ///< Pool is shutting down
+        Unknown                  ///< Unknown error
     };
-    
-    /// @brief Checks if a release reason indicates an abandoned resource
-    ///
-    /// @param rr The release reason to check
-    /// @return true if the resource is abandoned, false otherwise
-    ///
-    /// @note Abandoned resources are not returned to the pool
-    constexpr bool is_release_reason_abandoned(const release_reason& rr)
-    {
-        return rr == release_reason::Abandoned;
-    }
-
-
-    /// @brief Helper function to determine if an exception is critical and should be rethrown
-    ///
-    /// This utility function examines an exception_ptr and determines whether the exception
-    /// represents a critical error that indicates the system is in an unstable state.
-    /// Critical exceptions should typically be rethrown or cause immediate shutdown,
-    /// while non-critical exceptions can often be logged and handled gracefully.
-    ///
-    /// @param ep The exception pointer to check
-    /// @return true if the exception is critical and should be rethrown, false otherwise
-    ///
-    /// @details Critical exceptions include:
-    /// - std::bad_alloc: Memory allocation failure - indicates system resource exhaustion
-    /// - std::bad_exception: Unexpected exception type - indicates exception handling failure
-    /// - std::bad_cast: Invalid dynamic_cast - indicates type system corruption
-    /// - std::bad_typeid: Invalid typeid operation - indicates type system corruption
-    /// - Unknown exceptions (catch-all): Treated as critical for safety
-    ///
-    /// Non-critical exceptions:
-    /// - std::exception and derived classes (except those listed above)
-    /// - Regular application exceptions that can be handled gracefully
-    ///
-    /// @example
-    /// @code
-    /// try {
-    ///     // Some operation that might throw
-    ///     riskyOperation();
-    /// }
-    /// catch (...) {
-    ///     auto ep = std::current_exception();
-    ///     if (isCriticalException(ep)) {
-    ///         // System is unstable, shutdown
-    ///         std::rethrow_exception(ep);
-    ///     } else {
-    ///         // Log and continue
-    ///         std::cerr << "Non-critical exception occurred" << std::endl;
-    ///     }
-    /// }
-    /// @endcode
-    ///
-    /// @note This function rethrows the exception internally to examine its type,
-    ///       so it should only be called when you have an active exception context
-    ///       or when you're prepared to handle the rethrow.
-    static bool isCriticalException(const std::exception_ptr& ep)
-    {
-        if (!ep) return false;
-
-        try {
-            std::rethrow_exception(ep);
-        }
-        catch (const std::bad_alloc&) {
-            // Memory allocation failure - critical
-            return true;
-        }
-        catch (const std::bad_exception&) {
-            // Bad exception - critical
-            return true;
-        }
-        catch (const std::bad_cast&) {
-            // Bad cast - critical
-            return true;
-        }
-        catch (const std::bad_typeid&) {
-            // Bad typeid - critical
-            return true;
-        }
-        catch (const std::exception&) {
-            // Regular exception - not critical
-            return false;
-        }
-        catch (...) {
-            // Unknown exception - treat as critical
-            return true;
-        }
-    }
 } // namespace siddiqsoft::arrp
 
 

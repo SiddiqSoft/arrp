@@ -35,17 +35,15 @@
  */
 
 #pragma once
-#include <iterator>
+
 #ifndef RESOURCE_POOL_HPP
 #define RESOURCE_POOL_HPP
 
 #include <atomic>
 #include <concepts>
-#include <cstdint>
 #include <deque>
 #include <format>
 #include <mutex>
-#include <stdexcept>
 #include <type_traits>
 #include <memory>
 #include <expected>
@@ -167,7 +165,7 @@ namespace siddiqsoft::arrp
 #endif
 
             // We're going to be inside construction context and we're assured
-            // of only one inovcation!
+            // of only one invocation!
             if (m_capacity == 0) {
                 if (init_capacity > resource_pool_limits::MaxCapacity) {
                     m_capacity = resource_pool_limits::MaxCapacity;
