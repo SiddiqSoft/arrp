@@ -854,10 +854,10 @@ TEST(resource_pool, json_serialization_counters)
     EXPECT_TRUE(json.contains("_typver"));
     EXPECT_TRUE(json.contains("capacity"));
     EXPECT_TRUE(json.contains("size"));
-    EXPECT_TRUE(json.contains("load"));
-    EXPECT_TRUE(json.contains("loans"));
-    EXPECT_TRUE(json.contains("out"));
-    EXPECT_TRUE(json.contains("in"));
+    EXPECT_TRUE(json.contains("autoadds"));
+    EXPECT_TRUE(json.contains("returns"));
+    EXPECT_TRUE(json.contains("borrows"));
+    EXPECT_TRUE(json.contains("adds"));
 }
 
 /// @brief Extreme stress test: very high concurrency
@@ -1676,7 +1676,7 @@ TEST(resource_pool, concurrent_json_deadlock_detection)
         start_barrier.arrive_and_wait();
         for (int i = 0; i < 100; ++i) {
             auto& json = pool.to_json().value().get();
-            EXPECT_TRUE(json.contains("in"));
+            EXPECT_TRUE(json.contains("adds"));
             std::this_thread::sleep_for(std::chrono::microseconds(10));
         }
         ++done;
