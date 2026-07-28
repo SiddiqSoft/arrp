@@ -221,7 +221,7 @@ TEST(resource_pool_constructors, nogrow_policy)
     // Empty pool should fail to borrow
     auto res = pool.borrow_from_pool();
     EXPECT_FALSE(res.has_value());
-    EXPECT_EQ(res.error(), siddiqsoft::arrp::pool_error::UnderCapacityNoAutoGrow);
+    EXPECT_EQ(res.error(), siddiqsoft::arrp::pool_error::NoMoreResources);
 }
 
 /// @brief Test resource_pool with AutoGrow policy
