@@ -1426,6 +1426,7 @@ TEST(resource_pool_adversarial, factory_callback_exceptions)
                 if (result.has_value()) {
                     successes++;
                     auto res = std::move(result.value());
+                    std::this_thread::sleep_for(std::chrono::milliseconds(80));
                 }
                 else {
                     failures++;
