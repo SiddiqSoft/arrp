@@ -7,7 +7,7 @@ PROJECT_NUMBER         = 0.0.0
 PROJECT_BRIEF          = "Auto returning resource pool for modern C++"
 PROJECT_LOGO           = ./pack/Siddiq-Software-Avatar.png
 
-# The OUTPUT_DIRECTORY tag is used to specify the (relative or absolute) path
+# The OUTPUT_DIRECTORY tag is used to specify the (relative or absolute path
 # into which the generated documentation will be written.
 OUTPUT_DIRECTORY       = ./docs/doxygen/
 
@@ -435,7 +435,6 @@ IGNORE_PREFIX          =
 
 # If the GENERATE_HTML tag is set to YES doxygen will generate HTML output
 GENERATE_HTML          = YES
-
 
 # GitHub repository configuration for source links
 REPOSITORY_URL         = https://github.com/SiddiqSoft/arrp
