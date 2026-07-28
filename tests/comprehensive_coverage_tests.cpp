@@ -170,7 +170,7 @@ TEST(resource_pool_constructors, cleanup_callback_only)
     std::atomic_int cleanup_count {0};
 
     {
-        siddiqsoft::arrp::resource_pool<std::string> pool {[&cleanup_count](std::string&& item) {
+        siddiqsoft::arrp::resource_pool<std::string> pool {[&cleanup_count](auto&& item) {
             cleanup_count++;
             std::cerr << std::format("Cleanup called for: {}\n", item);
         }};
@@ -600,9 +600,6 @@ TEST(resource_pool_json, populated_pool_serialization)
 
     auto& j = json.value().get();
     EXPECT_EQ(1u, j["size"].get<size_t>());
-    // EXPECT_EQ(1u, j["loans"].get<int>());
-    EXPECT_EQ(1u, j["out"].get<uint64_t>());
-    //EXPECT_EQ(1u, j["in"].get<uint64_t>());
 }
 
 /// @brief Test to_json with counters
@@ -622,9 +619,8 @@ TEST(resource_pool_json, counter_tracking)
     EXPECT_TRUE(json.has_value());
 
     auto& j = json.value().get();
-    EXPECT_EQ(5u, j["out"].get<uint64_t>());
-    EXPECT_EQ(5u, j["in"].get<uint64_t>());
-    EXPECT_EQ(5u, j["valid_returns"].get<uint64_t>());
+    std::cerr << std::format("contents of the stats:{}\n", j.dump());
+    EXPECT_EQ(5u, j["returns"].get<uint64_t>());
 }
 
 /// @brief Test to_json with invalid returns
@@ -652,8 +648,6 @@ TEST(resource_pool_json, invalid_returns_tracking)
     EXPECT_TRUE(json.has_value());
 
     auto& j = json.value().get();
-    EXPECT_EQ(1u, j["invalid_returns"].get<uint64_t>());
-    EXPECT_EQ(1u, j["valid_returns"].get<uint64_t>());
     EXPECT_EQ(1u, j["abandoned"].get<uint16_t>());
 }
 

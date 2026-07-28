@@ -90,7 +90,7 @@ namespace siddiqsoft::arrp
     {
     private:
         /// @brief Maximum number of resources that can be in the pool
-        uint8_t          m_capacity {0};
+        uint8_t m_capacity {0};
 
         /// @brief Flag indicating pool shutdown is in progress
         std::atomic_bool m_is_shutdown {false};
@@ -102,26 +102,10 @@ namespace siddiqsoft::arrp
         /// @note Currently unused; reserved for future use
         std::atomic_uint16_t m_abandoned {0};
 
-        /// @brief Counter for resources successfully returned to the pool
-        /// @details Tracks how many times a resource was returned and added back to the pool
-        std::atomic_uint64_t m_counter_valid_returns {0};
-
-        /// @brief Counter for resources returned as invalid during this session
-        /// @details Tracks how many times a resource was returned with an abandoned/invalid reason
-        std::atomic_uint64_t m_counter_invalid_returns {0};
-
-        /// @brief Counter for borrow operations from the pool
-        /// @note Only counts successful borrow operations
-        std::atomic_uint64_t m_counter_checkout {0};
-
-        /// @brief Counter for ondemand resource additions via factory callback
-        std::atomic_uint64_t m_counter_ondemand_adds {0};
-
-        /// @brief Counter for return operations to the pool
-        std::atomic_uint64_t m_counter_checkin {0};
-
         /// @brief Counter for resources at maximum pool size
         std::atomic_uint64_t m_capacity_poolsize {0};
+
+        std::atomic_uint64_t m_counter_adds {0}, m_counter_ondemand_adds {0}, m_counter_returns {0}, m_counter_borrows {0};
 
         /// @brief Internal deque storing the pooled resources
         /// @details Uses FIFO ordering: resources are added to back, retrieved from front
@@ -210,7 +194,7 @@ namespace siddiqsoft::arrp
         /// @note Capacity is clamped to valid range [MinimumCapacity, MaxCapacity]
         resource_pool(uint8_t                                                         init_capacity,
                       std::function<std::expected<SRT, pool_error>(resource_pool&)>&& new_resource_callback,
-                      std::function<void(T&&)>&&                                       on_shutdown_callback = {})
+                      std::function<void(T&&)>&&                                      on_shutdown_callback = {})
             : m_callback_to_add_new_raw_resource_to_pool(new_resource_callback ? std::move(new_resource_callback)
                                                                                : CallbackDoNotAutoAddResource)
             , m_callback_on_resource_cleanup(std::move(on_shutdown_callback))
@@ -402,7 +386,6 @@ namespace siddiqsoft::arrp
                 }
             };
 
-            m_counter_checkout++;
 
             try {
                 // @note We use a unique_lock vs a scoped_lock to allow ourselves
@@ -419,6 +402,7 @@ namespace siddiqsoft::arrp
                     RunOnEnd pop_guard([&]() {
                         m_pool.pop_front();
                         m_resources_checkedout++;
+                        m_counter_borrows++;
                     });
 
                     // Make a wrapper..
@@ -433,10 +417,6 @@ namespace siddiqsoft::arrp
                     // The pop_front() happens within this scope and within the lock!
                 }
                 else if (is_pool_starving() && m_callback_to_add_new_raw_resource_to_pool) {
-                    // This should not be counted as a loan.. we did not dole out from the pool..
-                    // Moreover, it is not possible to determine if the new resource was properly
-                    // allocated.
-
                     // We have no more items in the pool (we're starting up or everything is
                     // checked out) but we have not reached the limit. The limit is number
                     // of m_resources_checkedout + pool.size() < m_capacity We are
@@ -447,11 +427,18 @@ namespace siddiqsoft::arrp
                     l.unlock();
 
                     // Update the attempted delegated calls to add new raw resource to pool.
-                    ++m_counter_ondemand_adds;
 
                     // ..delegate the new resource acquisition
                     // outside the lock.
-                    return m_callback_to_add_new_raw_resource_to_pool(*this);
+                    return m_callback_to_add_new_raw_resource_to_pool(*this).and_then(
+                            [&](auto item) -> std::expected<SRT, pool_error> {
+                                // This is a borrow even though it was not from our pool..
+                                m_counter_borrows++;
+                                // Guarenteed to count after the invocation to the callback
+                                m_counter_ondemand_adds++;
+                                // We're not performing any change to the original, just return it back.
+                                return item;
+                            });
                 }
                 else if (is_pool_starving()) {
                     // We're under-capacity.. but no dynamic resource provider
@@ -494,7 +481,7 @@ namespace siddiqsoft::arrp
             if (m_is_shutdown) return std::unexpected(pool_error::ShutdownInitiated);
 
             m_pool.emplace_back(T {std::forward<Args&&>(args)...});
-
+            m_counter_adds++;
             m_resources_checkedout--;
             m_capacity_poolsize++;
 
@@ -520,7 +507,7 @@ namespace siddiqsoft::arrp
             if (m_is_shutdown) return std::unexpected(pool_error::ShutdownInitiated);
 
             m_pool.emplace_back(std::move(item));
-
+            m_counter_adds++;
             m_resources_checkedout--;
             m_capacity_poolsize++;
 
@@ -553,8 +540,7 @@ namespace siddiqsoft::arrp
                 if (m_is_shutdown) return std::unexpected(pool_error::ShutdownInitiated);
 
                 m_pool.push_back(std::move(item));
-
-                ++m_counter_valid_returns;
+                m_counter_returns++;
                 m_resources_checkedout--;
                 m_capacity_poolsize++;
 
@@ -569,10 +555,8 @@ namespace siddiqsoft::arrp
                 if (m_is_shutdown) return std::unexpected(pool_error::ShutdownInitiated);
 
                 m_abandoned++;
-                ++m_counter_invalid_returns;
                 m_resources_checkedout--;
             }
-            ++m_counter_checkin;
 
             return {};
         }
@@ -605,18 +589,14 @@ namespace siddiqsoft::arrp
                 if (m_is_shutdown) return std::unexpected(siddiqsoft::arrp::pool_error::ShutdownInitiated);
 
                 // Update the poolsize..
-                m_json["size"]            = m_pool.size();
-                m_json["deficit"]         = size_t(m_capacity) - m_pool.size();
-                m_json["capsize"]         = m_capacity_poolsize.load();
-                m_json["load"]            = m_pool.size() + m_resources_checkedout.load();
-                m_json["abandoned"]       = m_abandoned.load();
-                m_json["loans"]           = loan_size();
-                m_json["in"]              = m_counter_checkin.load();
-                m_json["out"]             = m_counter_checkout.load();
-                m_json["valid_returns"]   = m_counter_valid_returns.load();
-                m_json["invalid_returns"] = m_counter_invalid_returns.load();
-                m_json["checked_out"]     = m_resources_checkedout.load();
-                // This stage requires the type T have a json serializer
+                m_json["size"]      = m_pool.size();
+                m_json["deficit"]   = size_t(m_capacity) - m_pool.size();
+                m_json["capsize"]   = m_capacity_poolsize.load();
+                m_json["abandoned"] = m_abandoned.load();
+                m_json["adds"]      = m_counter_adds.load();
+                m_json["autoadds"]  = m_counter_ondemand_adds++;
+                m_json["returns"]   = m_counter_returns.load();
+                m_json["borrows"]   = m_counter_borrows.load();
                 if constexpr (std::is_same_v<T, nlohmann::json> || std::is_same_v<T, std::string>) {
                     m_json["items"] = m_pool;
                 }
@@ -627,15 +607,7 @@ namespace siddiqsoft::arrp
 
     private:
         /// @brief JSON object for statistics
-        nlohmann::json m_json {{"_typver", "siddiqsoft.arrp.resource_pool/0.0.0"},
-                               {"capacity", m_capacity},
-                               {"size", 0},
-                               {"load", 0},
-                               {"deficit", 0},
-                               {"abandoned", 0},
-                               {"loans", 0},
-                               {"in", 0},
-                               {"out", 0}};
+        nlohmann::json m_json {{"_typver", "siddiqsoft.arrp.resource_pool/0.0.0"}, {"capacity", m_capacity}};
 #endif
     };
 
@@ -670,7 +642,10 @@ struct std::formatter<siddiqsoft::arrp::resource_pool<T, SRT>> : std::formatter<
 {
     /// @brief Parse format specification (empty for this type)
     template <typename ParseContext>
-    constexpr auto parse(ParseContext& ctx) { return ctx.begin(); }
+    constexpr auto parse(ParseContext& ctx)
+    {
+        return ctx.begin();
+    }
 
     /// @brief Format the resource_pool
     /// @param pool The resource_pool to format
