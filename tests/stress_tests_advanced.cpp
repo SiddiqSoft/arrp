@@ -985,7 +985,7 @@ TEST(stress_ultimate, comprehensive_stress)
                     // JSON serialization
                     auto json = pool.to_json();
                     if (json.has_value()) {
-                        EXPECT_TRUE(json.value().get().contains("in"));
+                        EXPECT_TRUE(json.value().get().contains("returns"));
                     }
                 }
             }
