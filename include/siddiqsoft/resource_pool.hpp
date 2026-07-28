@@ -384,7 +384,6 @@ namespace siddiqsoft::arrp
 
             m_pool.emplace_back(T {std::forward<Args&&>(args)...});
 
-            ++m_counter_valid_returns;
             m_resources_checkedout--;
             m_capacity_poolsize++;
 
@@ -402,7 +401,6 @@ namespace siddiqsoft::arrp
 
             m_pool.emplace_back(std::move(item));
 
-            ++m_counter_valid_returns;
             m_resources_checkedout--;
             m_capacity_poolsize++;
 
