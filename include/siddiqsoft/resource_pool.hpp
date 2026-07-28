@@ -35,6 +35,7 @@
  */
 
 #pragma once
+#include <iterator>
 #ifndef RESOURCE_POOL_HPP
 #define RESOURCE_POOL_HPP
 
@@ -118,6 +119,13 @@ namespace siddiqsoft::arrp
         /// @warning MUST NOT call any pool methods to avoid deadlock
         std::function<std::expected<SRT, pool_error>(resource_pool&)> m_callback_to_add_new_raw_resource_to_pool {};
 
+        /// @brief Callback on destructor.
+        /// This method is invoked within a lock and inside of a for-loop across each
+        /// resource in the internal map.
+        /// This approach allows the client to perform any final cleanup for the given resource.
+        /// @warning MUST NOT call any pool methods to avoid deadlock
+        std::function<void(T&&)> m_callback_on_resource_cleanup {};
+
         /// @brief Sets the capacity. This is internal and can only be called from the constructor.
         /// The capacity of the internal queue must not be altered once set.
         void set_capacity(uint8_t init_capacity)
@@ -160,12 +168,30 @@ namespace siddiqsoft::arrp
             return std::unexpected(pool_error::NoMoreResources);
         };
 
-        resource_pool(uint8_t init_capacity, std::function<std::expected<SRT, pool_error>(resource_pool&)>&& new_resource_callback)
+        resource_pool(uint8_t                                                         init_capacity,
+                      std::function<std::expected<SRT, pool_error>(resource_pool&)>&& new_resource_callback,
+                      std::function<void(T&&)>&&                                       on_shutdown_callback = {})
             : m_callback_to_add_new_raw_resource_to_pool(new_resource_callback ? std::move(new_resource_callback)
                                                                                : CallbackDoNotAutoAddResource)
-
+            , m_callback_on_resource_cleanup(std::move(on_shutdown_callback))
         {
+#if defined(DEBUG)
+            std::cerr << std::format(
+                    "{}(x,y,z) - Invoked; init_capacity:{} with new resource callback and optional cleanup callback\n",
+                    __func__,
+                    init_capacity);
+#endif
             set_capacity(init_capacity);
+        }
+
+        resource_pool(std::function<void(T&&)>&& on_shutdown_callback)
+            : m_callback_to_add_new_raw_resource_to_pool(CallbackDoNotAutoAddResource)
+            , m_callback_on_resource_cleanup(std::move(on_shutdown_callback))
+        {
+#if defined(DEBUG)
+            std::cerr << std::format("{}(z) - Invoked;  with new cleanup callback\n", __func__);
+#endif
+            set_capacity(resource_pool_limits::DefaultCapacity);
         }
 
         /// @brief This is the default constructor.. the policy is to not auto-grow.
@@ -174,6 +200,10 @@ namespace siddiqsoft::arrp
         resource_pool(uint8_t         init_capacity = resource_pool_limits::DefaultCapacity,
                       auto_add_policy add_policy    = auto_add_policy::NoGrow)
         {
+#if defined(DEBUG)
+            std::cerr << std::format(
+                    "{}(x,b) - Invoked; init_capacity:{} with new add_policy: {}\n", __func__, init_capacity, add_policy);
+#endif
             set_capacity(init_capacity);
 
             if (add_policy == auto_add_policy::NoGrow) {
@@ -211,20 +241,39 @@ namespace siddiqsoft::arrp
 
         ~resource_pool()
         {
-            std::scoped_lock l(m_pool_lock);
-            m_is_shutdown = true;
-            // The destructor is being called. No need to worry about obtaining exclusive lock
-            // The fact that we're inside the destructor is pretty much exclusive.
-            m_pool.clear();
+            {
+                std::scoped_lock l(m_pool_lock);
+                m_is_shutdown = true;
+            }
+#if defined(DEBUG)
+            std::cerr << std::format("{} - invoked; shutdown set; now delegating to clear..\n", __func__);
+#endif
+            // Delegate to the clear() method which itself acquires a lock
+            // so we should make sure we clear the lock to set the shutdown flag.
+            this->clear();
         }
 
         auto clear() -> std::expected<void, pool_error>
         {
-            if (m_is_shutdown) return std::unexpected(pool_error::ShutdownInitiated);
-
             std::scoped_lock l(m_pool_lock);
 
-            // reset all stats..
+#if defined(DEBUG)
+            std::cerr << std::format("{} - invoked; size:{} is shutdown? {}\n", __func__, m_pool.size(), m_is_shutdown.load());
+#endif
+
+            try {
+                if (m_callback_on_resource_cleanup && !m_pool.empty()) {
+                    while (!m_pool.empty()) {
+                        RunOnEnd roe([&] { m_pool.pop_front(); });
+                        // delegate to the cleanup.
+                        // the delegate must not invoke any pool member to avoid deadlocks.
+                        m_callback_on_resource_cleanup(std::move(m_pool.front()));
+                    }
+                }
+            }
+            catch (std::exception& ex) {
+                std::cerr << std::format("{} - exception while delegating to on_cleanup: {}\n", __func__, ex.what());
+            }
 
             m_pool.clear();
 
@@ -324,7 +373,7 @@ namespace siddiqsoft::arrp
             return std::unexpected(pool_error::NoMoreResources);
         }
 
-        
+
         template <typename... Args>
         auto add_to_pool(Args&&... args) -> std::expected<void, pool_error>
         {

@@ -97,6 +97,11 @@ if(${${PROJECT_NAME}_BUILD_TESTS})
         endif()
     endif()
 
+    if(GCDA_FILES)
+        file(REMOVE ${GCDA_FILES})
+        message(STATUS "Removed old .gcda files: ${GCDA_FILES}")
+    endif()
+
     # Dependencies
     CPMAddPackage("gh:google/googletest#v1.17.0")
     CPMAddPackage("gh:nlohmann/json#v3.12.0")
@@ -118,9 +123,20 @@ if(${${PROJECT_NAME}_BUILD_TESTS})
             RWLContainer::RWLContainer
             GTest::gtest_main)
 
+    if(GCDA_FILES)
+        file(REMOVE ${GCDA_FILES})
+        message(STATUS "Removed old .gcda files: ${GCDA_FILES}")
+    endif()
+
     include(GoogleTest)
     gtest_discover_tests(${TESTPROJ} XML_OUTPUT_DIR "${PROJECT_SOURCE_DIR}/tests/results")
 
     include(CTest)
     message(STATUS "  Finished configuring for ${PROJECT_NAME} -- ${PROJECT_NAME}_BUILD_TESTS = ${${PROJECT_NAME}_BUILD_TESTS}")
+
+    if(GCDA_FILES)
+        file(REMOVE ${GCDA_FILES})
+        message(STATUS "Removed old .gcda files: ${GCDA_FILES}")
+    endif()
+
 endif()
