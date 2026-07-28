@@ -10,13 +10,18 @@
 
 namespace siddiqsoft::arrp
 {
-    /// @brief The resource_pool_limits is used to determine the initial size
-    /// of the resource_pool.
-    /// The resource_pool will add resources until the limits are reached.
+    /// @brief Resource pool capacity limits and defaults
+    ///
+    /// @details
+    /// Defines the minimum, default, and maximum capacity values for resource pools.
+    /// These values control how many resources can be managed by a pool.
     /// Do not use large values as this defeats the purpose of a resource_pool
     /// and shared across multiple threads.
     ///
     /// @note Values selected here have no special meaning and are only guides.
+    /// @note MinimumCapacity: Smallest allowed pool size (1 resource)
+    /// @note DefaultCapacity: Default pool size when not specified (8 resources)
+    /// @note MaxCapacity: Largest allowed pool size (255 resources)
     enum resource_pool_limits : uint8_t
     {
         MinimumCapacity = 1,
@@ -24,80 +29,98 @@ namespace siddiqsoft::arrp
         MaxCapacity     = std::numeric_limits<uint8_t>::max()
     };
 
-    /// @brief This controls the auto-grow (or adding items when the pool is starving)
-    /// and below capacity (up to the maximum limit).
-    /// The load is calculated as
+    /// @brief Controls auto-grow behavior for resource pools
+    ///
+    /// @details
+    /// Determines whether the resource pool automatically creates new resources
+    /// when the pool is starving (empty but under capacity).
+    ///
+    /// @note NoGrow: Pool does not create new resources; returns error when exhausted
+    /// @note AutoGrow: Pool creates new resources on-demand up to capacity limit
     enum class auto_add_policy
     {
-        NoGrow,
-        AutoGrow
+        NoGrow,   ///< Do not automatically add resources when pool is starving
+        AutoGrow  ///< Automatically add resources when pool is starving and under capacity
     };
 
+    /// @brief Reason for releasing a resource back to the pool
+    ///
+    /// @details
+    /// Indicates why a resource is being returned to the pool.
+    /// Valid resources are reused; abandoned resources are discarded.
     enum class release_reason : uint8_t
     {
-        Valid,
-        Abandoned, // Return invoked but the item is invalid/abandoned
-        Unknown,   // default is unknown
+        Valid,      ///< Resource is valid and should be reused
+        Abandoned,  ///< Resource is invalid/abandoned and should be discarded
+        Unknown,    ///< Default/unknown reason
     };
 
+    /// @brief Error codes for resource pool operations
+    ///
+    /// @details
+    /// Indicates various error conditions that can occur during pool operations.
     enum class pool_error
     {
-        NoMoreResources,
-        UnderCapacityNoAutoGrow,
-        ShutdownInitiated,
-        Unknown
+        NoMoreResources,           ///< Pool is exhausted and no factory callback available
+        UnderCapacityNoAutoGrow,   ///< Pool is under capacity but auto-grow is disabled
+        ShutdownInitiated,         ///< Pool is shutting down
+        Unknown                    ///< Unknown error
     };
     
+    /// @brief Checks if a release reason indicates an abandoned resource
+    ///
+    /// @param rr The release reason to check
+    /// @return true if the resource is abandoned, false otherwise
+    ///
+    /// @note Abandoned resources are not returned to the pool
     constexpr bool is_release_reason_abandoned(const release_reason& rr)
     {
         return rr == release_reason::Abandoned;
     }
 
 
-    /**
-     * @brief Helper function to determine if an exception is critical and should be rethrown
-     *
-     * This utility function examines an exception_ptr and determines whether the exception
-     * represents a critical error that indicates the system is in an unstable state.
-     * Critical exceptions should typically be rethrown or cause immediate shutdown,
-     * while non-critical exceptions can often be logged and handled gracefully.
-     *
-     * @param ep The exception pointer to check
-     * @return true if the exception is critical and should be rethrown, false otherwise
-     *
-     * @details Critical exceptions include:
-     * - std::bad_alloc: Memory allocation failure - indicates system resource exhaustion
-     * - std::bad_exception: Unexpected exception type - indicates exception handling failure
-     * - std::bad_cast: Invalid dynamic_cast - indicates type system corruption
-     * - std::bad_typeid: Invalid typeid operation - indicates type system corruption
-     * - Unknown exceptions (catch-all): Treated as critical for safety
-     *
-     * Non-critical exceptions:
-     * - std::exception and derived classes (except those listed above)
-     * - Regular application exceptions that can be handled gracefully
-     *
-     * @example
-     * @code
-     * try {
-     *     // Some operation that might throw
-     *     riskyOperation();
-     * }
-     * catch (...) {
-     *     auto ep = std::current_exception();
-     *     if (isCriticalException(ep)) {
-     *         // System is unstable, shutdown
-     *         std::rethrow_exception(ep);
-     *     } else {
-     *         // Log and continue
-     *         std::cerr << "Non-critical exception occurred" << std::endl;
-     *     }
-     * }
-     * @endcode
-     *
-     * @note This function rethrows the exception internally to examine its type,
-     *       so it should only be called when you have an active exception context
-     *       or when you're prepared to handle the rethrow.
-     */
+    /// @brief Helper function to determine if an exception is critical and should be rethrown
+    ///
+    /// This utility function examines an exception_ptr and determines whether the exception
+    /// represents a critical error that indicates the system is in an unstable state.
+    /// Critical exceptions should typically be rethrown or cause immediate shutdown,
+    /// while non-critical exceptions can often be logged and handled gracefully.
+    ///
+    /// @param ep The exception pointer to check
+    /// @return true if the exception is critical and should be rethrown, false otherwise
+    ///
+    /// @details Critical exceptions include:
+    /// - std::bad_alloc: Memory allocation failure - indicates system resource exhaustion
+    /// - std::bad_exception: Unexpected exception type - indicates exception handling failure
+    /// - std::bad_cast: Invalid dynamic_cast - indicates type system corruption
+    /// - std::bad_typeid: Invalid typeid operation - indicates type system corruption
+    /// - Unknown exceptions (catch-all): Treated as critical for safety
+    ///
+    /// Non-critical exceptions:
+    /// - std::exception and derived classes (except those listed above)
+    /// - Regular application exceptions that can be handled gracefully
+    ///
+    /// @example
+    /// @code
+    /// try {
+    ///     // Some operation that might throw
+    ///     riskyOperation();
+    /// }
+    /// catch (...) {
+    ///     auto ep = std::current_exception();
+    ///     if (isCriticalException(ep)) {
+    ///         // System is unstable, shutdown
+    ///         std::rethrow_exception(ep);
+    ///     } else {
+    ///         // Log and continue
+    ///         std::cerr << "Non-critical exception occurred" << std::endl;
+    ///     }
+    /// }
+    /// @endcode
+    ///
+    /// @note This function rethrows the exception internally to examine its type,
+    ///       so it should only be called when you have an active exception context
+    ///       or when you're prepared to handle the rethrow.
     static bool isCriticalException(const std::exception_ptr& ep)
     {
         if (!ep) return false;
@@ -133,9 +156,15 @@ namespace siddiqsoft::arrp
 } // namespace siddiqsoft::arrp
 
 
+/// @brief Specialization of std::formatter for release_reason
+/// @details Provides formatted output for release_reason enum values
 template <class ct>
 struct std::formatter<siddiqsoft::arrp::release_reason, ct> : std::formatter<ct>
 {
+    /// @brief Format the release_reason
+    /// @param rr The release_reason to format
+    /// @param ctx Format context
+    /// @return Iterator to end of formatted output
     template <typename FormatContext>
     auto format(const siddiqsoft::arrp::release_reason& rr, FormatContext& ctx) const
     {
@@ -150,9 +179,15 @@ struct std::formatter<siddiqsoft::arrp::release_reason, ct> : std::formatter<ct>
     }
 };
 
+/// @brief Specialization of std::formatter for auto_add_policy
+/// @details Provides formatted output for auto_add_policy enum values
 template <class ct>
 struct std::formatter<siddiqsoft::arrp::auto_add_policy, ct> : std::formatter<ct>
 {
+    /// @brief Format the auto_add_policy
+    /// @param aap The auto_add_policy to format
+    /// @param ctx Format context
+    /// @return Iterator to end of formatted output
     template <typename FormatContext>
     auto format(const siddiqsoft::arrp::auto_add_policy& aap, FormatContext& ctx) const
     {

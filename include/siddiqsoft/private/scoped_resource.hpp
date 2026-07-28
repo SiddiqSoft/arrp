@@ -56,58 +56,74 @@ namespace siddiqsoft::arrp
         { std::to_string(t) } -> std::same_as<std::string>;
     };
 
-    /**
-     * @concept NonNumericMoveConstructible
-     * @brief Concept for types that are move-constructible but not arithmetic
-     *
-     * @details
-     * This concept ensures that a type T satisfies two requirements:
-     * 1. T is move-constructible (std::move_constructible<T>)
-     * 2. T is not an arithmetic type (integers, floats, etc.)
-     *
-     * This prevents wrapping primitive types which would be inefficient and
-     * defeats the purpose of resource pooling.
-     *
-     * @example
-     * @code
-     * // Valid types
-     * class MyResource { ... };
-     * std::unique_ptr<int> ptr;
-     * std::shared_ptr<MyResource> shared;
-     *
-     * // Invalid types
-     * int x;                    // Arithmetic type
-     * double d;                 // Arithmetic type
-     * std::string str;          // Actually valid, but for example
-     * @endcode
-     */
+    /// @brief Concept for types that are move-constructible but not arithmetic
+    ///
+    /// This concept ensures that a type T satisfies two requirements:
+    /// 1. T is move-constructible (std::move_constructible<T>)
+    /// 2. T is move-assignable (std::move_assignable<T>)
+    /// 3. T is not an arithmetic type (integers, floats, etc.)
+    ///
+    /// This prevents wrapping primitive types which would be inefficient and
+    /// defeats the purpose of resource pooling.
+    ///
+    /// @example
+    /// @code
+    /// // Valid types
+    /// class MyResource { ... };
+    /// std::unique_ptr<int> ptr;
+    /// std::shared_ptr<MyResource> shared;
+    ///
+    /// // Invalid types
+    /// int x;                    // Arithmetic type
+    /// double d;                 // Arithmetic type
+    /// @endcode
     template <typename T>
     concept NonNumericMoveConstructible =
             std::is_move_constructible_v<T> && std::is_move_assignable_v<T> && !std::is_arithmetic_v<T>;
 
 
-    /**
-     * @class scoped_resource
-     * @brief RAII wrapper for managing resource lifecycle in a resource pool
-     *
-     * @details
-     * scoped_resource automatically returns resources to the pool when destroyed.
-     * It enforces move-only semantics to prevent resource ownership ambiguity.
-     *
-     * @warning This class is NOT thread-safe. Each scoped_resource instance
-     * should be accessed by only one thread at a time. The resource_pool itself
-     * is thread-safe, but individual scoped_resource instances are not.
-     *
-     * @tparam T The resource type (must be move-constructible and non-arithmetic)
-     */
+    /// @brief RAII wrapper for managing resource lifecycle in a resource pool
+    ///
+    /// @details
+    /// scoped_resource automatically returns resources to the pool when destroyed.
+    /// It enforces move-only semantics to prevent resource ownership ambiguity.
+    /// The resource is wrapped with a callback that is invoked during destruction
+    /// to return the resource to the pool.
+    ///
+    /// @tparam T The resource type (must be move-constructible and non-arithmetic)
+    ///
+    /// @warning This class is NOT thread-safe. Each scoped_resource instance
+    /// should be accessed by only one thread at a time. The resource_pool itself
+    /// is thread-safe, but individual scoped_resource instances are not.
+    ///
+    /// @note Move-only semantics: Copy operations are deleted to prevent resource ownership ambiguity
+    /// @note RAII pattern: Resource is automatically returned to pool on destruction
+    /// @note Callback-based: Uses std::function callback to return resource to pool
+    ///
+    /// @example
+    /// @code
+    /// // Typically obtained from resource_pool::borrow_from_pool()
+    /// auto resource = pool.borrow_from_pool();
+    /// if (resource) {
+    ///     // Use resource
+    ///     resource->doSomething();
+    /// }
+    /// // Resource automatically returned to pool when scoped_resource is destroyed
+    /// @endcode
     template <typename T>
         requires NonNumericMoveConstructible<T>
     class scoped_resource
     {
-        /// @brief This callback allows the implementor that is asking for the scoped_resource the ability to
-        ///        recall it back or perform any additional tasks.
-        ///        The callback must not throw and must not invoke any other method in the pool that requires
-        ///        lock manipulation.
+        /// @brief Callback function type for returning resource to pool
+        ///
+        /// This callback allows the implementor that is asking for the scoped_resource the ability to
+        /// recall it back or perform any additional tasks.
+        /// The callback must not throw and must not invoke any other method in the pool that requires
+        /// lock manipulation.
+        ///
+        /// @param resource The resource being returned (moved)
+        /// @param is_valid Whether the resource is valid and should be reused
+        /// @return std::expected<void, pool_error> indicating success or error
         using PutbackCallbackFunc = std::function<std::expected<void,pool_error>(T&&, bool)>;
 
 
@@ -133,8 +149,18 @@ namespace siddiqsoft::arrp
         bool m_is_valid {false};
 
     public:
+        /// @brief Default constructor is deleted
+        /// @details scoped_resource must be constructed with a callback and resource
         scoped_resource() = delete;
 
+        /// @brief Constructs a scoped_resource with a callback and resource
+        ///
+        /// @param f The callback function to invoke on destruction
+        /// @param src The resource to manage (moved)
+        ///
+        /// @note The callback is stored and invoked during destruction
+        /// @note The resource is moved into the wrapper
+        /// @note The resource is marked as valid
         explicit scoped_resource(PutbackCallbackFunc&& f, T&& src)
             : m_rsrc(std::move(src))
             , m_putback_callback(std::move(f))
@@ -142,13 +168,20 @@ namespace siddiqsoft::arrp
         {
         }
 
-        /**
-         * @brief Copy constructor is deleted
-         * @details scoped_resource is move-only to prevent resource ownership ambiguity
-         * and ensure proper RAII semantics. Only one scoped_resource can own a resource.
-         */
+        /// @brief Copy constructor is deleted
+        /// @details scoped_resource is move-only to prevent resource ownership ambiguity
+        /// and ensure proper RAII semantics. Only one scoped_resource can own a resource.
         explicit scoped_resource(const T&) = delete;
 
+        /// @brief Move constructor
+        ///
+        /// Transfers ownership from another scoped_resource to this one.
+        /// The source is invalidated to prevent double-return.
+        ///
+        /// @param src The source scoped_resource to move from
+        ///
+        /// @note The source's callback is cleared to prevent double-return
+        /// @note The source is marked as invalid
         scoped_resource(scoped_resource&& src) noexcept
             : m_rsrc(std::move(src.m_rsrc))
             , m_putback_callback(std::move(src.m_putback_callback))
@@ -159,6 +192,14 @@ namespace siddiqsoft::arrp
             src.m_is_valid         = false;
         }
 
+        /// @brief Constructs a scoped_resource with a callback and in-place constructed resource
+        ///
+        /// @tparam Args Types of arguments to forward to T's constructor
+        /// @param f The callback function to invoke on destruction
+        /// @param args Arguments to forward to T's constructor
+        ///
+        /// @note The resource is constructed in-place
+        /// @note The resource is marked as valid
         template <typename... Args>
         scoped_resource(PutbackCallbackFunc&& f, Args&&... args)
             : m_rsrc(std::move(T(std::forward<Args>(args)...)))
@@ -167,6 +208,17 @@ namespace siddiqsoft::arrp
         {
         }
 
+        /// @brief Move assignment operator
+        ///
+        /// Transfers ownership from another scoped_resource to this one.
+        /// The source is invalidated to prevent double-return.
+        ///
+        /// @param src The source scoped_resource to move from
+        /// @return Reference to this scoped_resource
+        ///
+        /// @note Self-assignment is checked
+        /// @note The source's callback is cleared to prevent double-return
+        /// @note The source is marked as invalid
         scoped_resource& operator=(scoped_resource&& src) noexcept
         {
             if (this != &src) {
@@ -182,6 +234,16 @@ namespace siddiqsoft::arrp
             return *this;
         }
 
+        /// @brief Assignment operator for resource value
+        ///
+        /// Assigns a new resource value to this wrapper.
+        /// Marks the resource as valid.
+        ///
+        /// @param src The new resource value (moved)
+        /// @return Reference to this scoped_resource
+        ///
+        /// @note The resource is moved into the wrapper
+        /// @note The resource is marked as valid
         scoped_resource& operator=(T&& src)
         {
             m_rsrc     = std::move(src);
@@ -189,36 +251,37 @@ namespace siddiqsoft::arrp
             return *this;
         }
 
-        /**
-         * @brief Copy assignment operator is deleted
-         *
-         * @details
-         * Copy assignment is not allowed to maintain move-only semantics
-         * and prevent resource ownership ambiguity.
-         */
+        /// @brief Copy assignment operator is deleted
+        ///
+        /// @details
+        /// Copy assignment is not allowed to maintain move-only semantics
+        /// and prevent resource ownership ambiguity.
         scoped_resource& operator=(const scoped_resource&) = delete;
 
-        /**
-         * @brief Dereference operator to access the wrapped resource
-         * @return Reference to the wrapped resource
-         * @warning Behavior is undefined if resource has been invalidated
-         */
+        /// @brief Dereference operator to access the wrapped resource
+        /// @return Reference to the wrapped resource
+        /// @warning Behavior is undefined if resource has been invalidated
         auto operator*() -> T& { return m_rsrc; }
 
-        /**
-         * @brief Explicit conversion to resource reference
-         * @return Reference to the wrapped resource
-         * @warning Behavior is undefined if resource has been invalidated
-         */
+        /// @brief Explicit conversion to resource reference
+        /// @return Reference to the wrapped resource
+        /// @warning Behavior is undefined if resource has been invalidated
         explicit operator T&() { return m_rsrc; }
 
-        /**
-         * @brief Pointer-like access to the wrapped resource
-         * @return Pointer to the wrapped resource
-         * @note Returns nullptr if resource is invalid
-         */
+        /// @brief Pointer-like access to the wrapped resource
+        /// @return Pointer to the wrapped resource, or nullptr if invalid
+        /// @note Returns nullptr if resource is invalid
         auto operator->() -> T* { return m_is_valid ? &m_rsrc : nullptr; }
 
+        /// @brief Destructor - returns resource to pool if valid
+        ///
+        /// Invokes the putback callback if the resource is valid and a callback exists.
+        /// This ensures the resource is returned to the pool for reuse.
+        /// Exceptions from the callback are caught and logged to stderr.
+        ///
+        /// @note Noexcept: Exceptions are caught and logged, not propagated
+        /// @note The callback is cleared after invocation
+        /// @note The resource is marked as invalid after return
         ~scoped_resource() noexcept
         {
             // Only return resource if it's valid and callback exists
@@ -235,10 +298,36 @@ namespace siddiqsoft::arrp
             }
         }
 
+        /// @brief Marks the resource as invalid
+        ///
+        /// Sets the validity flag to false. When the resource is destroyed,
+        /// it will not be returned to the pool.
+        ///
+        /// @note Virtual: Can be overridden in derived classes
+        /// @note Typically called when the resource is corrupted or unusable
         virtual void invalidate() { m_is_valid = false; }
+
+        /// @brief Checks if the resource is valid
+        ///
+        /// @return true if the resource is valid and will be returned to pool, false otherwise
+        ///
+        /// @note Virtual: Can be overridden in derived classes
+        /// @note Const: Does not modify the resource
         virtual bool is_valid() const { return m_is_valid; }
 
 #if defined(NLOHMANN_JSON_VERSION_MAJOR)
+        /// @brief Serializes the scoped_resource to JSON
+        ///
+        /// Returns a JSON object containing the resource state and validity.
+        /// Only available if nlohmann/json.hpp is included before this header.
+        ///
+        /// @return JSON object with:
+        ///   - _typver: Type and version string
+        ///   - valid: Whether the resource is valid
+        ///   - value: The resource value (if serializable)
+        ///
+        /// @note Requires NLOHMANN_JSON_VERSION_MAJOR to be defined
+        /// @note If T is not serializable, value is set to "-noserializer-"
         nlohmann::json to_json() const
         {
             if constexpr (std::is_same_v<T, std::string> || std::is_arithmetic_v<T>)
@@ -255,9 +344,20 @@ namespace siddiqsoft::arrp
 } // namespace siddiqsoft::arrp
 
 
+/// @brief Specialization of std::formatter for scoped_resource
+/// @details Provides formatted output for scoped_resource instances using std::format
+/// @tparam T The resource type
 template <typename T>
 struct std::formatter<siddiqsoft::arrp::scoped_resource<T>>
 {
+    /// @brief Parse format specification (empty for this type)
+    template <typename ParseContext>
+    constexpr auto parse(ParseContext& ctx) { return ctx.begin(); }
+
+    /// @brief Format the scoped_resource
+    /// @param sr The scoped_resource to format
+    /// @param ctx Format context
+    /// @return Iterator to end of formatted output
     template <typename FormatContext>
     auto format(const siddiqsoft::arrp::scoped_resource<T>& sr, FormatContext& ctx) const
     {
