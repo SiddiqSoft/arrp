@@ -875,6 +875,8 @@ TEST(concurrent_edge_cases, mixed_operations_stress)
         pool.add_to_pool(std::format("resource-{}", i));
     }
 
+    EXPECT_EQ(10, pool.size().value_or(0));
+
     std::atomic_int           borrows {0};
     std::atomic_int           adds {0};
     std::atomic_int           clears {0};
