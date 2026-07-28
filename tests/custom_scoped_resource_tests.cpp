@@ -460,10 +460,10 @@ TEST(custom_scoped_resource, json_serialization)
             EXPECT_TRUE(j.contains("_typver"));
             EXPECT_TRUE(j.contains("capacity"));
             EXPECT_TRUE(j.contains("size"));
-            EXPECT_TRUE(j.contains("load"));
-            EXPECT_TRUE(j.contains("loans"));
-            EXPECT_TRUE(j.contains("out"));
-            EXPECT_TRUE(j.contains("in"));
+            EXPECT_TRUE(j.contains("autoadds"));
+            EXPECT_TRUE(j.contains("borrows"));
+            EXPECT_TRUE(j.contains("returns"));
+            EXPECT_TRUE(j.contains("adds"));
         }
     }
     catch (...) {

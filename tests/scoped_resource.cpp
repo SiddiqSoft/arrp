@@ -1382,7 +1382,7 @@ TEST(resource_pool_adversarial, concurrent_json_serialization)
         for (int i = 0; i < 50; ++i) {
             auto& json = pool.to_json().value().get();
             json_calls++;
-            EXPECT_TRUE(json.contains("in"));
+            EXPECT_TRUE(json.contains("adds"));
         }
     });
 
