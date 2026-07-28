@@ -527,6 +527,7 @@ TEST(resource_pool_clear, concurrent_with_borrow)
     for (int i = 0; i < 10; ++i) {
         pool.add_to_pool(std::format("resource-{}", i));
     }
+    EXPECT_EQ(10, pool.size().value_or(0));
 
     std::atomic_bool stop {false};
     std::atomic_int  clears {0};
@@ -537,6 +538,7 @@ TEST(resource_pool_clear, concurrent_with_borrow)
             auto res = pool.borrow_from_pool();
             if (res.has_value()) {
                 borrows++;
+                std::this_thread::sleep_for(std::chrono::milliseconds(5));
             }
         }
     });

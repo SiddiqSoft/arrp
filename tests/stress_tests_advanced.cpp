@@ -908,7 +908,7 @@ TEST(stress_patterns, mixed_operations)
         for (int i = 0; i < 50; ++i) {
             auto json = pool.to_json();
             if (json.has_value()) {
-                EXPECT_TRUE(json.value().get().contains("in"));
+                EXPECT_TRUE(json.value().get().contains("returns"));
             }
         }
     });
