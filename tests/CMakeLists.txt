@@ -121,7 +121,6 @@ if(${${PROJECT_NAME}_BUILD_TESTS})
     target_link_libraries(${TESTPROJ} PRIVATE
             nlohmann_json::nlohmann_json
             RunOnEnd::RunOnEnd
-#            RWLContainer::RWLContainer
             GTest::gtest_main)
 
     if(GCDA_FILES)

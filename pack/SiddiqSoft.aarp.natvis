@@ -22,20 +22,19 @@
        scoped_resource<T> - RAII wrapper for resource lifecycle management
        ============================================================================ -->
   <Type Name="siddiqsoft::arrp::scoped_resource&lt;*&gt;">
-    <DisplayString Condition="m_is_valid">scoped_resource&lt;{$T1}&gt; [valid, id:{m_debug_id}]</DisplayString>
-    <DisplayString Condition="!m_is_valid">scoped_resource&lt;{$T1}&gt; [invalid, id:{m_debug_id}]</DisplayString>
+    <DisplayString Condition="m_is_valid">scoped_resource&lt;{$T1}&gt; [valid]</DisplayString>
+    <DisplayString Condition="!m_is_valid">scoped_resource&lt;{$T1}&gt; [invalid]</DisplayString>
     <Expand>
       <Item Name="[Resource]">m_rsrc</Item>
       <Item Name="[Valid]">m_is_valid</Item>
-      <Item Name="[Debug ID]">m_debug_id</Item>
       <Item Name="[Has Callback]">m_putback_callback != nullptr</Item>
     </Expand>
   </Type>
 
   <!-- ============================================================================
-       resource_pool<T, SRT, InitCapacity> - Thread-safe resource pool
+       resource_pool<T, SRT> - Thread-safe resource pool
        ============================================================================ -->
-  <Type Name="siddiqsoft::arrp::resource_pool&lt;*,*,*&gt;">
+  <Type Name="siddiqsoft::arrp::resource_pool&lt;*,*&gt;">
     <DisplayString>resource_pool&lt;{$T1}&gt; [size:{m_pool.size()}, checked_out:{m_resources_checkedout}, capacity:{m_capacity}]</DisplayString>
     <Expand>
       <Item Name="[Capacity]">m_capacity</Item>
@@ -52,6 +51,8 @@
         <Expand>
           <Item Name="Borrow Operations">m_counter_checkout</Item>
           <Item Name="Return Operations">m_counter_checkin</Item>
+          <Item Name="Valid Returns">m_counter_valid_returns</Item>
+          <Item Name="Invalid Returns">m_counter_invalid_returns</Item>
           <Item Name="On-Demand Adds">m_counter_ondemand_adds</Item>
           <Item Name="Auto-Returned">m_capacity_poolsize</Item>
         </Expand>
@@ -59,8 +60,7 @@
       <Item Name="[Callbacks]">
         <Expand>
           <Item Name="Has Factory Callback">m_callback_to_add_new_raw_resource_to_pool != nullptr</Item>
-          <Item Name="Has Invalidation Callback">m_callback_resource_invalidated != nullptr</Item>
-          <Item Name="Has Shutdown Callback">m_callback_pool_shutdown != nullptr</Item>
+          <Item Name="Has Cleanup Callback">m_callback_on_resource_cleanup != nullptr</Item>
         </Expand>
       </Item>
     </Expand>
@@ -86,6 +86,8 @@
         <Expand>
           <Item Name="Borrow Operations">m_counter_checkout</Item>
           <Item Name="Return Operations">m_counter_checkin</Item>
+          <Item Name="Valid Returns">m_counter_valid_returns</Item>
+          <Item Name="Invalid Returns">m_counter_invalid_returns</Item>
           <Item Name="On-Demand Adds">m_counter_ondemand_adds</Item>
           <Item Name="Auto-Returned">m_capacity_poolsize</Item>
         </Expand>
@@ -93,24 +95,9 @@
       <Item Name="[Callbacks]">
         <Expand>
           <Item Name="Has Factory Callback">m_callback_to_add_new_raw_resource_to_pool != nullptr</Item>
-          <Item Name="Has Invalidation Callback">m_callback_resource_invalidated != nullptr</Item>
-          <Item Name="Has Shutdown Callback">m_callback_pool_shutdown != nullptr</Item>
+          <Item Name="Has Cleanup Callback">m_callback_on_resource_cleanup != nullptr</Item>
         </Expand>
       </Item>
-    </Expand>
-  </Type>
-
-  <!-- ============================================================================
-       Namespace alias for convenience
-       ============================================================================ -->
-  <Type Name="siddiqsoft::arrp::scoped_resource&lt;*&gt;">
-    <DisplayString Condition="m_is_valid">scoped_resource&lt;{$T1}&gt; [valid, id:{m_debug_id}]</DisplayString>
-    <DisplayString Condition="!m_is_valid">scoped_resource&lt;{$T1}&gt; [invalid, id:{m_debug_id}]</DisplayString>
-    <Expand>
-      <Item Name="[Resource]">m_rsrc</Item>
-      <Item Name="[Valid]">m_is_valid</Item>
-      <Item Name="[Debug ID]">m_debug_id</Item>
-      <Item Name="[Has Callback]">m_putback_callback != nullptr</Item>
     </Expand>
   </Type>
 

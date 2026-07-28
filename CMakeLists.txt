@@ -52,8 +52,6 @@ install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/SiddiqSoft.${PROJECT_NAME}.natvis
 # automatically included.
 cpmaddpackage("gh:siddiqsoft/RunOnEnd#1.4.5")
 target_link_libraries(${PROJECT_NAME} INTERFACE RunOnEnd::RunOnEnd)
-#CPMAddPackage("gh:SiddiqSoft/RWLContainer#1.5.5")
-#target_link_libraries(${PROJECT_NAME} INTERFACE RWLContainer::RWLContainer)
 
 # Testing configuration
 if(${PROJECT_NAME}_BUILD_TESTS AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests" AND IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/tests")
