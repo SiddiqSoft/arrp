@@ -827,27 +827,35 @@ TEST(counter_balance, counter_size_consistency)
     EXPECT_EQ(10, pool.size().value_or(0));
 
     // Borrow 5
-    std::vector<siddiqsoft::arrp::scoped_resource<std::string>> resources;
-    for (int i = 0; i < 5; ++i) {
-        auto res = pool.borrow_from_pool();
-        EXPECT_TRUE(res.has_value());
-        resources.push_back(std::move(res.value()));
-    }
+    {
+        auto p1 = pool.borrow_from_pool();
+        auto p2 = pool.borrow_from_pool();
+        {
+            { // borrow 3 more.. and release them first..
+                auto p3 = pool.borrow_from_pool();
+                auto p4 = pool.borrow_from_pool();
+                auto p5 = pool.borrow_from_pool();
 
-    EXPECT_EQ(5, get_borrow_count(pool));
-    EXPECT_EQ(5, pool.size().value_or(0));
+                EXPECT_EQ(5, get_borrow_count(pool));
+                EXPECT_EQ(5, pool.size().value_or(0));
 
-    std::println(std::cerr, "....before returning 3... {}", pool.to_json().value().get().dump());
-    // Return 3
-    resources.erase(resources.begin(), resources.begin() + 3);
-
-    std::println(std::cerr, ".....after returning 3... {}", pool.to_json().value().get().dump());
-
-    EXPECT_EQ(2, get_borrow_count(pool));
-    EXPECT_EQ(8, pool.size().value_or(0));
-
-    // Return all
-    resources.clear();
+                std::println(std::cerr,
+                             "....before returning 3... resources: {}. stats: {}",
+                             0, // resources.size(),
+                             pool.to_json().value().get().dump());
+            }
+            EXPECT_EQ(2, get_loan_count(pool));
+            EXPECT_EQ(8, pool.size().value_or(0));
+            std::println(std::cerr,
+                         ".....after returning 3...resources:{}. stats: {}",
+                         0, // resources.size(),
+                         pool.to_json().value().get().dump());
+        }
+    } // release all five..
+    std::println(std::cerr,
+                 ".....after returning all borrowed...resources:{}. stats: {}",
+                 0, // resources.size(),
+                 pool.to_json().value().get().dump());
 
     EXPECT_EQ(0, get_loan_count(pool));
     EXPECT_EQ(10, pool.size().value_or(-1));

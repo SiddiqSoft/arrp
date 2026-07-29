@@ -289,7 +289,7 @@ namespace siddiqsoft::arrp
                     m_putback_callback(std::move(m_rsrc), m_is_valid);
                 }
                 catch (...) {
-                    std::print( std::cerr, "scoped_resource destructor: exception while returning resource to pool!\n");
+                    std::print(std::cerr, "scoped_resource destructor: exception while returning resource to pool!\n");
                 }
                 m_is_valid         = false;
                 m_putback_callback = {};
@@ -350,7 +350,10 @@ struct std::formatter<siddiqsoft::arrp::scoped_resource<T>>
 {
     /// @brief Parse format specification (empty for this type)
     template <typename ParseContext>
-    constexpr auto parse(ParseContext& ctx) { return ctx.begin(); }
+    constexpr auto parse(ParseContext& ctx)
+    {
+        return ctx.begin();
+    }
 
     /// @brief Format the scoped_resource
     /// @param sr The scoped_resource to format
