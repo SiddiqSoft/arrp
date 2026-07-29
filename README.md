@@ -70,8 +70,6 @@ Complete documentation is available at: **[https://siddiqsoft.github.io/arrp/](h
 - **Platform Support**: Windows, Linux, macOS
 - **Optional**: nlohmann/json for JSON serialization support
 
-> **Note**: This library requires C++23 features (`std::expected`, `std::print`). Ensure your compiler and standard library support these features. For older compilers, consider using a compatibility layer like `tl::expected`.
-
 ## Installation
 
 ### Using CMake (Recommended)
@@ -156,11 +154,10 @@ siddiqsoft::arrp::resource_pool<DatabaseConnection> pool(
         
         // Return wrapped with auto-return callback
         return siddiqsoft::arrp::scoped_resource<DatabaseConnection>{
-            [&my_pool](DatabaseConnection&& res, bool isvalid) -> std::expected<void, siddiqsoft::arrp::pool_error> {
-                if (isvalid) {
-                    return my_pool.seed_to_pool(std::move(res));
-                }
-                return {};
+            [&my_pool](DatabaseConnection&& res, bool isvalid) {
+                // Note that *only* the "return" code must call the return_to_pool()
+                // and *not* call the seed_to_pool method!
+                return my_pool.return_to_pool(std::move(res), isvalid);
             },
             std::move(conn)
         };

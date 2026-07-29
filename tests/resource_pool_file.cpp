@@ -1,6 +1,6 @@
 /*
-    asynchrony-lib
-    Add asynchrony to your apps
+    aarp
+    Auto returning resource pool
 
     BSD 3-Clause License
 

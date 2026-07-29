@@ -114,11 +114,52 @@ TEST(scoped_resource_operators, is_valid_method)
 /// @brief Test scoped_resource move assignment with self-assignment protection
 TEST(scoped_resource_operators, move_assignment_self_protection)
 {
-    siddiqsoft::arrp::resource_pool<std::string> pool {};
-    pool.seed_to_pool(std::string("resource1"));
-    pool.seed_to_pool(std::string("resource2"));
-
+    class custom
     {
+    public:
+        std::string v;
+
+        explicit operator std::string&() { return v; }
+        explicit operator const char*() { return v.c_str(); }
+
+        custom(const std::string& s)
+            : v(s)
+        {
+        }
+        custom(std::string&& s)
+            : v(std::move(s))
+        {
+        }
+        custom(custom&& src) noexcept
+            : v(std::move(src.v))
+        {
+        }
+        custom& operator=(custom&& src) noexcept
+        {
+            if (this != &src) {
+                v = std::move(src.v);
+            }
+            return *this;
+        }
+        auto operator=(const std::string& s) -> custom&
+        {
+            v = s;
+            return *this;
+        }
+        ~custom() { std::print(std::cerr, "{} - destroyed: {}\n", __func__, v); }
+        bool                 operator==(const std::string& src) const { return v == src; }
+        bool                 operator==(const char* src) const { return v == src; }
+        std::strong_ordering operator<=>(const std::string& src) const { return v <=> src; }
+        std::strong_ordering operator<=>(const char* src) const { return v <=> src; }
+    };
+
+    siddiqsoft::arrp::resource_pool<custom> pool {};
+
+    pool.seed_to_pool(custom {"resource1"});
+    pool.seed_to_pool(custom {"resource2"});
+    EXPECT_EQ(2, pool.size().value_or(-1));
+
+    { // borrow two and clobber one of them..
         auto res1 = pool.borrow_from_pool();
         auto res2 = pool.borrow_from_pool();
 
@@ -128,15 +169,22 @@ TEST(scoped_resource_operators, move_assignment_self_protection)
         auto& sr1 = res1.value();
         auto& sr2 = res2.value();
 
-        // Move assign sr2 to sr1
+        // Move assign sr2 to sr1:
+        // - sr1's current resource ("resource1") is returned to the pool first
+        // - sr1 then takes ownership of sr2's resource ("resource2")
+        // - sr2 is left invalid (no callback, no resource)
         sr1 = std::move(sr2);
 
-        // sr1 should now have sr2's resource
-        EXPECT_EQ("resource2", *sr1);
+        // sr1 should now hold sr2's resource
+        EXPECT_EQ("resource2", (*sr1).v);
+        // sr2 must be invalid after the move
+        EXPECT_FALSE(sr2.is_valid());
     }
-
-    // Only one resource should be returned (sr1)
-    EXPECT_EQ(1u, pool.size().value_or(0));
+    // On scope exit: sr1 (holding "resource2") is returned to pool.
+    // sr2 is invalid so nothing is returned for it.
+    // "resource1" was already returned during the move-assignment above.
+    // Net result: both resources are back in the pool.
+    EXPECT_EQ(2, pool.size().value_or(-1));
 }
 
 /// @brief Test scoped_resource with nullptr pointer access
@@ -529,6 +577,7 @@ TEST(resource_pool_clear, concurrent_with_borrow)
     std::atomic_bool stop {false};
     std::atomic_int  clears {0};
     std::atomic_int  borrows {0};
+    std::atomic_int  borrow_fails {0};
 
     auto             worker  = std::jthread([&]() {
         for (int i = 0; i < 100 && !stop.load(); ++i) {
@@ -537,6 +586,8 @@ TEST(resource_pool_clear, concurrent_with_borrow)
                 borrows++;
                 std::this_thread::sleep_for(std::chrono::milliseconds(5));
             }
+            else
+                borrow_fails++;
         }
     });
 
@@ -558,6 +609,7 @@ TEST(resource_pool_clear, concurrent_with_borrow)
     worker.join();
     clearer.join();
 
+    std::print(std::cerr, "borrows:{}. borrow_fails:{}. clears:{}", borrows.load(), borrow_fails.load(), clears.load());
     EXPECT_GT(clears.load(), 0);
     EXPECT_GT(borrows.load(), 0);
 }

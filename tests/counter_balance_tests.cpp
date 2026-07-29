@@ -891,7 +891,6 @@ TEST(counter_balance, counter_size_consistency_2)
         auto _ = holdResources.erase(holdResources.begin(), holdResources.begin() + 3);
         // This is important for std::vector!
         holdResources.shrink_to_fit();
-        holdResources.resize(2);
 
         EXPECT_EQ(2, get_loan_count(pool));
         EXPECT_EQ(8, pool.size().value_or(0));

@@ -178,7 +178,7 @@ namespace siddiqsoft::arrp
         /// @details Returns true if the total number of resources (in pool + checked out) is less than capacity
         /// @return true if pool is under capacity, false otherwise
         inline bool is_pool_starving() { return m_resources_checkedout.load() + m_pool.size() < m_capacity; }
-        
+
         /// @brief Checks if there is a deficit between configured capacity and current resources
         /// @return true if deficit exists, false otherwise
         inline auto is_there_a_pool_deficit() { return deficit_size() != 0; }
@@ -188,9 +188,9 @@ namespace siddiqsoft::arrp
         /// The deficit is: capacity - (pool_size + checked_out_resources)
         /// @return Positive value indicates resources needed to reach capacity, zero means at capacity,
         ///         negative value indicates over-capacity (should not normally occur)
-        inline int64_t deficit_size() { 
-            return static_cast<int64_t>(m_capacity) - 
-                   (static_cast<int64_t>(m_pool.size()) + m_resources_checkedout.load()); 
+        inline int64_t deficit_size()
+        {
+            return static_cast<int64_t>(m_capacity) - (static_cast<int64_t>(m_pool.size()) + m_resources_checkedout.load());
         }
 
         /// @brief The loan size is the difference between the borrows and returns and accounting for the abandons.
@@ -488,6 +488,8 @@ namespace siddiqsoft::arrp
         /// @note Resource is constructed in-place
         /// @note Decrements checkout counter
         /// @note Returns error if pool is shutting down
+        /// @note This method MUST NOT be invoked to "return"; use the return_to_pool() method otherwise the accounting and resource
+        /// management will not work properly!
         template <typename... Args>
         auto seed_to_pool(Args&&... args) -> std::expected<void, pool_error>
         {
@@ -498,7 +500,7 @@ namespace siddiqsoft::arrp
 
             m_pool.emplace_back(T {std::forward<Args&&>(args)...});
             m_counter_seeds++;
-            
+
             // Update peak pool size for statistics
             auto current_size = m_pool.size();
             if (current_size > m_peak_poolsize.load()) {
@@ -517,6 +519,8 @@ namespace siddiqsoft::arrp
         /// @note Resource is moved into the pool
         /// @note Decrements checkout counter
         /// @note Returns error if pool is shutting down
+        /// @note This method MUST NOT be invoked to "return"; use the return_to_pool() method otherwise the accounting and resource
+        /// management will not work properly!
         auto seed_to_pool(T&& item) -> std::expected<void, pool_error>
         {
             std::scoped_lock l(m_pool_lock);
@@ -526,7 +530,7 @@ namespace siddiqsoft::arrp
 
             m_pool.emplace_back(std::move(item));
             m_counter_seeds++;
-            
+
             // Update peak pool size for statistics
             auto current_size = m_pool.size();
             if (current_size > m_peak_poolsize.load()) {
@@ -550,7 +554,9 @@ namespace siddiqsoft::arrp
         /// @note Thread-safe: Uses exclusive lock
         /// @note Increments appropriate counter (valid_returns or invalid_returns)
         /// @note Decrements checkout counter
-        /// @note Returns error if pool is shutting down
+        /// @note Returns if pool is shutting down
+        /// @note This method MUST be invoked to "return" the resource back to pool otherwise the accounting and resource
+        /// management will not work properly!
         void return_to_pool(T&& item, bool isvalid)
         {
             std::scoped_lock l(m_pool_lock);
@@ -563,7 +569,7 @@ namespace siddiqsoft::arrp
             if (isvalid) {
                 m_pool.push_back(std::move(item));
                 m_counter_returns++;
-                
+
                 // Update peak pool size for statistics
                 auto current_size = m_pool.size();
                 if (current_size > m_peak_poolsize.load()) {

@@ -212,33 +212,46 @@ namespace siddiqsoft::arrp
         /// @brief Move assignment operator
         ///
         /// Transfers ownership from another scoped_resource to this one.
-        /// The source is invalidated to prevent double-return.
+        /// Before taking ownership, the currently-held resource (if valid) is returned
+        /// to the pool via the putback callback. The source is then invalidated to
+        /// prevent double-return.
         ///
         /// @param src The source scoped_resource to move from
         /// @return Reference to this scoped_resource
         ///
-        /// @note Self-assignment is checked
+        /// @note Self-assignment is checked via pointer comparison
+        /// @note The currently-held resource is returned to the pool before overwrite
         /// @note The source's callback is cleared to prevent double-return
-        /// @note The source is marked as invalid
-        scoped_resource& operator=(scoped_resource&& src) noexcept
+        /// @note The source is marked as invalid after the move
+        /// @note NOT noexcept: T's move-assignment may throw; declaring noexcept here
+        ///       would call std::terminate if T::operator=(T&&) throws after the
+        ///       putback callback has already fired (state would be inconsistent).
+        scoped_resource& operator=(scoped_resource&& src)
         {
             if (this != &src) {
-                // Return current resource if valid and callback exists
-                if (m_is_valid && m_putback_callback) {
+                // Return current resource to pool before overwriting it.
+                // The callback is invoked with the current validity flag so the pool
+                // can decide whether to reuse (valid) or discard (invalid) the resource.
+                if (m_putback_callback) {
                     try {
                         m_putback_callback(std::move(m_rsrc), m_is_valid);
                     }
                     catch (...) {
-                        std::print(std::cerr, "scoped_resource move-assignment: exception while returning current resource to pool!\n");
+                        std::print(std::cerr,
+                                   "scoped_resource move-assignment: exception while returning current resource to pool!\n");
                     }
+                    // Clear our own callback and validity now that the resource has been
+                    // handed back; this prevents the destructor from double-returning.
+                    m_putback_callback = {};
+                    m_is_valid         = false;
                 }
 
-                // Move from src
+                // Take ownership of src's resource and callback.
                 m_rsrc             = std::move(src.m_rsrc);
                 m_putback_callback = std::move(src.m_putback_callback);
                 m_is_valid         = src.m_is_valid;
 
-                // Reset src to prevent double-return
+                // Disarm src so its destructor does nothing.
                 src.m_putback_callback = {};
                 src.m_is_valid         = false;
             }
