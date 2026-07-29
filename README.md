@@ -37,7 +37,7 @@ siddiqsoft::arrp::resource_pool<std::shared_ptr<DatabaseConnection>> pool(
 
 // Populate the pool
 for (int i = 0; i < 10; ++i) {
-    pool.add_to_pool(std::make_shared<DatabaseConnection>());
+    pool.seed_to_pool(std::make_shared<DatabaseConnection>());
 }
 
 // Borrow and use a resource
@@ -110,8 +110,8 @@ int main() {
     );
     
     // Add resources
-    pool.add_to_pool(std::string("resource-1"));
-    pool.add_to_pool(std::string("resource-2"));
+    pool.seed_to_pool(std::string("resource-1"));
+    pool.seed_to_pool(std::string("resource-2"));
     
     // Borrow and use
     {
@@ -156,7 +156,7 @@ siddiqsoft::arrp::resource_pool<DatabaseConnection> pool(
         return siddiqsoft::arrp::scoped_resource<DatabaseConnection>{
             [&my_pool](DatabaseConnection&& res, bool isvalid) -> std::expected<void, siddiqsoft::arrp::pool_error> {
                 if (isvalid) {
-                    return my_pool.add_to_pool(std::move(res));
+                    return my_pool.seed_to_pool(std::move(res));
                 }
                 return {};
             },
@@ -179,7 +179,7 @@ siddiqsoft::arrp::resource_pool<DatabaseConnection> pool(
 
 // Pre-populate pool
 for (int i = 0; i < 10; ++i) {
-    pool.add_to_pool(std::make_shared<DatabaseConnection>());
+    pool.seed_to_pool(std::make_shared<DatabaseConnection>());
 }
 
 // Use from multiple threads
@@ -221,7 +221,7 @@ if (state) {
 | Method | Returns | Description 
 |--------|---------|----------------------
 | `borrow_from_pool()` | `std::expected<scoped_resource<T>, pool_error>` | Borrow a resource from the pool.<br/>Returns error if pool is exhausted and no factory callback available.<br/>If pool is under capacity, factory callback is invoked to create new resource.
-| `add_to_pool(T&&)` | `std::expected<void, pool_error>` | Add a resource to the pool.<br/>The move-semantics is required as the resource must be returned exclusively to the pool.<br/>If the `scoped_resource` is marked invalid then the resource will not be claimed back.
+| `seed_to_pool(T&&)` | `std::expected<void, pool_error>` | Add a resource to the pool.<br/>The move-semantics is required as the resource must be returned exclusively to the pool.<br/>If the `scoped_resource` is marked invalid then the resource will not be claimed back.
 | `size()` | `std::expected<size_t, pool_error>` | Get number of available resources in pool
 | `clear()` | `std::expected<void, pool_error>` | Remove all resources from pool
 | `to_json()` | `std::expected<std::reference_wrapper<nlohmann::json>, pool_error>` | Get pool state as JSON (requires nlohmann/json)
@@ -240,7 +240,7 @@ For complete API documentation, see the [API Reference](https://siddiqsoft.githu
 ## Thread Safety
 
 All public methods of `resource_pool` are thread-safe:
-- Multiple threads can safely call `borrow_from_pool()` and `add_to_pool()` concurrently
+- Multiple threads can safely call `borrow_from_pool()` and `seed_to_pool()` concurrently
 - The pool uses internal mutexes to protect shared state
 - No external synchronization is required
 - Atomic counters for lock-free statistics
@@ -249,7 +249,7 @@ All public methods of `resource_pool` are thread-safe:
 
 The resource_pool uses `std::expected<T, pool_error>` for error handling:
 - **borrow_from_pool()**: Returns error if pool is exhausted and no factory callback available
-- **add_to_pool()**: Returns error if pool is shutting down
+- **seed_to_pool()**: Returns error if pool is shutting down
 - **clear()**: Returns error if pool is shutting down
 - **size()**: Returns error if pool is shutting down
 - **to_json()**: Returns error if pool is shutting down

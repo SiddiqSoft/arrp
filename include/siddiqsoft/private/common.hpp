@@ -84,7 +84,7 @@ struct std::formatter<siddiqsoft::arrp::release_reason, ct> : std::formatter<ct>
         std::string_view val {};
         switch (rr) {
             case siddiqsoft::arrp::release_reason::Valid: val = "Valid"; break;
-            case siddiqsoft::arrp::release_reason::Abandoned: val = "Abandoned"; break;
+            case siddiqsoft::arrp::release_reason::Abandoned: val = "abandons"; break;
             default: val = "Unknown"; break;
         }
 

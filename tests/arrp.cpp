@@ -204,8 +204,8 @@ TEST(resource_pool, serializer_1)
     siddiqsoft::arrp::resource_pool<std::string> rp {};
 
     EXPECT_NO_THROW({
-        rp.add_to_pool("peace");
-        rp.add_to_pool("ﷵ");
+        rp.seed_to_pool("peace");
+        rp.seed_to_pool("ﷵ");
 
         EXPECT_EQ(2, rp.size());
         std::print( std::cerr, "resource_pool::serializer_1 - after adding      stats:{}\n", rp);
@@ -241,8 +241,8 @@ TEST(resource_pool, serializer_pair)
     siddiqsoft::arrp::resource_pool<custom2> rp {};
 
     EXPECT_NO_THROW({
-        rp.add_to_pool(custom2{10, "peace"});
-        rp.add_to_pool(custom2{20, "ﷵ"});
+        rp.seed_to_pool(custom2{10, "peace"});
+        rp.seed_to_pool(custom2{20, "ﷵ"});
 
         EXPECT_EQ(2, rp.size());
 

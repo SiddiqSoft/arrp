@@ -122,7 +122,7 @@ namespace siddiqsoft::arrp
         /// @param resource The resource being returned (moved)
         /// @param is_valid Whether the resource is valid and should be reused
         /// @return std::expected<void, pool_error> indicating success or error
-        using PutbackCallbackFunc = std::function<std::expected<void,pool_error>(T&&, bool)>;
+        using PutbackCallbackFunc = std::function<void(T&&, bool)>;
 
 
         // Allow resource_pool to access protected members

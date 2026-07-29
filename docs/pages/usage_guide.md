@@ -28,14 +28,14 @@ siddiqsoft::arrp::resource_pool<std::string> auto_pool(
 
 ```cpp
 // Add single resource
-auto result = pool.add_to_pool(std::make_shared<DatabaseConnection>());
+auto result = pool.seed_to_pool(std::make_shared<DatabaseConnection>());
 if (!result) {
     std::cerr << "Failed to add resource" << std::endl;
 }
 
 // Add multiple resources
 for (int i = 0; i < 10; ++i) {
-    pool.add_to_pool(std::make_shared<DatabaseConnection>());
+    pool.seed_to_pool(std::make_shared<DatabaseConnection>());
 }
 ```
 
@@ -65,11 +65,8 @@ siddiqsoft::arrp::resource_pool<DatabaseConnection> pool(
         
         // Return wrapped with auto-return callback
         return siddiqsoft::arrp::scoped_resource<DatabaseConnection>(
-            [&p](DatabaseConnection&& res, bool isvalid) -> std::expected<void, siddiqsoft::arrp::pool_error> {
-                if (isvalid) {
-                    return p.add_to_pool(std::move(res));
-                }
-                return {};
+            [&p](DatabaseConnection&& res, bool isvalid)  {
+                     p.return_to_pool(std::move(res),isvalid);
             },
             std::move(conn)
         );
@@ -98,7 +95,7 @@ siddiqsoft::arrp::resource_pool<DatabaseConnection> pool(
 
 // Pre-populate pool
 for (int i = 0; i < 10; ++i) {
-    pool.add_to_pool(std::make_shared<DatabaseConnection>());
+    pool.seed_to_pool(std::make_shared<DatabaseConnection>());
 }
 
 // Use from multiple threads
@@ -191,7 +188,7 @@ siddiqsoft::arrp::resource_pool<std::shared_ptr<DatabaseConnection>> pool(
     siddiqsoft::arrp::auto_add_policy::AutoGrow
 );
 
-pool.add_to_pool(std::make_shared<DatabaseConnection>());
+pool.seed_to_pool(std::make_shared<DatabaseConnection>());
 
 {
     auto conn = pool.borrow_from_pool();
@@ -209,7 +206,7 @@ siddiqsoft::arrp::resource_pool<std::unique_ptr<DatabaseConnection>> pool(
     siddiqsoft::arrp::auto_add_policy::AutoGrow
 );
 
-pool.add_to_pool(std::make_unique<DatabaseConnection>());
+pool.seed_to_pool(std::make_unique<DatabaseConnection>());
 
 {
     auto conn = pool.borrow_from_pool();
@@ -232,7 +229,7 @@ siddiqsoft::arrp::resource_pool<MyResource> pool(
     siddiqsoft::arrp::auto_add_policy::AutoGrow
 );
 
-pool.add_to_pool(MyResource());
+pool.seed_to_pool(MyResource());
 
 {
     auto res = pool.borrow_from_pool();
@@ -315,11 +312,8 @@ auto pool = resource_pool<Resource>(
     10,
     [](auto& p) -> std::expected<scoped_resource<Resource>, pool_error> {
         return scoped_resource<Resource>(
-            [&p](Resource&& res, bool isvalid) -> std::expected<void, pool_error> {
-                if (isvalid) {
-                    return p.add_to_pool(std::move(res));
-                }
-                return {};
+            [&p](Resource&& res, bool isvalid)             {    p.s_to_pool(std::move(res),isvalid);
+                
             },
             Resource::create()
         );
@@ -357,7 +351,7 @@ auto pool = resource_pool<Resource>(
 5. **Monitor utilization**: Use `to_json()` to track pool health
 6. **Use appropriate types**: Prefer shared_ptr or unique_ptr
 7. **Test concurrency**: Verify thread safety with your specific use case
-8. **Avoid manual add_to_pool()**: Only use in advanced scenarios
+8. **Avoid manual seed_to_pool()**: Only use in advanced scenarios
 9. **Document assumptions**: Clearly document resource lifecycle expectations
 10. **Profile under load**: Test with realistic concurrent access patterns
 11. **Use AutoGrow wisely**: AutoGrow can mask resource leaks; monitor carefully

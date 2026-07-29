@@ -77,12 +77,12 @@ Borrows a resource from the pool.
 
 **See Also**: @ref scoped_resource for automatic resource management.
 
-#### add_to_pool()
+#### seed_to_pool()
 ```cpp
-auto add_to_pool(T&& item) -> std::expected<void, pool_error>;
+auto seed_to_pool(T&& item) -> std::expected<void, pool_error>;
 
 template <typename... Args>
-auto add_to_pool(Args&&... args) -> std::expected<void, pool_error>;
+auto seed_to_pool(Args&&... args) -> std::expected<void, pool_error>;
 ```
 Adds a resource to the pool.
 
@@ -338,7 +338,7 @@ All errors are returned via `std::expected<T, pool_error>`:
 
 **Guarantees**:
 - All public methods of @ref resource_pool "resource_pool" are thread-safe
-- Multiple threads can safely call @ref resource_pool::borrow_from_pool() "borrow_from_pool()" and @ref resource_pool::add_to_pool() "add_to_pool()" concurrently
+- Multiple threads can safely call @ref resource_pool::borrow_from_pool() "borrow_from_pool()" and @ref resource_pool::seed_to_pool() "seed_to_pool()" concurrently
 - Internal mutexes protect shared state
 - Atomic counters for lock-free statistics
 - No external synchronization required
@@ -354,7 +354,7 @@ All errors are returned via `std::expected<T, pool_error>`:
 | Operation | Complexity | Notes |
 |-----------|-----------|-------|
 | @ref resource_pool::borrow_from_pool() "borrow_from_pool()" | O(1) amortized | Resource creation outside lock |
-| @ref resource_pool::add_to_pool() "add_to_pool()" | O(1) amortized | Simple push_back operation |
+| @ref resource_pool::seed_to_pool() "seed_to_pool()" | O(1) amortized | Simple push_back operation |
 | @ref resource_pool::size() "size()" | O(1) | With lock acquisition |
 | @ref resource_pool::clear() "clear()" | O(n) | n = pool size |
 | @ref resource_pool::to_json() "to_json()" | O(1) | With lock acquisition |
@@ -375,7 +375,7 @@ All errors are returned via `std::expected<T, pool_error>`:
 @section api_exception_safety Exception Safety
 
 - **@ref resource_pool::borrow_from_pool() "borrow_from_pool()"**: Strong - if factory throws, state remains consistent
-- **@ref resource_pool::add_to_pool() "add_to_pool()"**: noexcept
+- **@ref resource_pool::seed_to_pool() "seed_to_pool()"**: noexcept
 - **@ref resource_pool::clear() "clear()"**: noexcept
 - **@ref resource_pool::size() "size()"**: noexcept
 - **@ref resource_pool::to_json() "to_json()"**: Strong

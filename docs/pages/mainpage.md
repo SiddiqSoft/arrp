@@ -38,7 +38,7 @@ siddiqsoft::arrp::resource_pool<MyResource> pool(
 );
 
 // Add resources
-pool.add_to_pool(MyResource());
+pool.seed_to_pool(MyResource());
 
 // Borrow and use
 {

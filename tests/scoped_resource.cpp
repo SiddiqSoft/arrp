@@ -72,7 +72,7 @@ TEST(resource_pool, T_shared_ptr_string)
         siddiqsoft::arrp::resource_pool<std::shared_ptr<std::string>> rp {};
 
         EXPECT_EQ(0, rp.size()) << "Pool must be empty at start";
-        rp.add_to_pool(std::shared_ptr<std::string>(new std::string(__TIME__)));
+        rp.seed_to_pool(std::shared_ptr<std::string>(new std::string(__TIME__)));
         EXPECT_EQ(1, rp.size()) << "Pool must have only one item";
 
         std::print(std::cerr, "{} - 0 - {}\n", __func__, rp.to_json().value().get().dump());
@@ -118,7 +118,7 @@ TEST(resource_pool, T_unique_ptr_string)
         siddiqsoft::arrp::resource_pool<std::unique_ptr<std::string>> rp {};
 
         EXPECT_EQ(0, rp.size());
-        rp.add_to_pool(std::unique_ptr<std::string>(new std::string(__TIME__)));
+        rp.seed_to_pool(std::unique_ptr<std::string>(new std::string(__TIME__)));
         EXPECT_EQ(1, rp.size());
 
         {
@@ -156,7 +156,7 @@ TEST(resource_pool, T_checkin_checkout_unique_ptr_string)
         siddiqsoft::arrp::resource_pool<std::unique_ptr<std::string>> rp {};
 
         EXPECT_EQ(0, rp.size());
-        rp.add_to_pool(std::unique_ptr<std::string>(new std::string(__TIME__)));
+        rp.seed_to_pool(std::unique_ptr<std::string>(new std::string(__TIME__)));
         EXPECT_EQ(1, rp.size());
 
         // Borrow and let it go out of scope to return automatically
@@ -191,7 +191,7 @@ TEST(resource_pool, T_checkin_checkout_vector_string)
         siddiqsoft::arrp::resource_pool<std::vector<std::string>> rp {};
 
         EXPECT_EQ(0, rp.size());
-        rp.add_to_pool(std::vector<std::string> {"A", "B", "C"});
+        rp.seed_to_pool(std::vector<std::string> {"A", "B", "C"});
         EXPECT_EQ(1, rp.size());
 
         // Borrow and let it go out of scope to return automatically
@@ -250,9 +250,9 @@ TEST(resource_pool, clear)
                 throw std::runtime_error("Deliberate throw");
             });
 
-    rp.add_to_pool(std::string("1"));
-    rp.add_to_pool(std::string("2"));
-    rp.add_to_pool(std::string("3"));
+    rp.seed_to_pool(std::string("1"));
+    rp.seed_to_pool(std::string("2"));
+    rp.seed_to_pool(std::string("3"));
     EXPECT_EQ(3u, rp.size());
 
     rp.clear();
@@ -270,7 +270,7 @@ TEST(resource_pool, multiple_items)
     siddiqsoft::arrp::resource_pool<std::string> rp {};
 
     for (int i = 0; i < 10; i++) {
-        rp.add_to_pool(std::format("{}", i));
+        rp.seed_to_pool(std::format("{}", i));
     }
     EXPECT_EQ(10u, rp.size());
 
@@ -290,7 +290,7 @@ TEST(resource_pool, round_trip_preserves_value)
 {
     siddiqsoft::arrp::resource_pool<std::string> rp {};
 
-    rp.add_to_pool(std::string("hello"));
+    rp.seed_to_pool(std::string("hello"));
     {
         auto item_result = rp.borrow_from_pool();
         EXPECT_TRUE(item_result.has_value());
@@ -318,8 +318,8 @@ TEST(resource_pool, json_type)
 
     std::print(std::cerr, "{}\n", dummy.dump());
 
-    rp.add_to_pool(nlohmann::json::object({{"name", "surname"}, {"lift", 909}, {"everything", "nothing"}}));
-    rp.add_to_pool(std::move(dummy));
+    rp.seed_to_pool(nlohmann::json::object({{"name", "surname"}, {"lift", 909}, {"everything", "nothing"}}));
+    rp.seed_to_pool(std::move(dummy));
     EXPECT_TRUE(dummy.is_null());
     EXPECT_EQ(2u, rp.size());
 
@@ -350,8 +350,8 @@ TEST(resource_pool, pair_type)
     bool                                                         passTest = false;
     siddiqsoft::arrp::resource_pool<std::pair<int, std::string>> rp {};
 
-    // Note that the args... constructor calls the specific args.. add_to_pool(args...)
-    rp.add_to_pool(99, "hello");
+    // Note that the args... constructor calls the specific args.. seed_to_pool(args...)
+    rp.seed_to_pool(99, "hello");
     EXPECT_EQ(1u, rp.size());
 
     try {
@@ -383,7 +383,7 @@ TEST(resource_pool, concurrent_access)
 
     // Pre-fill the pool
     for (int i = 0; i < ITERATIONS; i++) {
-        rp.add_to_pool(std::format("resource-{}", i));
+        rp.seed_to_pool(std::format("resource-{}", i));
     }
 
     std::vector<std::jthread> threads;
@@ -413,7 +413,7 @@ TEST(resource_pool, concurrent_access)
 TEST(resource_pool, double_clear)
 {
     siddiqsoft::arrp::resource_pool<std::string> rp {};
-    rp.add_to_pool(std::string("42"));
+    rp.seed_to_pool(std::string("42"));
     rp.clear();
     EXPECT_EQ(0u, rp.size());
 
@@ -441,7 +441,7 @@ TEST(resource_pool, starvation_under_contention)
 
 
     for (int i = 0; i < POOL_SIZE; i++) {
-        rp.add_to_pool(std::format("resource-{}", i));
+        rp.seed_to_pool(std::format("resource-{}", i));
     }
 
     std::atomic_int           successCount {0};
@@ -490,7 +490,7 @@ TEST(resource_pool, high_throughput_cycling)
 
     siddiqsoft::arrp::resource_pool<std::string> rp {};
     for (int i = 0; i < POOL_SIZE; i++) {
-        rp.add_to_pool(std::format("resource-{}", i));
+        rp.seed_to_pool(std::format("resource-{}", i));
     }
 
     std::atomic_int           totalBorrows {0};
@@ -530,8 +530,8 @@ TEST(resource_pool, borrow_after_drain_fails)
                 throw std::runtime_error("Deliberate throw");
             });
 
-    rp.add_to_pool(std::string("1"));
-    rp.add_to_pool(std::string("2"));
+    rp.seed_to_pool(std::string("1"));
+    rp.seed_to_pool(std::string("2"));
 
     {
         auto a_result = rp.borrow_from_pool();
@@ -568,7 +568,7 @@ TEST(resource_pool, size_accuracy_under_concurrency)
             startBarrier.arrive_and_wait();
             for (int i = 0; i < ITEMS_PER_THREAD; i++) {
                 std::string val = std::format("resource-{}-{}", t, i);
-                rp.add_to_pool(std::move(val));
+                rp.seed_to_pool(std::move(val));
             }
         });
     }
@@ -590,7 +590,7 @@ TEST(resource_pool, concurrent_unique_ptr)
 
     siddiqsoft::arrp::resource_pool<std::unique_ptr<std::string>> rp {};
     for (int i = 0; i < POOL_SIZE; i++) {
-        rp.add_to_pool(std::make_unique<std::string>(std::format("resource-{}", i)));
+        rp.seed_to_pool(std::make_unique<std::string>(std::format("resource-{}", i)));
     }
 
     std::atomic_int           totalBorrows {0};
@@ -628,9 +628,9 @@ TEST(resource_pool, multiple_shared_ptr_items)
     auto                                                          ptr2 = std::make_shared<std::string>("resource-2");
     auto                                                          ptr3 = std::make_shared<std::string>("resource-3");
 
-    rp.add_to_pool(std::move(ptr1));
-    rp.add_to_pool(std::move(ptr2));
-    rp.add_to_pool(std::move(ptr3));
+    rp.seed_to_pool(std::move(ptr1));
+    rp.seed_to_pool(std::move(ptr2));
+    rp.seed_to_pool(std::move(ptr3));
 
     EXPECT_EQ(3u, rp.size());
 
@@ -675,7 +675,7 @@ TEST(resource_pool, shared_ptr_custom_deleter)
             delete p;
         });
 
-        rp.add_to_pool(std::move(ptr));
+        rp.seed_to_pool(std::move(ptr));
         EXPECT_EQ(0, deleteCount.load());
 
         {
@@ -698,7 +698,7 @@ TEST(resource_pool, shared_ptr_modification_persistence)
 {
     siddiqsoft::arrp::resource_pool<std::shared_ptr<std::string>> rp {};
 
-    rp.add_to_pool(std::make_shared<std::string>("initial"));
+    rp.seed_to_pool(std::make_shared<std::string>("initial"));
     EXPECT_EQ(1u, rp.size());
 
     {
@@ -740,7 +740,7 @@ TEST(resource_pool, concurrent_shared_ptr_access)
 
     siddiqsoft::arrp::resource_pool<std::shared_ptr<std::string>> rp {};
     for (int i = 0; i < POOL_SIZE; i++) {
-        rp.add_to_pool(std::make_shared<std::string>(std::format("shared-resource-{}", i)));
+        rp.seed_to_pool(std::make_shared<std::string>(std::format("shared-resource-{}", i)));
     }
 
     std::atomic_int           totalBorrows {0};
@@ -776,7 +776,7 @@ TEST(resource_pool, concurrent_shared_ptr_access)
 TEST(scoped_resource, dereference_operator)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool {};
-    pool.add_to_pool(std::string("test"));
+    pool.seed_to_pool(std::string("test"));
 
     auto resource_result = pool.borrow_from_pool();
     EXPECT_TRUE(resource_result.has_value());
@@ -792,8 +792,8 @@ TEST(scoped_resource, dereference_operator)
 TEST(scoped_resource, invalidate)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool {};
-    pool.add_to_pool(std::string("resource1"));
-    pool.add_to_pool(std::string("resource2"));
+    pool.seed_to_pool(std::string("resource1"));
+    pool.seed_to_pool(std::string("resource2"));
 
     EXPECT_EQ(2u, pool.size());
 
@@ -815,7 +815,7 @@ TEST(scoped_resource, invalidate)
 TEST(scoped_resource, move_semantics)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool {};
-    pool.add_to_pool(std::string("original"));
+    pool.seed_to_pool(std::string("original"));
 
     {
         auto resource1_result = pool.borrow_from_pool();
@@ -838,8 +838,8 @@ TEST(resource_pool, json_serialization_counters)
     siddiqsoft::arrp::resource_pool<std::string> pool {};
 
     // Add resources
-    pool.add_to_pool(std::string("res1"));
-    pool.add_to_pool(std::string("res2"));
+    pool.seed_to_pool(std::string("res1"));
+    pool.seed_to_pool(std::string("res2"));
 
     // Borrow and return
     {
@@ -857,7 +857,7 @@ TEST(resource_pool, json_serialization_counters)
     EXPECT_TRUE(json.contains("autoadds"));
     EXPECT_TRUE(json.contains("returns"));
     EXPECT_TRUE(json.contains("borrows"));
-    EXPECT_TRUE(json.contains("adds"));
+    EXPECT_TRUE(json.contains("seeds"));
 }
 
 /// @brief Extreme stress test: very high concurrency
@@ -869,7 +869,7 @@ TEST(resource_pool, extreme_stress_high_concurrency)
 
     siddiqsoft::arrp::resource_pool<std::string> pool {};
     for (int i = 0; i < POOL_SIZE; ++i) {
-        pool.add_to_pool(std::format("resource-{}", i));
+        pool.seed_to_pool(std::format("resource-{}", i));
     }
 
     std::atomic_int           total_ops {0};
@@ -908,10 +908,7 @@ TEST(resource_pool, custom_factory_callback)
                     auto& p) -> std::expected<siddiqsoft::arrp::scoped_resource<std::string>, siddiqsoft::arrp::pool_error> {
                 creation_count++;
                 return siddiqsoft::arrp::scoped_resource<std::string>(
-                        [&p](std::string&& res, bool isvalid) -> std::expected<void, siddiqsoft::arrp::pool_error> {
-                            p.add_to_pool(std::move(res));
-                            return {};
-                        },
+                        [&p](std::string&& res, bool isvalid) { p.return_to_pool(std::move(res), isvalid); },
                         std::format("created-{}", creation_count.load()));
             }};
 
@@ -938,10 +935,10 @@ TEST(resource_pool, capacity_limits)
     siddiqsoft::arrp::resource_pool<std::string, siddiqsoft::arrp::scoped_resource<std::string>> pool {4};
 
     // Add resources up to capacity
-    pool.add_to_pool(std::string("1"));
-    pool.add_to_pool(std::string("2"));
-    pool.add_to_pool(std::string("3"));
-    pool.add_to_pool(std::string("4"));
+    pool.seed_to_pool(std::string("1"));
+    pool.seed_to_pool(std::string("2"));
+    pool.seed_to_pool(std::string("3"));
+    pool.seed_to_pool(std::string("4"));
 
     EXPECT_EQ(4u, pool.size());
 
@@ -972,7 +969,7 @@ TEST(resource_pool, capacity_limits)
 TEST(resource_pool, rapid_cycles)
 {
     siddiqsoft::arrp::resource_pool<std::vector<int>> pool {};
-    pool.add_to_pool(std::vector<int> {1, 2, 3, 4, 5});
+    pool.seed_to_pool(std::vector<int> {1, 2, 3, 4, 5});
 
     for (int cycle = 0; cycle < 100; ++cycle) {
         std::print(std::cerr, "  >> Working on cycle: {}\n", cycle);
@@ -998,7 +995,7 @@ TEST(resource_pool, large_objects)
 
     // Create large vector
     std::vector<char> large_vec(LARGE_SIZE, 'x');
-    pool.add_to_pool(std::move(large_vec));
+    pool.seed_to_pool(std::move(large_vec));
 
     {
         auto vec_result = pool.borrow_from_pool();
@@ -1014,7 +1011,7 @@ TEST(resource_pool, large_objects)
 TEST(resource_pool, exception_safety)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool {};
-    pool.add_to_pool(std::string("resource"));
+    pool.seed_to_pool(std::string("resource"));
 
     try {
         auto res_result = pool.borrow_from_pool();
@@ -1034,8 +1031,8 @@ TEST(resource_pool, exception_safety)
 TEST(scoped_resource, move_assignment)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool {};
-    pool.add_to_pool(std::string("res1"));
-    pool.add_to_pool(std::string("res2"));
+    pool.seed_to_pool(std::string("res1"));
+    pool.seed_to_pool(std::string("res2"));
 
     auto res1_result = pool.borrow_from_pool();
     auto res2_result = pool.borrow_from_pool();
@@ -1063,8 +1060,8 @@ TEST(resource_pool, multiple_pools)
     siddiqsoft::arrp::resource_pool<std::string> pool1 {};
     siddiqsoft::arrp::resource_pool<std::string> pool2 {};
 
-    pool1.add_to_pool(std::string("pool1-res"));
-    pool2.add_to_pool(std::string("pool2-res"));
+    pool1.seed_to_pool(std::string("pool1-res"));
+    pool2.seed_to_pool(std::string("pool2-res"));
 
     {
         auto res1_result = pool1.borrow_from_pool();
@@ -1090,7 +1087,7 @@ TEST(resource_pool, fifo_ordering_concurrent)
     siddiqsoft::arrp::resource_pool<std::string> pool {};
 
     for (int i = 0; i < 10; ++i) {
-        pool.add_to_pool(std::format("item-{}", i));
+        pool.seed_to_pool(std::format("item-{}", i));
     }
 
     std::vector<std::string>  retrieved;
@@ -1127,7 +1124,7 @@ TEST(resource_pool, fifo_ordering_concurrent)
 TEST(resource_pool_adversarial, rapid_exception_cycles)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool {};
-    pool.add_to_pool(std::string("resource"));
+    pool.seed_to_pool(std::string("resource"));
 
     for (int i = 0; i < 1000; ++i) {
         try {
@@ -1156,7 +1153,7 @@ TEST(resource_pool_adversarial, concurrent_invalidation)
 
     siddiqsoft::arrp::resource_pool<std::string> pool {};
     for (int i = 0; i < 10; ++i) {
-        pool.add_to_pool(std::format("resource-{}", i));
+        pool.seed_to_pool(std::format("resource-{}", i));
     }
 
     std::atomic_int           invalidated {0};
@@ -1193,7 +1190,7 @@ TEST(resource_pool_adversarial, alternating_clear_borrow)
     for (int cycle = 0; cycle < 100; ++cycle) {
         // Add resources
         for (int i = 0; i < 5; ++i) {
-            pool.add_to_pool(std::format("resource-{}-{}", cycle, i));
+            pool.seed_to_pool(std::format("resource-{}-{}", cycle, i));
         }
 
         // Try to borrow
@@ -1225,7 +1222,7 @@ TEST(resource_pool_adversarial, extreme_contention_minimal_pool)
             [](siddiqsoft::arrp::resource_pool<std::string>& pool) -> siddiqsoft::arrp::scoped_resource<std::string> {
                 throw std::runtime_error("Deliberate throw");
             });
-    pool.add_to_pool(std::string("single-resource"));
+    pool.seed_to_pool(std::string("single-resource"));
     EXPECT_EQ(1, pool.size());
 
     std::vector<std::jthread> threads;
@@ -1260,7 +1257,7 @@ TEST(resource_pool_adversarial, rapid_move_operations)
 {
     siddiqsoft::arrp::resource_pool<std::unique_ptr<std::string>> pool {};
     for (int i = 0; i < 10; ++i) {
-        pool.add_to_pool(std::make_unique<std::string>(std::format("resource-{}", i)));
+        pool.seed_to_pool(std::make_unique<std::string>(std::format("resource-{}", i)));
     }
 
     for (int cycle = 0; cycle < 100; ++cycle) {
@@ -1281,7 +1278,7 @@ TEST(resource_pool_adversarial, interleaved_invalidate_returns)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool {};
     for (int i = 0; i < 20; ++i) {
-        pool.add_to_pool(std::format("resource-{}", i));
+        pool.seed_to_pool(std::format("resource-{}", i));
     }
 
     std::vector<siddiqsoft::arrp::scoped_resource<std::string>> resources;
@@ -1317,7 +1314,7 @@ TEST(resource_pool_adversarial, random_delays_stress)
 
     siddiqsoft::arrp::resource_pool<std::string> pool {};
     for (int i = 0; i < 8; ++i) {
-        pool.add_to_pool(std::format("resource-{}", i));
+        pool.seed_to_pool(std::format("resource-{}", i));
     }
 
     std::atomic_int           ops {0};
@@ -1353,7 +1350,7 @@ TEST(resource_pool_adversarial, concurrent_json_serialization)
 
     // Seed the pool with 10 items..
     for (int i = 0; i < 10; ++i) {
-        pool.add_to_pool(std::format("resource-{}", i));
+        pool.seed_to_pool(std::format("resource-{}", i));
     }
 
     EXPECT_EQ(10, pool.size()) << "Expect all 10 items to be added.";
@@ -1382,7 +1379,7 @@ TEST(resource_pool_adversarial, concurrent_json_serialization)
         for (int i = 0; i < 50; ++i) {
             auto& json = pool.to_json().value().get();
             json_calls++;
-            EXPECT_TRUE(json.contains("adds"));
+            EXPECT_TRUE(json.contains("seeds"));
         }
     });
 
@@ -1408,9 +1405,8 @@ TEST(resource_pool_adversarial, factory_callback_exceptions)
                             "Factory exception calls:{}  exceptions:{}", factory_calls.load(), factory_exceptions.load()));
                 }
                 return siddiqsoft::arrp::scoped_resource<std::string>(
-                        [&p](std::string&& res, bool isvalid) -> std::expected<void, siddiqsoft::arrp::pool_error> {
-                            p.add_to_pool(std::move(res));
-                            return {};
+                        [&p](std::string&& res, bool isvalid) {
+                            p.return_to_pool(std::move(res), isvalid);
                         },
                         std::format("created-{}", factory_calls.load()));
             }};
@@ -1462,7 +1458,7 @@ TEST(resource_pool, concurrent_clear_with_operations_FIXED)
     constexpr int                                INITIAL_SIZE = 10; // REDUCED from 20
 
     for (int i = 0; i < INITIAL_SIZE; i++) {
-        rp.add_to_pool(std::format("resource-{}", i));
+        rp.seed_to_pool(std::format("resource-{}", i));
     }
 
     std::atomic_bool done {false};
@@ -1484,7 +1480,7 @@ TEST(resource_pool, concurrent_clear_with_operations_FIXED)
 
             // Re-populate
             for (int i = 0; i < 3; i++) { // REDUCED from 5
-                rp.add_to_pool(std::format("resource-{}", i));
+                rp.seed_to_pool(std::format("resource-{}", i));
             }
         }
     });
@@ -1524,7 +1520,7 @@ TEST(resource_pool_adversarial, concurrent_clear_rapid_ops_FIXED)
     siddiqsoft::arrp::resource_pool<std::string> pool {siddiqsoft::arrp::resource_pool_limits::DefaultCapacity,
                                                        siddiqsoft::arrp::auto_add_policy::AutoGrow};
     for (int i = 0; i < 20; ++i) {
-        pool.add_to_pool(std::format("resource-{}", i));
+        pool.seed_to_pool(std::format("resource-{}", i));
     }
 
     std::atomic_bool stop {false};
@@ -1547,7 +1543,7 @@ TEST(resource_pool_adversarial, concurrent_clear_rapid_ops_FIXED)
 
             // Repopulate
             for (int i = 0; i < 5; ++i) { // REDUCED from 10
-                pool.add_to_pool(std::format("resource-{}", i));
+                pool.seed_to_pool(std::format("resource-{}", i));
             }
         }
     });
@@ -1587,7 +1583,7 @@ TEST(resource_pool, concurrent_clear_deadlock_detection)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool;
     for (int i = 0; i < 8; ++i) {
-        pool.add_to_pool(std::format("resource-{}", i));
+        pool.seed_to_pool(std::format("resource-{}", i));
     }
 
     std::atomic_bool stop {false};
@@ -1619,7 +1615,7 @@ TEST(resource_pool, concurrent_clear_deadlock_detection)
             ++clear_cycles;
             std::this_thread::sleep_for(std::chrono::microseconds(50));
             for (int i = 0; i < 4; ++i) {
-                pool.add_to_pool(std::format("resource-{}", i));
+                pool.seed_to_pool(std::format("resource-{}", i));
             }
         }
         return true;
@@ -1655,7 +1651,7 @@ TEST(resource_pool, concurrent_json_deadlock_detection)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool;
     for (int i = 0; i < 10; ++i) {
-        pool.add_to_pool(std::format("resource-{}", i));
+        pool.seed_to_pool(std::format("resource-{}", i));
     }
 
     std::atomic_int done {0};
@@ -1678,7 +1674,7 @@ TEST(resource_pool, concurrent_json_deadlock_detection)
         start_barrier.arrive_and_wait();
         for (int i = 0; i < 100; ++i) {
             auto& json = pool.to_json().value().get();
-            EXPECT_TRUE(json.contains("adds"));
+            EXPECT_TRUE(json.contains("seeds"));
             std::this_thread::sleep_for(std::chrono::microseconds(10));
         }
         ++done;
@@ -1693,8 +1689,8 @@ TEST(resource_pool, concurrent_json_deadlock_detection)
     EXPECT_EQ(std::future_status::ready, serializer.wait_for(timeout));
     EXPECT_EQ(2, done.load());
 
-    worker.get();
-    serializer.get();
+    auto _ = worker.get();
+    auto _ = serializer.get();
 }
 
 // NOLINTEND(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)

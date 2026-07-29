@@ -31,7 +31,7 @@
 TEST(scoped_resource_validity, valid_resource_returned)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool;
-    pool.add_to_pool(std::string("42"));
+    pool.seed_to_pool(std::string("42"));
 
     EXPECT_EQ(1u, pool.size().value_or(0));
 
@@ -56,8 +56,8 @@ TEST(scoped_resource_validity, valid_resource_returned)
 TEST(scoped_resource_validity, assignment_maintains_validity)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool;
-    pool.add_to_pool(std::string("42"));
-    pool.add_to_pool(std::string("99"));
+    pool.seed_to_pool(std::string("42"));
+    pool.seed_to_pool(std::string("99"));
 
     {
         auto wrap1 = pool.borrow_from_pool();
@@ -83,7 +83,7 @@ TEST(scoped_resource_validity, assignment_maintains_validity)
 TEST(scoped_resource_validity, destructor_returns_valid_resource)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool;
-    pool.add_to_pool(std::string("100"));
+    pool.seed_to_pool(std::string("100"));
 
     {
         auto wrap = pool.borrow_from_pool();
@@ -114,7 +114,7 @@ TEST(scoped_resource_validity, destructor_returns_valid_resource)
 TEST(scoped_resource_validity, no_corruption_on_invalid_resource)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool;
-    pool.add_to_pool(std::string("42"));
+    pool.seed_to_pool(std::string("42"));
 
     EXPECT_EQ(1u, pool.size().value_or(0));
 
@@ -140,7 +140,7 @@ TEST(scoped_resource_validity, no_corruption_on_invalid_resource)
 TEST(scoped_resource_validity, unique_ptr_invalidation)
 {
     siddiqsoft::arrp::resource_pool<std::unique_ptr<std::string>> pool;
-    pool.add_to_pool(std::make_unique<std::string>("42"));
+    pool.seed_to_pool(std::make_unique<std::string>("42"));
 
     EXPECT_EQ(1u, pool.size().value_or(0));
 
@@ -165,7 +165,7 @@ TEST(scoped_resource_validity, unique_ptr_invalidation)
 TEST(scoped_resource_validity, multiple_invalidations)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool;
-    pool.add_to_pool(std::string("42"));
+    pool.seed_to_pool(std::string("42"));
 
     {
         auto wrap = pool.borrow_from_pool();
@@ -196,7 +196,7 @@ TEST(scoped_resource_validity, concurrent_with_invalidation)
     // Pre-fill the pool with enough resources
     // We use 100 to ensure no contention
     for (int i = 0; i < 100; i++) {
-        pool.add_to_pool(std::format("resource-{}", i));
+        pool.seed_to_pool(std::format("resource-{}", i));
     }
 
     EXPECT_EQ(100u, pool.size().value_or(0));
@@ -252,7 +252,7 @@ TEST(scoped_resource_validity, concurrent_with_invalidation)
 TEST(scoped_resource_validity, destructor_skips_invalid_resource)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool;
-    pool.add_to_pool(std::string("200"));
+    pool.seed_to_pool(std::string("200"));
 
     {
         auto wrap = pool.borrow_from_pool();
@@ -277,7 +277,7 @@ TEST(scoped_resource_validity, mixed_valid_invalid_concurrent)
 
     // Pre-fill with 20 items
     for (int i = 0; i < 20; i++) {
-        pool.add_to_pool(std::format("resource-{}", i));
+        pool.seed_to_pool(std::format("resource-{}", i));
     }
 
     std::atomic_int           valid_count {0};

@@ -87,7 +87,7 @@ TEST(resource_pool_file, basic_file_pool)
     {
         auto fp = std::fopen(temp_file.c_str(), "w+");
         ASSERT_NE(nullptr, fp);
-        file_pool.add_to_pool(std::move(fp));
+        file_pool.seed_to_pool(std::move(fp));
     }
 
     EXPECT_EQ(1u, file_pool.size().value_or(0));
@@ -113,9 +113,9 @@ TEST(resource_pool_file, basic_file_pool)
         auto file_wrapper = std::move(file_result.value());
         std::rewind(*file_wrapper);
 
-        char buffer[100] = {};
-        ASSERT_NE(nullptr, std::fgets(buffer, sizeof(buffer), *file_wrapper));
-        EXPECT_STREQ("Hello, World!\n", buffer);
+        std::array<char, 100> buffer {};
+        ASSERT_NE(nullptr, std::fgets(buffer.data(), sizeof(buffer), *file_wrapper));
+        EXPECT_STREQ("Hello, World!\n", buffer.data());
     }
 
     // Cleanup
@@ -127,22 +127,22 @@ TEST(resource_pool_file, basic_file_pool)
  */
 TEST(resource_pool_file, concurrent_file_access)
 {
-    const std::string                     temp_file = get_temp_file_path("arrp_test_concurrent.txt");
+    const std::string                      temp_file = get_temp_file_path("arrp_test_concurrent.txt");
 
     siddiqsoft::arrp::resource_pool<FILE*> file_pool;
 
-    std::print( std::cerr, "About to add file `{}` to the pool..\n", temp_file);
+    std::print(std::cerr, "About to add file `{}` to the pool..\n", temp_file);
     // Add a file to the pool
     FILE* fp = std::fopen(temp_file.c_str(), "w+");
     ASSERT_NE(nullptr, fp);
-    std::print( std::cerr, "About to add..{:p}\n", static_cast<void*>(fp));
-    file_pool.add_to_pool(std::move(fp));
+    std::print(std::cerr, "About to add..{:p}\n", static_cast<void*>(fp));
+    file_pool.seed_to_pool(std::move(fp));
     EXPECT_EQ(1u, file_pool.size().value_or(0));
 
     std::atomic<int>         write_count {0};
     std::vector<std::thread> threads;
 
-    std::print( std::cerr, "About to kick off the threads to use pool with {} items.\n", file_pool.size().value_or(0));
+    std::print(std::cerr, "About to kick off the threads to use pool with {} items.\n", file_pool.size().value_or(0));
     // Create multiple threads that write to the file
     for (int i = 0; i < 3; ++i) {
         threads.emplace_back([&file_pool, &write_count, i]() {
@@ -157,7 +157,7 @@ TEST(resource_pool_file, concurrent_file_access)
 
     // Critical to wait for a second otherwise terminating will stop processing
     std::this_thread::sleep_for(std::chrono::milliseconds(3000));
-    std::print( std::cerr, "About to terminated threads {}.\n", threads.size());
+    std::print(std::cerr, "About to terminated threads {}.\n", threads.size());
     // Wait for all threads to complete
     for (auto& t : threads) {
         t.join();
@@ -175,7 +175,7 @@ TEST(resource_pool_file, concurrent_file_access)
  */
 TEST(resource_pool_file, file_read_write_operations)
 {
-    const std::string                     temp_file = get_temp_file_path("arrp_test_rw.txt");
+    const std::string                      temp_file = get_temp_file_path("arrp_test_rw.txt");
 
     siddiqsoft::arrp::resource_pool<FILE*> file_pool;
 
@@ -184,7 +184,7 @@ TEST(resource_pool_file, file_read_write_operations)
         FILE* fp = std::fopen(temp_file.c_str(), "w+");
         ASSERT_NE(nullptr, fp);
 
-        file_pool.add_to_pool(std::move(fp));
+        file_pool.seed_to_pool(std::move(fp));
         EXPECT_EQ(1u, file_pool.size().value_or(0));
 
         auto file_result = file_pool.borrow_from_pool();
@@ -205,15 +205,15 @@ TEST(resource_pool_file, file_read_write_operations)
         auto fw = std::move(file_result.value());
         std::rewind(*fw);
 
-        char buffer[100] = {};
-        ASSERT_NE(nullptr, std::fgets(buffer, sizeof(buffer), *fw));
-        EXPECT_STREQ("Line 1\n", buffer);
+        std::array<char,100> buffer {};
+        ASSERT_NE(nullptr, std::fgets(buffer.data(), sizeof(buffer), *fw));
+        EXPECT_STREQ("Line 1\n", buffer.data());
 
-        ASSERT_NE(nullptr, std::fgets(buffer, sizeof(buffer), *fw));
-        EXPECT_STREQ("Line 2\n", buffer);
+        ASSERT_NE(nullptr, std::fgets(buffer.data(), sizeof(buffer), *fw));
+        EXPECT_STREQ("Line 2\n", buffer.data());
 
-        ASSERT_NE(nullptr, std::fgets(buffer, sizeof(buffer), *fw));
-        EXPECT_STREQ("Line 3\n", buffer);
+        ASSERT_NE(nullptr, std::fgets(buffer.data(), sizeof(buffer), *fw));
+        EXPECT_STREQ("Line 3\n", buffer.data());
     }
 
     // Cleanup
