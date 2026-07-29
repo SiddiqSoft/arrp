@@ -1,0 +1,9 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,103,140,139"/>
+<area shape="rect" id="Node000001" href="$structstd_1_1formatter_3_01siddiqsoft_1_1arrp_1_1auto__add__policy_00_01ct_01_4.html" title="Specialization of std::formatter for auto_add_policy." alt="" coords="188,5,433,66"/>
+<area shape="poly" id="edge1_Node000000_Node000001" title=" " alt="" coords="135,95,187,76,223,65,219,68,189,81,138,99"/>
+<area shape="rect" id="Node000002" href="$structstd_1_1formatter_3_01siddiqsoft_1_1arrp_1_1release__reason_00_01ct_01_4.html" title="Specialization of std::formatter for release_reason." alt="" coords="191,91,430,151"/>
+<area shape="poly" id="edge2_Node000000_Node000002" title=" " alt="" coords="155,118,193,120,188,122,156,124"/>
+<area shape="rect" id="Node000003" href="$structstd_1_1formatter_3_01siddiqsoft_1_1arrp_1_1resource__pool_3_01T_00_01SRT_01_4_01_4.html" title="Specialization of std::formatter for resource_pool." alt="" coords="196,176,424,261"/>
+<area shape="poly" id="edge3_Node000000_Node000003" title=" " alt="" coords="132,142,206,174,202,176,132,148"/>
+</map>

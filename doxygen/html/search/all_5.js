@@ -1,7 +1,11 @@
 var searchData=
 [
-  ['factory_20callback_0',['Custom Factory Callback',['../usage_guide.html#ug_custom_factory',1,'']]],
-  ['factory_20constructor_1',['Custom Factory Constructor',['../api.html#autotoc_md1',1,'']]],
-  ['features_2',['Key Features',['../index.html#features',1,'']]],
-  ['for_20modern_20c_3',['ARRP - Auto Returning Resource Pool for Modern C++',['../index.html',1,'']]]
+  ['factory_20callback_0',['Factory Callback',['../api.html#autotoc_md1',1,'Constructor with Factory Callback'],['../usage_guide.html#ug_custom_factory',1,'Custom Factory Callback']]],
+  ['features_1',['Key Features',['../index.html#features',1,'']]],
+  ['for_20modern_20c_2',['ARRP - Auto Returning Resource Pool for Modern C++',['../index.html',1,'']]],
+  ['format_3',['format',['../structstd_1_1formatter_3_01siddiqsoft_1_1arrp_1_1release__reason_00_01ct_01_4.html#ac11970051aa1dfa7174448ae624cc878',1,'std::formatter&lt; siddiqsoft::arrp::release_reason, ct &gt;::format()'],['../structstd_1_1formatter_3_01siddiqsoft_1_1arrp_1_1auto__add__policy_00_01ct_01_4.html#ae06afc113832eeaa512008c0034c5e78',1,'std::formatter&lt; siddiqsoft::arrp::auto_add_policy, ct &gt;::format()'],['../structstd_1_1formatter_3_01siddiqsoft_1_1arrp_1_1scoped__resource_3_01T_01_4_01_4.html#abac371586315d2afbfb5ccd2610d8127',1,'std::formatter&lt; siddiqsoft::arrp::scoped_resource&lt; T &gt; &gt;::format()'],['../structstd_1_1formatter_3_01siddiqsoft_1_1arrp_1_1resource__pool_3_01T_00_01SRT_01_4_01_4.html#af8662e6043345893126a1fb09e32cc6c',1,'std::formatter&lt; siddiqsoft::arrp::resource_pool&lt; T, SRT &gt; &gt;::format()']]],
+  ['formatter_3c_20siddiqsoft_3a_3aarrp_3a_3aauto_5fadd_5fpolicy_2c_20ct_20_3e_4',['formatter&lt; siddiqsoft::arrp::auto_add_policy, ct &gt;',['../structstd_1_1formatter_3_01siddiqsoft_1_1arrp_1_1auto__add__policy_00_01ct_01_4.html',1,'std']]],
+  ['formatter_3c_20siddiqsoft_3a_3aarrp_3a_3arelease_5freason_2c_20ct_20_3e_5',['formatter&lt; siddiqsoft::arrp::release_reason, ct &gt;',['../structstd_1_1formatter_3_01siddiqsoft_1_1arrp_1_1release__reason_00_01ct_01_4.html',1,'std']]],
+  ['formatter_3c_20siddiqsoft_3a_3aarrp_3a_3aresource_5fpool_3c_20t_2c_20srt_20_3e_20_3e_6',['formatter&lt; siddiqsoft::arrp::resource_pool&lt; T, SRT &gt; &gt;',['../structstd_1_1formatter_3_01siddiqsoft_1_1arrp_1_1resource__pool_3_01T_00_01SRT_01_4_01_4.html',1,'std']]],
+  ['formatter_3c_20siddiqsoft_3a_3aarrp_3a_3ascoped_5fresource_3c_20t_20_3e_20_3e_7',['formatter&lt; siddiqsoft::arrp::scoped_resource&lt; T &gt; &gt;',['../structstd_1_1formatter_3_01siddiqsoft_1_1arrp_1_1scoped__resource_3_01T_01_4_01_4.html',1,'std']]]
 ];

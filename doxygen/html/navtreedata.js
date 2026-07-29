@@ -39,7 +39,7 @@ var NAVTREE =
         [ "Methods", "api.html#api_sr_methods", null ]
       ] ],
       [ "Enumerations", "api.html#api_enums", null ],
-      [ "Exceptions", "api.html#api_exceptions", null ],
+      [ "Error Handling", "api.html#api_exceptions", null ],
       [ "Thread Safety", "api.html#api_thread_safety", null ],
       [ "Performance Characteristics", "api.html#api_performance", null ],
       [ "Memory Characteristics", "api.html#api_memory", null ],
@@ -71,7 +71,8 @@ var NAVTREE =
       ] ],
       [ "Resource Invalidation", "usage_guide.html#ug_invalidation", [
         [ "Invalidating Moved Resources", "usage_guide.html#ug_invalidate_moved", null ],
-        [ "Invalidating Consumed Resources", "usage_guide.html#ug_invalidate_consumed", null ]
+        [ "Invalidating Consumed Resources", "usage_guide.html#ug_invalidate_consumed", null ],
+        [ "Checking Resource Validity", "usage_guide.html#ug_check_validity", null ]
       ] ],
       [ "Troubleshooting", "usage_guide.html#ug_troubleshooting", [
         [ "Avoiding Deadlocks", "usage_guide.html#ug_deadlock", null ],
@@ -84,11 +85,11 @@ var NAVTREE =
     [ "Classes", "annotated.html", [
       [ "Class List", "annotated.html", "annotated_dup" ],
       [ "Class Index", "classes.html", null ],
+      [ "Class Hierarchy", "hierarchy.html", "hierarchy" ],
       [ "Class Members", "functions.html", [
         [ "All", "functions.html", null ],
         [ "Functions", "functions_func.html", null ],
-        [ "Variables", "functions_vars.html", null ],
-        [ "Enumerations", "functions_enum.html", null ]
+        [ "Variables", "functions_vars.html", null ]
       ] ]
     ] ],
     [ "Files", "files.html", [
@@ -100,7 +101,7 @@ var NAVTREE =
 
 var NAVTREEINDEX =
 [
-"_2opt_2azure-agent_2_work_220_2s_2include_2siddiqsoft_2private_2common_8hpp-example.html"
+"_2opt_2azure-agent_2_work_222_2s_2include_2siddiqsoft_2private_2scoped_resource_8hpp-example.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronization';

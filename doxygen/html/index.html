@@ -98,6 +98,7 @@ $(function(){initNavTree('index.html','',''); });
 Introduction</h1>
 <p>The <b>arrp</b> (Auto Returning Resource Pool) library provides a thread-safe, modern C++20 resource pool implementation with automatic lifecycle management using RAII principles.</p>
 <p>This header-only library eliminates boilerplate resource management code and provides a simple, type-safe API for resource pooling scenarios. Perfect for managing expensive-to-create resources like database connections, thread pools, or network sockets.</p>
+<p>The library uses <span class="tt">std::expected&lt;T, pool_error&gt;</span> for error handling, providing a modern, exception-free approach to resource management.</p>
 <h1 class="doxsection"><a class="anchor" id="features"></a>
 Key Features</h1>
 <ul>
@@ -106,7 +107,7 @@ Key Features</h1>
 <li><b>Capacity Management</b>: Enforces maximum capacity limits</li>
 <li><b>FIFO Ordering</b>: Predictable resource ordering</li>
 <li><b>Customizable Factory</b>: Support for custom resource creation callbacks</li>
-<li><b>Exception Safe</b>: Strong exception guarantees with automatic cleanup</li>
+<li><b>Error Handling</b>: Uses <span class="tt">std::expected</span> for safe error handling without exceptions</li>
 <li><b>Modern C++20</b>: Uses only standard library features</li>
 <li><b>Type-Safe</b>: Leverages C++20 concepts for compile-time type checking</li>
 <li><b>Move Semantics</b>: Efficient resource transfer with perfect forwarding</li>
@@ -118,9 +119,31 @@ Documentation</h1>
 <li><a class="el" href="api.html" title="API Reference">API Reference</a> - Complete API reference</li>
 <li><a class="el" href="usage_guide.html" title="Usage Guide">Usage Guide</a> - Detailed usage examples and best practices</li>
 </ul>
-<h1 class="doxsection"><a class="anchor" id="installation"></a>
+<h1 class="doxsection"><a class="anchor" id="quick_example"></a>
+Quick Example</h1>
+<div class="fragment"><div class="line"><span class="preprocessor">#include &quot;siddiqsoft/resource_pool.hpp&quot;</span></div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// Create a pool with capacity and auto-grow policy</span></div>
+<div class="line"><a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool&lt;MyResource&gt;</a> pool(</div>
+<div class="line">    10,  <span class="comment">// capacity</span></div>
+<div class="line">    siddiqsoft::arrp::auto_add_policy::AutoGrow</div>
+<div class="line">);</div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// Add resources</span></div>
+<div class="line">pool.seed_to_pool(MyResource());</div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// Borrow and use</span></div>
+<div class="line">{</div>
+<div class="line">    <span class="keyword">auto</span> resource = pool.borrow_from_pool();</div>
+<div class="line">    <span class="keywordflow">if</span> (resource) {</div>
+<div class="line">        resource-&gt;doSomething();</div>
+<div class="line">        <span class="comment">// Automatically returned to pool when going out of scope</span></div>
+<div class="line">    }</div>
+<div class="line">}</div>
+<div class="ttc" id="aclasssiddiqsoft_1_1arrp_1_1resource__pool_html"><div class="ttname"><a href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool</a></div><div class="ttdef"><b>Definition</b> <a href="resource__pool_8hpp_source.html#l00089">resource_pool.hpp:90</a></div></div>
+</div><!-- fragment --><h1 class="doxsection"><a class="anchor" id="installation"></a>
 Installation</h1>
-<h3 class="doxsection"><a class="anchor" id="autotoc_md14"></a>
+<h3 class="doxsection"><a class="anchor" id="autotoc_md20"></a>
 Using CMake (Recommended)</h3>
 <div class="fragment"><div class="line">include(FetchContent)</div>
 <div class="line">FetchContent_Declare(arrp</div>
@@ -130,12 +153,26 @@ Using CMake (Recommended)</h3>
 <div class="line">FetchContent_MakeAvailable(arrp)</div>
 <div class="line"> </div>
 <div class="line">target_link_libraries(your_target PRIVATE arrp::arrp)</div>
-</div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="autotoc_md15"></a>
+</div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="autotoc_md21"></a>
 Using NuGet (Windows)</h3>
 <div class="fragment"><div class="line">nuget install SiddiqSoft.aarp</div>
-</div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="autotoc_md16"></a>
+</div><!-- fragment --><h3 class="doxsection"><a class="anchor" id="autotoc_md22"></a>
 Manual Integration</h3>
 <p>Simply include the header files from <span class="tt">include/siddiqsoft/</span> in your project.</p>
+<h1 class="doxsection"><a class="anchor" id="key_concepts"></a>
+Key Concepts</h1>
+<h3 class="doxsection"><a class="anchor" id="autotoc_md23"></a>
+Resource Borrowing</h3>
+<p>Resources are borrowed from the pool using <span class="tt">borrow_from_pool()</span>, which returns a <span class="tt">std::expected&lt;scoped_resource&lt;T&gt;, pool_error&gt;</span>. The scoped_resource automatically returns the resource to the pool when destroyed.</p>
+<h3 class="doxsection"><a class="anchor" id="autotoc_md24"></a>
+Capacity Management</h3>
+<p>The pool has a fixed capacity (max 255 resources). When the pool is under capacity and a resource is requested, the factory callback can create new resources on-demand (if AutoGrow policy is enabled).</p>
+<h3 class="doxsection"><a class="anchor" id="autotoc_md25"></a>
+Error Handling</h3>
+<p>Instead of throwing exceptions, the pool uses <span class="tt">std::expected&lt;T, pool_error&gt;</span> to return errors. This allows for explicit error handling without exception overhead.</p>
+<h3 class="doxsection"><a class="anchor" id="autotoc_md26"></a>
+Thread Safety</h3>
+<p>All public methods are thread-safe. Multiple threads can safely borrow and return resources concurrently without external synchronization.</p>
 <h1 class="doxsection"><a class="anchor" id="license"></a>
 License</h1>
 <p>BSD 3-Clause License - See LICENSE file for details</p>

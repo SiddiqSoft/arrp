@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['windows_0',['Using NuGet (Windows)',['../index.html#autotoc_md15',1,'']]]
+  ['validity_0',['Checking Resource Validity',['../usage_guide.html#ug_check_validity',1,'']]]
 ];

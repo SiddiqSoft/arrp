@@ -103,68 +103,81 @@ Basic Usage</h1>
 Creating a Pool</h2>
 <div class="fragment"><div class="line"><span class="preprocessor">#include &quot;siddiqsoft/resource_pool.hpp&quot;</span></div>
 <div class="line"> </div>
-<div class="line"><span class="comment">// Default pool (NoGrow policy - throws when empty)</span></div>
-<div class="line"><a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool&lt;std::string&gt;</a> pool;</div>
+<div class="line"><span class="comment">// Default pool (NoGrow policy - returns error when empty)</span></div>
+<div class="line"><a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool&lt;std::string&gt;</a> pool(</div>
+<div class="line">    10,  <span class="comment">// capacity</span></div>
+<div class="line">    siddiqsoft::arrp::auto_add_policy::NoGrow</div>
+<div class="line">);</div>
 <div class="line"> </div>
 <div class="line"><span class="comment">// AutoGrow pool (creates resources on demand)</span></div>
 <div class="line"><a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool&lt;std::string&gt;</a> auto_pool(</div>
-<div class="line">    siddiqsoft::arrp::resource_pool&lt;std::string&gt;::auto_add_policy::AutoGrow</div>
+<div class="line">    10,  <span class="comment">// capacity</span></div>
+<div class="line">    siddiqsoft::arrp::auto_add_policy::AutoGrow</div>
 <div class="line">);</div>
-<div class="ttc" id="aclasssiddiqsoft_1_1arrp_1_1resource__pool_html"><div class="ttname"><a href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool</a></div><div class="ttdoc">Thread-safe auto-returning resource pool for modern C++.</div><div class="ttdef"><b>Definition</b> <a href="resource__pool_8hpp_source.html#l00123">resource_pool.hpp:124</a></div></div>
+<div class="ttc" id="aclasssiddiqsoft_1_1arrp_1_1resource__pool_html"><div class="ttname"><a href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool</a></div><div class="ttdef"><b>Definition</b> <a href="resource__pool_8hpp_source.html#l00089">resource_pool.hpp:90</a></div></div>
 </div><!-- fragment --><h2 class="doxsection"><a class="anchor" id="ug_populate_pool"></a>
 Populating the Pool</h2>
 <div class="fragment"><div class="line"><span class="comment">// Add single resource</span></div>
-<div class="line">pool.checkin(std::make_shared&lt;DatabaseConnection&gt;());</div>
+<div class="line"><span class="keyword">auto</span> result = pool.seed_to_pool(std::make_shared&lt;DatabaseConnection&gt;());</div>
+<div class="line"><span class="keywordflow">if</span> (!result) {</div>
+<div class="line">    std::cerr &lt;&lt; <span class="stringliteral">&quot;Failed to add resource&quot;</span> &lt;&lt; std::endl;</div>
+<div class="line">}</div>
 <div class="line"> </div>
 <div class="line"><span class="comment">// Add multiple resources</span></div>
 <div class="line"><span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; 10; ++i) {</div>
-<div class="line">    pool.checkin(std::make_shared&lt;DatabaseConnection&gt;());</div>
+<div class="line">    pool.seed_to_pool(std::make_shared&lt;DatabaseConnection&gt;());</div>
 <div class="line">}</div>
 </div><!-- fragment --><h2 class="doxsection"><a class="anchor" id="ug_borrow_resource"></a>
 Borrowing Resources</h2>
-<div class="fragment"><div class="line"><span class="keywordflow">try</span> {</div>
-<div class="line">    <span class="keyword">auto</span> resource = pool.checkout();</div>
+<div class="fragment"><div class="line"><span class="keyword">auto</span> resource = pool.borrow_from_pool();</div>
+<div class="line"><span class="keywordflow">if</span> (resource) {</div>
 <div class="line">    <span class="comment">// Use the resource</span></div>
 <div class="line">    resource-&gt;query(<span class="stringliteral">&quot;SELECT * FROM users&quot;</span>);</div>
 <div class="line">    <span class="comment">// Automatically returned when going out of scope</span></div>
-<div class="line">} <span class="keywordflow">catch</span> (<span class="keyword">const</span> std::runtime_error&amp; e) {</div>
-<div class="line">    std::cerr &lt;&lt; <span class="stringliteral">&quot;Failed to borrow resource: &quot;</span> &lt;&lt; e.what() &lt;&lt; std::endl;</div>
+<div class="line">} <span class="keywordflow">else</span> {</div>
+<div class="line">    std::cerr &lt;&lt; <span class="stringliteral">&quot;Failed to borrow resource&quot;</span> &lt;&lt; std::endl;</div>
 <div class="line">}</div>
 </div><!-- fragment --><h1 class="doxsection"><a class="anchor" id="ug_advanced_patterns"></a>
 Advanced Patterns</h1>
 <h2 class="doxsection"><a class="anchor" id="ug_custom_factory"></a>
 Custom Factory Callback</h2>
 <div class="fragment"><div class="line"><a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool&lt;DatabaseConnection&gt;</a> pool(</div>
-<div class="line">    [](<span class="keyword">auto</span>&amp; p) -&gt; <a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html">siddiqsoft::arrp::scoped_resource&lt;DatabaseConnection&gt;</a> {</div>
+<div class="line">    10,  <span class="comment">// capacity</span></div>
+<div class="line">    [](<span class="keyword">auto</span>&amp; p) -&gt; std::expected&lt;<a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html">siddiqsoft::arrp::scoped_resource&lt;DatabaseConnection&gt;</a>, siddiqsoft::arrp::pool_error&gt; {</div>
 <div class="line">        <span class="comment">// Create new resource</span></div>
 <div class="line">        <span class="keyword">auto</span> conn = DatabaseConnection::create();</div>
 <div class="line">        </div>
 <div class="line">        <span class="comment">// Return wrapped with auto-return callback</span></div>
 <div class="line">        <span class="keywordflow">return</span> <a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html">siddiqsoft::arrp::scoped_resource&lt;DatabaseConnection&gt;</a>(</div>
-<div class="line">            std::move(conn),</div>
-<div class="line">            [&amp;p](DatabaseConnection&amp;&amp; res) { </div>
-<div class="line">                p.checkin(std::move(res)); </div>
-<div class="line">            }</div>
+<div class="line">            [&amp;p](DatabaseConnection&amp;&amp; res, <span class="keywordtype">bool</span> isvalid)  {</div>
+<div class="line">                     p.return_to_pool(std::move(res),isvalid);</div>
+<div class="line">            },</div>
+<div class="line">            std::move(conn)</div>
 <div class="line">        );</div>
 <div class="line">    }</div>
 <div class="line">);</div>
 <div class="line"> </div>
 <div class="line"><span class="comment">// Resources are created on-demand up to capacity</span></div>
 <div class="line"><span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; 100; ++i) {</div>
-<div class="line">    <span class="keyword">auto</span> conn = pool.checkout();</div>
-<div class="line">    conn-&gt;query(<span class="stringliteral">&quot;SELECT * FROM users&quot;</span>);</div>
+<div class="line">    <span class="keyword">auto</span> conn = pool.borrow_from_pool();</div>
+<div class="line">    <span class="keywordflow">if</span> (conn) {</div>
+<div class="line">        conn-&gt;query(<span class="stringliteral">&quot;SELECT * FROM users&quot;</span>);</div>
+<div class="line">    }</div>
 <div class="line">}</div>
-<div class="ttc" id="aclasssiddiqsoft_1_1arrp_1_1scoped__resource_html"><div class="ttname"><a href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html">siddiqsoft::arrp::scoped_resource</a></div><div class="ttdoc">RAII wrapper for managing resource lifecycle with automatic return to pool.</div><div class="ttdef"><b>Definition</b> <a href="scoped__resource_8hpp_source.html#l00134">scoped_resource.hpp:135</a></div></div>
+<div class="ttc" id="aclasssiddiqsoft_1_1arrp_1_1scoped__resource_html"><div class="ttname"><a href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html">siddiqsoft::arrp::scoped_resource</a></div><div class="ttdef"><b>Definition</b> <a href="scoped__resource_8hpp_source.html#l00116">scoped_resource.hpp:117</a></div></div>
 </div><!-- fragment --><h2 class="doxsection"><a class="anchor" id="ug_multithreaded"></a>
 Multi-threaded Usage</h2>
 <div class="fragment"><div class="line"><span class="preprocessor">#include &lt;thread&gt;</span></div>
 <div class="line"><span class="preprocessor">#include &lt;vector&gt;</span></div>
 <div class="line"> </div>
-<div class="line"><a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool&lt;DatabaseConnection&gt;</a> pool;</div>
+<div class="line"><a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool&lt;DatabaseConnection&gt;</a> pool(</div>
+<div class="line">    10,  <span class="comment">// capacity</span></div>
+<div class="line">    siddiqsoft::arrp::auto_add_policy::AutoGrow</div>
+<div class="line">);</div>
 <div class="line"> </div>
 <div class="line"><span class="comment">// Pre-populate pool</span></div>
 <div class="line"><span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; 10; ++i) {</div>
-<div class="line">    pool.checkin(std::make_shared&lt;DatabaseConnection&gt;());</div>
+<div class="line">    pool.seed_to_pool(std::make_shared&lt;DatabaseConnection&gt;());</div>
 <div class="line">}</div>
 <div class="line"> </div>
 <div class="line"><span class="comment">// Use from multiple threads</span></div>
@@ -172,12 +185,10 @@ Multi-threaded Usage</h2>
 <div class="line"><span class="keywordflow">for</span> (<span class="keywordtype">int</span> t = 0; t &lt; 4; ++t) {</div>
 <div class="line">    threads.emplace_back([&amp;pool]() {</div>
 <div class="line">        <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; 100; ++i) {</div>
-<div class="line">            <span class="keywordflow">try</span> {</div>
-<div class="line">                <span class="keyword">auto</span> conn = pool.checkout();</div>
+<div class="line">            <span class="keyword">auto</span> conn = pool.borrow_from_pool();</div>
+<div class="line">            <span class="keywordflow">if</span> (conn) {</div>
 <div class="line">                conn-&gt;query(<span class="stringliteral">&quot;SELECT * FROM users&quot;</span>);</div>
 <div class="line">                <span class="comment">// Automatically returned</span></div>
-<div class="line">            } <span class="keywordflow">catch</span> (<span class="keyword">const</span> std::runtime_error&amp;) {</div>
-<div class="line">                <span class="comment">// Pool exhausted - handle gracefully</span></div>
 <div class="line">            }</div>
 <div class="line">        }</div>
 <div class="line">    });</div>
@@ -188,72 +199,87 @@ Monitoring Pool State</h2>
 <div class="fragment"><div class="line"><span class="comment">// Get pool statistics</span></div>
 <div class="line"><span class="keyword">auto</span> state = pool.to_json();</div>
 <div class="line"> </div>
-<div class="line">std::cout &lt;&lt; <span class="stringliteral">&quot;Capacity: &quot;</span> &lt;&lt; state[<span class="stringliteral">&quot;capacity&quot;</span>] &lt;&lt; std::endl;</div>
-<div class="line">std::cout &lt;&lt; <span class="stringliteral">&quot;Available: &quot;</span> &lt;&lt; state[<span class="stringliteral">&quot;size&quot;</span>] &lt;&lt; std::endl;</div>
-<div class="line">std::cout &lt;&lt; <span class="stringliteral">&quot;Checked out: &quot;</span> &lt;&lt; state[<span class="stringliteral">&quot;checkedout&quot;</span>] &lt;&lt; std::endl;</div>
-<div class="line">std::cout &lt;&lt; <span class="stringliteral">&quot;Total load: &quot;</span> &lt;&lt; state[<span class="stringliteral">&quot;load&quot;</span>] &lt;&lt; std::endl;</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Access operation counters</span></div>
-<div class="line"><span class="keyword">auto</span> counters = state[<span class="stringliteral">&quot;counters&quot;</span>];</div>
-<div class="line">std::cout &lt;&lt; <span class="stringliteral">&quot;Total borrows: &quot;</span> &lt;&lt; counters[<span class="stringliteral">&quot;borrow&quot;</span>] &lt;&lt; std::endl;</div>
-<div class="line">std::cout &lt;&lt; <span class="stringliteral">&quot;Total returns: &quot;</span> &lt;&lt; counters[<span class="stringliteral">&quot;return&quot;</span>] &lt;&lt; std::endl;</div>
-<div class="line">std::cout &lt;&lt; <span class="stringliteral">&quot;Auto-created: &quot;</span> &lt;&lt; counters[<span class="stringliteral">&quot;newitems&quot;</span>] &lt;&lt; std::endl;</div>
+<div class="line"><span class="keywordflow">if</span> (state) {</div>
+<div class="line">    <span class="keyword">auto</span>&amp; json = state.value().get();</div>
+<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Capacity: &quot;</span> &lt;&lt; json[<span class="stringliteral">&quot;capacity&quot;</span>] &lt;&lt; std::endl;</div>
+<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Available: &quot;</span> &lt;&lt; json[<span class="stringliteral">&quot;size&quot;</span>] &lt;&lt; std::endl;</div>
+<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Deficit: &quot;</span> &lt;&lt; json[<span class="stringliteral">&quot;deficit&quot;</span>] &lt;&lt; std::endl;</div>
+<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Total borrows: &quot;</span> &lt;&lt; json[<span class="stringliteral">&quot;borrows&quot;</span>] &lt;&lt; std::endl;</div>
+<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Total returns: &quot;</span> &lt;&lt; json[<span class="stringliteral">&quot;returns&quot;</span>] &lt;&lt; std::endl;</div>
+<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;On-demand adds: &quot;</span> &lt;&lt; json[<span class="stringliteral">&quot;autoadds&quot;</span>] &lt;&lt; std::endl;</div>
+<div class="line">}</div>
 </div><!-- fragment --><h1 class="doxsection"><a class="anchor" id="ug_error_handling"></a>
 Error Handling</h1>
 <h2 class="doxsection"><a class="anchor" id="ug_pool_exhaustion"></a>
 Handling Pool Exhaustion</h2>
 <div class="fragment"><div class="line"><span class="comment">// Strategy 1: Retry with backoff</span></div>
-<div class="line"><span class="keyword">auto</span> borrow_with_retry = [&amp;pool](<span class="keywordtype">int</span> max_retries = 3) {</div>
+<div class="line"><span class="keyword">auto</span> borrow_with_retry = [&amp;pool](<span class="keywordtype">int</span> max_retries = 3) -&gt; std::expected&lt;<a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html">siddiqsoft::arrp::scoped_resource&lt;Resource&gt;</a>, siddiqsoft::arrp::pool_error&gt; {</div>
 <div class="line">    <span class="keywordflow">for</span> (<span class="keywordtype">int</span> attempt = 0; attempt &lt; max_retries; ++attempt) {</div>
-<div class="line">        <span class="keywordflow">try</span> {</div>
-<div class="line">            <span class="keywordflow">return</span> pool.checkout();</div>
-<div class="line">        } <span class="keywordflow">catch</span> (<span class="keyword">const</span> std::runtime_error&amp;) {</div>
-<div class="line">            <span class="keywordflow">if</span> (attempt &lt; max_retries - 1) {</div>
-<div class="line">                std::this_thread::sleep_for(std::chrono::milliseconds(10 * (attempt + 1)));</div>
-<div class="line">            } <span class="keywordflow">else</span> {</div>
-<div class="line">                <span class="keywordflow">throw</span>;</div>
-<div class="line">            }</div>
+<div class="line">        <span class="keyword">auto</span> result = pool.borrow_from_pool();</div>
+<div class="line">        <span class="keywordflow">if</span> (result) {</div>
+<div class="line">            <span class="keywordflow">return</span> result;</div>
+<div class="line">        }</div>
+<div class="line">        </div>
+<div class="line">        <span class="keywordflow">if</span> (attempt &lt; max_retries - 1) {</div>
+<div class="line">            std::this_thread::sleep_for(std::chrono::milliseconds(10 * (attempt + 1)));</div>
 <div class="line">        }</div>
 <div class="line">    }</div>
+<div class="line">    <span class="keywordflow">return</span> std::unexpected(siddiqsoft::arrp::pool_error::NoMoreResources);</div>
 <div class="line">};</div>
 <div class="line"> </div>
 <div class="line"><span class="comment">// Strategy 2: Use AutoGrow policy</span></div>
 <div class="line"><a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool&lt;Resource&gt;</a> auto_pool(</div>
-<div class="line">    siddiqsoft::arrp::resource_pool&lt;Resource&gt;::auto_add_policy::AutoGrow</div>
+<div class="line">    10,</div>
+<div class="line">    siddiqsoft::arrp::auto_add_policy::AutoGrow</div>
 <div class="line">);</div>
 </div><!-- fragment --><h2 class="doxsection"><a class="anchor" id="ug_exception_safety"></a>
 Exception Safety</h2>
 <div class="fragment"><div class="line"><span class="comment">// Resources are automatically returned even if exception occurs</span></div>
 <div class="line"><span class="keywordflow">try</span> {</div>
-<div class="line">    <span class="keyword">auto</span> resource = pool.checkout();</div>
-<div class="line">    <span class="keywordflow">throw</span> std::runtime_error(<span class="stringliteral">&quot;Something went wrong&quot;</span>);</div>
+<div class="line">    <span class="keyword">auto</span> resource = pool.borrow_from_pool();</div>
+<div class="line">    <span class="keywordflow">if</span> (resource) {</div>
+<div class="line">        <span class="keywordflow">throw</span> std::runtime_error(<span class="stringliteral">&quot;Something went wrong&quot;</span>);</div>
+<div class="line">    }</div>
 <div class="line">} <span class="keywordflow">catch</span> (<span class="keyword">const</span> std::exception&amp;) {</div>
 <div class="line">    <span class="comment">// Resource is still returned to pool</span></div>
 <div class="line">}</div>
 <div class="line"> </div>
 <div class="line"><span class="comment">// Verify resource was returned</span></div>
-<div class="line">EXPECT_EQ(1u, pool.size());</div>
+<div class="line"><span class="keyword">auto</span> size_result = pool.size();</div>
+<div class="line"><span class="keywordflow">if</span> (size_result) {</div>
+<div class="line">    EXPECT_EQ(1u, size_result.value());</div>
+<div class="line">}</div>
 </div><!-- fragment --><h1 class="doxsection"><a class="anchor" id="ug_resource_types"></a>
 Resource Types</h1>
 <h2 class="doxsection"><a class="anchor" id="ug_shared_ptr"></a>
 Using shared_ptr</h2>
-<div class="fragment"><div class="line"><a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool&lt;std::shared_ptr&lt;DatabaseConnection&gt;</a>&gt; pool;</div>
+<div class="fragment"><div class="line"><a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool&lt;std::shared_ptr&lt;DatabaseConnection&gt;</a>&gt; pool(</div>
+<div class="line">    10,</div>
+<div class="line">    siddiqsoft::arrp::auto_add_policy::AutoGrow</div>
+<div class="line">);</div>
 <div class="line"> </div>
-<div class="line">pool.checkin(std::make_shared&lt;DatabaseConnection&gt;());</div>
+<div class="line">pool.seed_to_pool(std::make_shared&lt;DatabaseConnection&gt;());</div>
 <div class="line"> </div>
 <div class="line">{</div>
-<div class="line">    <span class="keyword">auto</span> conn = pool.checkout();</div>
-<div class="line">    conn-&gt;query(<span class="stringliteral">&quot;SELECT * FROM users&quot;</span>);</div>
+<div class="line">    <span class="keyword">auto</span> conn = pool.borrow_from_pool();</div>
+<div class="line">    <span class="keywordflow">if</span> (conn) {</div>
+<div class="line">        conn-&gt;query(<span class="stringliteral">&quot;SELECT * FROM users&quot;</span>);</div>
+<div class="line">    }</div>
 <div class="line">}</div>
 </div><!-- fragment --><h2 class="doxsection"><a class="anchor" id="ug_unique_ptr"></a>
 Using unique_ptr</h2>
-<div class="fragment"><div class="line"><a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool&lt;std::unique_ptr&lt;DatabaseConnection&gt;</a>&gt; pool;</div>
+<div class="fragment"><div class="line"><a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool&lt;std::unique_ptr&lt;DatabaseConnection&gt;</a>&gt; pool(</div>
+<div class="line">    10,</div>
+<div class="line">    siddiqsoft::arrp::auto_add_policy::AutoGrow</div>
+<div class="line">);</div>
 <div class="line"> </div>
-<div class="line">pool.checkin(std::make_unique&lt;DatabaseConnection&gt;());</div>
+<div class="line">pool.seed_to_pool(std::make_unique&lt;DatabaseConnection&gt;());</div>
 <div class="line"> </div>
 <div class="line">{</div>
-<div class="line">    <span class="keyword">auto</span> conn = pool.checkout();</div>
-<div class="line">    conn-&gt;query(<span class="stringliteral">&quot;SELECT * FROM users&quot;</span>);</div>
+<div class="line">    <span class="keyword">auto</span> conn = pool.borrow_from_pool();</div>
+<div class="line">    <span class="keywordflow">if</span> (conn) {</div>
+<div class="line">        conn-&gt;query(<span class="stringliteral">&quot;SELECT * FROM users&quot;</span>);</div>
+<div class="line">    }</div>
 <div class="line">}</div>
 </div><!-- fragment --><h2 class="doxsection"><a class="anchor" id="ug_custom_types"></a>
 Using Custom Types</h2>
@@ -262,43 +288,59 @@ Using Custom Types</h2>
 <div class="line">    <span class="keywordtype">void</span> doWork() { <span class="comment">/* ... */</span> }</div>
 <div class="line">};</div>
 <div class="line"> </div>
-<div class="line"><a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool&lt;MyResource&gt;</a> pool;</div>
+<div class="line"><a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool&lt;MyResource&gt;</a> pool(</div>
+<div class="line">    10,</div>
+<div class="line">    siddiqsoft::arrp::auto_add_policy::AutoGrow</div>
+<div class="line">);</div>
 <div class="line"> </div>
-<div class="line">pool.checkin(MyResource());</div>
+<div class="line">pool.seed_to_pool(MyResource());</div>
 <div class="line"> </div>
 <div class="line">{</div>
-<div class="line">    <span class="keyword">auto</span> res = pool.checkout();</div>
-<div class="line">    res-&gt;doWork();</div>
+<div class="line">    <span class="keyword">auto</span> res = pool.borrow_from_pool();</div>
+<div class="line">    <span class="keywordflow">if</span> (res) {</div>
+<div class="line">        res-&gt;doWork();</div>
+<div class="line">    }</div>
 <div class="line">}</div>
 </div><!-- fragment --><h1 class="doxsection"><a class="anchor" id="ug_invalidation"></a>
 Resource Invalidation</h1>
 <h2 class="doxsection"><a class="anchor" id="ug_invalidate_moved"></a>
 Invalidating Moved Resources</h2>
 <div class="fragment"><div class="line">{</div>
-<div class="line">    <span class="keyword">auto</span> resource = pool.checkout();</div>
-<div class="line">    </div>
-<div class="line">    <span class="comment">// Move resource out</span></div>
-<div class="line">    <span class="keyword">auto</span> extracted = std::move(*resource);</div>
-<div class="line">    </div>
-<div class="line">    <span class="comment">// Mark as invalid so it&#39;s not returned to pool</span></div>
-<div class="line">    resource.invalidate();</div>
-<div class="line">    </div>
-<div class="line">    <span class="comment">// Use extracted resource</span></div>
-<div class="line">    extracted.doWork();</div>
+<div class="line">    <span class="keyword">auto</span> resource = pool.borrow_from_pool();</div>
+<div class="line">    <span class="keywordflow">if</span> (resource) {</div>
+<div class="line">        <span class="comment">// Move resource out</span></div>
+<div class="line">        <span class="keyword">auto</span> extracted = std::move(*resource);</div>
+<div class="line">        </div>
+<div class="line">        <span class="comment">// Mark as invalid so it&#39;s not returned to pool</span></div>
+<div class="line">        resource.invalidate();</div>
+<div class="line">        </div>
+<div class="line">        <span class="comment">// Use extracted resource</span></div>
+<div class="line">        extracted.doWork();</div>
+<div class="line">    }</div>
 <div class="line">}</div>
 <div class="line"><span class="comment">// Resource is NOT returned to pool</span></div>
 </div><!-- fragment --><h2 class="doxsection"><a class="anchor" id="ug_invalidate_consumed"></a>
 Invalidating Consumed Resources</h2>
 <div class="fragment"><div class="line">{</div>
-<div class="line">    <span class="keyword">auto</span> resource = pool.checkout();</div>
-<div class="line">    </div>
-<div class="line">    <span class="comment">// Consume the resource</span></div>
-<div class="line">    process_and_consume(*resource);</div>
-<div class="line">    </div>
-<div class="line">    <span class="comment">// Mark as invalid</span></div>
-<div class="line">    resource.invalidate();</div>
+<div class="line">    <span class="keyword">auto</span> resource = pool.borrow_from_pool();</div>
+<div class="line">    <span class="keywordflow">if</span> (resource) {</div>
+<div class="line">        <span class="comment">// Consume the resource</span></div>
+<div class="line">        process_and_consume(*resource);</div>
+<div class="line">        </div>
+<div class="line">        <span class="comment">// Mark as invalid</span></div>
+<div class="line">        resource.invalidate();</div>
+<div class="line">    }</div>
 <div class="line">}</div>
 <div class="line"><span class="comment">// Resource is NOT returned to pool</span></div>
+</div><!-- fragment --><h2 class="doxsection"><a class="anchor" id="ug_check_validity"></a>
+Checking Resource Validity</h2>
+<div class="fragment"><div class="line">{</div>
+<div class="line">    <span class="keyword">auto</span> resource = pool.borrow_from_pool();</div>
+<div class="line">    <span class="keywordflow">if</span> (resource &amp;&amp; resource.is_valid()) {</div>
+<div class="line">        <span class="comment">// Resource is valid and will be returned</span></div>
+<div class="line">        resource-&gt;doWork();</div>
+<div class="line">    }</div>
+<div class="line">}</div>
 </div><!-- fragment --><h1 class="doxsection"><a class="anchor" id="ug_troubleshooting"></a>
 Troubleshooting</h1>
 <h2 class="doxsection"><a class="anchor" id="ug_deadlock"></a>
@@ -307,51 +349,59 @@ Avoiding Deadlocks</h2>
 <p><b>Cause</b>: Factory callback calls pool methods.</p>
 <p><b>Solution</b>: </p><div class="fragment"><div class="line"><span class="comment">// WRONG - Will deadlock</span></div>
 <div class="line"><span class="keyword">auto</span> pool = resource_pool&lt;Resource&gt;(</div>
-<div class="line">    [](<span class="keyword">auto</span>&amp; p) -&gt; scoped_resource&lt;Resource&gt; {</div>
-<div class="line">        <span class="keyword">auto</span> res = p.checkout();  <span class="comment">// DEADLOCK!</span></div>
-<div class="line">        <span class="keywordflow">return</span> scoped_resource&lt;Resource&gt;(res, ...);</div>
+<div class="line">    10,</div>
+<div class="line">    [](<span class="keyword">auto</span>&amp; p) -&gt; std::expected&lt;scoped_resource&lt;Resource&gt;, pool_error&gt; {</div>
+<div class="line">        <span class="keyword">auto</span> res = p.borrow_from_pool();  <span class="comment">// DEADLOCK!</span></div>
+<div class="line">        <span class="keywordflow">return</span> res;</div>
 <div class="line">    }</div>
 <div class="line">);</div>
 <div class="line"> </div>
 <div class="line"><span class="comment">// CORRECT - Only create and return</span></div>
 <div class="line"><span class="keyword">auto</span> pool = resource_pool&lt;Resource&gt;(</div>
-<div class="line">    [](<span class="keyword">auto</span>&amp; p) -&gt; scoped_resource&lt;Resource&gt; {</div>
+<div class="line">    10,</div>
+<div class="line">    [](<span class="keyword">auto</span>&amp; p) -&gt; std::expected&lt;scoped_resource&lt;Resource&gt;, pool_error&gt; {</div>
 <div class="line">        <span class="keywordflow">return</span> scoped_resource&lt;Resource&gt;(</div>
-<div class="line">            Resource::create(),</div>
-<div class="line">            [&amp;p](Resource&amp;&amp; res) { p.checkin(std::move(res)); }</div>
+<div class="line">            [&amp;p](Resource&amp;&amp; res, <span class="keywordtype">bool</span> isvalid)             {    p.s_to_pool(std::move(res),isvalid);</div>
+<div class="line">                </div>
+<div class="line">            },</div>
+<div class="line">            Resource::create()</div>
 <div class="line">        );</div>
 <div class="line">    }</div>
 <div class="line">);</div>
 </div><!-- fragment --><h2 class="doxsection"><a class="anchor" id="ug_pool_empty"></a>
 Pool is Empty</h2>
-<p><b>Problem</b>: Getting "No items in the pool" exception.</p>
+<p><b>Problem</b>: Getting <span class="tt">NoMoreResources</span> error.</p>
 <p><b>Solutions</b>:</p><ol type="1">
 <li>Pre-populate pool before use</li>
 <li>Use AutoGrow policy</li>
 <li>Implement retry logic with backoff</li>
+<li>Increase pool capacity</li>
 </ol>
 <h2 class="doxsection"><a class="anchor" id="ug_performance"></a>
 Performance Issues</h2>
 <p><b>Problem</b>: Pool operations are slow.</p>
 <p><b>Solutions</b>:</p><ol type="1">
-<li>Increase pool size to reduce contention</li>
+<li>Increase pool capacity to reduce contention</li>
 <li>Ensure factory callbacks are fast</li>
-<li>Monitor with to_json() to check utilization</li>
+<li>Monitor with <span class="tt">to_json()</span> to check utilization</li>
 <li>Use appropriate resource types (shared_ptr vs unique_ptr)</li>
+<li>Pre-populate pool to avoid on-demand creation overhead</li>
 </ol>
 <h1 class="doxsection"><a class="anchor" id="ug_best_practices"></a>
 Best Practices</h1>
 <ol type="1">
 <li><b>Always use RAII</b>: Let scoped_resource handle resource return</li>
 <li><b>Pre-populate pools</b>: Add resources before concurrent access</li>
-<li><b>Handle exceptions</b>: Catch std::runtime_error from checkout()</li>
+<li><b>Handle errors</b>: Check <span class="tt">std::expected</span> return values from <span class="tt">borrow_from_pool()</span></li>
 <li><b>Keep factories simple</b>: Factory callbacks should only create resources</li>
-<li><b>Monitor utilization</b>: Use to_json() to track pool health</li>
+<li><b>Monitor utilization</b>: Use <span class="tt">to_json()</span> to track pool health</li>
 <li><b>Use appropriate types</b>: Prefer shared_ptr or unique_ptr</li>
 <li><b>Test concurrency</b>: Verify thread safety with your specific use case</li>
-<li><b>Avoid manual checkin()</b>: Only use in advanced scenarios</li>
+<li><b>Avoid manual seed_to_pool()</b>: Only use in advanced scenarios</li>
 <li><b>Document assumptions</b>: Clearly document resource lifecycle expectations</li>
-<li><b>Profile under load</b>: Test with realistic concurrent access patterns </li>
+<li><b>Profile under load</b>: Test with realistic concurrent access patterns</li>
+<li><b>Use AutoGrow wisely</b>: AutoGrow can mask resource leaks; monitor carefully</li>
+<li><b>Invalidate strategically</b>: Only invalidate when resource is truly unusable </li>
 </ol>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->
