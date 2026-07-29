@@ -203,7 +203,7 @@ namespace siddiqsoft::arrp
         /// @note The resource is marked as valid
         template <typename... Args>
         scoped_resource(PutbackCallbackFunc&& f, Args&&... args)
-            : m_rsrc(std::move(T(std::forward<Args>(args)...)))
+            : m_rsrc(std::forward<Args>(args)...)
             , m_putback_callback(std::move(f))
             , m_is_valid(true)
         {
