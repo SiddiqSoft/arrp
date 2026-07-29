@@ -58,12 +58,18 @@ int64_t get_borrow_count(siddiqsoft::arrp::resource_pool<T>& pool)
     // If checkedout is not in JSON, calculate it from other fields
     // checkedout = capacity - size (approximately)
     if (json.contains("capacity") && json.contains("size")) {
-        int64_t capacity = json.value("capacity",0);
-        int64_t size     = json.value("size",0);
+        int64_t capacity = json.value("capacity", 0);
+        int64_t size     = json.value("size", 0);
         return capacity - size; // This is an approximation
     }
 
     return -1;
+}
+
+template <typename T>
+int64_t get_loan_count(siddiqsoft::arrp::resource_pool<T>& pool)
+{
+    return pool.to_json().transform([](nlohmann::json& doc) { return doc.value("loans", 0); }).value();
 }
 
 // ============================================================================
@@ -90,7 +96,7 @@ TEST(counter_balance, basic_borrow_return)
     }
 
     // After scope: counter should decrement back to 0
-    EXPECT_EQ(0, pool.size().value_or(0));
+    EXPECT_EQ(0, get_loan_count(pool));
 }
 
 /// @brief Test counter balance with multiple sequential borrows
@@ -109,13 +115,13 @@ TEST(counter_balance, multiple_sequential_borrows)
         {
             auto res = pool.borrow_from_pool();
             EXPECT_TRUE(res.has_value());
-            EXPECT_EQ(1, get_borrow_count(pool));
+            EXPECT_EQ(1, get_loan_count(pool));
         }
-        EXPECT_EQ(0, get_borrow_count(pool));
+        EXPECT_EQ(0, get_loan_count(pool));
     }
 
     // Final state: all returned
-    EXPECT_EQ(0, get_borrow_count(pool));
+    EXPECT_EQ(0, get_loan_count(pool));
     EXPECT_EQ(5, pool.size().value_or(0));
 }
 
@@ -146,13 +152,13 @@ TEST(counter_balance, multiple_concurrent_borrows)
                 EXPECT_EQ(3, get_borrow_count(pool));
             }
 
-            EXPECT_EQ(2, get_borrow_count(pool));
+            EXPECT_EQ(2, get_loan_count(pool));
         }
 
-        EXPECT_EQ(1, get_borrow_count(pool));
+        EXPECT_EQ(1, get_loan_count(pool));
     }
 
-    EXPECT_EQ(0, get_borrow_count(pool));
+    EXPECT_EQ(0, get_loan_count(pool));
 }
 
 /// @brief Test counter balance with invalidated resources
@@ -180,10 +186,10 @@ TEST(counter_balance, invalidated_resources)
     }
 
     // After scope: both should be decremented
-    EXPECT_EQ(0, get_borrow_count(pool));
+    EXPECT_EQ(0, pool.size().value_or(-1));
 
     // But only one should be in the pool (the other was invalidated)
-    EXPECT_EQ(1, pool.size().value_or(0));
+    EXPECT_EQ(1, pool.size().value_or(-1));
 }
 
 /// @brief Test counter balance with moved resources

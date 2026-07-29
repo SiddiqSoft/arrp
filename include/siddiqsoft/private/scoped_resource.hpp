@@ -289,7 +289,7 @@ namespace siddiqsoft::arrp
                     m_putback_callback(std::move(m_rsrc), m_is_valid);
                 }
                 catch (...) {
-                    std::cerr << "scoped_resource destructor: exception while returning resource to pool!\n";
+                    std::print( std::cerr, "scoped_resource destructor: exception while returning resource to pool!\n");
                 }
                 m_is_valid         = false;
                 m_putback_callback = {};

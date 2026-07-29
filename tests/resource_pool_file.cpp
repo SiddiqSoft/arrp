@@ -100,7 +100,7 @@ TEST(resource_pool_file, basic_file_pool)
         EXPECT_EQ(0u, file_pool.size().value_or(0));
 
         // Write to the file
-        std::fprintf(*file_wrapper, "Hello, World!\n");
+        std::print(*file_wrapper, "Hello, World!\n");
     }
     // File is automatically returned to pool
 
@@ -131,25 +131,25 @@ TEST(resource_pool_file, concurrent_file_access)
 
     siddiqsoft::arrp::resource_pool<FILE*> file_pool;
 
-    std::cerr << std::format("About to add file `{}` to the pool..\n", temp_file);
+    std::print( std::cerr, "About to add file `{}` to the pool..\n", temp_file);
     // Add a file to the pool
     FILE* fp = std::fopen(temp_file.c_str(), "w+");
     ASSERT_NE(nullptr, fp);
-    std::cerr << std::format("About to add..{:p}\n", static_cast<void*>(fp));
+    std::print( std::cerr, "About to add..{:p}\n", static_cast<void*>(fp));
     file_pool.add_to_pool(std::move(fp));
     EXPECT_EQ(1u, file_pool.size().value_or(0));
 
     std::atomic<int>         write_count {0};
     std::vector<std::thread> threads;
 
-    std::cerr << std::format("About to kick off the threads to use pool with {} items.\n", file_pool.size().value_or(0));
+    std::print( std::cerr, "About to kick off the threads to use pool with {} items.\n", file_pool.size().value_or(0));
     // Create multiple threads that write to the file
     for (int i = 0; i < 3; ++i) {
         threads.emplace_back([&file_pool, &write_count, i]() {
             auto file_result = file_pool.borrow_from_pool();
             if (file_result.has_value()) {
                 auto fw = std::move(file_result.value());
-                std::fprintf(*fw, "Thread %d\n", i);
+                std::print(*fw, "Thread %d\n", i);
                 ++write_count;
             }
         });
@@ -157,7 +157,7 @@ TEST(resource_pool_file, concurrent_file_access)
 
     // Critical to wait for a second otherwise terminating will stop processing
     std::this_thread::sleep_for(std::chrono::milliseconds(3000));
-    std::cerr << std::format("About to terminated threads {}.\n", threads.size());
+    std::print( std::cerr, "About to terminated threads {}.\n", threads.size());
     // Wait for all threads to complete
     for (auto& t : threads) {
         t.join();
@@ -190,9 +190,9 @@ TEST(resource_pool_file, file_read_write_operations)
         auto file_result = file_pool.borrow_from_pool();
         EXPECT_TRUE(file_result.has_value());
         auto fw = std::move(file_result.value());
-        std::fprintf(*fw, "Line 1\n");
-        std::fprintf(*fw, "Line 2\n");
-        std::fprintf(*fw, "Line 3\n");
+        std::print(*fw, "Line 1\n");
+        std::print(*fw, "Line 2\n");
+        std::print(*fw, "Line 3\n");
         std::fflush(*fw);
     }
 

@@ -172,7 +172,7 @@ TEST(resource_pool_constructors, cleanup_callback_only)
     {
         siddiqsoft::arrp::resource_pool<std::string> pool {[&cleanup_count](auto&& item) {
             cleanup_count++;
-            std::cerr << std::format("Cleanup called for: {}\n", item);
+            std::print( std::cerr, "Cleanup called for: {}\n", item);
         }};
 
         pool.add_to_pool(std::string("item1"));
@@ -621,7 +621,7 @@ TEST(resource_pool_json, counter_tracking)
     EXPECT_TRUE(json.has_value());
 
     auto& j = json.value().get();
-    std::cerr << std::format("contents of the stats:{}\n", j.dump());
+    std::print( std::cerr, "contents of the stats:{}\n", j.dump());
     EXPECT_EQ(5u, j["returns"].get<uint64_t>());
 }
 
@@ -1029,7 +1029,7 @@ TEST(formatters, scoped_resource_format)
     {
         auto res = pool.borrow_from_pool();
         if (res.has_value()) {
-            std::cerr << **res;
+            std::print( std::cerr, "{}\n", **res);
             std::string formatted = std::format("{}", **res);
             EXPECT_FALSE(formatted.empty());
         }

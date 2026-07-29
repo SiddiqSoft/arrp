@@ -379,7 +379,7 @@ TEST(stress_memory, variable_size_objects)
         }
     }
 
-    std::cerr << std::format("post test stats: {}\n", pool.to_json().value().get().dump());
+    std::print( std::cerr, "post test stats: {}\n", pool.to_json().value().get().dump());
     EXPECT_EQ(1u, pool.size().value_or(0));
 }
 
@@ -718,7 +718,7 @@ TEST(stress_capacity, capacity_enforcement_concurrent)
         }
     }
 
-    std::cerr << std::format("After invalidating one..: {}\n", pool.to_json().value().get().dump());
+    std::print( std::cerr, "After invalidating one..: {}\n", pool.to_json().value().get().dump());
 
     std::vector<std::jthread> threads;
     for (int t = 0; t < CAPACITY + 1; ++t) {
@@ -741,7 +741,7 @@ TEST(stress_capacity, capacity_enforcement_concurrent)
     std::this_thread::sleep_for(std::chrono::seconds(2));
     threads.clear();
 
-    std::cerr << std::format("Post test: {}\n", pool.to_json().value().get().dump());
+    std::print( std::cerr, "Post test: {}\n", pool.to_json().value().get().dump());
 
     EXPECT_GT(successes.load(), 0);
     EXPECT_GT(failures.load(), 0);
@@ -999,15 +999,15 @@ TEST(stress_ultimate, comprehensive_stress)
     threads.clear();
 
     auto elapsed = std::chrono::steady_clock::now() - start_time;
-    std::cerr << std::format("Ultimate stress test completed in {}ms\n",
+    std::print( std::cerr, "Ultimate stress test completed in {}ms\n",
                              std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count());
-    std::cerr << std::format("Total operations: {}\n", total_ops.load());
-    std::cerr << std::format("Total exceptions: {}\n", total_exceptions.load());
-    std::cerr << std::format("Total clears: {}\n", total_clears.load());
-    std::cerr << std::format("Final pool size: {}\n", pool.size().value_or(0));
+    std::print( std::cerr, "Total operations: {}\n", total_ops.load());
+    std::print( std::cerr, "Total exceptions: {}\n", total_exceptions.load());
+    std::print( std::cerr, "Total clears: {}\n", total_clears.load());
+    std::print( std::cerr, "Final pool size: {}\n", pool.size().value_or(0));
     auto json = pool.to_json();
     if (json.has_value()) {
-        std::cerr << std::format("Pool state: {}\n", json.value().get().dump(2));
+        std::print( std::cerr, "Pool state: {}\n", json.value().get().dump(2));
     }
 
     EXPECT_GT(total_ops.load(), 0);

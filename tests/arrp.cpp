@@ -58,11 +58,11 @@ TEST(scoped_resource, T_string)
     EXPECT_NO_THROW({
         siddiqsoft::arrp::scoped_resource<std::string> sr(
                 [](auto&& item, bool isvalid) -> std::expected<void, siddiqsoft::arrp::pool_error> {
-                    std::cerr << std::format("scoped_resource-T_string - Callback invoked on destruction! isvalid: {}\n", isvalid);
+                    std::print( std::cerr, "scoped_resource-T_string - Callback invoked on destruction! isvalid: {}\n", isvalid);
                     return {};
                 },
                 "ﷵ");
-        std::cerr << std::format("stat: {}\n", sr.to_json().dump());
+        std::print( std::cerr, "stat: {}\n", sr.to_json().dump());
         passTest = true;
     });
 
@@ -83,12 +83,12 @@ TEST(scoped_resource, T_struct)
     EXPECT_NO_THROW({
         siddiqsoft::arrp::scoped_resource<custom1> sr(
                 [](auto&& item, bool isvalid) -> std::expected<void, siddiqsoft::arrp::pool_error> {
-                    std::cerr << std::format("scoped_resource-T_struct - Callback invoked on destruction! isvalid: {}\n",
+                    std::print( std::cerr, "scoped_resource-T_struct - Callback invoked on destruction! isvalid: {}\n",
                                              isvalid);
                     return {};
                 },
                 custom1 {99, "ﷵ", true, {1, 2, 3}});
-        std::cerr << std::format("stat: {}\n", sr.to_json().dump());
+        std::print( std::cerr, "stat: {}\n", sr.to_json().dump());
         sr.invalidate();
         passTest = true;
     });
@@ -121,7 +121,7 @@ TEST(scoped_resource, T_class1)
     EXPECT_NO_THROW({
         siddiqsoft::arrp::scoped_resource<custom2> sr(
                 [](auto&& item, bool isvalid) -> std::expected<void, siddiqsoft::arrp::pool_error> {
-                    std::cerr << std::format("scoped_resource-T_class1 - Callback invoked on destruction! isvalid: {}\n",
+                    std::print( std::cerr, "scoped_resource-T_class1 - Callback invoked on destruction! isvalid: {}\n",
                                              isvalid);
                     return {};
                 },
@@ -129,7 +129,7 @@ TEST(scoped_resource, T_class1)
                 std::string("ﷵ"),
                 true,
                 std::vector<int> {1, 1, 2, 3});
-        std::cerr << std::format("stat: {}\n", sr.to_json().dump());
+        std::print( std::cerr, "stat: {}\n", sr.to_json().dump());
         sr.invalidate();
         passTest = true;
     });
@@ -161,13 +161,13 @@ TEST(scoped_resource, T_class2)
     EXPECT_NO_THROW({
         siddiqsoft::arrp::scoped_resource<custom2> sr(
                 [](auto&& item, bool isvalid) -> std::expected<void, siddiqsoft::arrp::pool_error> {
-                    std::cerr << std::format("scoped_resource-T_class2 - Callback invoked on destruction! isvalid: {}\n",
+                    std::print( std::cerr, "scoped_resource-T_class2 - Callback invoked on destruction! isvalid: {}\n",
                                              isvalid);
                     return {};
                 },
                 custom2 {99, "ﷵ", true, {1, 1, 2, 3}}); // this approach allows the compiler to deduce the proper arguments and
                                                         // perform copy/move elision
-        std::cerr << std::format("stat: {}\n", sr.to_json().dump());
+        std::print( std::cerr, "stat: {}\n", sr.to_json().dump());
         sr.invalidate();
         passTest = true;
     });
@@ -183,13 +183,13 @@ TEST(scoped_resource, T_pair)
     EXPECT_NO_THROW({
         siddiqsoft::arrp::scoped_resource<custom2> sr(
                 [](auto&& item, bool isvalid) -> std::expected<void, siddiqsoft::arrp::pool_error> {
-                    std::cerr << std::format("scoped_resource-T_pair - Callback invoked on destruction! isvalid: {}\n",
+                    std::print( std::cerr, "scoped_resource-T_pair - Callback invoked on destruction! isvalid: {}\n",
                                              isvalid);
                     return {};
                 },
                 {99, "ﷵ"});
         // sr.invalidate();
-        std::cerr << std::format("stat: {}\n", sr.to_json().dump());
+        std::print( std::cerr, "stat: {}\n", sr.to_json().dump());
         passTest = true;
     });
 
@@ -208,7 +208,7 @@ TEST(resource_pool, serializer_1)
         rp.add_to_pool("ﷵ");
 
         EXPECT_EQ(2, rp.size());
-        std::cerr << std::format("resource_pool::serializer_1 - after adding      stats:{}\n", rp);
+        std::print( std::cerr, "resource_pool::serializer_1 - after adding      stats:{}\n", rp);
 
         auto p1 = rp.borrow_from_pool().transform([](auto item) {
             *item = std::string("updated-").append(*item);
@@ -229,7 +229,7 @@ TEST(resource_pool, serializer_1)
     // All the items should've been returned..
     EXPECT_EQ(2, rp.size());
 
-    std::cerr << std::format("resource_pool::serializer_1 - post test      stats:{}\n", rp);
+    std::print( std::cerr, "resource_pool::serializer_1 - post test      stats:{}\n", rp);
 
     EXPECT_TRUE(passTest);
 }
@@ -253,14 +253,14 @@ TEST(resource_pool, serializer_pair)
             return std::move(item);
         });
 
-        std::cerr << std::format("resource_pool::serializer_pair -    stats:{}\n", rp);
+        std::print( std::cerr, "resource_pool::serializer_pair -    stats:{}\n", rp);
 
         EXPECT_EQ(0, rp.size());
 
         passTest = true;
     });
 
-    std::cerr << std::format("resource_pool::serializer_pair -    stats:{}\n", rp);
+    std::print( std::cerr, "resource_pool::serializer_pair -    stats:{}\n", rp);
     // All the items should've been returned..
     // one was invalidated
     EXPECT_EQ(1, rp.size());

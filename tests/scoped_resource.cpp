@@ -57,7 +57,7 @@ TEST(resource_pool, T_string)
 
     EXPECT_NO_THROW({
         siddiqsoft::arrp::resource_pool<std::string> rp {};
-        std::cerr << std::format("{} - Capacity:{}\n", __func__, rp.size().value_or(0));
+        std::print(std::cerr, "{} - Capacity:{}\n", __func__, rp.size().value_or(0));
         passTest = true;
     });
 
@@ -75,7 +75,7 @@ TEST(resource_pool, T_shared_ptr_string)
         rp.add_to_pool(std::shared_ptr<std::string>(new std::string(__TIME__)));
         EXPECT_EQ(1, rp.size()) << "Pool must have only one item";
 
-        std::cerr << std::format("{} - 0 - {}\n", __func__, rp.to_json().value().get().dump());
+        std::print(std::cerr, "{} - 0 - {}\n", __func__, rp.to_json().value().get().dump());
 
         {
             auto item_result = rp.borrow_from_pool();
@@ -85,7 +85,7 @@ TEST(resource_pool, T_shared_ptr_string)
             EXPECT_EQ(__TIME__, **item);
             (*item)->append("-ok");
 
-            std::cerr << std::format("{} - 1 -  {}\n", __func__, rp.to_json().value().get().dump());
+            std::print(std::cerr, "{} - 1 -  {}\n", __func__, rp.to_json().value().get().dump());
         }
 
         // item is automatically returned to pool when it goes out of scope
@@ -104,7 +104,7 @@ TEST(resource_pool, T_shared_ptr_string)
         passTest = true;
     });
 
-    std::cerr << std::format("{} - Completed: {}\n", __func__, passTest);
+    std::print(std::cerr, "{} - Completed: {}\n", __func__, passTest);
 
     EXPECT_TRUE(passTest);
 }
@@ -316,27 +316,27 @@ TEST(resource_pool, json_type)
     siddiqsoft::arrp::resource_pool<nlohmann::json> rp {};
     nlohmann::json                                  dummy = {{"key", "value"}, {"age", 101}, {"something", "nothing"}};
 
-    std::cerr << dummy.dump();
+    std::print(std::cerr, "{}\n", dummy.dump());
 
     rp.add_to_pool(nlohmann::json::object({{"name", "surname"}, {"lift", 909}, {"everything", "nothing"}}));
     rp.add_to_pool(std::move(dummy));
     EXPECT_TRUE(dummy.is_null());
     EXPECT_EQ(2u, rp.size());
 
-    std::cerr << rp.to_json().value().get().dump();
+    std::print(std::cerr, "{}\n", rp.to_json().value().get().dump());
 
     try {
         auto item_result = rp.borrow_from_pool();
         EXPECT_TRUE(item_result.has_value());
         auto item = *(item_result.value());
 
-        std::cerr << item.dump();
+        std::print(std::cerr, "{}\n", item.dump());
         EXPECT_EQ("nothing", item["everything"]);
         EXPECT_EQ(1u, rp.size());
         passTest = true;
     }
     catch (std::exception& ex) {
-        std::cerr << ex.what();
+        std::print(std::cerr, "{}\n", ex.what());
         passTest = false;
     }
 
@@ -361,13 +361,13 @@ TEST(resource_pool, pair_type)
 
         EXPECT_EQ(99, item.first);
         EXPECT_EQ("hello", item.second);
-        std::cerr << std::format("contents of the item: <{},{}>\n", item.first, item.second);
+        std::print(std::cerr, "contents of the item: <{},{}>\n", item.first, item.second);
 
         EXPECT_EQ(0u, rp.size());
         passTest = true;
     }
     catch (std::exception& ex) {
-        std::cerr << ex.what();
+        std::print(std::cerr, "{}\n", ex.what());
         passTest = false;
     }
 
@@ -975,7 +975,7 @@ TEST(resource_pool, rapid_cycles)
     pool.add_to_pool(std::vector<int> {1, 2, 3, 4, 5});
 
     for (int cycle = 0; cycle < 100; ++cycle) {
-        std::cerr << std::format("  >> Working on cycle: {}\n", cycle);
+        std::print(std::cerr, "  >> Working on cycle: {}\n", cycle);
         {
             auto vec_result = pool.borrow_from_pool();
             EXPECT_TRUE(vec_result.has_value());
@@ -985,7 +985,7 @@ TEST(resource_pool, rapid_cycles)
     }
 
     // After all that.. we should still be back at one item in the pool.
-    std::cerr << std::format("  >> Post completion: {}", pool.to_json().value().get().dump(2));
+    std::print(std::cerr, "  >> Post completion: {}", pool.to_json().value().get().dump(2));
     EXPECT_EQ(1u, pool.size());
 }
 
@@ -1438,12 +1438,13 @@ TEST(resource_pool_adversarial, factory_callback_exceptions)
     std::this_thread::sleep_for(std::chrono::milliseconds(800));
     workers.clear();
 
-    std::cerr << pool.to_json().value().get().dump();
-    std::cerr << std::format("factory_calls:{}.  success:{}. exceptions:{}. failures:{}. \n",
-                             factory_calls.load(),
-                             successes.load(),
-                             factory_exceptions.load(),
-                             failures.load());
+    std::print(std::cerr, "{}\n", pool.to_json().value().get().dump());
+    std::print(std::cerr,
+               "factory_calls:{}.  success:{}. exceptions:{}. failures:{}. \n",
+               factory_calls.load(),
+               successes.load(),
+               factory_exceptions.load(),
+               failures.load());
 
     EXPECT_GT(successes.load(), 0);
     EXPECT_GT(failures.load(), 0);
@@ -1642,9 +1643,9 @@ TEST(resource_pool, concurrent_clear_deadlock_detection)
     EXPECT_EQ(std::future_status::ready, clearer.wait_for(timeout));
 
     // consume the results..
-    std::cerr << "  results... " << worker1.get() << std::endl;
-    std::cerr << "  results... " << worker2.get() << std::endl;
-    std::cerr << "  results... " << clearer.get() << std::endl;
+    std::print(std::cerr, "  results... {}", worker1.get());
+    std::print(std::cerr, "  results... {}", worker2.get());
+    std::print(std::cerr, "  results... {}", clearer.get());
 
     EXPECT_GT(borrow_cycles.load(), 0);
     EXPECT_GT(clear_cycles.load(), 0);
