@@ -611,7 +611,7 @@ namespace siddiqsoft::arrp
                 // Update the pool statistics
                 m_json["size"]         = m_pool.size();
                 m_json["deficit"]      = deficit_size();
-                m_json["initcapacity"] = m_capacity;
+                m_json["capacity"] = m_capacity;
                 m_json["peaksize"]     = m_peak_poolsize.load();
                 m_json["abandons"]     = m_counter_abandons.load();
                 m_json["seeds"]        = m_counter_seeds.load();
