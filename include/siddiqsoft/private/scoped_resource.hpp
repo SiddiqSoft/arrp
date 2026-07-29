@@ -220,14 +220,24 @@ namespace siddiqsoft::arrp
         scoped_resource& operator=(scoped_resource&& src) noexcept
         {
             if (this != &src) {
-                // Make sure that the src does not return anymore by resetting its callback
-                m_putback_callback     = std::move(src.m_putback_callback);
-                src.m_putback_callback = {};
+                // Return current resource if valid and callback exists
+                if (m_is_valid && m_putback_callback) {
+                    try {
+                        m_putback_callback(std::move(m_rsrc), m_is_valid);
+                    }
+                    catch (...) {
+                        std::print(std::cerr, "scoped_resource move-assignment: exception while returning current resource to pool!\n");
+                    }
+                }
+
                 // Move from src
-                m_rsrc     = std::move(src.m_rsrc);
-                m_is_valid = src.m_is_valid;
-                // Make sure we do not have the src return_to_pool
-                src.m_is_valid = false;
+                m_rsrc             = std::move(src.m_rsrc);
+                m_putback_callback = std::move(src.m_putback_callback);
+                m_is_valid         = src.m_is_valid;
+
+                // Reset src to prevent double-return
+                src.m_putback_callback = {};
+                src.m_is_valid         = false;
             }
             return *this;
         }
@@ -271,38 +281,55 @@ namespace siddiqsoft::arrp
         /// @note Returns nullptr if resource is invalid
         auto operator->() -> T* { return m_is_valid ? &m_rsrc : nullptr; }
 
-        /// @brief Destructor - returns resource to pool if valid
+        /// @brief Destructor - invokes callback to handle resource return or abandonment
         ///
-        /// Invokes the putback callback if the resource is valid and a callback exists.
-        /// This ensures the resource is returned to the pool for reuse.
-        /// Exceptions from the callback are caught and logged to stderr.
+        /// Invokes the putback callback if one exists, passing the resource and its validity status.
+        /// The callback is responsible for deciding whether to return the resource to the pool (if valid)
+        /// or discard it (if invalid). Exceptions from the callback are caught and logged to stderr.
         ///
         /// @note Noexcept: Exceptions are caught and logged, not propagated
+        /// @note The callback is always invoked if set, regardless of validity
+        /// @note The callback receives the validity flag to make the appropriate decision
         /// @note The callback is cleared after invocation
-        /// @note The resource is marked as invalid after return
+        /// @note The resource is marked as invalid after callback invocation
         ~scoped_resource() noexcept
         {
-            // Only return resource if it's valid and callback exists
-            // This prevents returning uninitialized or moved-out resources to the pool
+            // Invoke callback if it exists, passing the resource and validity status
+            // The callback (typically resource_pool::return_to_pool) decides whether to
+            // reuse the resource (if valid) or discard it (if invalid)
             if (m_putback_callback) {
                 try {
                     m_putback_callback(std::move(m_rsrc), m_is_valid);
                 }
                 catch (...) {
-                    std::print(std::cerr, "scoped_resource destructor: exception while returning resource to pool!\n");
+                    std::print(std::cerr, "scoped_resource destructor: exception while invoking putback callback!\n");
                 }
                 m_is_valid         = false;
                 m_putback_callback = {};
             }
         }
 
-        /// @brief Marks the resource as invalid
+        /// @brief Marks the resource as invalid (abandoned)
         ///
-        /// Sets the validity flag to false. When the resource is destroyed,
-        /// it will not be returned to the pool.
+        /// Sets the validity flag to false. When the resource is destroyed, the callback
+        /// will be invoked with isvalid=false, allowing the pool to discard the resource
+        /// rather than returning it for reuse. This is appropriate when the resource has
+        /// been moved out, corrupted, or otherwise rendered unusable.
         ///
         /// @note Virtual: Can be overridden in derived classes
-        /// @note Typically called when the resource is corrupted or unusable
+        /// @note The callback is still invoked; only the validity flag changes
+        /// @note The pool's callback should check the validity flag and handle accordingly
+        /// @note Typically called when the resource is corrupted, moved out, or consumed
+        ///
+        /// @example
+        /// @code
+        /// auto resource = pool.borrow_from_pool();
+        /// if (resource) {
+        ///     auto extracted = std::move(*resource);
+        ///     resource.invalidate();  // Mark as invalid so pool discards it
+        ///     // Use extracted resource elsewhere
+        /// }
+        /// @endcode
         virtual void invalidate() { m_is_valid = false; }
 
         /// @brief Checks if the resource is valid
