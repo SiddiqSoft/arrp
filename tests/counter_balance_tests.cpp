@@ -174,13 +174,55 @@ TEST(counter_balance, invalidated_resources)
     EXPECT_EQ(1, pool.size().value_or(-1));
 }
 
+
+class custom_mr
+{
+public:
+    std::string v;
+
+    custom_mr() = default;
+
+    explicit operator std::string&() { return v; }
+    explicit operator const char*() { return v.c_str(); }
+
+    custom_mr(const std::string& s)
+        : v(s)
+    {
+    }
+    custom_mr(std::string&& s)
+        : v(std::move(s))
+    {
+    }
+    custom_mr(custom_mr&& src) noexcept
+        : v(std::move(src.v))
+    {
+    }
+    custom_mr& operator=(custom_mr&& src) noexcept
+    {
+        if (this != &src) {
+            v = std::move(src.v);
+        }
+        return *this;
+    }
+    auto operator=(const std::string& s) -> custom_mr&
+    {
+        v = s;
+        return *this;
+    }
+    ~custom_mr() { std::print(std::cerr, "{} - destroyed: {}\n", __func__, v); }
+    bool                 operator==(const std::string& src) const { return v == src; }
+    bool                 operator==(const char* src) const { return v == src; }
+    std::strong_ordering operator<=>(const std::string& src) const { return v <=> src; }
+    std::strong_ordering operator<=>(const char* src) const { return v <=> src; }
+};
+
 /// @brief Test counter balance with moved resources
 TEST(counter_balance, moved_resources)
 {
-    siddiqsoft::arrp::resource_pool<std::string> pool {};
+    siddiqsoft::arrp::resource_pool<custom_mr> pool {};
 
-    pool.seed_to_pool(std::string("resource-1"));
-    pool.seed_to_pool(std::string("resource-2"));
+    pool.seed_to_pool(custom_mr{"resource-1"});
+    pool.seed_to_pool(custom_mr{"resource-2"});
 
     EXPECT_EQ(0, get_borrow_count(pool));
     EXPECT_EQ(2, pool.size().value_or(0));
@@ -202,12 +244,11 @@ TEST(counter_balance, moved_resources)
     std::print(std::cerr, "Stats: {}\n", pool.to_json().value().get().dump());
 
     // After scope: both should be decremented
-    // The loan count should be 1 since the move destroyed/cleared one resource
-    // and prevented it from being returned properly!
-    EXPECT_EQ(1, get_loan_count(pool));
+    // The custom resource cleans up properly!
+    EXPECT_EQ(0, get_loan_count(pool));
 
-    // Only one resource should be in the pool (res1 was moved out)
-    EXPECT_EQ(1, pool.size().value_or(0));
+    // Both resources should be back in the pool!
+    EXPECT_EQ(2, pool.size().value_or(0));
 }
 
 // ============================================================================

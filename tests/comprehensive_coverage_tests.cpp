@@ -582,7 +582,7 @@ TEST(resource_pool_clear, concurrent_with_borrow)
     std::atomic_int  borrows {0};
     std::atomic_int  borrow_fails {0};
 
-    auto             worker  = std::jthread([&]() {
+    auto             worker = std::jthread([&]() {
         for (int i = 0; i < 100 && !stop.load(); ++i) {
             auto res = pool.borrow_from_pool();
             if (res.has_value()) {
@@ -594,7 +594,11 @@ TEST(resource_pool_clear, concurrent_with_borrow)
         }
     });
 
-    auto             clearer = std::jthread([&]() {
+    // A slight pause will ensure that the borrow will fulfill at least one
+    // before the clear()ers do their work.
+    std::this_thread::sleep_for(std::chrono::milliseconds(5));
+
+    auto clearer = std::jthread([&]() {
         for (int i = 0; i < 5 && !stop.load(); ++i) {
             pool.clear();
             clears++;
@@ -612,7 +616,7 @@ TEST(resource_pool_clear, concurrent_with_borrow)
     worker.join();
     clearer.join();
 
-    std::print(std::cerr, "borrows:{}. borrow_fails:{}. clears:{}", borrows.load(), borrow_fails.load(), clears.load());
+    std::println(std::cerr, "borrows:{}. borrow_fails:{}. clears:{}", borrows.load(), borrow_fails.load(), clears.load());
     EXPECT_GT(clears.load(), 0);
     EXPECT_GT(borrows.load(), 0);
 }
