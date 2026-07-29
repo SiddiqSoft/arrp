@@ -172,9 +172,16 @@ namespace siddiqsoft::arrp
 
         /// @brief Internal method does not require explicit lock
         inline bool is_pool_starving() { return m_resources_checkedout.load() + m_pool.size() < m_capacity; }
-        inline auto is_there_a_pool_deficit() { return m_pool.size() < m_capacity; }
+        inline auto is_there_a_pool_deficit() { return deficit_size() != 0; }
 
-        inline auto deficit_size() { return m_capacity - m_pool.size(); }
+        /// @brief Calculates the deficit or the difference between the current poolsize and the declared/desired capacity.
+        /// @return The value may be negative if the poolsize ends up being more than the declared/default capacity.
+        inline int64_t deficit_size() { return m_capacity_poolsize.load() - m_pool.size(); }
+
+        /// @brief The loan size is the difference between the borrows and returns and accounting for the abandons.
+        ///        We're trying to ensure that we have a zero-balance of borrow_from_pool() and the return_to_pool()
+        ///        calls by the client.
+        /// @return A value representing the number of "borrowed" resources by the client.
         inline auto loan_size()
         {
             auto loans = m_counter_borrows.load(); // total number of borrows (current counter)
@@ -579,15 +586,16 @@ namespace siddiqsoft::arrp
                 if (m_is_shutdown) return std::unexpected(siddiqsoft::arrp::pool_error::ShutdownInitiated);
 
                 // Update the poolsize..
-                m_json["size"]     = m_pool.size();
-                m_json["deficit"]  = deficit_size();
-                m_json["capsize"]  = m_capacity_poolsize.load();
-                m_json["abandons"] = m_counter_abandons.load();
-                m_json["seeds"]    = m_counter_seeds.load();
-                m_json["autoadds"] = m_counter_ondemand_adds.load();
-                m_json["returns"]  = m_counter_returns.load();
-                m_json["borrows"]  = m_counter_borrows.load();
-                m_json["loans"]    = loan_size();
+                m_json["size"]         = m_pool.size();
+                m_json["deficit"]      = deficit_size();
+                m_json["initcapacity"] = m_capacity;
+                m_json["capsize"]      = m_capacity_poolsize.load();
+                m_json["abandons"]     = m_counter_abandons.load();
+                m_json["seeds"]        = m_counter_seeds.load();
+                m_json["autoadds"]     = m_counter_ondemand_adds.load();
+                m_json["returns"]      = m_counter_returns.load();
+                m_json["borrows"]      = m_counter_borrows.load();
+                m_json["loans"]        = loan_size();
 
                 // This field is only available when there is a supported data-type
                 if constexpr (std::is_same_v<T, nlohmann::json> || std::is_same_v<T, std::string>) {

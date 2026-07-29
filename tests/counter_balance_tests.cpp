@@ -861,6 +861,53 @@ TEST(counter_balance, counter_size_consistency)
     EXPECT_EQ(10, pool.size().value_or(-1));
 }
 
+TEST(counter_balance, counter_size_consistency_2)
+{
+    siddiqsoft::arrp::resource_pool<std::string> pool {};
+
+    for (int i = 0; i < 10; ++i) {
+        pool.seed_to_pool(std::format("resource-{}", i));
+    }
+
+    EXPECT_EQ(0, get_borrow_count(pool));
+    EXPECT_EQ(10, pool.size().value_or(0));
+
+    // Borrow 5
+    {
+        std::deque<siddiqsoft::arrp::scoped_resource<std::string>> holdResources;
+
+        holdResources.emplace_back(pool.borrow_from_pool().value());
+        holdResources.emplace_back(pool.borrow_from_pool().value());
+        holdResources.emplace_back(pool.borrow_from_pool().value());
+        holdResources.emplace_back(pool.borrow_from_pool().value());
+        holdResources.emplace_back(pool.borrow_from_pool().value());
+
+        EXPECT_EQ(5, get_borrow_count(pool));
+        EXPECT_EQ(5, pool.size().value_or(0));
+
+        std::println(std::cerr,
+                     "....before returning 3... resources: {}. stats: {}",
+                     0, // resources.size(),
+                     pool.to_json().value().get().dump());
+        // Release three resources only...
+        auto _ = holdResources.erase(holdResources.begin(), holdResources.begin() + 3);
+
+        EXPECT_EQ(2, get_loan_count(pool));
+        EXPECT_EQ(8, pool.size().value_or(0));
+        std::println(std::cerr,
+                     ".....after returning 3...resources:{}. stats: {}",
+                     0, // resources.size(),
+                     pool.to_json().value().get().dump());
+    } // release all five..
+    std::println(std::cerr,
+                 ".....after returning all borrowed...resources:{}. stats: {}",
+                 0, // resources.size(),
+                 pool.to_json().value().get().dump());
+
+    EXPECT_EQ(0, get_loan_count(pool));
+    EXPECT_EQ(10, pool.size().value_or(-1));
+}
+
 /// @brief Test counter consistency across JSON serialization
 TEST(counter_balance, counter_json_consistency)
 {
