@@ -3,9 +3,11 @@
 #define ARRP_COMMON_HPP
 
 #include <cstdint>
-#include <limits>
 #include <expected>
 #include <exception>
+#include <format>
+#include <limits>
+#include <string_view>
 
 
 namespace siddiqsoft::arrp
@@ -84,7 +86,7 @@ struct std::formatter<siddiqsoft::arrp::release_reason, ct> : std::formatter<ct>
         std::string_view val {};
         switch (rr) {
             case siddiqsoft::arrp::release_reason::Valid: val = "Valid"; break;
-            case siddiqsoft::arrp::release_reason::Abandoned: val = "abandons"; break;
+            case siddiqsoft::arrp::release_reason::Abandoned: val = "Abandoned"; break;
             default: val = "Unknown"; break;
         }
 

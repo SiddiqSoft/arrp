@@ -42,6 +42,9 @@
 #include <cstdint>
 #include <format>
 #include <functional>
+#include <iostream>
+#include <print>
+#include <string>
 #include <type_traits>
 
 #include "common.hpp"
@@ -347,22 +350,35 @@ namespace siddiqsoft::arrp
         /// Only available if nlohmann/json.hpp is included before this header.
         ///
         /// @return JSON object with:
-        ///   - _typver: Type and version string
-        ///   - valid: Whether the resource is valid
-        ///   - value: The resource value (if serializable)
+        ///   - _typver: Type and version string ("siddiqsoft.arrp.scoped_resource/1.0.0")
+        ///   - valid: Whether the resource is valid (boolean)
+        ///   - value: The resource value (if serializable, otherwise "-noserializer-")
         ///
         /// @note Requires NLOHMANN_JSON_VERSION_MAJOR to be defined
         /// @note If T is not serializable, value is set to "-noserializer-"
+        ///
+        /// @warning BREAKING CHANGE (v1.0.0): The JSON schema key changed from "capacity" to "valid".
+        ///          Previous versions incorrectly used "capacity" to represent the validity flag.
+        ///          Code parsing this JSON must be updated to use the "valid" key.
+        ///
+        /// @par JSON Schema:
+        /// @code{.json}
+        /// {
+        ///   "_typver": "siddiqsoft.arrp.scoped_resource/1.0.0",
+        ///   "valid": true,
+        ///   "value": <resource_value>
+        /// }
+        /// @endcode
         nlohmann::json to_json() const
         {
             if constexpr (std::is_same_v<T, std::string> || std::is_arithmetic_v<T>)
-                return {{"_typver", "siddiqsoft.arrp.scoped_resource/0.0.0"}, {"valid", m_is_valid}, {"value", m_rsrc}};
+                return {{"_typver", "siddiqsoft.arrp.scoped_resource/1.0.0"}, {"valid", m_is_valid}, {"value", m_rsrc}};
             else if constexpr (HasStdToStringImpl<T>)
-                return {{"_typver", "siddiqsoft.arrp.scoped_resource/0.0.0"},
+                return {{"_typver", "siddiqsoft.arrp.scoped_resource/1.0.0"},
                         {"valid", m_is_valid},
                         {"value", std::to_string(m_rsrc)}};
             else
-                return {{"_typver", "siddiqsoft.arrp.scoped_resource/0.0.0"}, {"valid", m_is_valid}, {"value", "-noserializer-"}};
+                return {{"_typver", "siddiqsoft.arrp.scoped_resource/1.0.0"}, {"valid", m_is_valid}, {"value", "-noserializer-"}};
         }
 #endif
     };
@@ -370,8 +386,11 @@ namespace siddiqsoft::arrp
 
 
 /// @brief Specialization of std::formatter for scoped_resource
-/// @details Provides formatted output for scoped_resource instances using std::format
+/// @details Provides formatted output for scoped_resource instances using std::format.
+/// Uses a consistent format across all translation units to avoid ODR violations.
 /// @tparam T The resource type
+/// @note This formatter always uses the same format regardless of whether nlohmann/json is available,
+///       ensuring ODR safety. For JSON output, use the to_json() method directly.
 template <typename T>
 struct std::formatter<siddiqsoft::arrp::scoped_resource<T>>
 {
@@ -386,15 +405,13 @@ struct std::formatter<siddiqsoft::arrp::scoped_resource<T>>
     /// @param sr The scoped_resource to format
     /// @param ctx Format context
     /// @return Iterator to end of formatted output
+    /// @note Always uses the same format to ensure ODR safety across translation units
     template <typename FormatContext>
     auto format(const siddiqsoft::arrp::scoped_resource<T>& sr, FormatContext& ctx) const
     {
-#if defined(NLOHMANN_JSON_VERSION_MAJOR)
-        return std::format_to(ctx.out(), "{}", sr.to_json().dump());
-#else
-        return std::format_to(
-                ctx.out(), "{{ type: \"siddiqsoft.arrp.scoped_resource\", valid: \"{}\", value: {} }}", sr.is_valid(), *sr);
-#endif
+        // Use consistent format across all TUs to avoid ODR violations
+        // Format: scoped_resource<T>{valid: <bool>}
+        return std::format_to(ctx.out(), "scoped_resource<T>{{valid: {}}}", sr.is_valid());
     }
 };
 

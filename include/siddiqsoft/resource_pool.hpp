@@ -96,14 +96,18 @@ namespace siddiqsoft::arrp
         std::atomic_bool m_is_shutdown {false};
 
         /// @brief Number of resources currently checked out from the pool
-        std::atomic_int16_t m_resources_checkedout {0};
+        /// @details Uses unsigned type to prevent negative values that could break pool logic.
+        /// Incremented when resources are borrowed, decremented when returned.
+        std::atomic_uint16_t m_resources_checkedout {0};
 
         /// @brief Number of resources that have been invalidated
         /// @note Currently unused; reserved for future use
         std::atomic_uint16_t m_counter_abandons {0};
 
-        /// @brief Counter for resources at maximum pool size
-        std::atomic_uint64_t m_capacity_poolsize {0};
+        /// @brief Peak counter tracking the maximum pool size reached
+        /// @details Tracks the highest number of resources that have been in the pool at any time.
+        /// This is clamped to m_capacity and used for statistics/monitoring purposes.
+        std::atomic_uint64_t m_peak_poolsize {0};
 
         std::atomic_uint64_t m_counter_seeds {0}, m_counter_ondemand_adds {0}, m_counter_returns {0}, m_counter_borrows {0};
 
@@ -170,13 +174,24 @@ namespace siddiqsoft::arrp
             }
         }
 
-        /// @brief Internal method does not require explicit lock
+        /// @brief Checks if the pool is starving (under capacity)
+        /// @details Returns true if the total number of resources (in pool + checked out) is less than capacity
+        /// @return true if pool is under capacity, false otherwise
         inline bool is_pool_starving() { return m_resources_checkedout.load() + m_pool.size() < m_capacity; }
+        
+        /// @brief Checks if there is a deficit between configured capacity and current resources
+        /// @return true if deficit exists, false otherwise
         inline auto is_there_a_pool_deficit() { return deficit_size() != 0; }
 
-        /// @brief Calculates the deficit or the difference between the current poolsize and the declared/desired capacity.
-        /// @return The value may be negative if the poolsize ends up being more than the declared/default capacity.
-        inline int64_t deficit_size() { return m_capacity_poolsize.load() - m_pool.size(); }
+        /// @brief Calculates the deficit between configured capacity and current total resources
+        /// @details Computes how many more resources are needed to reach the configured capacity.
+        /// The deficit is: capacity - (pool_size + checked_out_resources)
+        /// @return Positive value indicates resources needed to reach capacity, zero means at capacity,
+        ///         negative value indicates over-capacity (should not normally occur)
+        inline int64_t deficit_size() { 
+            return static_cast<int64_t>(m_capacity) - 
+                   (static_cast<int64_t>(m_pool.size()) + m_resources_checkedout.load()); 
+        }
 
         /// @brief The loan size is the difference between the borrows and returns and accounting for the abandons.
         ///        We're trying to ensure that we have a zero-balance of borrow_from_pool() and the return_to_pool()
@@ -483,9 +498,12 @@ namespace siddiqsoft::arrp
 
             m_pool.emplace_back(T {std::forward<Args&&>(args)...});
             m_counter_seeds++;
-            m_capacity_poolsize++;
-
-            if (m_capacity_poolsize.load() > m_capacity) m_capacity_poolsize = m_capacity;
+            
+            // Update peak pool size for statistics
+            auto current_size = m_pool.size();
+            if (current_size > m_peak_poolsize.load()) {
+                m_peak_poolsize = current_size;
+            }
 
             return {};
         }
@@ -508,9 +526,12 @@ namespace siddiqsoft::arrp
 
             m_pool.emplace_back(std::move(item));
             m_counter_seeds++;
-            m_capacity_poolsize++;
-
-            if (m_capacity_poolsize.load() > m_capacity) m_capacity_poolsize = m_capacity;
+            
+            // Update peak pool size for statistics
+            auto current_size = m_pool.size();
+            if (current_size > m_peak_poolsize.load()) {
+                m_peak_poolsize = current_size;
+            }
 
             return {};
         }
@@ -537,15 +558,18 @@ namespace siddiqsoft::arrp
             // Check inside the lock..
             if (m_is_shutdown) return;
 
-            if (m_capacity_poolsize.load() > m_capacity) m_capacity_poolsize = m_capacity;
-
             m_resources_checkedout--;
 
             if (isvalid) {
                 m_pool.push_back(std::move(item));
                 m_counter_returns++;
-                m_capacity_poolsize++;
-            } // lock scope end
+                
+                // Update peak pool size for statistics
+                auto current_size = m_pool.size();
+                if (current_size > m_peak_poolsize.load()) {
+                    m_peak_poolsize = current_size;
+                }
+            }
             else {
                 m_counter_abandons++;
             }
@@ -578,11 +602,11 @@ namespace siddiqsoft::arrp
 
                 if (m_is_shutdown) return std::unexpected(siddiqsoft::arrp::pool_error::ShutdownInitiated);
 
-                // Update the poolsize..
+                // Update the pool statistics
                 m_json["size"]         = m_pool.size();
                 m_json["deficit"]      = deficit_size();
                 m_json["initcapacity"] = m_capacity;
-                m_json["capsize"]      = m_capacity_poolsize.load();
+                m_json["peaksize"]     = m_peak_poolsize.load();
                 m_json["abandons"]     = m_counter_abandons.load();
                 m_json["seeds"]        = m_counter_seeds.load();
                 m_json["autoadds"]     = m_counter_ondemand_adds.load();

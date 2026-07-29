@@ -7,7 +7,7 @@
 ![](https://img.shields.io/nuget/v/SiddiqSoft.arrp)
 ![](https://img.shields.io/azure-devops/tests/siddiqsoft/siddiqsoft/33)
 
-A thread-safe, header-only C++20 resource pool library with automatic lifecycle management using RAII principles.
+A thread-safe, header-only C++23 resource pool library with automatic lifecycle management using RAII principles.
 
 ## Features
 
@@ -16,8 +16,8 @@ A thread-safe, header-only C++20 resource pool library with automatic lifecycle 
 - **Capacity Management**: Enforces maximum capacity limits to prevent unbounded growth
 - **FIFO Ordering**: Predictable resource ordering (first-in, first-out)
 - **Customizable Factory**: Support for custom resource creation callbacks
-- **Error Handling**: Uses `std::expected` for safe error handling without exceptions
-- **Modern C++20**: Uses only standard library features (no external dependencies).
+- **Error Handling**: Uses `std::expected` (C++23) for safe error handling without exceptions
+- **Modern C++23**: Uses only standard library features (no external dependencies)
 - **Optional**: JSON serialization for pool state monitoring via nlohmann json
 - **Type-Safe**: Leverages C++20 concepts for compile-time type checking
 - **Move Semantics**: Efficient resource transfer with perfect forwarding
@@ -62,13 +62,15 @@ Complete documentation is available at: **[https://siddiqsoft.github.io/arrp/](h
 
 ## Requirements
 
-- **C++20 Support**: Requires `std::deque`, `std::mutex`, `std::concepts`, and `std::expected`
-- **Compiler Support**:
-  - GCC 10+
-  - MSVC 16.11+ (Visual Studio 2019 or later)
-  - Clang 10+
+- **C++23 Support**: Requires `std::expected` (C++23), plus `std::deque`, `std::mutex`, `std::concepts`, `std::print` (C++23)
+- **Compiler Support** (with C++23 standard library):
+  - **GCC 12+** (with libstdc++ 12+ for `std::expected`)
+  - **MSVC 19.33+** (Visual Studio 2022 17.3+ for `std::expected`)
+  - **Clang 16+** (with libc++ 16+ for `std::expected`)
 - **Platform Support**: Windows, Linux, macOS
 - **Optional**: nlohmann/json for JSON serialization support
+
+> **Note**: This library requires C++23 features (`std::expected`, `std::print`). Ensure your compiler and standard library support these features. For older compilers, consider using a compatibility layer like `tl::expected`.
 
 ## Installation
 
