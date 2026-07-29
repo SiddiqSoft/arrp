@@ -532,29 +532,22 @@ namespace siddiqsoft::arrp
         /// @note Returns error if pool is shutting down
         void return_to_pool(T&& item, bool isvalid)
         {
+            std::scoped_lock l(m_pool_lock);
+
+            // Check inside the lock..
+            if (m_is_shutdown) return;
+
+            if (m_capacity_poolsize.load() > m_capacity) m_capacity_poolsize = m_capacity;
+
+            m_resources_checkedout--;
+
             if (isvalid) {
-                std::scoped_lock l(m_pool_lock);
-
-                // Check inside the lock..
-                if (m_is_shutdown) return;
-
                 m_pool.push_back(std::move(item));
                 m_counter_returns++;
-                m_resources_checkedout--;
                 m_capacity_poolsize++;
-
-                if (m_capacity_poolsize.load() > m_capacity) m_capacity_poolsize = m_capacity;
             } // lock scope end
             else {
-                // Resource was invalidated; do not add back to the pool.
-                // We need to decrement the borrow_from_pool count under lock to ensure thread safety
-                std::scoped_lock l(m_pool_lock);
-
-                // check inside the lock..
-                if (m_is_shutdown) return;
-
                 m_counter_abandons++;
-                m_resources_checkedout--;
             }
         }
 

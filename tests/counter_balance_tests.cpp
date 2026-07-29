@@ -590,7 +590,7 @@ TEST(counter_balance, custom_factory_callback)
                 return siddiqsoft::arrp::scoped_resource<std::string>(
                         [&p](std::string&& res, bool isvalid) {
                             std::println(std::cerr, " - return to pool - ");
-                            p.return_to_pool(std::forward<std::string>(res), isvalid);
+                            p.return_to_pool(std::move(res), isvalid);
                         },
                         std::format("factory-{}", factory_calls.load()));
             }};
@@ -874,13 +874,11 @@ TEST(counter_balance, counter_size_consistency_2)
 
     // Borrow 5
     {
-        std::deque<siddiqsoft::arrp::scoped_resource<std::string>> holdResources;
+        std::vector<siddiqsoft::arrp::scoped_resource<std::string>> holdResources;
 
-        holdResources.emplace_back(pool.borrow_from_pool().value());
-        holdResources.emplace_back(pool.borrow_from_pool().value());
-        holdResources.emplace_back(pool.borrow_from_pool().value());
-        holdResources.emplace_back(pool.borrow_from_pool().value());
-        holdResources.emplace_back(pool.borrow_from_pool().value());
+        for (int i = 0; i < 5; i++) {
+            holdResources.emplace_back(pool.borrow_from_pool().value());
+        }
 
         EXPECT_EQ(5, get_borrow_count(pool));
         EXPECT_EQ(5, pool.size().value_or(0));
@@ -891,18 +889,18 @@ TEST(counter_balance, counter_size_consistency_2)
                      pool.to_json().value().get().dump());
         // Release three resources only...
         auto _ = holdResources.erase(holdResources.begin(), holdResources.begin() + 3);
+        // This is important for std::vector!
+        holdResources.shrink_to_fit();
+        holdResources.resize(2);
 
         EXPECT_EQ(2, get_loan_count(pool));
         EXPECT_EQ(8, pool.size().value_or(0));
         std::println(std::cerr,
                      ".....after returning 3...resources:{}. stats: {}",
-                     0, // resources.size(),
+                     holdResources.size(),
                      pool.to_json().value().get().dump());
     } // release all five..
-    std::println(std::cerr,
-                 ".....after returning all borrowed...resources:{}. stats: {}",
-                 0, // resources.size(),
-                 pool.to_json().value().get().dump());
+    std::println(std::cerr, ".....after returning all borrowed... stats: {}", pool.to_json().value().get().dump());
 
     EXPECT_EQ(0, get_loan_count(pool));
     EXPECT_EQ(10, pool.size().value_or(-1));
