@@ -111,52 +111,55 @@ TEST(scoped_resource_operators, is_valid_method)
     EXPECT_EQ(0u, pool.size().value_or(0));
 }
 
+
+class custom_masp
+{
+public:
+    std::string v;
+
+    custom_masp() = default;
+
+    explicit operator std::string&() { return v; }
+    explicit operator const char*() { return v.c_str(); }
+
+    custom_masp(const std::string& s)
+        : v(s)
+    {
+    }
+    custom_masp(std::string&& s)
+        : v(std::move(s))
+    {
+    }
+    custom_masp(custom_masp&& src) noexcept
+        : v(std::move(src.v))
+    {
+    }
+    custom_masp& operator=(custom_masp&& src) noexcept
+    {
+        if (this != &src) {
+            v = std::move(src.v);
+        }
+        return *this;
+    }
+    auto operator=(const std::string& s) -> custom_masp&
+    {
+        v = s;
+        return *this;
+    }
+    ~custom_masp() { std::print(std::cerr, "{} - destroyed: {}\n", __func__, v); }
+    bool                 operator==(const std::string& src) const { return v == src; }
+    bool                 operator==(const char* src) const { return v == src; }
+    std::strong_ordering operator<=>(const std::string& src) const { return v <=> src; }
+    std::strong_ordering operator<=>(const char* src) const { return v <=> src; }
+};
+
 /// @brief Test scoped_resource move assignment with self-assignment protection
 TEST(scoped_resource_operators, move_assignment_self_protection)
 {
-    class custom
-    {
-    public:
-        std::string v;
+    siddiqsoft::arrp::resource_pool<custom_masp> pool {};
 
-        explicit operator std::string&() { return v; }
-        explicit operator const char*() { return v.c_str(); }
-
-        custom(const std::string& s)
-            : v(s)
-        {
-        }
-        custom(std::string&& s)
-            : v(std::move(s))
-        {
-        }
-        custom(custom&& src) noexcept
-            : v(std::move(src.v))
-        {
-        }
-        custom& operator=(custom&& src) noexcept
-        {
-            if (this != &src) {
-                v = std::move(src.v);
-            }
-            return *this;
-        }
-        auto operator=(const std::string& s) -> custom&
-        {
-            v = s;
-            return *this;
-        }
-        ~custom() { std::print(std::cerr, "{} - destroyed: {}\n", __func__, v); }
-        bool                 operator==(const std::string& src) const { return v == src; }
-        bool                 operator==(const char* src) const { return v == src; }
-        std::strong_ordering operator<=>(const std::string& src) const { return v <=> src; }
-        std::strong_ordering operator<=>(const char* src) const { return v <=> src; }
-    };
-
-    siddiqsoft::arrp::resource_pool<custom> pool {};
-
-    pool.seed_to_pool(custom {"resource1"});
-    pool.seed_to_pool(custom {"resource2"});
+    pool.seed_to_pool(custom_masp {"resource1"});
+    pool.seed_to_pool(custom_masp {"resource2"});
     EXPECT_EQ(2, pool.size().value_or(-1));
 
     { // borrow two and clobber one of them..
