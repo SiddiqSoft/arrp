@@ -64,10 +64,11 @@ namespace siddiqsoft::arrp
     /// @tparam T The resource type (must be move-constructible and non-arithmetic)
     /// @tparam SRT The scoped resource type (defaults to scoped_resource<T>)
     ///
-    /// @note Thread-safe: All operations are protected by mutex
-    /// @note RAII pattern: Resources are automatically returned to pool
+    /// @note Thread-safe: All operations are protected by mutex (std::mutex or std::recursive_mutex)
+    /// @note RAII pattern: Resources are automatically returned to pool on destruction
     /// @note Callback-based: Supports factory, cleanup, and return callbacks
-    /// @note Statistics: Tracks borrow/return operations and resource counts
+    /// @note Statistics: Tracks borrow/return operations and resource counts via atomic counters
+    /// @note Move-only: Uses move semantics exclusively to prevent resource ownership ambiguity
     ///
     /// @example
     /// @code
@@ -90,9 +91,11 @@ namespace siddiqsoft::arrp
     {
     private:
         /// @brief Maximum number of resources that can be in the pool
+        /// @details Clamped to range [MinimumCapacity, MaxCapacity] during construction
         uint8_t m_capacity {0};
 
         /// @brief Flag indicating pool shutdown is in progress
+        /// @details Set to true in destructor before cleanup begins
         std::atomic_bool m_is_shutdown {false};
 
         /// @brief Number of resources currently checked out from the pool
@@ -101,7 +104,7 @@ namespace siddiqsoft::arrp
         std::atomic_uint16_t m_resources_checkedout {0};
 
         /// @brief Number of resources that have been invalidated
-        /// @note Currently unused; reserved for future use
+        /// @details Tracks resources marked as invalid and not returned to pool
         std::atomic_uint16_t m_counter_abandons {0};
 
         /// @brief Peak counter tracking the maximum pool size reached
@@ -109,6 +112,11 @@ namespace siddiqsoft::arrp
         /// This is clamped to m_capacity and used for statistics/monitoring purposes.
         std::atomic_uint64_t m_peak_poolsize {0};
 
+        /// @brief Counters for pool statistics
+        /// @details m_counter_seeds: Resources added via seed_to_pool()
+        /// @details m_counter_ondemand_adds: Resources created on-demand via factory callback
+        /// @details m_counter_returns: Resources returned to pool
+        /// @details m_counter_borrows: Resources borrowed from pool
         std::atomic_uint64_t m_counter_seeds {0}, m_counter_ondemand_adds {0}, m_counter_returns {0}, m_counter_borrows {0};
 
         /// @brief Internal deque storing the pooled resources
@@ -134,18 +142,18 @@ namespace siddiqsoft::arrp
         /// @brief Callback to create and add new resources to the pool
         /// @details Invoked when the pool needs a resource and is within capacity limits.
         /// The client cannot directly add resources; instead, they provide this factory callback.
-        /// @warning MUST NOT call any pool methods to avoid deadlock
+        /// @warning MUST NOT call any pool methods to avoid deadlock. Only create and return resources.
         std::function<std::expected<SRT, pool_error>(resource_pool&)> m_callback_to_add_new_raw_resource_to_pool {};
 
         /// @brief Callback on resource cleanup during pool destruction
-        /// This method is invoked within a lock and inside of a for-loop across each
+        /// @details This method is invoked within a lock and inside of a for-loop across each
         /// resource in the internal deque.
         /// This approach allows the client to perform any final cleanup for the given resource.
-        /// @warning MUST NOT call any pool methods to avoid deadlock
+        /// @warning MUST NOT call any pool methods to avoid deadlock. Only perform cleanup operations.
         std::function<void(T&&)> m_callback_on_resource_cleanup {};
 
         /// @brief Sets the capacity. This is internal and can only be called from the constructor.
-        /// The capacity of the internal queue must not be altered once set.
+        /// @details The capacity of the internal queue must not be altered once set.
         void set_capacity(uint8_t init_capacity)
         {
 #if defined(DEBUG)
@@ -194,9 +202,9 @@ namespace siddiqsoft::arrp
         }
 
         /// @brief The loan size is the difference between the borrows and returns and accounting for the abandons.
-        ///        We're trying to ensure that we have a zero-balance of borrow_from_pool() and the return_to_pool()
-        ///        calls by the client.
-        /// @return A value representing the number of "borrowed" resources by the client.
+        /// @details We're trying to ensure that we have a zero-balance of borrow_from_pool() and the return_to_pool()
+        /// calls by the client.
+        /// @return A value representing the number of currently "borrowed" resources by the client.
         inline auto loan_size() const
         {
             auto loans = m_counter_borrows.load(); // total number of borrows (current counter)
@@ -219,7 +227,7 @@ namespace siddiqsoft::arrp
         /// @param new_resource_callback Factory callback to create new resources
         /// @param on_shutdown_callback Optional cleanup callback invoked on destruction
         ///
-        /// @note The factory callback is required and must return std::expected<SRT, pool_error>
+        /// @note The factory callback is required and must return std::expected<SRT, pool_error>. It must NOT call pool methods.
         /// @note The cleanup callback is optional and invoked for each resource during destruction
         /// @note Capacity is clamped to valid range [MinimumCapacity, MaxCapacity]
         resource_pool(uint8_t                                                         init_capacity,
@@ -257,10 +265,10 @@ namespace siddiqsoft::arrp
         /// @brief Constructs a resource pool with capacity and auto-grow policy
         ///
         /// @param init_capacity Initial capacity of the pool (defaults to DefaultCapacity)
-        /// @param add_policy Auto-grow policy (defaults to NoGrow)
+        /// @param add_policy Auto-grow policy (defaults to NoGrow). Controls on-demand resource creation.
         ///
         /// @note Capacity is clamped to valid range [MinimumCapacity, MaxCapacity]
-        /// @note If add_policy is AutoGrow, resources are created on-demand
+        /// @note If add_policy is AutoGrow, resources are created on-demand up to capacity
         /// @note If add_policy is NoGrow, pool returns error when exhausted
         resource_pool(uint8_t         init_capacity = resource_pool_limits::DefaultCapacity,
                       auto_add_policy add_policy    = auto_add_policy::NoGrow)
@@ -290,7 +298,7 @@ namespace siddiqsoft::arrp
         /// @brief Create a resource that is wired to invoke the return_to_pool in the destructor of the SRT class.
         /// @note The scoped_resource<T> cannot be directly instantiated and thus this method is the only means
         /// to create a custom resource.
-        /// This apporoach also solves the issue where we hide the return_to_pool() as protected and making the
+        /// This approach also solves the issue where we hide the return_to_pool() as protected and making the
         /// resource_pool and scoped_resource friends.
         template <typename... Args>
         auto create_resource(Args&&... args) -> SRT
@@ -322,7 +330,7 @@ namespace siddiqsoft::arrp
         /// @brief Destructor - cleans up all resources in the pool
         ///
         /// Sets the shutdown flag and delegates to clear() to clean up resources.
-        /// The cleanup callback is invoked for each resource if provided.
+        /// The cleanup callback (if provided) is invoked for each resource during cleanup.
         ///
         /// @note Noexcept: Exceptions during cleanup are caught and logged
         /// @note All resources are cleaned up before destruction completes
@@ -343,7 +351,7 @@ namespace siddiqsoft::arrp
         /// @brief Clears all resources from the pool
         ///
         /// Removes all resources from the pool and invokes the cleanup callback for each.
-        /// This is called automatically during destruction.
+        /// This is called automatically during destruction. Can also be called manually.
         ///
         /// @return std::expected<void, pool_error> indicating success or error
         ///
@@ -375,10 +383,11 @@ namespace siddiqsoft::arrp
 
         /// @brief Gets the current size of the pool
         ///
-        /// @return std::expected<size_t, pool_error> containing the pool size or error
+        /// @return std::expected<size_t, pool_error> containing the number of available resources or error
         ///
-        /// @note Thread-safe: Uses shared read lock
+        /// @note Thread-safe: Uses exclusive lock
         /// @note Returns error if pool is shutting down
+        /// @note Does not include checked-out resources
         [[nodiscard]] auto size() const -> std::expected<size_t, pool_error>
         {
             if (m_is_shutdown) return std::unexpected(pool_error::ShutdownInitiated);
@@ -390,7 +399,7 @@ namespace siddiqsoft::arrp
         /// @brief Borrows a resource from the pool
         ///
         /// Attempts to get a resource from the pool. If the pool is empty but under capacity,
-        /// the factory callback is invoked to create a new resource. If the pool is exhausted
+        /// the factory callback is invoked to create a new resource on-demand. If the pool is exhausted
         /// and no factory callback is available, returns an error.
         ///
         /// @return std::expected<SRT, pool_error> containing the borrowed resource or error
@@ -408,7 +417,7 @@ namespace siddiqsoft::arrp
         ///     resource->doSomething();
         /// } else {
         ///     // Handle error
-        ///     std::print( std::cerr, "Failed to borrow resource" << std::endl;
+        ///     std::print(std::cerr, "Failed to borrow resource\n");
         /// }
         /// @endcode
         [[nodiscard]] auto borrow_from_pool() -> std::expected<SRT, pool_error>
@@ -482,12 +491,11 @@ namespace siddiqsoft::arrp
         /// @brief Adds a resource to the pool by constructing it in-place
         ///
         /// @tparam Args Types of arguments to forward to T's constructor
-        /// @param args Arguments to forward to T's constructor
+        /// @param args Arguments to forward to T's constructor for in-place construction
         /// @return std::expected<void, pool_error> indicating success or error
         ///
         /// @note Thread-safe: Uses exclusive lock
         /// @note Resource is constructed in-place
-        /// @note Decrements checkout counter
         /// @note Returns error if pool is shutting down
         /// @note This method MUST NOT be invoked to "return"; use the return_to_pool() method otherwise the accounting and resource
         /// management will not work properly!
@@ -514,11 +522,10 @@ namespace siddiqsoft::arrp
         /// @brief Adds a resource to the pool by moving it
         ///
         /// @param item The resource to add (moved)
-        /// @return std::expected<void, pool_error> indicating success or error
+        /// @return std::expected<void, pool_error> indicating success or error. Returns error if pool is shutting down.
         ///
         /// @note Thread-safe: Uses exclusive lock
         /// @note Resource is moved into the pool
-        /// @note Decrements checkout counter
         /// @note Returns error if pool is shutting down
         /// @note This method MUST NOT be invoked to "return"; use the return_to_pool() method otherwise the accounting and resource
         /// management will not work properly!
@@ -588,13 +595,30 @@ namespace siddiqsoft::arrp
         /// @brief Serializes pool statistics to JSON
         ///
         /// Returns a JSON object containing pool statistics and configuration.
-        /// Only available if nlohmann/json.hpp is included before this header.
+        /// Only available if nlohmann/json.hpp is included before this header file.
         ///
         /// @return std::expected<std::reference_wrapper<nlohmann::json>, pool_error> containing JSON or error
         ///
         /// @note Thread-safe: Uses exclusive lock
         /// @note Returns error if pool is shutting down
         /// @note Requires NLOHMANN_JSON_VERSION_MAJOR to be defined
+        ///
+        /// @par JSON Schema:
+        /// @code{.json}
+        /// {
+        ///   "_typver": "siddiqsoft.arrp.resource_pool/0.0.0",
+        ///   "capacity": <max_resources>,
+        ///   "size": <available_resources>,
+        ///   "deficit": <resources_needed>,
+        ///   "peaksize": <peak_size_reached>,
+        ///   "abandons": <invalidated_resources>,
+        ///   "seeds": <resources_added_via_seed>,
+        ///   "autoadds": <resources_created_ondemand>,
+        ///   "returns": <resources_returned>,
+        ///   "borrows": <resources_borrowed>,
+        ///   "loans": <currently_borrowed>
+        /// }
+        /// @endcode
         ///
         /// @example
         /// @code
@@ -611,16 +635,16 @@ namespace siddiqsoft::arrp
                 if (m_is_shutdown) return std::unexpected(siddiqsoft::arrp::pool_error::ShutdownInitiated);
 
                 // Update the pool statistics
-                m_json["size"]     = m_pool.size();
-                m_json["deficit"]  = deficit_size();
-                m_json["capacity"] = m_capacity;
-                m_json["peaksize"] = m_peak_poolsize.load();
-                m_json["abandons"] = m_counter_abandons.load();
-                m_json["seeds"]    = m_counter_seeds.load();
-                m_json["autoadds"] = m_counter_ondemand_adds.load();
-                m_json["returns"]  = m_counter_returns.load();
-                m_json["borrows"]  = m_counter_borrows.load();
-                m_json["loans"]    = loan_size();
+                m_json["size"]     = m_pool.size();                    ///< Available resources in pool
+                m_json["deficit"]  = deficit_size();                   ///< Resources needed to reach capacity
+                m_json["capacity"] = m_capacity;                       ///< Maximum resources
+                m_json["peaksize"] = m_peak_poolsize.load();           ///< Peak pool size reached
+                m_json["abandons"] = m_counter_abandons.load();        ///< Invalidated resources
+                m_json["seeds"]    = m_counter_seeds.load();           ///< Resources added via seed_to_pool()
+                m_json["autoadds"] = m_counter_ondemand_adds.load();   ///< Resources created on-demand
+                m_json["returns"]  = m_counter_returns.load();         ///< Resources returned to pool
+                m_json["borrows"]  = m_counter_borrows.load();         ///< Resources borrowed from pool
+                m_json["loans"]    = loan_size();                      ///< Currently borrowed resources
 
                 // This field is only available when there is a supported data-type
                 if constexpr (std::is_same_v<T, nlohmann::json> || std::is_same_v<T, std::string>) {

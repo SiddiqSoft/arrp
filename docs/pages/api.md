@@ -141,15 +141,17 @@ Serializes pool state to JSON (requires nlohmann/json).
 
 **Returns**: `std::expected<std::reference_wrapper<nlohmann::json>, pool_error>` containing:
 - Success: Reference to JSON object with:
+  - `_typver`: Type and version string ("siddiqsoft.arrp.resource_pool/0.0.0")
   - `capacity`: Maximum resources
   - `size`: Available resources
   - `deficit`: Resources needed to reach capacity
-  - `capsize`: Peak capacity reached
-  - `abandoned`: Invalidated resources
-  - `adds`: Total resources added
+  - `peaksize`: Peak pool size reached
+  - `abandons`: Invalidated resources
+  - `seeds`: Total resources added via seed_to_pool()
   - `autoadds`: Resources created on-demand
   - `returns`: Total resources returned
   - `borrows`: Total resources borrowed
+  - `loans`: Currently borrowed resources (borrows - returns - abandons)
 - Error: @ref pool_error if pool is shutting down
 
 **Thread Safety**: Thread-safe.

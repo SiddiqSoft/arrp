@@ -210,6 +210,8 @@ if (state) {
     std::cout << "Deficit: " << json["deficit"] << std::endl;
     std::cout << "Total borrows: " << json["borrows"] << std::endl;
     std::cout << "Total returns: " << json["returns"] << std::endl;
+    std::cout << "Peak size: " << json["peaksize"] << std::endl;
+    std::cout << "Currently borrowed: " << json["loans"] << std::endl;
 }
 ```
 
