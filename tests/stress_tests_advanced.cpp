@@ -491,7 +491,7 @@ TEST(stress_contention, fairness_distribution)
 {
     constexpr int                                POOL_SIZE    = 4;
     constexpr int                                THREAD_COUNT = 8;
-    constexpr int                                ITERATIONS   = 100;
+    constexpr int                                ITERATIONS   = 200;
 
     siddiqsoft::arrp::resource_pool<std::string> pool {};
     for (int i = 0; i < POOL_SIZE; ++i) {
