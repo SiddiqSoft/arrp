@@ -655,38 +655,40 @@ namespace siddiqsoft::arrp
 #endif
 
 
-/// @brief Specialization of std::formatter for resource_pool
-/// @details Provides formatted output for resource_pool instances using std::format
-/// @tparam T The resource type
-/// @tparam SRT The scoped resource type
-/// @note Only available if nlohmann/json is included
-template <typename T, typename SRT>
-    requires siddiqsoft::arrp::NonNumericMoveConstructible<T> && std::derived_from<SRT, siddiqsoft::arrp::scoped_resource<T>>
-struct std::formatter<siddiqsoft::arrp::resource_pool<T, SRT>> : std::formatter<char>
+namespace std
 {
-    /// @brief Parse format specification (empty for this type)
-    template <typename ParseContext>
-    constexpr auto parse(ParseContext& ctx)
+    /// @brief Specialization of std::formatter for resource_pool
+    /// @details Provides formatted output for resource_pool instances using std::format
+    /// @tparam T The resource type
+    /// @tparam SRT The scoped resource type
+    /// @note Only available if nlohmann/json is included
+    template <typename T, typename SRT, typename CharT>
+        requires siddiqsoft::arrp::NonNumericMoveConstructible<T> && std::derived_from<SRT, siddiqsoft::arrp::scoped_resource<T>>
+    struct formatter<siddiqsoft::arrp::resource_pool<T, SRT>, CharT> : formatter<std::basic_string_view<CharT>, CharT>
     {
-        return ctx.begin();
-    }
-
-    /// @brief Format the resource_pool
-    /// @param pool The resource_pool to format
-    /// @param ctx Format context
-    /// @return Iterator to end of formatted output
-    template <typename FormatContext>
-    auto format(siddiqsoft::arrp::resource_pool<T, SRT>& pool, FormatContext& ctx) const
-    {
-#if defined(NLOHMANN_JSON_VERSION_MAJOR)
-        if (auto jv = pool.to_json(); jv.has_value()) {
-            return std::format_to(ctx.out(), "{}", jv.value().get().dump());
+        /// @brief Parse format specification (empty for this type)
+        template <typename ParseContext>
+        constexpr auto parse(ParseContext& ctx)
+        {
+            return ctx.begin();
         }
 
-        return std::format_to(ctx.out(), "Error from to_json() invocation.");
+        /// @brief Format the resource_pool
+        /// @param pool The resource_pool to format
+        /// @param ctx Format context
+        /// @return Iterator to end of formatted output
+        auto format(const siddiqsoft::arrp::resource_pool<T, SRT>& pool, std::basic_format_context<typename std::basic_string<CharT>::iterator, CharT>& ctx) const -> decltype(ctx.out())
+        {
+#if defined(NLOHMANN_JSON_VERSION_MAJOR)
+            if (auto jv = pool.to_json(); jv.has_value()) {
+                return formatter<std::basic_string_view<CharT>, CharT>::format(std::basic_string_view<CharT>{jv.value().get().dump()}, ctx);
+            }
 
+            return formatter<std::basic_string_view<CharT>, CharT>::format(std::basic_string_view<CharT>{"Error from to_json() invocation."}, ctx);
 #else
-        return std::format_to(ctx.out(), "{{ json format requires nlohmann/json library }}");
+            return formatter<std::basic_string_view<CharT>, CharT>::format(std::basic_string_view<CharT>{"{ json format requires nlohmann/json library }"}, ctx);
 #endif
-    }
-};
+        }
+    };
+}
+

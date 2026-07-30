@@ -1689,8 +1689,8 @@ TEST(resource_pool, concurrent_json_deadlock_detection)
     EXPECT_EQ(std::future_status::ready, serializer.wait_for(timeout));
     EXPECT_EQ(2, done.load());
 
-    auto _ = worker.get();
-    auto _ = serializer.get();
+    auto wt = worker.get();
+    auto st = serializer.get();
 }
 
 // NOLINTEND(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
