@@ -628,12 +628,7 @@ TEST(counter_balance, custom_factory_callback)
             [&factory_calls](
                     auto& p) -> std::expected<siddiqsoft::arrp::scoped_resource<std::string>, siddiqsoft::arrp::pool_error> {
                 factory_calls++;
-                return siddiqsoft::arrp::scoped_resource<std::string>(
-                        [&p](std::string&& res, bool isvalid) {
-                            std::println(std::cerr, " - return to pool - ");
-                            p.return_to_pool(std::move(res), isvalid);
-                        },
-                        std::format("factory-{}", factory_calls.load()));
+                return p.create_resource(std::format("factory-{}", factory_calls.load()));
             }};
 
     EXPECT_EQ(0, get_loan_count(pool));

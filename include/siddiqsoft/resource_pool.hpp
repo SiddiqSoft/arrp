@@ -294,6 +294,18 @@ namespace siddiqsoft::arrp
             }
         }
 
+        
+        template <typename... Args>
+        auto create_resource(Args&&... args) -> SRT
+        {
+            // Allow the compiler to use NRVO (move elision; do not use std::move here!)
+            return SRT {[this](T&& src, bool isvalid) {
+                                // this callback puts the resource back..
+                                return this->return_to_pool(std::forward<T&&>(src), isvalid);
+                            },
+                            std::forward<Args>(args)...};
+        }
+
         /// @brief Copy constructor is deleted
         /// @details resource_pool is not copyable to prevent resource duplication
         resource_pool(resource_pool&) = delete;
@@ -344,10 +356,6 @@ namespace siddiqsoft::arrp
         auto clear() -> std::expected<void, pool_error>
         {
             std::scoped_lock l(m_pool_lock);
-
-#if defined(DEBUG)
-            std::print(std::cerr, "{} - invoked; size:{} is shutdown? {}\n", __func__, m_pool.size(), m_is_shutdown.load());
-#endif
 
             try {
                 if (m_callback_on_resource_cleanup && !m_pool.empty()) {
@@ -557,6 +565,7 @@ namespace siddiqsoft::arrp
         /// @note Returns if pool is shutting down
         /// @note This method MUST be invoked to "return" the resource back to pool otherwise the accounting and resource
         /// management will not work properly!
+        protected:
         void return_to_pool(T&& item, bool isvalid)
         {
             std::scoped_lock l(m_pool_lock);

@@ -1016,7 +1016,7 @@ TEST(resource_pool, exception_safety)
     try {
         auto res_result = pool.borrow_from_pool();
         EXPECT_TRUE(res_result.has_value());
-        auto res = std::move(res_result.value());
+        //auto res = std::move(res_result.value());
         throw std::runtime_error("Test exception");
     }
     catch (const std::runtime_error&) {
@@ -1024,7 +1024,7 @@ TEST(resource_pool, exception_safety)
     }
 
     // Resource should still be returned to pool
-    EXPECT_EQ(1u, pool.size());
+    EXPECT_EQ(1, *pool.size());
 }
 
 /// @brief Test move assignment operator
