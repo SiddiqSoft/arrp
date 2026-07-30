@@ -1,401 +1,223 @@
-@page api API Reference
+/**
+@page api_reference API Reference
 
-@section api_overview Overview
+@section resource_pool_class resource_pool<T, SRT>
 
-Complete API reference for the ARRP (Auto Returning Resource Pool) library.
+Thread-safe auto-returning resource pool.
 
-@section api_resource_pool resource_pool Class
+@subsection rp_template Template Parameters
+- `T`: Resource type (must satisfy NonNumericMoveConstructible)
+- `SRT`: Scoped resource type (defaults to scoped_resource<T>)
 
-Thread-safe resource pool with automatic lifecycle management.
+@subsection rp_constructors Constructors
 
-@subsection api_rp_template Template Parameters
+| Constructor | Description |
+|---|---|
+| `resource_pool(uint8_t capacity, auto_add_policy policy)` | Create pool with capacity and growth policy |
+| `resource_pool(uint8_t capacity, factory_callback, cleanup_callback)` | Create pool with custom factory and cleanup |
+| `resource_pool(cleanup_callback)` | Create pool with only cleanup callback |
 
+@subsection rp_methods Methods
+
+| Method | Returns | Description |
+|---|---|---|
+| `borrow_from_pool()` | `std::expected<SRT, pool_error>` | Borrow resource from pool |
+| `seed_to_pool(Args...)` | `std::expected<void, pool_error>` | Add resource via in-place construction |
+| `seed_to_pool(T&&)` | `std::expected<void, pool_error>` | Add resource via move |
+| `size()` | `std::expected<size_t, pool_error>` | Get available resources count |
+| `clear()` | `std::expected<void, pool_error>` | Clear all resources |
+| `create_resource(Args...)` | `SRT` | Create scoped resource (for custom use) |
+| `to_json()` | `std::expected<json_ref, pool_error>` | Get statistics as JSON |
+
+@subsection rp_callbacks Callbacks
+
+**Factory Callback**
 ```cpp
-template <typename T, typename SRT = scoped_resource<T>>
-class resource_pool
+std::function<std::expected<SRT, pool_error>(resource_pool&)>
 ```
+Called when pool needs a resource. Must NOT call pool methods.
 
-- **T**: Resource type. Must be move-constructible and non-arithmetic.
-- **SRT**: @ref scoped_resource "Scoped resource wrapper type". Defaults to @ref scoped_resource<T>.
-
-@subsection api_rp_constructors Constructors
-
-#### Constructor with Capacity and Auto-Add Policy
+**Cleanup Callback**
 ```cpp
-resource_pool(uint8_t init_capacity = resource_pool_limits::DefaultCapacity,
-              auto_add_policy add_policy = auto_add_policy::NoGrow);
+std::function<void(T&&)>
 ```
-Creates a pool with specified capacity and growth policy.
-- **init_capacity**: Maximum number of resources (clamped to valid range)
-- **add_policy**: Controls resource creation behavior
-  - **NoGrow**: Returns error when empty (default)
-  - **AutoGrow**: Creates resources on demand
+Called for each resource during destruction. Must NOT call pool methods.
 
-#### Constructor with Factory Callback
-```cpp
-resource_pool(uint8_t init_capacity,
-              std::function<std::expected<SRT, pool_error>(resource_pool&)>&& new_resource_callback,
-              std::function<void(T&&)>&& on_shutdown_callback = {});
-```
-Creates a pool with custom resource factory callback.
+@subsection rp_statistics Statistics
 
-**Parameters**:
-- **init_capacity**: Maximum number of resources
-- **new_resource_callback**: Factory function to create new resources
-- **on_shutdown_callback**: Optional cleanup callback invoked during destruction
+Access via `to_json()`:
+- `capacity`: Maximum resources
+- `size`: Available resources
+- `deficit`: Resources needed
+- `peaksize`: Peak size reached
+- `borrows`: Total borrowed
+- `returns`: Total returned
+- `loans`: Currently borrowed
+- `abandons`: Invalidated resources
+- `seeds`: Added via seed_to_pool()
+- `autoadds`: Created on-demand
 
-**Warning**: Factory callbacks MUST NOT call any pool methods (would cause deadlock).
+---
 
-#### Constructor with Cleanup Callback
-```cpp
-resource_pool(std::function<void(T&&)>&& on_shutdown_callback);
-```
-Creates a pool with only cleanup callback.
+@section scoped_resource_class scoped_resource<T>
 
-@subsection api_rp_methods Methods
+RAII wrapper for managing resource lifecycle.
 
-#### borrow_from_pool()
-```cpp
-[[nodiscard]] auto borrow_from_pool() -> std::expected<SRT, pool_error>;
-```
-Borrows a resource from the pool.
+@subsection sr_template Template Parameters
+- `T`: Resource type (must satisfy NonNumericMoveConstructible)
 
-**Returns**: `std::expected<SRT, pool_error>` containing:
-- Success: @ref scoped_resource "scoped_resource wrapper" that automatically returns resource on destruction
-- Error: @ref pool_error indicating why borrow failed
+@subsection sr_operators Operators
 
-**Possible Errors**:
-- `NoMoreResources`: Pool is exhausted and no factory callback available
-- `UnderCapacityNoAutoGrow`: Pool is under capacity but no auto-grow policy
+| Operator | Returns | Description |
+|---|---|---|
+| `operator*()` | `T&` | Dereference to resource |
+| `operator->()` | `T*` | Pointer access (nullptr if invalid) |
+| `operator=(T&&)` | `scoped_resource&` | Assign new resource |
+| `operator=(scoped_resource&&)` | `scoped_resource&` | Move assignment |
+
+@subsection sr_methods Methods
+
+| Method | Returns | Description |
+|---|---|---|
+| `invalidate()` | `void` | Mark resource as invalid (abandoned) |
+| `is_valid()` | `bool` | Check if resource is valid |
+| `to_json()` | `nlohmann::json` | Serialize to JSON |
+
+@subsection sr_semantics Move Semantics
+
+- **Move Constructor**: Transfers ownership, invalidates source
+- **Move Assignment**: Returns current resource before taking new one
+- **Copy Operations**: Deleted (move-only)
+
+---
+
+@section enums Enumerations
+
+@subsection auto_add_policy auto_add_policy
+
+Controls auto-grow behavior:
+- `NoGrow`: Pool returns error when exhausted
+- `AutoGrow`: Pool creates resources on-demand
+
+@subsection pool_error pool_error
+
+Error codes:
+- `NoMoreResources`: Pool exhausted, no factory available
+- `UnderCapacityNoAutoGrow`: Under capacity but auto-grow disabled
 - `ShutdownInitiated`: Pool is shutting down
+- `Unknown`: Unknown error
 
-**Thread Safety**: Thread-safe. Resource creation happens outside lock.
+@subsection resource_pool_limits resource_pool_limits
 
-**Performance**: O(1) amortized.
+Capacity constraints:
+- `MinimumCapacity`: 1
+- `DefaultCapacity`: 8
+- `MaxCapacity`: 255
 
-**Exception Safety**: Strong - if factory throws, state remains consistent.
+---
 
-**See Also**: @ref scoped_resource for automatic resource management.
+@section concepts_section Concepts
 
-#### seed_to_pool()
+@subsection non_numeric_move_constructible NonNumericMoveConstructible<T>
+
+Type T must satisfy:
+- `std::move_constructible<T>`
+- `std::move_assignable<T>`
+- `!std::is_arithmetic<T>`
+
+Prevents wrapping primitive types.
+
+---
+
+@section usage_patterns Usage Patterns
+
+@subsection pattern_fixed_pool Fixed-Size Pool
+
 ```cpp
-auto seed_to_pool(T&& item) -> std::expected<void, pool_error>;
-
-template <typename... Args>
-auto seed_to_pool(Args&&... args) -> std::expected<void, pool_error>;
-```
-Adds a resource to the pool.
-
-**Parameters**:
-- `item`: Resource to add (moved)
-- `args`: Arguments to forward to T's constructor (in-place construction)
-
-**Returns**: `std::expected<void, pool_error>` indicating success or error.
-
-**Possible Errors**:
-- `ShutdownInitiated`: Pool is shutting down
-
-**Note**: Typically called automatically by @ref scoped_resource destructor.
-
-**Thread Safety**: Thread-safe.
-
-**Performance**: O(1) amortized.
-
-**Exception Safety**: noexcept.
-
-#### size()
-```cpp
-[[nodiscard]] auto size() const -> std::expected<size_t, pool_error>;
-```
-Returns number of available resources in pool (excludes checked-out resources).
-
-**Returns**: `std::expected<size_t, pool_error>` containing pool size or error.
-
-**Thread Safety**: Thread-safe.
-
-**Performance**: O(1) with lock acquisition.
-
-**Exception Safety**: noexcept.
-
-#### clear()
-```cpp
-auto clear() -> std::expected<void, pool_error>;
-```
-Removes and destroys all resources in pool.
-
-**Returns**: `std::expected<void, pool_error>` indicating success or error.
-
-**Note**: Does not affect checked-out resources.
-
-**Thread Safety**: Thread-safe.
-
-**Performance**: O(n) where n is pool size.
-
-**Exception Safety**: noexcept.
-
-#### to_json()
-```cpp
-auto to_json() -> std::expected<std::reference_wrapper<nlohmann::json>, pool_error>;
-```
-Serializes pool state to JSON (requires nlohmann/json).
-
-**Returns**: `std::expected<std::reference_wrapper<nlohmann::json>, pool_error>` containing:
-- Success: Reference to JSON object with:
-  - `_typver`: Type and version string ("siddiqsoft.arrp.resource_pool/0.0.0")
-  - `capacity`: Maximum resources
-  - `size`: Available resources
-  - `deficit`: Resources needed to reach capacity
-  - `peaksize`: Peak pool size reached
-  - `abandons`: Invalidated resources
-  - `seeds`: Total resources added via seed_to_pool()
-  - `autoadds`: Resources created on-demand
-  - `returns`: Total resources returned
-  - `borrows`: Total resources borrowed
-  - `loans`: Currently borrowed resources (borrows - returns - abandons)
-- Error: @ref pool_error if pool is shutting down
-
-**Thread Safety**: Thread-safe.
-
-**Performance**: O(1) with lock acquisition.
-
-@section api_scoped_resource scoped_resource Class
-
-RAII wrapper for automatic resource return to pool. Implements the Resource Acquisition Is Initialization (RAII) pattern.
-
-@subsection api_sr_template Template Parameters
-
-- **T**: Resource type. Must be move-constructible and non-arithmetic.
-
-@subsection api_sr_constructors Constructors
-
-#### Explicit Constructor
-```cpp
-explicit scoped_resource(PutbackCallbackFunc&& f, T&& src);
-```
-Wraps resource with return callback.
-
-**Parameters**:
-- `f`: Callback function invoked on destruction to return resource to pool
-- `src`: R-value reference to the resource to wrap
-
-**Note**: Typically created by @ref resource_pool::borrow_from_pool() "resource_pool::borrow_from_pool()".
-
-#### In-Place Constructor
-```cpp
-template <typename... Args>
-scoped_resource(PutbackCallbackFunc&& f, Args&&... args);
-```
-Constructs resource in-place with return callback.
-
-**Parameters**:
-- `f`: Callback function invoked on destruction
-- `args`: Arguments to forward to T's constructor
-
-@subsection api_sr_methods Methods
-
-#### operator*()
-```cpp
-auto operator*() -> T&;
-```
-Dereferences wrapped resource.
-
-**Returns**: Reference to the wrapped resource.
-
-**Example**:
-```cpp
+siddiqsoft::arrp::resource_pool<Resource> pool(10);
+pool.seed_to_pool(Resource());
+pool.seed_to_pool(Resource());
+// ...
 auto res = pool.borrow_from_pool();
-if (res) {
-    (*res).doSomething();  // Access via dereference
-}
 ```
 
-#### operator->()
+@subsection pattern_autogrow Auto-Growing Pool
+
 ```cpp
-auto operator->() -> T*;
+siddiqsoft::arrp::resource_pool<Resource> pool(
+    10,
+    siddiqsoft::arrp::auto_add_policy::AutoGrow
+);
+// Resources created on-demand up to capacity
 ```
-Pointer-like access to wrapped resource.
 
-**Returns**: Pointer to the wrapped resource, or nullptr if invalid.
+@subsection pattern_custom_factory Custom Factory
 
-**Example**:
 ```cpp
-auto res = pool.borrow_from_pool();
-if (res) {
-    res->doSomething();  // Pointer-like access
-}
+siddiqsoft::arrp::resource_pool<Resource> pool(
+    10,
+    [](auto& pool) {
+        return pool.create_resource(/* args */);
+    }
+);
 ```
 
-#### operator T&()
+@subsection pattern_cleanup_callback Cleanup Callback
+
 ```cpp
-explicit operator T&();
-```
-Explicit conversion to resource reference.
-
-**Example**:
-```cpp
-auto res = pool.borrow_from_pool();
-if (res) {
-    T& ref = static_cast<T&>(res);  // Explicit conversion
-}
+siddiqsoft::arrp::resource_pool<Resource> pool(
+    10,
+    [](auto& pool) { return pool.create_resource(); },
+    [](Resource&& res) {
+        res.cleanup();
+    }
+);
 ```
 
-#### invalidate()
-```cpp
-virtual void invalidate();
-```
-Marks resource as invalid to prevent automatic return to pool.
+@subsection pattern_invalidate Invalidate Resource
 
-**Use Cases**:
-- Resource has been moved out
-- Resource has been consumed
-- Resource is corrupted or unusable
-
-**Example**:
 ```cpp
 auto res = pool.borrow_from_pool();
 if (res) {
     auto extracted = std::move(*res);
-    res.invalidate();  // Don't return moved-out resource
+    res.invalidate();  // Don't return to pool
+    // Use extracted elsewhere
 }
 ```
 
-#### is_valid()
-```cpp
-virtual bool is_valid() const;
-```
-Checks if resource is valid and will be returned to pool.
+---
 
-**Returns**: true if valid, false otherwise.
+@section thread_safety_details Thread Safety Details
 
-#### Move Constructor
-```cpp
-scoped_resource(scoped_resource&& src) noexcept;
-```
-Transfers ownership. Source becomes invalid.
+**Thread-Safe Operations**
+- `borrow_from_pool()`
+- `seed_to_pool()`
+- `size()`
+- `clear()`
+- `to_json()`
 
-**Note**: Ensures only one wrapper returns the resource to the pool.
+**NOT Thread-Safe**
+- Individual `scoped_resource` instances
+- Resource access via `operator*()` or `operator->()`
 
-#### Move Assignment
-```cpp
-scoped_resource& operator=(scoped_resource&& src) noexcept;
-```
-Transfers ownership. Previous resource (if valid) is returned to pool.
+**Recommendation**: Each thread should have its own `scoped_resource` instance.
 
-**Note**: If this wrapper held a valid resource, it is returned to the pool before assignment.
+---
 
-#### Resource Assignment
-```cpp
-scoped_resource& operator=(T&& src);
-```
-Assigns a new resource value to this wrapper.
+@section performance Performance Considerations
 
-**Note**: The resource is marked as valid.
+- **Mutex Type**: Use `std::mutex` for performance (default)
+- **Capacity**: Keep capacity reasonable (1-255)
+- **Callbacks**: Keep factory/cleanup callbacks fast
+- **Statistics**: `to_json()` acquires lock; use sparingly in hot paths
 
-@section api_enums Enumerations
+---
 
-#### auto_add_policy
-```cpp
-enum class auto_add_policy {
-    NoGrow,    // Return error when pool is empty
-    AutoGrow   // Create resources on demand
-};
-```
+@section limitations Limitations
 
-Controls whether @ref resource_pool "resource_pool" automatically creates resources when empty.
+- Capacity limited to 255 resources
+- Callbacks must not call pool methods (deadlock risk)
+- `scoped_resource` not thread-safe
+- No support for arithmetic types (int, float, etc.)
 
-**Values**:
-- **NoGrow**: Returns error when @ref resource_pool::borrow_from_pool() "borrow_from_pool()" is called on empty pool
-- **AutoGrow**: Automatically creates new resources on demand up to capacity limit
-
-**Usage**:
-```cpp
-// NoGrow policy (default)
-resource_pool<Resource> pool1(10, auto_add_policy::NoGrow);
-
-// AutoGrow policy
-resource_pool<Resource> pool2(10, auto_add_policy::AutoGrow);
-```
-
-#### pool_error
-```cpp
-enum class pool_error {
-    NoMoreResources,           // Pool exhausted
-    UnderCapacityNoAutoGrow,   // Under capacity but no auto-grow
-    ShutdownInitiated,         // Pool is shutting down
-    Unknown                    // Unknown error
-};
-```
-
-Error codes returned by pool operations.
-
-@section api_exceptions Error Handling
-
-All errors are returned via `std::expected<T, pool_error>`:
-
-- **NoMoreResources** - @ref resource_pool::borrow_from_pool() "borrow_from_pool()" on exhausted pool with no factory
-- **UnderCapacityNoAutoGrow** - @ref resource_pool::borrow_from_pool() "borrow_from_pool()" when under capacity but no auto-grow policy
-- **ShutdownInitiated** - Any operation during pool shutdown
-
-@section api_thread_safety Thread Safety
-
-**Guarantees**:
-- All public methods of @ref resource_pool "resource_pool" are thread-safe
-- Multiple threads can safely call @ref resource_pool::borrow_from_pool() "borrow_from_pool()" and @ref resource_pool::seed_to_pool() "seed_to_pool()" concurrently
-- Internal mutexes protect shared state
-- Atomic counters for lock-free statistics
-- No external synchronization required
-
-**Performance**:
-- Resource creation happens outside lock to minimize contention
-- Atomic operations for counters avoid lock overhead
-
-**Note**: @ref scoped_resource "scoped_resource" is not thread-safe by itself; thread safety is provided by @ref resource_pool "resource_pool".
-
-@section api_performance Performance Characteristics
-
-| Operation | Complexity | Notes |
-|-----------|-----------|-------|
-| @ref resource_pool::borrow_from_pool() "borrow_from_pool()" | O(1) amortized | Resource creation outside lock |
-| @ref resource_pool::seed_to_pool() "seed_to_pool()" | O(1) amortized | Simple push_back operation |
-| @ref resource_pool::size() "size()" | O(1) | With lock acquisition |
-| @ref resource_pool::clear() "clear()" | O(n) | n = pool size |
-| @ref resource_pool::to_json() "to_json()" | O(1) | With lock acquisition |
-
-@section api_memory Memory Characteristics
-
-- Pool overhead: ~200 bytes (mutex, deque, counters, callback)
-- Per-resource overhead: ~40 bytes (deque node)
-- No dynamic allocations after initialization
-
-@section api_constraints Constraints
-
-- Capacity limited to 255 resources (uint8_t)
-- Factory callbacks must not call @ref resource_pool "resource_pool" methods
-- Resources must be move-constructible and non-arithmetic types
-- Counters wrap around after ~18 quintillion operations (uint64_t)
-
-@section api_exception_safety Exception Safety
-
-- **@ref resource_pool::borrow_from_pool() "borrow_from_pool()"**: Strong - if factory throws, state remains consistent
-- **@ref resource_pool::seed_to_pool() "seed_to_pool()"**: noexcept
-- **@ref resource_pool::clear() "clear()"**: noexcept
-- **@ref resource_pool::size() "size()"**: noexcept
-- **@ref resource_pool::to_json() "to_json()"**: Strong
-
-@section api_best_practices Best Practices
-
-1. **Always use RAII**: Let @ref scoped_resource "scoped_resource" handle resource return
-2. **Factory callbacks**: Only create and return resources, never call @ref resource_pool "resource_pool" methods
-3. **Error handling**: Check `std::expected` return values from @ref resource_pool::borrow_from_pool() "borrow_from_pool()"
-4. **Resource types**: Prefer shared_ptr or unique_ptr over raw pointers
-5. **Monitoring**: Use @ref resource_pool::to_json() "to_json()" to track pool utilization
-6. **Thread safety**: No external synchronization needed
-7. **Invalidation**: Use @ref scoped_resource::invalidate() "invalidate()" only when resource is moved out or consumed
-
-@section api_quick_links Quick Links
-
-- @ref resource_pool "resource_pool class" - Main pool implementation
-- @ref scoped_resource "scoped_resource class" - RAII wrapper
-- @ref auto_add_policy "auto_add_policy enum" - Growth policy control
-- @ref pool_error "pool_error enum" - Error codes
-- @ref usage_guide "Usage Guide" - Practical examples and patterns
+*/

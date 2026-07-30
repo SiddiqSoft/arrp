@@ -1,113 +1,175 @@
-@mainpage ARRP - Auto Returning Resource Pool for Modern C++
+/**
+@mainpage arrp - Auto Returning Resource Pool
 
-@section intro Introduction
+@section overview Overview
 
-The **arrp** (Auto Returning Resource Pool) library provides a thread-safe, modern C++20 resource pool implementation with automatic lifecycle management using RAII principles.
-
-This header-only library eliminates boilerplate resource management code and provides a simple, type-safe API for resource pooling scenarios. Perfect for managing expensive-to-create resources like database connections, thread pools, or network sockets.
-
-The library uses `std::expected<T, pool_error>` for error handling, providing a modern, exception-free approach to resource management.
+**arrp** is a modern C++ library providing a thread-safe, auto-returning resource pool with RAII semantics.
+Resources are automatically returned to the pool when scoped wrappers are destroyed, eliminating manual
+resource management and preventing leaks.
 
 @section features Key Features
 
-- **Thread-Safe**: All operations protected by mutexes for concurrent access
-- **RAII Pattern**: Automatic resource return via scoped_resource wrapper
-- **Capacity Management**: Enforces maximum capacity limits
-- **FIFO Ordering**: Predictable resource ordering
-- **Customizable Factory**: Support for custom resource creation callbacks
-- **Error Handling**: Uses `std::expected` for safe error handling without exceptions
-- **Modern C++20**: Uses only standard library features
-- **Type-Safe**: Leverages C++20 concepts for compile-time type checking
-- **Move Semantics**: Efficient resource transfer with perfect forwarding
-- **JSON Diagnostics**: Optional JSON serialization for pool state monitoring
+- **Thread-Safe**: All operations protected by mutex (std::mutex or std::recursive_mutex)
+- **RAII Pattern**: Resources automatically returned on destruction
+- **Move-Only Semantics**: Prevents resource ownership ambiguity
+- **Flexible Policies**: Support for fixed-size and auto-growing pools
+- **Callback-Based**: Factory and cleanup callbacks for custom resource management
+- **Statistics**: Built-in counters for monitoring pool usage
+- **JSON Serialization**: Export pool statistics to JSON (with nlohmann/json)
 
-@section documentation Documentation
+@section quick_start Quick Start
 
-- @ref api - Complete API reference
-- @ref usage_guide - Detailed usage examples and best practices
-
-@section quick_example Quick Example
+@subsection basic_usage Basic Usage
 
 ```cpp
 #include "siddiqsoft/resource_pool.hpp"
 
-// Create a pool with capacity and auto-grow policy
+// Create a pool with auto-grow policy
 siddiqsoft::arrp::resource_pool<MyResource> pool(
     10,  // capacity
     siddiqsoft::arrp::auto_add_policy::AutoGrow
 );
 
-// Add resources
-pool.seed_to_pool(MyResource());
+// Borrow a resource
+auto resource = pool.borrow_from_pool();
+if (resource) {
+    resource->doSomething();
+}
+// Resource automatically returned when scoped_resource is destroyed
+```
 
-// Borrow and use
-{
-    auto resource = pool.borrow_from_pool();
-    if (resource) {
-        resource->doSomething();
-        // Automatically returned to pool when going out of scope
+@subsection custom_factory Custom Factory
+
+```cpp
+siddiqsoft::arrp::resource_pool<MyResource> pool(
+    10,
+    [](auto& pool) -> std::expected<siddiqsoft::arrp::scoped_resource<MyResource>, 
+                                     siddiqsoft::arrp::pool_error> {
+        return pool.create_resource(/* constructor args */);
+    },
+    [](MyResource&& res) {
+        // Optional cleanup callback
+        res.cleanup();
+    }
+);
+```
+
+@section architecture Architecture
+
+The library consists of three main components:
+
+1. **resource_pool<T>**: Thread-safe pool manager
+   - Manages resource lifecycle
+   - Handles borrowing and returning
+   - Tracks statistics
+
+2. **scoped_resource<T>**: RAII wrapper
+   - Wraps individual resources
+   - Automatically returns on destruction
+   - Supports move semantics
+
+3. **Common Types**: Enums and limits
+   - auto_add_policy: Growth behavior
+   - pool_error: Error codes
+   - resource_pool_limits: Capacity constraints
+
+@section thread_safety Thread Safety
+
+- **resource_pool**: Fully thread-safe (mutex-protected)
+- **scoped_resource**: NOT thread-safe (single-threaded access)
+- Each scoped_resource should be accessed by only one thread
+
+@section error_handling Error Handling
+
+The library uses `std::expected<T, pool_error>` for error handling:
+
+```cpp
+auto resource = pool.borrow_from_pool();
+if (resource) {
+    // Use resource
+} else {
+    // Handle error
+    switch (resource.error()) {
+        case siddiqsoft::arrp::pool_error::NoMoreResources:
+            // Pool exhausted
+            break;
+        case siddiqsoft::arrp::pool_error::ShutdownInitiated:
+            // Pool is shutting down
+            break;
+        // ...
     }
 }
 ```
 
-@section installation Installation
+@section statistics Statistics
 
-### Using CMake (Recommended)
+Access pool statistics via JSON:
 
-```cmake
-include(FetchContent)
-FetchContent_Declare(arrp
-    GIT_REPOSITORY https://github.com/SiddiqSoft/arrp.git
-    GIT_TAG main
-)
-FetchContent_MakeAvailable(arrp)
-
-target_link_libraries(your_target PRIVATE arrp::arrp)
+```cpp
+auto stats = pool.to_json();
+if (stats) {
+    std::cout << stats.value().get().dump(2) << std::endl;
+}
 ```
 
-### Using NuGet (Windows)
+Statistics include:
+- capacity: Maximum resources
+- size: Available resources
+- deficit: Resources needed to reach capacity
+- peaksize: Peak pool size reached
+- borrows: Total resources borrowed
+- returns: Total resources returned
+- loans: Currently borrowed resources
+- abandons: Invalidated resources
 
-```bash
-nuget install SiddiqSoft.aarp
+@section concepts Concepts
+
+@subsection non_numeric_move_constructible NonNumericMoveConstructible
+
+A type T that satisfies:
+- std::move_constructible<T>
+- std::move_assignable<T>
+- !std::is_arithmetic<T>
+
+This prevents wrapping primitive types which would be inefficient.
+
+@section examples Examples
+
+@subsection example_file_pool File Handle Pool
+
+```cpp
+class FileHandle {
+public:
+    FileHandle(const std::string& path) : m_file(std::fopen(path.c_str(), "r")) {}
+    ~FileHandle() { if (m_file) std::fclose(m_file); }
+    FILE* get() { return m_file; }
+private:
+    FILE* m_file;
+};
+
+siddiqsoft::arrp::resource_pool<FileHandle> file_pool(
+    5,
+    [](auto& pool) {
+        return pool.create_resource("data.txt");
+    },
+    [](FileHandle&& fh) {
+        // Cleanup handled by FileHandle destructor
+    }
+);
+
+auto file = file_pool.borrow_from_pool();
+if (file) {
+    // Use file
+}
+// File automatically returned to pool
 ```
 
-### Manual Integration
+@section namespace Namespace
 
-Simply include the header files from `include/siddiqsoft/` in your project.
+All types are in `siddiqsoft::arrp` namespace.
 
-@section key_concepts Key Concepts
-
-### Resource Borrowing
-
-Resources are borrowed from the pool using `borrow_from_pool()`, which returns a `std::expected<scoped_resource<T>, pool_error>`. The scoped_resource automatically returns the resource to the pool when destroyed.
-
-### Capacity Management
-
-The pool has a fixed capacity (max 255 resources). When the pool is under capacity and a resource is requested, the factory callback can create new resources on-demand (if AutoGrow policy is enabled).
-
-### Error Handling
-
-Instead of throwing exceptions, the pool uses `std::expected<T, pool_error>` to return errors. This allows for explicit error handling without exception overhead.
-
-### Thread Safety
-
-All public methods are thread-safe. Multiple threads can safely borrow and return resources concurrently without external synchronization.
-
-@section license License
-
-BSD 3-Clause License - See LICENSE file for details
-
-@section copyright Copyright
-
-Copyright (c) 2026, Abdulkareem Siddiq. All rights reserved.
-
-@section links Links
-
-- **GitHub**: https://github.com/SiddiqSoft/arrp
-- **NuGet**: https://www.nuget.org/packages/SiddiqSoft.aarp/
-- **Documentation**: https://siddiqsoft.github.io/arrp/
-
-@section see_also See Also
-
-- @ref api - Complete API reference
-- @ref usage_guide - Usage guide and examples
+@see resource_pool
+@see scoped_resource
+@see auto_add_policy
+@see pool_error
+*/
