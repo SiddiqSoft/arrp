@@ -115,6 +115,9 @@ namespace siddiqsoft::arrp
         requires NonNumericMoveConstructible<T>
     class scoped_resource
     {
+    public:
+        // ========== Type Definitions ==========
+
         /// @brief Callback function type for returning resource to pool
         ///
         /// This callback allows the implementor that is asking for the scoped_resource the ability to
@@ -124,16 +127,18 @@ namespace siddiqsoft::arrp
         ///
         /// @param resource The resource being returned (moved)
         /// @param is_valid Whether the resource is valid and should be reused
-        /// @return std::expected<void, pool_error> indicating success or error
         using PutbackCallbackFunc = std::function<void(T&&, bool)>;
 
+    private:
+        // ========== Friend Declarations ==========
 
         // Allow resource_pool to access protected members
         template <typename U, typename SRT>
             requires NonNumericMoveConstructible<U> && std::derived_from<SRT, scoped_resource<U>>
         friend class resource_pool;
 
-    protected:
+        // ========== Member Variables ==========
+
         /// @brief The actual resource being wrapped
         /// @details Stores the resource object that will be managed by this wrapper
         T m_rsrc {};
@@ -150,11 +155,26 @@ namespace siddiqsoft::arrp
         bool m_is_valid {false};
 
     public:
+        // ========== Deleted Constructors ==========
+
         /// @brief Default constructor is deleted
         /// @details scoped_resource must be constructed with a callback and resource
         scoped_resource() = delete;
 
-    protected:
+        /// @brief Copy constructor is deleted
+        /// @details scoped_resource is move-only to prevent resource ownership ambiguity
+        /// and ensure proper RAII semantics. Only one scoped_resource can own a resource.
+        explicit scoped_resource(const T&) = delete;
+
+        /// @brief Copy assignment operator is deleted
+        ///
+        /// @details
+        /// Copy assignment is not allowed to maintain move-only semantics
+        /// and prevent resource ownership ambiguity.
+        scoped_resource& operator=(const scoped_resource&) = delete;
+
+        // ========== Constructors (Protected Access via Friend) ==========
+
         /// @brief Constructs a scoped_resource with a callback and resource
         ///
         /// @param f The callback function to invoke on destruction
@@ -163,6 +183,7 @@ namespace siddiqsoft::arrp
         /// @note The callback is stored and invoked during destruction
         /// @note The resource is moved into the wrapper
         /// @note The resource is marked as valid
+        /// @note Protected: Only accessible via resource_pool friend class
         explicit scoped_resource(PutbackCallbackFunc&& f, T&& src)
             : m_rsrc(std::move(src))
             , m_putback_callback(std::move(f))
@@ -170,11 +191,24 @@ namespace siddiqsoft::arrp
         {
         }
 
-    public:
-        /// @brief Copy constructor is deleted
-        /// @details scoped_resource is move-only to prevent resource ownership ambiguity
-        /// and ensure proper RAII semantics. Only one scoped_resource can own a resource.
-        explicit scoped_resource(const T&) = delete;
+        /// @brief Constructs a scoped_resource with a callback and in-place constructed resource
+        ///
+        /// @tparam Args Types of arguments to forward to T's constructor
+        /// @param f The callback function to invoke on destruction
+        /// @param args Arguments to forward to T's constructor
+        ///
+        /// @note The resource is constructed in-place
+        /// @note The resource is marked as valid
+        /// @note Protected: Only accessible via resource_pool friend class
+        template <typename... Args>
+        scoped_resource(PutbackCallbackFunc&& f, Args&&... args)
+            : m_rsrc(std::forward<Args>(args)...)
+            , m_putback_callback(std::move(f))
+            , m_is_valid(true)
+        {
+        }
+
+        // ========== Move Operations ==========
 
         /// @brief Move constructor
         ///
@@ -195,24 +229,6 @@ namespace siddiqsoft::arrp
             src.m_is_valid         = false;
         }
 
-    protected:
-        /// @brief Constructs a scoped_resource with a callback and in-place constructed resource
-        ///
-        /// @tparam Args Types of arguments to forward to T's constructor
-        /// @param f The callback function to invoke on destruction
-        /// @param args Arguments to forward to T's constructor
-        ///
-        /// @note The resource is constructed in-place
-        /// @note The resource is marked as valid
-        template <typename... Args>
-        scoped_resource(PutbackCallbackFunc&& f, Args&&... args)
-            : m_rsrc(std::forward<Args>(args)...)
-            , m_putback_callback(std::move(f))
-            , m_is_valid(true)
-        {
-        }
-
-    public:
         /// @brief Move assignment operator
         ///
         /// Transfers ownership from another scoped_resource to this one.
@@ -262,44 +278,7 @@ namespace siddiqsoft::arrp
             return *this;
         }
 
-        /// @brief Assignment operator for resource value
-        ///
-        /// Assigns a new resource value to this wrapper.
-        /// Marks the resource as valid.
-        ///
-        /// @param src The new resource value (moved)
-        /// @return Reference to this scoped_resource
-        ///
-        /// @note The resource is moved into the wrapper
-        /// @note The resource is marked as valid
-        scoped_resource& operator=(T&& src)
-        {
-            m_rsrc     = std::move(src);
-            m_is_valid = true;
-            return *this;
-        }
-
-        /// @brief Copy assignment operator is deleted
-        ///
-        /// @details
-        /// Copy assignment is not allowed to maintain move-only semantics
-        /// and prevent resource ownership ambiguity.
-        scoped_resource& operator=(const scoped_resource&) = delete;
-
-        /// @brief Dereference operator to access the wrapped resource
-        /// @return Reference to the wrapped resource
-        /// @warning Behavior is undefined if resource has been invalidated
-        auto operator*() -> T& { return m_rsrc; }
-
-        /// @brief Explicit conversion to resource reference
-        /// @return Reference to the wrapped resource
-        /// @warning Behavior is undefined if resource has been invalidated
-        explicit operator T&() { return m_rsrc; }
-
-        /// @brief Pointer-like access to the wrapped resource
-        /// @return Pointer to the wrapped resource, or nullptr if invalid
-        /// @note Returns nullptr if resource is invalid
-        auto operator->() -> T* { return m_is_valid ? &m_rsrc : nullptr; }
+        // ========== Destructor ==========
 
         /// @brief Destructor - invokes callback to handle resource return or abandonment
         ///
@@ -328,6 +307,42 @@ namespace siddiqsoft::arrp
                 m_putback_callback = {};
             }
         }
+
+        // ========== Resource Access Operators ==========
+
+        /// @brief Dereference operator to access the wrapped resource
+        /// @return Reference to the wrapped resource
+        /// @warning Behavior is undefined if resource has been invalidated
+        auto operator*() -> T& { return m_rsrc; }
+
+        /// @brief Pointer-like access to the wrapped resource
+        /// @return Pointer to the wrapped resource, or nullptr if invalid
+        /// @note Returns nullptr if resource is invalid
+        auto operator->() -> T* { return m_is_valid ? &m_rsrc : nullptr; }
+
+        /// @brief Explicit conversion to resource reference
+        /// @return Reference to the wrapped resource
+        /// @warning Behavior is undefined if resource has been invalidated
+        explicit operator T&() { return m_rsrc; }
+
+        /// @brief Assignment operator for resource value
+        ///
+        /// Assigns a new resource value to this wrapper.
+        /// Marks the resource as valid.
+        ///
+        /// @param src The new resource value (moved)
+        /// @return Reference to this scoped_resource
+        ///
+        /// @note The resource is moved into the wrapper
+        /// @note The resource is marked as valid
+        scoped_resource& operator=(T&& src)
+        {
+            m_rsrc     = std::move(src);
+            m_is_valid = true;
+            return *this;
+        }
+
+        // ========== State Management ==========
 
         /// @brief Marks the resource as invalid (abandoned)
         ///
@@ -359,6 +374,8 @@ namespace siddiqsoft::arrp
         /// @note Virtual: Can be overridden in derived classes
         /// @note Const: Does not modify the resource
         virtual bool is_valid() const { return m_is_valid; }
+
+        // ========== Serialization ==========
 
 #if defined(NLOHMANN_JSON_VERSION_MAJOR)
         /// @brief Serializes the scoped_resource to JSON
