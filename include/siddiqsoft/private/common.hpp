@@ -38,11 +38,12 @@ namespace siddiqsoft::arrp
     ///
     /// @note NoGrow: Pool does not create new resources; returns error when exhausted
     /// @note AutoGrow: Pool creates new resources on-demand up to capacity limit
-    enum class auto_add_policy
+    enum class auto_add_policy : uint8_t
     {
         NoGrow,  ///< Do not automatically add resources when pool is starving
         AutoGrow ///< Automatically add resources when pool is starving and under capacity
     };
+
 
     /// @brief Reason for releasing a resource back to the pool
     ///
@@ -60,7 +61,7 @@ namespace siddiqsoft::arrp
     ///
     /// @details
     /// Indicates various error conditions that can occur during pool operations.
-    enum class pool_error
+    enum class pool_error : uint8_t
     {
         NoMoreResources,         ///< Pool is exhausted and no factory callback available
         UnderCapacityNoAutoGrow, ///< Pool is under capacity but auto-grow is disabled
@@ -69,78 +70,57 @@ namespace siddiqsoft::arrp
     };
 } // namespace siddiqsoft::arrp
 
-
-namespace std
+/// @brief Formatter for resource_pool_limits
+template <>
+struct std::formatter<siddiqsoft::arrp::resource_pool_limits> : std::formatter<std::string>
 {
-    /// @brief Specialization of std::formatter for release_reason
-    /// @details Provides formatted output for release_reason enum values
-    template <typename CharT>
-    struct formatter<siddiqsoft::arrp::release_reason, CharT> : formatter<std::basic_string_view<CharT>, CharT>
+    auto format(siddiqsoft::arrp::resource_pool_limits& pl, auto& ctx) const noexcept
     {
-        auto format(const siddiqsoft::arrp::release_reason& rr, std::basic_format_context<typename std::basic_string<CharT>::iterator, CharT>& ctx) const -> decltype(ctx.out())
-        {
-            std::basic_string_view<CharT> val{};
-            switch (rr) {
-                case siddiqsoft::arrp::release_reason::Valid: val = std::basic_string_view<CharT>{"Valid"}; break;
-                case siddiqsoft::arrp::release_reason::Abandoned: val = std::basic_string_view<CharT>{"Abandoned"}; break;
-                default: val = std::basic_string_view<CharT>{"Unknown"}; break;
-            }
-            return formatter<std::basic_string_view<CharT>, CharT>::format(val, ctx);
-        }
-    };
+        return std::format_to(ctx.out(), "{}", static_cast<uint8_t>(pl));
+    }
+};
 
-    /// @brief Specialization of std::formatter for auto_add_policy
-    /// @details Provides formatted output for auto_add_policy enum values
-    template <typename CharT>
-    struct formatter<siddiqsoft::arrp::auto_add_policy, CharT> : formatter<std::basic_string_view<CharT>, CharT>
+/// @brief Formatter for auto_add_policy
+template <>
+struct std::formatter<siddiqsoft::arrp::auto_add_policy> : std::formatter<std::string>
+{
+    auto format(siddiqsoft::arrp::auto_add_policy& rr, auto& ctx) const noexcept
     {
-        auto format(const siddiqsoft::arrp::auto_add_policy& aap, std::basic_format_context<typename std::basic_string<CharT>::iterator, CharT>& ctx) const -> decltype(ctx.out())
-        {
-            std::basic_string_view<CharT> val{};
-            switch (aap) {
-                case siddiqsoft::arrp::auto_add_policy::NoGrow: val = std::basic_string_view<CharT>{"NoGrow"}; break;
-                case siddiqsoft::arrp::auto_add_policy::AutoGrow: val = std::basic_string_view<CharT>{"AutoGrow"}; break;
-                default: val = std::basic_string_view<CharT>{"Unknown"}; break;
-            }
-            return formatter<std::basic_string_view<CharT>, CharT>::format(val, ctx);
+        switch (rr) {
+            case siddiqsoft::arrp::auto_add_policy::NoGrow: return std::format_to(ctx.out(), "NoGrow");
+            case siddiqsoft::arrp::auto_add_policy::AutoGrow: return std::format_to(ctx.out(), "AutoGrow");
+            default: return std::format_to(ctx.out(), "Unknown");
         }
-    };
+    }
+};
 
-    /// @brief Specialization of std::formatter for pool_error
-    /// @details Provides formatted output for pool_error enum values
-    template <typename CharT>
-    struct formatter<siddiqsoft::arrp::pool_error, CharT> : formatter<std::basic_string_view<CharT>, CharT>
+/// @brief Formatter for pool_error
+template <>
+struct std::formatter<siddiqsoft::arrp::pool_error> : std::formatter<std::string>
+{
+    auto format(siddiqsoft::arrp::pool_error& pe, auto& ctx) const noexcept
     {
-        auto format(const siddiqsoft::arrp::pool_error& pe, std::basic_format_context<typename std::basic_string<CharT>::iterator, CharT>& ctx) const -> decltype(ctx.out())
-        {
-            std::basic_string_view<CharT> val{};
-            switch (pe) {
-                case siddiqsoft::arrp::pool_error::NoMoreResources: val = std::basic_string_view<CharT>{"NoMoreResources"}; break;
-                case siddiqsoft::arrp::pool_error::UnderCapacityNoAutoGrow: val = std::basic_string_view<CharT>{"UnderCapacityNoAutoGrow"}; break;
-                case siddiqsoft::arrp::pool_error::ShutdownInitiated: val = std::basic_string_view<CharT>{"ShutdownInitiated"}; break;
-                default: val = std::basic_string_view<CharT>{"Unknown"}; break;
-            }
-            return formatter<std::basic_string_view<CharT>, CharT>::format(val, ctx);
+        switch (pe) {
+            case siddiqsoft::arrp::pool_error::NoMoreResources: return std::format_to(ctx.out(), "NoMoreResources");
+            case siddiqsoft::arrp::pool_error::UnderCapacityNoAutoGrow: return std::format_to(ctx.out(), "UnderCapacityNoAutoGrow");
+            case siddiqsoft::arrp::pool_error::ShutdownInitiated: return std::format_to(ctx.out(), "ShutdownInitiated");
+            default: return std::format_to(ctx.out(), "Unknown");
         }
-    };
+    }
+};
 
-    /// @brief Specialization of std::formatter for resource_pool_limits
-    /// @details Provides formatted output for resource_pool_limits enum values
-    template <typename CharT>
-    struct formatter<siddiqsoft::arrp::resource_pool_limits, CharT> : formatter<std::basic_string_view<CharT>, CharT>
+/// @brief Formatter for release_reason
+template <>
+struct std::formatter<siddiqsoft::arrp::release_reason> : std::formatter<std::string>
+{
+    auto format(siddiqsoft::arrp::release_reason& rr, auto& ctx) const noexcept
     {
-        auto format(const siddiqsoft::arrp::resource_pool_limits& rpl, std::basic_format_context<typename std::basic_string<CharT>::iterator, CharT>& ctx) const -> decltype(ctx.out())
-        {
-            std::basic_string_view<CharT> val{};
-            switch (rpl) {
-                case siddiqsoft::arrp::resource_pool_limits::MinimumCapacity: val = std::basic_string_view<CharT>{"MinimumCapacity"}; break;
-                case siddiqsoft::arrp::resource_pool_limits::DefaultCapacity: val = std::basic_string_view<CharT>{"DefaultCapacity"}; break;
-                case siddiqsoft::arrp::resource_pool_limits::MaxCapacity: val = std::basic_string_view<CharT>{"MaxCapacity"}; break;
-                default: val = std::basic_string_view<CharT>{"Unknown"}; break;
-            }
-            return formatter<std::basic_string_view<CharT>, CharT>::format(val, ctx);
+        switch (rr) {
+            case siddiqsoft::arrp::release_reason::Valid: return std::format_to(ctx.out(), "Valid");
+            case siddiqsoft::arrp::release_reason::Abandoned: return std::format_to(ctx.out(), "Abandoned");
+            default: return std::format_to(ctx.out(), "Unknown");
         }
-    };
-}
+    }
+};
 
 #endif // !ARRP_COMMON_HPP

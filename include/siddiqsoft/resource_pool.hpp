@@ -177,18 +177,18 @@ namespace siddiqsoft::arrp
         /// @brief Checks if the pool is starving (under capacity)
         /// @details Returns true if the total number of resources (in pool + checked out) is less than capacity
         /// @return true if pool is under capacity, false otherwise
-        inline bool is_pool_starving() { return m_resources_checkedout.load() + m_pool.size() < m_capacity; }
+        inline bool is_pool_starving() const { return m_resources_checkedout.load() + m_pool.size() < m_capacity; }
 
         /// @brief Checks if there is a deficit between configured capacity and current resources
         /// @return true if deficit exists, false otherwise
-        inline auto is_there_a_pool_deficit() { return deficit_size() != 0; }
+        inline auto is_there_a_pool_deficit() const { return deficit_size() != 0; }
 
         /// @brief Calculates the deficit between configured capacity and current total resources
         /// @details Computes how many more resources are needed to reach the configured capacity.
         /// The deficit is: capacity - (pool_size + checked_out_resources)
         /// @return Positive value indicates resources needed to reach capacity, zero means at capacity,
         ///         negative value indicates over-capacity (should not normally occur)
-        inline int64_t deficit_size()
+        inline int64_t deficit_size() const
         {
             return static_cast<int64_t>(m_capacity) - (static_cast<int64_t>(m_pool.size()) + m_resources_checkedout.load());
         }
@@ -197,7 +197,7 @@ namespace siddiqsoft::arrp
         ///        We're trying to ensure that we have a zero-balance of borrow_from_pool() and the return_to_pool()
         ///        calls by the client.
         /// @return A value representing the number of "borrowed" resources by the client.
-        inline auto loan_size()
+        inline auto loan_size() const
         {
             auto loans = m_counter_borrows.load(); // total number of borrows (current counter)
             loans -= m_counter_returns.load();     // total number of returns (current counter)
@@ -601,7 +601,7 @@ namespace siddiqsoft::arrp
         ///     std::cout << json_result.value().get().dump(2) << std::endl;
         /// }
         /// @endcode
-        auto to_json() -> std::expected<std::reference_wrapper<nlohmann::json>, siddiqsoft::arrp::pool_error>
+        auto to_json() const -> std::expected<std::reference_wrapper<nlohmann::json>, siddiqsoft::arrp::pool_error>
         {
             {
                 std::scoped_lock l(m_pool_lock);
@@ -609,16 +609,16 @@ namespace siddiqsoft::arrp
                 if (m_is_shutdown) return std::unexpected(siddiqsoft::arrp::pool_error::ShutdownInitiated);
 
                 // Update the pool statistics
-                m_json["size"]         = m_pool.size();
-                m_json["deficit"]      = deficit_size();
+                m_json["size"]     = m_pool.size();
+                m_json["deficit"]  = deficit_size();
                 m_json["capacity"] = m_capacity;
-                m_json["peaksize"]     = m_peak_poolsize.load();
-                m_json["abandons"]     = m_counter_abandons.load();
-                m_json["seeds"]        = m_counter_seeds.load();
-                m_json["autoadds"]     = m_counter_ondemand_adds.load();
-                m_json["returns"]      = m_counter_returns.load();
-                m_json["borrows"]      = m_counter_borrows.load();
-                m_json["loans"]        = loan_size();
+                m_json["peaksize"] = m_peak_poolsize.load();
+                m_json["abandons"] = m_counter_abandons.load();
+                m_json["seeds"]    = m_counter_seeds.load();
+                m_json["autoadds"] = m_counter_ondemand_adds.load();
+                m_json["returns"]  = m_counter_returns.load();
+                m_json["borrows"]  = m_counter_borrows.load();
+                m_json["loans"]    = loan_size();
 
                 // This field is only available when there is a supported data-type
                 if constexpr (std::is_same_v<T, nlohmann::json> || std::is_same_v<T, std::string>) {
@@ -631,7 +631,7 @@ namespace siddiqsoft::arrp
 
     private:
         /// @brief JSON object for statistics
-        nlohmann::json m_json {{"_typver", "siddiqsoft.arrp.resource_pool/0.0.0"}, {"capacity", m_capacity}};
+        mutable nlohmann::json m_json {{"_typver", "siddiqsoft.arrp.resource_pool/0.0.0"}, {"capacity", m_capacity}};
 #endif
     };
 
@@ -655,40 +655,16 @@ namespace siddiqsoft::arrp
 #endif
 
 
-namespace std
+template <typename T, typename SRT>
+    requires siddiqsoft::arrp::NonNumericMoveConstructible<T> && std::derived_from<SRT, siddiqsoft::arrp::scoped_resource<T>>
+struct std::formatter<siddiqsoft::arrp::resource_pool<T, SRT>> : std::formatter<std::string>
 {
-    /// @brief Specialization of std::formatter for resource_pool
-    /// @details Provides formatted output for resource_pool instances using std::format
-    /// @tparam T The resource type
-    /// @tparam SRT The scoped resource type
-    /// @note Only available if nlohmann/json is included
-    template <typename T, typename SRT, typename CharT>
-        requires siddiqsoft::arrp::NonNumericMoveConstructible<T> && std::derived_from<SRT, siddiqsoft::arrp::scoped_resource<T>>
-    struct formatter<siddiqsoft::arrp::resource_pool<T, SRT>, CharT> : formatter<std::basic_string_view<CharT>, CharT>
+    auto format(const siddiqsoft::arrp::resource_pool<T, SRT>& pool, auto& ctx) const
     {
-        /// @brief Parse format specification (empty for this type)
-        template <typename ParseContext>
-        constexpr auto parse(ParseContext& ctx)
-        {
-            return ctx.begin();
-        }
-
-        /// @brief Format the resource_pool
-        /// @param pool The resource_pool to format
-        /// @param ctx Format context
-        /// @return Iterator to end of formatted output
-        auto format(const siddiqsoft::arrp::resource_pool<T, SRT>& pool, std::basic_format_context<typename std::basic_string<CharT>::iterator, CharT>& ctx) const -> decltype(ctx.out())
-        {
 #if defined(NLOHMANN_JSON_VERSION_MAJOR)
-            if (auto jv = pool.to_json(); jv.has_value()) {
-                return formatter<std::basic_string_view<CharT>, CharT>::format(std::basic_string_view<CharT>{jv.value().get().dump()}, ctx);
-            }
-
-            return formatter<std::basic_string_view<CharT>, CharT>::format(std::basic_string_view<CharT>{"Error from to_json() invocation."}, ctx);
+        return std::format_to(ctx.out(), "{}", pool.to_json().value().get().dump());
 #else
-            return formatter<std::basic_string_view<CharT>, CharT>::format(std::basic_string_view<CharT>{"{ json format requires nlohmann/json library }"}, ctx);
+        return std::format_to(ctx.out(), "--to--be--implemented--");
 #endif
-        }
-    };
-}
-
+    }
+};

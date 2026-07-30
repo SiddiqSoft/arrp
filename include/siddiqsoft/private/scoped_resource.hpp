@@ -405,22 +405,14 @@ namespace siddiqsoft::arrp
 /// @note This formatter always uses the same format regardless of whether nlohmann/json is available,
 ///       ensuring ODR safety. For JSON output, use the to_json() method directly.
 template <typename T>
-struct std::formatter<siddiqsoft::arrp::scoped_resource<T>>
+struct std::formatter<siddiqsoft::arrp::scoped_resource<T>> : std::formatter<std::string>
 {
-    /// @brief Parse format specification (empty for this type)
-    template <typename ParseContext>
-    constexpr auto parse(ParseContext& ctx)
-    {
-        return ctx.begin();
-    }
-
     /// @brief Format the scoped_resource
     /// @param sr The scoped_resource to format
     /// @param ctx Format context
     /// @return Iterator to end of formatted output
     /// @note Always uses the same format to ensure ODR safety across translation units
-    template <typename FormatContext>
-    auto format(const siddiqsoft::arrp::scoped_resource<T>& sr, FormatContext& ctx) const
+    auto format(const siddiqsoft::arrp::scoped_resource<T>& sr, auto& ctx) const
     {
         // Use consistent format across all TUs to avoid ODR violations
         // Format: scoped_resource<T>{valid: <bool>}
