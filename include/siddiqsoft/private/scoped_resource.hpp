@@ -154,6 +154,7 @@ namespace siddiqsoft::arrp
         /// @details scoped_resource must be constructed with a callback and resource
         scoped_resource() = delete;
 
+    protected:
         /// @brief Constructs a scoped_resource with a callback and resource
         ///
         /// @param f The callback function to invoke on destruction
@@ -169,6 +170,7 @@ namespace siddiqsoft::arrp
         {
         }
 
+    public:
         /// @brief Copy constructor is deleted
         /// @details scoped_resource is move-only to prevent resource ownership ambiguity
         /// and ensure proper RAII semantics. Only one scoped_resource can own a resource.
@@ -193,6 +195,7 @@ namespace siddiqsoft::arrp
             src.m_is_valid         = false;
         }
 
+    protected:
         /// @brief Constructs a scoped_resource with a callback and in-place constructed resource
         ///
         /// @tparam Args Types of arguments to forward to T's constructor
@@ -209,6 +212,7 @@ namespace siddiqsoft::arrp
         {
         }
 
+    public:
         /// @brief Move assignment operator
         ///
         /// Transfers ownership from another scoped_resource to this one.
