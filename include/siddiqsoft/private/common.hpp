@@ -27,7 +27,7 @@ namespace siddiqsoft::arrp
     {
         MinimumCapacity = 1,
         DefaultCapacity = 8,
-        MaxCapacity     = std::numeric_limits<uint8_t>::max()
+        MaxCapacity     = UCHAR_MAX
     };
 
     /// @brief Controls auto-grow behavior for resource pools
