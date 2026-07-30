@@ -907,9 +907,7 @@ TEST(resource_pool, custom_factory_callback)
             [&creation_count](
                     auto& p) -> std::expected<siddiqsoft::arrp::scoped_resource<std::string>, siddiqsoft::arrp::pool_error> {
                 creation_count++;
-                return siddiqsoft::arrp::scoped_resource<std::string>(
-                        [&p](std::string&& res, bool isvalid) { p.return_to_pool(std::move(res), isvalid); },
-                        std::format("created-{}", creation_count.load()));
+                return p.create_resource(std::format("created-{}", creation_count.load()));
             }};
 
     // Borrow resources - should trigger factory
@@ -1016,7 +1014,7 @@ TEST(resource_pool, exception_safety)
     try {
         auto res_result = pool.borrow_from_pool();
         EXPECT_TRUE(res_result.has_value());
-        //auto res = std::move(res_result.value());
+        // auto res = std::move(res_result.value());
         throw std::runtime_error("Test exception");
     }
     catch (const std::runtime_error&) {
@@ -1404,11 +1402,7 @@ TEST(resource_pool_adversarial, factory_callback_exceptions)
                     throw std::runtime_error(std::format(
                             "Factory exception calls:{}  exceptions:{}", factory_calls.load(), factory_exceptions.load()));
                 }
-                return siddiqsoft::arrp::scoped_resource<std::string>(
-                        [&p](std::string&& res, bool isvalid) {
-                            p.return_to_pool(std::move(res), isvalid);
-                        },
-                        std::format("created-{}", factory_calls.load()));
+                return p.create_resource(std::format("created-{}", factory_calls.load()));
             }};
 
     std::atomic_int           successes {0};

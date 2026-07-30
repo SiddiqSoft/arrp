@@ -246,9 +246,7 @@ TEST(resource_pool_constructors, capacity_and_factory)
             [&factory_calls](
                     auto& p) -> std::expected<siddiqsoft::arrp::scoped_resource<std::string>, siddiqsoft::arrp::pool_error> {
                 factory_calls++;
-                return siddiqsoft::arrp::scoped_resource<std::string>(
-                        [&p](std::string&& res, bool isvalid) { p.return_to_pool(std::move(res), isvalid); },
-                        std::format("factory-created-{}", factory_calls.load()));
+                return p.create_resource(std::format("factory-created-{}", factory_calls.load()));
             }};
 
     // Borrow should trigger factory
@@ -536,7 +534,7 @@ TEST(resource_pool_clear, with_cleanup_callback)
     std::atomic_int cleanup_count {0};
 
     {
-        siddiqsoft::arrp::resource_pool<std::string> pool {[&cleanup_count](std::string&& ) { cleanup_count++; }};
+        siddiqsoft::arrp::resource_pool<std::string> pool {[&cleanup_count](std::string&&) { cleanup_count++; }};
 
         pool.seed_to_pool(std::string("1"));
         pool.seed_to_pool(std::string("2"));

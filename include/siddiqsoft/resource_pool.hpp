@@ -282,28 +282,25 @@ namespace siddiqsoft::arrp
                 // whereas if we attempted to declared it earlier as a static inline then the
                 // this pointer would not be captured.
                 m_callback_to_add_new_raw_resource_to_pool = [this](resource_pool& pool) -> std::expected<SRT, pool_error> {
-                    // Create a SRT element and wire up the auto-return callback to return
-                    // the resource back to this object.
-                    return SRT {[this](T&& src, bool isvalid) {
-                                    // this callback puts the resource back..
-                                    return this->return_to_pool(std::forward<T&&>(src), isvalid);
-                                },
-                                T {}};
-                    // Allow the compiler to use NRVO (move elision; do not use std::move here!)
+                    return create_resource();
                 };
             }
         }
 
-        
+        /// @brief Create a resource that is wired to invoke the return_to_pool in the destructor of the SRT class.
+        /// @note The scoped_resource<T> cannot be directly instantiated and thus this method is the only means
+        /// to create a custom resource.
+        /// This apporoach also solves the issue where we hide the return_to_pool() as protected and making the
+        /// resource_pool and scoped_resource friends.
         template <typename... Args>
         auto create_resource(Args&&... args) -> SRT
         {
             // Allow the compiler to use NRVO (move elision; do not use std::move here!)
             return SRT {[this](T&& src, bool isvalid) {
-                                // this callback puts the resource back..
-                                return this->return_to_pool(std::forward<T&&>(src), isvalid);
-                            },
-                            std::forward<Args>(args)...};
+                            // this callback puts the resource back..
+                            return this->return_to_pool(std::forward<T&&>(src), isvalid);
+                        },
+                        std::forward<Args>(args)...};
         }
 
         /// @brief Copy constructor is deleted
@@ -437,11 +434,7 @@ namespace siddiqsoft::arrp
                     // Make a wrapper..
                     // Create a SRT element and wire up the auto-return callback to return
                     // the resource back to this object.
-                    return SRT {[this](T&& src, bool isvalid) {
-                                    // this callback puts the resource back..
-                                    return this->return_to_pool(std::forward<T&&>(src), isvalid);
-                                },
-                                std::move(m_pool.front())};
+                    return create_resource(std::move(m_pool.front()));
                     // Allow the compiler to use NRVO (move elision; do not use std::move here!)
                     // The pop_front() happens within this scope and within the lock!
                 }
@@ -565,7 +558,7 @@ namespace siddiqsoft::arrp
         /// @note Returns if pool is shutting down
         /// @note This method MUST be invoked to "return" the resource back to pool otherwise the accounting and resource
         /// management will not work properly!
-        protected:
+    protected:
         void return_to_pool(T&& item, bool isvalid)
         {
             std::scoped_lock l(m_pool_lock);
