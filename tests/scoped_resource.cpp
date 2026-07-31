@@ -35,6 +35,7 @@
 
 #include "gtest/gtest.h"
 
+#include <cstdlib>
 #include <iostream>
 #include <format>
 #include <string>
@@ -1599,10 +1600,11 @@ TEST(resource_pool, concurrent_clear_deadlock_detection)
 #endif
         std::println(std::cerr, "   concurrent_clear_deadlock_detection - All threads ready to continue..{}/{}", sync_threads_ready.load(), EXPECTED_THREADS);
     };
-    
 
-    auto             worker_fn = [&]() {
+
+    auto worker_fn = [&]() {
         sync_threads_point();
+        std::this_thread::sleep_for(std::chrono::milliseconds(100*(1+(std::rand() % 10))));
         for (int iteration = 0; iteration < 600 && !stop.load(); ++iteration) {
             auto result = pool.borrow_from_pool();
             if (result.has_value()) {
