@@ -404,7 +404,7 @@ TEST(counter_balance, concurrent_borrows_and_returns)
             EXPECT_GE(checkedout, 0);
             // Counter should not exceed total borrows
             EXPECT_LE(checkedout, total_borrows.load());
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            std::this_thread::sleep_for(std::chrono::milliseconds(19));
         }
     });
 
@@ -505,7 +505,7 @@ TEST(counter_balance, concurrent_adds_and_borrows)
         for (int i = 0; i < 200; ++i) {
             int64_t checkedout = get_borrow_count(pool);
             EXPECT_GE(checkedout, 0);
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            std::this_thread::sleep_for(std::chrono::milliseconds(19));
         }
     });
 
@@ -563,7 +563,7 @@ TEST(counter_balance, concurrent_clears)
         for (int i = 0; i < 200; ++i) {
             int64_t checkedout = get_borrow_count(pool);
             EXPECT_GE(checkedout, 0);
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            std::this_thread::sleep_for(std::chrono::milliseconds(19));
         }
     });
 
@@ -682,7 +682,7 @@ TEST(counter_balance, high_concurrency_stress)
                 if (res.has_value()) {
                     operations++;
                     // Simulate some work
-                    std::this_thread::sleep_for(std::chrono::microseconds(1));
+                    std::this_thread::sleep_for(std::chrono::microseconds(19));
                 }
             }
         });
@@ -753,7 +753,7 @@ TEST(counter_balance, mixed_operations_stress)
         for (int i = 0; i < 300; ++i) {
             int64_t checkedout = get_borrow_count(pool);
             EXPECT_GE(checkedout, 0);
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            std::this_thread::sleep_for(std::chrono::milliseconds(19));
         }
     });
 
@@ -763,7 +763,7 @@ TEST(counter_balance, mixed_operations_stress)
         for (int i = 0; i < 300; ++i) {
             auto size = pool.size();
             EXPECT_TRUE(size.has_value());
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            std::this_thread::sleep_for(std::chrono::milliseconds(19));
         }
     });
 

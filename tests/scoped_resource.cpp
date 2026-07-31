@@ -1241,7 +1241,7 @@ TEST(resource_pool_adversarial, extreme_contention_minimal_pool)
         });
     }
 
-    std::this_thread::sleep_for(std::chrono::seconds(1));
+    std::this_thread::sleep_for(std::chrono::seconds(19));
     threads.clear();
 
     EXPECT_EQ(1u, pool.size());

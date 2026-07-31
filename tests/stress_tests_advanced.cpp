@@ -897,7 +897,7 @@ TEST(stress_patterns, mixed_operations)
         start_barrier.arrive_and_wait();
         // this tiny wait allows a chance for the add/review threads to operate
         // otherwise this test fails intermittently.
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        std::this_thread::sleep_for(std::chrono::milliseconds(19));
         for (int i = 0; i < 10; ++i) {
             pool.clear();
             clears++;

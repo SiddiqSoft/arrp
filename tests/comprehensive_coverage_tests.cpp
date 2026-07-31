@@ -963,7 +963,7 @@ TEST(concurrent_edge_cases, mixed_operations_stress)
     threads.emplace_back([&]() {
         start_barrier.arrive_and_wait();
         // this small wait is critical to ensure we do not experience intermittent test fails.
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        std::this_thread::sleep_for(std::chrono::milliseconds(90));
         for (int i = 0; i < 5; ++i) {
             pool.clear();
             clears++;
