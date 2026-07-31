@@ -252,13 +252,16 @@ TEST(custom_scoped_resource, file_persistence_across_cycles)
             }
         }};
 
-        pool.seed_to_pool(std::fopen(temp_file.c_str(), "w+"));
+        // FIX 1: Use append mode
+        pool.seed_to_pool(std::fopen(temp_file.c_str(), "a+"));
 
         // First cycle: write data
         {
             auto file_result = pool.borrow_from_pool();
             if (file_result.has_value()) {
                 auto fp = *file_result.value();
+                // FIX 2: Explicit file pointer positioning
+                std::fseek(fp, 0, SEEK_END);
                 std::print(fp, "First write\n");
                 std::fflush(fp);
             }
@@ -269,10 +272,15 @@ TEST(custom_scoped_resource, file_persistence_across_cycles)
             auto file_result = pool.borrow_from_pool();
             if (file_result.has_value()) {
                 auto fp = *file_result.value();
+                // FIX 2: Explicit file pointer positioning
+                std::fseek(fp, 0, SEEK_END);
                 std::print(fp, "Second write\n");
                 std::fflush(fp);
             }
         }
+
+        // FIX 3: Explicitly clear pool to ensure all buffers are flushed
+        pool.clear();
 
         // Verify both writes are in the file
         FILE* verify_file = std::fopen(temp_file.c_str(), "r");
@@ -292,6 +300,7 @@ TEST(custom_scoped_resource, file_persistence_across_cycles)
 
     cleanup_temp_file(temp_file);
 }
+
 
 /**
  * @brief Test concurrent file writes from multiple threads

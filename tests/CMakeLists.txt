@@ -115,6 +115,7 @@ if(${${PROJECT_NAME}_BUILD_TESTS})
                     ${PROJECT_SOURCE_DIR}/tests/stress_tests_advanced.cpp
                     ${PROJECT_SOURCE_DIR}/tests/resource_wrap_validity.cpp
                     ${PROJECT_SOURCE_DIR}/tests/custom_scoped_resource_tests.cpp
+                    ${PROJECT_SOURCE_DIR}/tests/new_unit_tests.cpp
                     ${PROJECT_SOURCE_DIR}/tests/comprehensive_coverage_tests.cpp
     )
 
