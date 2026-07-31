@@ -1608,7 +1608,7 @@ TEST(resource_pool, concurrent_clear_deadlock_detection)
             if (result.has_value()) {
                 ++borrow_cycles;
                 auto res = std::move(result.value());
-                std::this_thread::sleep_for(std::chrono::microseconds(10));
+                std::this_thread::sleep_for(std::chrono::microseconds(100));
             }
         }
         return true;
@@ -1618,7 +1618,7 @@ TEST(resource_pool, concurrent_clear_deadlock_detection)
         sync_threads_point();
         // this specific wait is important otherwise the workers
         // will never get a chance to run..
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
         while (!stop.load()) {
             pool.clear();
