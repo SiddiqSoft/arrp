@@ -1590,8 +1590,8 @@ TEST(resource_pool, concurrent_clear_deadlock_detection)
     std::atomic_int sync_threads_ready{0};
 
     auto             sync_threads_point = [&] {
-#if defined(_WIN64)
         sync_threads_ready++;
+#if defined(_WIN64)
         while (sync_threads_ready.load() < EXPECTED_THREADS) {
             std::this_thread::yield();
         }
@@ -1604,8 +1604,8 @@ TEST(resource_pool, concurrent_clear_deadlock_detection)
 
     auto worker_fn = [&]() {
         sync_threads_point();
-        std::this_thread::sleep_for(std::chrono::milliseconds(100*(1+(std::rand() % 10))));
-        for (int iteration = 0; iteration < 600 && !stop.load(); ++iteration) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10*(1+(std::rand() % 10))));
+        for (int iteration = 0; iteration < 900 && !stop.load(); ++iteration) {
             auto result = pool.borrow_from_pool();
             if (result.has_value()) {
                 ++borrow_cycles;
@@ -1620,7 +1620,7 @@ TEST(resource_pool, concurrent_clear_deadlock_detection)
         sync_threads_point();
         // this specific wait is important otherwise the workers
         // will never get a chance to run..
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        std::this_thread::sleep_for(std::chrono::milliseconds(900));
 
         while (!stop.load()) {
             pool.clear();
