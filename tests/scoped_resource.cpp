@@ -1620,7 +1620,7 @@ TEST(resource_pool, concurrent_clear_deadlock_detection)
         sync_threads_point();
         // this specific wait is important otherwise the workers
         // will never get a chance to run..
-        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
         while (!stop.load()) {
             pool.clear();
@@ -1638,9 +1638,6 @@ TEST(resource_pool, concurrent_clear_deadlock_detection)
     auto worker2 = std::async(std::launch::async, worker_fn);
     auto clearer = std::async(std::launch::async, clearer_fn);
 
-    // Give threads time to start
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    
     // give five seconds for the threads to complete..
     constexpr auto timeout = std::chrono::seconds(15);
     EXPECT_EQ(std::future_status::ready, worker1.wait_for(timeout));
