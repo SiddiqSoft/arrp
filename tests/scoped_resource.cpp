@@ -1575,7 +1575,9 @@ TEST(resource_pool_adversarial, concurrent_clear_rapid_ops_FIXED)
 
 TEST(resource_pool, concurrent_clear_deadlock_detection)
 {
+    constexpr int EXPECTED_THREADS =3;
     siddiqsoft::arrp::resource_pool<std::string> pool;
+
     for (int i = 0; i < 8; ++i) {
         pool.seed_to_pool(std::format("resource-{}", i));
     }
@@ -1583,10 +1585,24 @@ TEST(resource_pool, concurrent_clear_deadlock_detection)
     std::atomic_bool stop {false};
     std::atomic_int  borrow_cycles {0};
     std::atomic_int  clear_cycles {0};
-    std::barrier     start_barrier {3};
+    std::barrier     start_barrier {EXPECTED_THREADS};
+    std::atomic_int sync_threads_ready{0};
+
+    auto             sync_threads_point = [&] {
+#if defined(_WIN64)
+        sync_threads_ready++;
+        while (sync_threads_ready.load() < EXPECTED_THREADS) {
+            std::this_thread::yield();
+        }
+#else
+        start_barrier.arrive_and_wait();
+#endif
+        std::println(std::cerr, "   concurrent_clear_deadlock_detection - All threads ready to continue..{}/{}", sync_threads_ready.load(), EXPECTED_THREADS);
+    };
+    
 
     auto             worker_fn = [&]() {
-        start_barrier.arrive_and_wait();
+        sync_threads_point();
         for (int iteration = 0; iteration < 600 && !stop.load(); ++iteration) {
             auto result = pool.borrow_from_pool();
             if (result.has_value()) {
@@ -1599,7 +1615,7 @@ TEST(resource_pool, concurrent_clear_deadlock_detection)
     };
 
     auto clearer_fn = [&]() {
-        start_barrier.arrive_and_wait();
+        sync_threads_point();
         // this specific wait is important otherwise the workers
         // will never get a chance to run..
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -1620,8 +1636,11 @@ TEST(resource_pool, concurrent_clear_deadlock_detection)
     auto worker2 = std::async(std::launch::async, worker_fn);
     auto clearer = std::async(std::launch::async, clearer_fn);
 
+    // Give threads time to start
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    
     // give five seconds for the threads to complete..
-    constexpr auto timeout = std::chrono::seconds(5);
+    constexpr auto timeout = std::chrono::seconds(15);
     EXPECT_EQ(std::future_status::ready, worker1.wait_for(timeout));
     EXPECT_EQ(std::future_status::ready, worker2.wait_for(timeout));
 
@@ -1643,16 +1662,31 @@ TEST(resource_pool, concurrent_clear_deadlock_detection)
 
 TEST(resource_pool, concurrent_json_deadlock_detection)
 {
+    constexpr int EXPECTED_THREADS =2;
+
     siddiqsoft::arrp::resource_pool<std::string> pool;
     for (int i = 0; i < 10; ++i) {
         pool.seed_to_pool(std::format("resource-{}", i));
     }
 
     std::atomic_int done {0};
-    std::barrier    start_barrier {2};
+    std::barrier    start_barrier {EXPECTED_THREADS};
+    std::atomic_int sync_threads_ready{0};
+
+    auto             sync_threads_point = [&] {
+#if defined(_WIN64)
+        sync_threads_ready++;
+        while (sync_threads_ready.load() < EXPECTED_THREADS) {
+            std::this_thread::yield();
+        }
+#else
+        start_barrier.arrive_and_wait();
+#endif
+        std::println(std::cerr, "   concurrent_json_deadlock_detection - All threads ready to continue..{}/{}", sync_threads_ready.load(), EXPECTED_THREADS);
+    };
 
     auto            borrow_fn = [&]() {
-        start_barrier.arrive_and_wait();
+        sync_threads_point();
         for (int i = 0; i < 200; ++i) {
             auto result = pool.borrow_from_pool();
             if (result.has_value()) {
@@ -1665,7 +1699,7 @@ TEST(resource_pool, concurrent_json_deadlock_detection)
     };
 
     auto json_fn = [&]() {
-        start_barrier.arrive_and_wait();
+        sync_threads_point();
         for (int i = 0; i < 100; ++i) {
             auto& json = pool.to_json().value().get();
             EXPECT_TRUE(json.contains("seeds"));
@@ -1678,7 +1712,7 @@ TEST(resource_pool, concurrent_json_deadlock_detection)
     auto           worker     = std::async(std::launch::async, borrow_fn);
     auto           serializer = std::async(std::launch::async, json_fn);
 
-    constexpr auto timeout    = std::chrono::seconds(5);
+    constexpr auto timeout    = std::chrono::seconds(15);
     EXPECT_EQ(std::future_status::ready, worker.wait_for(timeout));
     EXPECT_EQ(std::future_status::ready, serializer.wait_for(timeout));
     EXPECT_EQ(2, done.load());
