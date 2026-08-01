@@ -133,6 +133,7 @@ TEST(resource_pool, loan_size_with_abandons)
 /// borrowing/returning resources
 TEST(resource_pool, concurrent_json_no_deadlock)
 {
+    constexpr int EXPECTED_THREADS = 3;
     siddiqsoft::arrp::resource_pool<std::string> pool {};
 
     // Seed pool
@@ -142,11 +143,24 @@ TEST(resource_pool, concurrent_json_no_deadlock)
 
     std::atomic_int json_reads {0};
     std::atomic_int borrows {0};
-    std::barrier    start_barrier {3};
+    std::barrier    start_barrier {EXPECTED_THREADS};
+    std::atomic_int sync_threads_ready{0};
+
+    auto             sync_threads_point = [&] {
+#if defined(_WIN64)
+        sync_threads_ready++;
+        while (sync_threads_ready.load() < EXPECTED_THREADS) {
+            std::this_thread::yield();
+        }
+#else
+        start_barrier.arrive_and_wait();
+#endif
+        std::println(std::cerr, "   concurrent_json_deadlock_detection - All threads ready to continue..{}/{}", sync_threads_ready.load(), EXPECTED_THREADS);
+    };
 
     // Thread 1: Continuously borrow/return
     auto borrow_thread = std::jthread([&]() {
-        start_barrier.arrive_and_wait();
+        sync_threads_point();
         for (int i = 0; i < 100; ++i) {
             auto res = pool.borrow_from_pool();
             if (res.has_value()) {
@@ -158,7 +172,7 @@ TEST(resource_pool, concurrent_json_no_deadlock)
 
     // Thread 2: Continuously call to_json
     auto json_thread = std::jthread([&]() {
-        start_barrier.arrive_and_wait();
+        sync_threads_point();
         for (int i = 0; i < 50; ++i) {
             auto& json = pool.to_json().value().get();
             EXPECT_TRUE(json.contains("seeds"));
@@ -167,7 +181,7 @@ TEST(resource_pool, concurrent_json_no_deadlock)
     });
 
     // Main thread: Also borrow/return
-    start_barrier.arrive_and_wait();
+    sync_threads_point();
     for (int i = 0; i < 50; ++i) {
         auto res = pool.borrow_from_pool();
         if (res.has_value()) {
