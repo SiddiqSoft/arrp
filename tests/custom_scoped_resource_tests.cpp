@@ -166,7 +166,7 @@ TEST(custom_scoped_resource, write_to_file)
 
         // Verify file contents
         FILE* verify_file = std::fopen(temp_file.c_str(), "r");
-        ASSERT_NE(nullptr, verify_file);
+        ASSERT_FALSE(verify_file==NULL);
 
         char buffer[100] = {0};
         std::fread(buffer, 1, sizeof(buffer), verify_file);
