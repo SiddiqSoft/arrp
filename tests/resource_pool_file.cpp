@@ -205,7 +205,7 @@ TEST(resource_pool_file, file_read_write_operations)
         auto fw = std::move(file_result.value());
         std::rewind(*fw);
 
-        std::array<char,100> buffer {};
+        std::array<char, 100> buffer {};
         ASSERT_NE(nullptr, std::fgets(buffer.data(), sizeof(buffer), *fw));
         EXPECT_STREQ("Line 1\n", buffer.data());
 

@@ -489,9 +489,9 @@ TEST(stress_contention, gradual_contention_increase)
 /// Validates that no thread is starved indefinitely
 TEST(stress_contention, fairness_distribution)
 {
-    constexpr int POOL_SIZE    = 8;      // INCREASED from 4
-    constexpr int THREAD_COUNT = 8;      // KEPT at 8
-    constexpr int ITERATIONS   = 500;    // INCREASED from 200
+    constexpr int                                POOL_SIZE    = 8;   // INCREASED from 4
+    constexpr int                                THREAD_COUNT = 8;   // KEPT at 8
+    constexpr int                                ITERATIONS   = 500; // INCREASED from 200
 
     siddiqsoft::arrp::resource_pool<std::string> pool {};
     for (int i = 0; i < POOL_SIZE; ++i) {
@@ -509,7 +509,7 @@ TEST(stress_contention, fairness_distribution)
             while (threads_started.load() < EXPECTED_THREADS) {
                 std::this_thread::yield();
             }
-            
+
             for (int i = 0; i < ITERATIONS; ++i) {
                 auto res = pool.borrow_from_pool();
                 if (res.has_value()) {
@@ -532,11 +532,10 @@ TEST(stress_contention, fairness_distribution)
         total_successes += thread_successes[t].load();
     }
     int avg_per_thread = total_successes / THREAD_COUNT;
-    int min_threshold  = avg_per_thread / 4;  // CHANGED from / 2
+    int min_threshold  = avg_per_thread / 4; // CHANGED from / 2
 
     for (int t = 0; t < THREAD_COUNT; ++t) {
-        EXPECT_GE(thread_successes[t].load(), min_threshold) 
-            << "Thread " << t << " got significantly fewer resources than average";
+        EXPECT_GE(thread_successes[t].load(), min_threshold) << "Thread " << t << " got significantly fewer resources than average";
     }
 }
 

@@ -51,7 +51,6 @@
 
 namespace siddiqsoft::arrp
 {
-
     template <typename T>
     concept HasStdToStringImpl = requires(T t) {
         { std::to_string(t) } -> std::same_as<std::string>;
@@ -116,8 +115,6 @@ namespace siddiqsoft::arrp
     class scoped_resource
     {
     public:
-        // ========== Type Definitions ==========
-
         /// @brief Callback function type for returning resource to pool
         ///
         /// This callback allows the implementor that is asking for the scoped_resource the ability to
@@ -130,8 +127,6 @@ namespace siddiqsoft::arrp
         using PutbackCallbackFunc = std::function<void(T&&, bool)>;
 
     private:
-        // ========== Friend Declarations ==========
-
         // Allow resource_pool to access protected members
         template <typename U, typename SRT>
             requires NonNumericMoveConstructible<U> && std::derived_from<SRT, scoped_resource<U>>
@@ -155,8 +150,6 @@ namespace siddiqsoft::arrp
         bool m_is_valid {false};
 
     public:
-        // ========== Deleted Constructors ==========
-
         /// @brief Default constructor is deleted
         /// @details scoped_resource must be constructed with a callback and resource
         scoped_resource() = delete;
@@ -173,8 +166,7 @@ namespace siddiqsoft::arrp
         /// and prevent resource ownership ambiguity.
         scoped_resource& operator=(const scoped_resource&) = delete;
 
-        // ========== Constructors (Protected Access via Friend) ==========
-
+    public:
         /// @brief Constructs a scoped_resource with a callback and resource
         ///
         /// @param f The callback function to invoke on destruction
@@ -208,8 +200,7 @@ namespace siddiqsoft::arrp
         {
         }
 
-        // ========== Move Operations ==========
-
+    public:
         /// @brief Move constructor
         ///
         /// Transfers ownership from another scoped_resource to this one.
@@ -278,8 +269,7 @@ namespace siddiqsoft::arrp
             return *this;
         }
 
-        // ========== Destructor ==========
-
+    public:
         /// @brief Destructor - invokes callback to handle resource return or abandonment
         ///
         /// Invokes the putback callback if one exists, passing the resource and its validity status.
@@ -308,8 +298,7 @@ namespace siddiqsoft::arrp
             }
         }
 
-        // ========== Resource Access Operators ==========
-
+    public:
         /// @brief Dereference operator to access the wrapped resource
         /// @return Reference to the wrapped resource
         /// @warning Behavior is undefined if resource has been invalidated
@@ -342,8 +331,7 @@ namespace siddiqsoft::arrp
             return *this;
         }
 
-        // ========== State Management ==========
-
+    public:
         /// @brief Marks the resource as invalid (abandoned)
         ///
         /// Sets the validity flag to false. When the resource is destroyed, the callback
@@ -375,9 +363,9 @@ namespace siddiqsoft::arrp
         /// @note Const: Does not modify the resource
         virtual bool is_valid() const { return m_is_valid; }
 
-        // ========== Serialization ==========
 
 #if defined(NLOHMANN_JSON_VERSION_MAJOR)
+    public:
         /// @brief Serializes the scoped_resource to JSON
         ///
         /// Returns a JSON object containing the resource state and validity.

@@ -221,8 +221,8 @@ TEST(counter_balance, moved_resources)
 {
     siddiqsoft::arrp::resource_pool<custom_mr> pool {};
 
-    pool.seed_to_pool(custom_mr{"resource-1"});
-    pool.seed_to_pool(custom_mr{"resource-2"});
+    pool.seed_to_pool(custom_mr {"resource-1"});
+    pool.seed_to_pool(custom_mr {"resource-2"});
 
     EXPECT_EQ(0, get_borrow_count(pool));
     EXPECT_EQ(2, pool.size().value_or(0));
@@ -700,7 +700,7 @@ TEST(counter_balance, high_concurrency_stress)
 /// @brief Stress test with mixed operations
 TEST(counter_balance, mixed_operations_stress)
 {
-    constexpr int EXPECTED_THREADS = 5;
+    constexpr int                                EXPECTED_THREADS = 5;
     siddiqsoft::arrp::resource_pool<std::string> pool {};
 
     for (int i = 0; i < 30; ++i) {
@@ -709,13 +709,13 @@ TEST(counter_balance, mixed_operations_stress)
 
     EXPECT_EQ(0, get_borrow_count(pool));
 
-    std::atomic_int           borrows {0};
-    std::atomic_int           adds {0};
-    std::atomic_int           invalidates {0};
-    std::barrier              start_barrier {EXPECTED_THREADS};
-    std::atomic_int sync_threads_ready{0};
+    std::atomic_int borrows {0};
+    std::atomic_int adds {0};
+    std::atomic_int invalidates {0};
+    std::barrier    start_barrier {EXPECTED_THREADS};
+    std::atomic_int sync_threads_ready {0};
 
-    auto             sync_threads_point = [&] {
+    auto            sync_threads_point = [&] {
 #if defined(_WIN64)
         sync_threads_ready++;
         while (sync_threads_ready.load() < EXPECTED_THREADS) {
@@ -724,7 +724,10 @@ TEST(counter_balance, mixed_operations_stress)
 #else
         start_barrier.arrive_and_wait();
 #endif
-        std::println(std::cerr, "   concurrent_json_deadlock_detection - All threads ready to continue..{}/{}", sync_threads_ready.load(), EXPECTED_THREADS);
+        std::println(std::cerr,
+                     "   concurrent_json_deadlock_detection - All threads ready to continue..{}/{}",
+                     sync_threads_ready.load(),
+                     EXPECTED_THREADS);
     };
 
     std::vector<std::jthread> threads;

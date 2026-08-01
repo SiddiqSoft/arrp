@@ -22,12 +22,9 @@
 TEST(resource_pool, capacity_enforcement_no_autogrow)
 {
     constexpr uint8_t POOL_CAPACITY = 3;
-    
+
     // Create pool with fixed capacity and no auto-grow
-    siddiqsoft::arrp::resource_pool<std::string> pool {
-        POOL_CAPACITY,
-        siddiqsoft::arrp::auto_add_policy::NoGrow
-    };
+    siddiqsoft::arrp::resource_pool<std::string> pool {POOL_CAPACITY, siddiqsoft::arrp::auto_add_policy::NoGrow};
 
     // Seed the pool to capacity
     pool.seed_to_pool(std::string("res1"));
@@ -58,8 +55,8 @@ TEST(resource_pool, capacity_enforcement_no_autogrow)
 /// capacity and current resources (pool + checked-out)
 TEST(resource_pool, deficit_size_calculation)
 {
-    constexpr uint8_t POOL_CAPACITY = 5;
-    
+    constexpr uint8_t                            POOL_CAPACITY = 5;
+
     siddiqsoft::arrp::resource_pool<std::string> pool {POOL_CAPACITY};
 
     // Initially, pool is empty: deficit = capacity - (pool_size + checked_out)
@@ -133,7 +130,7 @@ TEST(resource_pool, loan_size_with_abandons)
 /// borrowing/returning resources
 TEST(resource_pool, concurrent_json_no_deadlock)
 {
-    constexpr int EXPECTED_THREADS = 3;
+    constexpr int                                EXPECTED_THREADS = 3;
     siddiqsoft::arrp::resource_pool<std::string> pool {};
 
     // Seed pool
@@ -144,9 +141,9 @@ TEST(resource_pool, concurrent_json_no_deadlock)
     std::atomic_int json_reads {0};
     std::atomic_int borrows {0};
     std::barrier    start_barrier {EXPECTED_THREADS};
-    std::atomic_int sync_threads_ready{0};
+    std::atomic_int sync_threads_ready {0};
 
-    auto             sync_threads_point = [&] {
+    auto            sync_threads_point = [&] {
 #if defined(_WIN64)
         sync_threads_ready++;
         while (sync_threads_ready.load() < EXPECTED_THREADS) {
@@ -155,7 +152,10 @@ TEST(resource_pool, concurrent_json_no_deadlock)
 #else
         start_barrier.arrive_and_wait();
 #endif
-        std::println(std::cerr, "   concurrent_json_deadlock_detection - All threads ready to continue..{}/{}", sync_threads_ready.load(), EXPECTED_THREADS);
+        std::println(std::cerr,
+                     "   concurrent_json_deadlock_detection - All threads ready to continue..{}/{}",
+                     sync_threads_ready.load(),
+                     EXPECTED_THREADS);
     };
 
     // Thread 1: Continuously borrow/return

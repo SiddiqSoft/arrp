@@ -501,9 +501,6 @@ namespace siddiqsoft::arrp
                 }
             } // scope end
             catch (std::exception& ex) {
-#if defined(DEBUG_TRACE)
-                std::print(std::cerr, "Error in borrow_from_pool: {}\n", ex.what());
-#endif
                 return std::unexpected(pool_error::Unknown);
             }
             catch (...) {
@@ -513,8 +510,6 @@ namespace siddiqsoft::arrp
 
             return std::unexpected(pool_error::NoMoreResources);
         }
-
-        // ========== Resource Seeding ==========
 
         /// @brief Adds a resource to the pool by constructing it in-place
         ///
@@ -619,10 +614,8 @@ namespace siddiqsoft::arrp
             }
         }
 
-    public:
-        // ========== Serialization ==========
-
 #if defined(NLOHMANN_JSON_VERSION_MAJOR)
+    public:
         /// @brief Serializes pool statistics to JSON
         ///
         /// Returns a JSON object containing pool statistics and configuration.

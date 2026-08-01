@@ -1576,7 +1576,7 @@ TEST(resource_pool_adversarial, concurrent_clear_rapid_ops_FIXED)
 
 TEST(resource_pool, concurrent_clear_deadlock_detection)
 {
-    constexpr int EXPECTED_THREADS =3;
+    constexpr int                                EXPECTED_THREADS = 3;
     siddiqsoft::arrp::resource_pool<std::string> pool;
 
     for (int i = 0; i < 8; ++i) {
@@ -1587,7 +1587,7 @@ TEST(resource_pool, concurrent_clear_deadlock_detection)
     std::atomic_int  borrow_cycles {0};
     std::atomic_int  clear_cycles {0};
     std::barrier     start_barrier {EXPECTED_THREADS};
-    std::atomic_int sync_threads_ready{0};
+    std::atomic_int  sync_threads_ready {0};
 
     auto             sync_threads_point = [&] {
         sync_threads_ready++;
@@ -1598,13 +1598,16 @@ TEST(resource_pool, concurrent_clear_deadlock_detection)
 #else
         start_barrier.arrive_and_wait();
 #endif
-        std::println(std::cerr, "   concurrent_clear_deadlock_detection - All threads ready to continue..{}/{}", sync_threads_ready.load(), EXPECTED_THREADS);
+        std::println(std::cerr,
+                     "   concurrent_clear_deadlock_detection - All threads ready to continue..{}/{}",
+                     sync_threads_ready.load(),
+                     EXPECTED_THREADS);
     };
 
 
     auto worker_fn = [&]() {
         sync_threads_point();
-        std::this_thread::sleep_for(std::chrono::milliseconds(10*(1+(std::rand() % 10))));
+        std::this_thread::sleep_for(std::chrono::milliseconds(10 * (1 + (std::rand() % 10))));
         for (int iteration = 0; iteration < 900 && !stop.load(); ++iteration) {
             auto result = pool.borrow_from_pool();
             if (result.has_value()) {
@@ -1639,7 +1642,7 @@ TEST(resource_pool, concurrent_clear_deadlock_detection)
     auto clearer = std::async(std::launch::async, clearer_fn);
 
     // Give time to complete..
-        std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+    std::this_thread::sleep_for(std::chrono::milliseconds(2500));
 
     // give five seconds for the threads to complete..
     constexpr auto timeout = std::chrono::seconds(15);
@@ -1665,7 +1668,7 @@ TEST(resource_pool, concurrent_clear_deadlock_detection)
 
 TEST(resource_pool, concurrent_json_deadlock_detection)
 {
-    constexpr int EXPECTED_THREADS =2;
+    constexpr int                                EXPECTED_THREADS = 2;
 
     siddiqsoft::arrp::resource_pool<std::string> pool;
     for (int i = 0; i < 10; ++i) {
@@ -1674,9 +1677,9 @@ TEST(resource_pool, concurrent_json_deadlock_detection)
 
     std::atomic_int done {0};
     std::barrier    start_barrier {EXPECTED_THREADS};
-    std::atomic_int sync_threads_ready{0};
+    std::atomic_int sync_threads_ready {0};
 
-    auto             sync_threads_point = [&] {
+    auto            sync_threads_point = [&] {
 #if defined(_WIN64)
         sync_threads_ready++;
         while (sync_threads_ready.load() < EXPECTED_THREADS) {
@@ -1685,10 +1688,13 @@ TEST(resource_pool, concurrent_json_deadlock_detection)
 #else
         start_barrier.arrive_and_wait();
 #endif
-        std::println(std::cerr, "   concurrent_json_deadlock_detection - All threads ready to continue..{}/{}", sync_threads_ready.load(), EXPECTED_THREADS);
+        std::println(std::cerr,
+                     "   concurrent_json_deadlock_detection - All threads ready to continue..{}/{}",
+                     sync_threads_ready.load(),
+                     EXPECTED_THREADS);
     };
 
-    auto            borrow_fn = [&]() {
+    auto borrow_fn = [&]() {
         sync_threads_point();
         for (int i = 0; i < 200; ++i) {
             auto result = pool.borrow_from_pool();
