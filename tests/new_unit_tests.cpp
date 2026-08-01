@@ -165,7 +165,6 @@ TEST(resource_pool, concurrent_json_no_deadlock)
             auto res = pool.borrow_from_pool();
             if (res.has_value()) {
                 borrows++;
-                auto r = std::move(res.value());
             }
         }
     });
@@ -186,7 +185,6 @@ TEST(resource_pool, concurrent_json_no_deadlock)
         auto res = pool.borrow_from_pool();
         if (res.has_value()) {
             borrows++;
-            auto r = std::move(res.value());
         }
     }
 
