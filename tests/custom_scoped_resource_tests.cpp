@@ -31,9 +31,9 @@
 
 namespace fs = std::filesystem;
 
-// ============================================================================
+
 // HELPER FUNCTIONS
-// ============================================================================
+
 
 // NOLINTBEGIN(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 
@@ -87,9 +87,9 @@ void cleanup_temp_file(const std::string& path)
     }
 }
 
-// ============================================================================
+
 // TESTS WITH FILE* RESOURCE POOL
-// ============================================================================
+
 
 /**
  * @brief Test basic file resource pool creation

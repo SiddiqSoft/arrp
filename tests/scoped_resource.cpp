@@ -769,9 +769,9 @@ TEST(resource_pool, concurrent_shared_ptr_access)
     EXPECT_GT(totalBorrows.load(), 0);
 }
 
-// ============================================================================
+
 // NEW COMPREHENSIVE TESTS FOR FULL COVERAGE AND STRESS TESTING
-// ============================================================================
+
 
 /// @brief Test scoped_resource dereference operator
 TEST(scoped_resource, dereference_operator)
@@ -1115,9 +1115,9 @@ TEST(resource_pool, fifo_ordering_concurrent)
     EXPECT_EQ(10u, pool.size());
 }
 
-// ============================================================================
+
 // ADVERSARIAL TESTS - STRESS TESTING EDGE CASES AND FAILURE MODES
-// ============================================================================
+
 
 /// @brief Adversarial: Rapid borrow/return with immediate exceptions
 TEST(resource_pool_adversarial, rapid_exception_cycles)

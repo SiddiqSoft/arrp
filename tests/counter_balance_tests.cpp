@@ -35,9 +35,9 @@
 
 // NOLINTBEGIN(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 
-// ============================================================================
+
 // HELPER FUNCTION TO EXTRACT CHECKEDOUT COUNT FROM JSON
-// ============================================================================
+
 
 /// @brief Helper function to get the checkedout count from pool JSON
 /// @param pool The resource pool
@@ -54,9 +54,9 @@ int64_t get_loan_count(siddiqsoft::arrp::resource_pool<T>& pool)
     return pool.to_json().transform([](nlohmann::json& doc) { return doc.value("loans", -1); }).value();
 }
 
-// ============================================================================
+
 // BASIC COUNTER BALANCE TESTS
-// ============================================================================
+
 
 /// @brief Test counter increments on borrow and decrements on return
 TEST(counter_balance, basic_borrow_return)
@@ -251,9 +251,9 @@ TEST(counter_balance, moved_resources)
     EXPECT_EQ(2, pool.size().value_or(0));
 }
 
-// ============================================================================
+
 // EXCEPTION HANDLING COUNTER BALANCE TESTS
-// ============================================================================
+
 
 /// @brief Test counter balance when exception occurs during borrow
 TEST(counter_balance, exception_during_borrow)
@@ -335,9 +335,9 @@ TEST(counter_balance, nested_exception_handling)
     EXPECT_EQ(0, get_loan_count(pool));
 }
 
-// ============================================================================
+
 // CONCURRENT COUNTER BALANCE TESTS
-// ============================================================================
+
 
 /// @brief Test counter balance with concurrent borrows and returns
 TEST(counter_balance, concurrent_borrows_and_returns)
@@ -573,9 +573,9 @@ TEST(counter_balance, concurrent_clears)
     EXPECT_EQ(0, get_loan_count(pool));
 }
 
-// ============================================================================
+
 // AUTOGROW POLICY COUNTER BALANCE TESTS
-// ============================================================================
+
 
 /// @brief Test counter balance with AutoGrow policy
 TEST(counter_balance, autogrow_policy)
@@ -654,9 +654,9 @@ TEST(counter_balance, custom_factory_callback)
     EXPECT_EQ(0, get_loan_count(pool));
 }
 
-// ============================================================================
+
 // STRESS TESTS FOR COUNTER BALANCE
-// ============================================================================
+
 
 /// @brief Stress test with high concurrency and rapid operations
 TEST(counter_balance, high_concurrency_stress)
@@ -794,9 +794,9 @@ TEST(counter_balance, mixed_operations_stress)
     EXPECT_GT(invalidates.load(), 0);
 }
 
-// ============================================================================
+
 // EDGE CASE COUNTER BALANCE TESTS
-// ============================================================================
+
 
 /// @brief Test counter balance with single resource
 TEST(counter_balance, single_resource)
@@ -864,9 +864,9 @@ TEST(counter_balance, rapid_create_destroy_cycles)
     }
 }
 
-// ============================================================================
+
 // COUNTER CONSISTENCY TESTS
-// ============================================================================
+
 
 /// @brief Test that counter is consistent with pool size
 TEST(counter_balance, counter_size_consistency)

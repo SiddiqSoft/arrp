@@ -37,9 +37,6 @@
 
 // NOLINTBEGIN(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 
-// ============================================================================
-// SCOPED_RESOURCE OPERATOR TESTS
-// ============================================================================
 
 /// @brief Test scoped_resource pointer-like access operator->
 TEST(scoped_resource_operators, pointer_access)
@@ -211,9 +208,9 @@ TEST(scoped_resource_operators, nullptr_pointer_access)
     }
 }
 
-// ============================================================================
+
 // RESOURCE_POOL CONSTRUCTOR TESTS
-// ============================================================================
+
 
 /// @brief Test resource_pool with cleanup callback only
 TEST(resource_pool_constructors, cleanup_callback_only)
@@ -286,9 +283,9 @@ TEST(resource_pool_constructors, autogrow_policy)
     EXPECT_EQ(1u, pool.size().value_or(0));
 }
 
-// ============================================================================
+
 // RESOURCE_POOL SIZE AND CAPACITY TESTS
-// ============================================================================
+
 
 /// @brief Test size() returns correct value under concurrent modifications
 TEST(resource_pool_size, concurrent_size_accuracy)
@@ -354,9 +351,9 @@ TEST(resource_pool_size, size_after_shutdown)
     EXPECT_EQ(1u, new_pool.size().value_or(0));
 }
 
-// ============================================================================
+
 // RESOURCE_POOL BORROW TESTS
-// ============================================================================
+
 
 /// @brief Test borrow_from_pool with empty pool and no factory
 TEST(resource_pool_borrow, empty_pool_no_factory)
@@ -433,9 +430,9 @@ TEST(resource_pool_borrow, capacity_limit_enforcement)
     EXPECT_FALSE(res3.has_value());
 }
 
-// ============================================================================
+
 // RESOURCE_POOL seed_to_pool TESTS
-// ============================================================================
+
 
 /// @brief Test seed_to_pool with variadic arguments
 TEST(resource_pool_add, variadic_arguments)
@@ -489,9 +486,9 @@ TEST(resource_pool_add, add_after_shutdown)
     EXPECT_TRUE(result.has_value());
 }
 
-// ============================================================================
+
 // RESOURCE_POOL RETURN_TO_POOL TESTS
-// ============================================================================
+
 
 /// @brief Test return_to_pool with valid resource
 TEST(resource_pool_return, valid_resource_return)
@@ -524,9 +521,9 @@ TEST(resource_pool_return, invalid_resource_not_returned)
     EXPECT_EQ(0u, pool.size().value_or(0));
 }
 
-// ============================================================================
+
 // RESOURCE_POOL CLEAR TESTS
-// ============================================================================
+
 
 /// @brief Test clear with cleanup callback
 TEST(resource_pool_clear, with_cleanup_callback)
@@ -619,9 +616,9 @@ TEST(resource_pool_clear, concurrent_with_borrow)
     EXPECT_GT(borrows.load(), 0);
 }
 
-// ============================================================================
+
 // RESOURCE_POOL JSON SERIALIZATION TESTS
-// ============================================================================
+
 
 /// @brief Test to_json with empty pool
 TEST(resource_pool_json, empty_pool_serialization)
@@ -726,9 +723,9 @@ TEST(resource_pool_json, json_type_resources)
     EXPECT_TRUE(j.contains("items"));
 }
 
-// ============================================================================
+
 // RESOURCE_POOL DESTRUCTOR AND LIFECYCLE TESTS
-// ============================================================================
+
 
 /// @brief Test destructor calls cleanup for all resources
 TEST(resource_pool_lifecycle, destructor_cleanup)
@@ -768,9 +765,9 @@ TEST(resource_pool_lifecycle, post_destruction_behavior)
     EXPECT_EQ(1u, pool2.size().value_or(0));
 }
 
-// ============================================================================
+
 // EDGE CASES AND BOUNDARY CONDITIONS
-// ============================================================================
+
 
 /// @brief Test with minimum capacity
 TEST(edge_cases, minimum_capacity)
@@ -877,9 +874,9 @@ TEST(edge_cases, nested_containers)
     EXPECT_EQ(1u, pool.size().value_or(0));
 }
 
-// ============================================================================
+
 // CONCURRENT STRESS TESTS WITH EDGE CASES
-// ============================================================================
+
 
 /// @brief Test concurrent access with rapid invalidation
 TEST(concurrent_edge_cases, rapid_invalidation)
@@ -1023,9 +1020,9 @@ TEST(concurrent_edge_cases, alternating_validity)
     EXPECT_EQ(15u, pool.size().value_or(0));
 }
 
-// ============================================================================
+
 // SPECIAL MEMBER FUNCTION TESTS
-// ============================================================================
+
 
 /// @brief Test that resource_pool is not copyable
 TEST(special_members, pool_not_copyable)
@@ -1061,9 +1058,9 @@ TEST(special_members, scoped_resource_is_movable)
     EXPECT_TRUE(std::is_move_assignable_v<siddiqsoft::arrp::scoped_resource<std::string>>);
 }
 
-// ============================================================================
+
 // FORMATTER TESTS
-// ============================================================================
+
 
 /// @brief Test std::format with resource_pool
 TEST(formatters, resource_pool_format)

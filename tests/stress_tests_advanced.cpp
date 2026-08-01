@@ -65,9 +65,9 @@ namespace
     };
 } // namespace
 
-// ============================================================================
+
 // EXTREME CONCURRENCY TESTS
-// ============================================================================
+
 
 /// @brief Test with maximum thread count and high iteration count
 /// Validates thread safety under extreme concurrency
@@ -192,9 +192,9 @@ TEST(stress_extreme_concurrency, persistent_worker_threads)
     EXPECT_GT(tasks_completed.load(), 0);
 }
 
-// ============================================================================
+
 // RESOURCE LIFECYCLE TESTS
-// ============================================================================
+
 
 /// @brief Test rapid creation and destruction of pools
 /// Validates pool construction/destruction under stress
@@ -311,9 +311,9 @@ TEST(stress_lifecycle, move_only_concurrent)
     EXPECT_GT(total_ops.load(), 0);
 }
 
-// ============================================================================
+
 // MEMORY PRESSURE TESTS
-// ============================================================================
+
 
 /// @brief Test with large objects to stress memory allocation
 /// Validates pool behavior with significant memory usage
@@ -406,9 +406,9 @@ TEST(stress_memory, many_small_objects)
     EXPECT_EQ(POOL_SIZE, pool.size().value_or(0));
 }
 
-// ============================================================================
+
 // CONTENTION TESTS
-// ============================================================================
+
 
 /// @brief Test extreme contention with minimal resources
 /// Validates fairness and correctness under starvation
@@ -539,9 +539,9 @@ TEST(stress_contention, fairness_distribution)
     }
 }
 
-// ============================================================================
+
 // CHAOS TESTS - Random operations and timing variations
-// ============================================================================
+
 
 /// @brief Test with random operation timing
 /// Validates pool under unpredictable timing patterns
@@ -662,9 +662,9 @@ TEST(stress_chaos, random_clear_operations)
     EXPECT_GT(borrows.load(), 0);
 }
 
-// ============================================================================
+
 // CAPACITY TESTS - Boundary conditions and limits
-// ============================================================================
+
 
 /// @brief Test with maximum capacity
 /// Validates pool at capacity limits
@@ -752,9 +752,9 @@ TEST(stress_capacity, capacity_enforcement_concurrent)
     EXPECT_GT(failures.load(), 0);
 }
 
-// ============================================================================
+
 // RECOVERY TESTS - Behavior after errors and exceptions
-// ============================================================================
+
 
 /// @brief Test recovery from repeated exceptions
 /// Validates pool remains functional after exceptions
@@ -807,9 +807,9 @@ TEST(stress_recovery, clear_and_repopulate)
     }
 }
 
-// ============================================================================
+
 // ADVANCED CONCURRENT PATTERNS
-// ============================================================================
+
 
 /// @brief Test producer-consumer pattern
 /// Validates pool in realistic producer-consumer scenario
@@ -928,9 +928,9 @@ TEST(stress_patterns, mixed_operations)
     EXPECT_GT(clears.load(), 0);
 }
 
-// ============================================================================
+
 // STRESS TEST COMBINATIONS
-// ============================================================================
+
 
 /// @brief Ultimate stress test - combines multiple stress patterns
 /// Comprehensive validation of pool robustness

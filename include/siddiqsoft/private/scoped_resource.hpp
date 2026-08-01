@@ -132,7 +132,6 @@ namespace siddiqsoft::arrp
             requires NonNumericMoveConstructible<U> && std::derived_from<SRT, scoped_resource<U>>
         friend class resource_pool;
 
-        // ========== Member Variables ==========
 
         /// @brief The actual resource being wrapped
         /// @details Stores the resource object that will be managed by this wrapper

@@ -90,8 +90,6 @@ namespace siddiqsoft::arrp
     class resource_pool
     {
     public:
-        // ========== Static Callbacks ==========
-
         /// @brief Default callback that does not auto-grow the resource pool
         /// @details Returns an error indicating no more resources are available
         static inline std::function<std::expected<SRT, pool_error>(resource_pool&)> CallbackDoNotAutoAddResource =
@@ -100,13 +98,9 @@ namespace siddiqsoft::arrp
         };
 
     private:
-        // ========== Member Variables - Configuration ==========
-
         /// @brief Maximum number of resources that can be in the pool
         /// @details Clamped to range [MinimumCapacity, MaxCapacity] during construction
         uint8_t m_capacity {0};
-
-        // ========== Member Variables - Synchronization ==========
 
         /// @brief Flag indicating pool shutdown is in progress
         /// @details Set to true in destructor before cleanup begins
@@ -118,9 +112,8 @@ namespace siddiqsoft::arrp
         /// otherwise the CI will fail. It is also up to the user to ensure
         /// that they do not call methods that cause deadlocks.
         /// @note Marked as mutable to allow usage within const methods
+        /// It might be more expensive but the client might find this useful!
         mutable std::recursive_mutex m_pool_lock {};
-// It might be more expensive but the client might find this useful!
-#warning "You're using std::recursive_mutex which is more expensive"
 #else
         /// @brief Mutex protecting access to the resource pool
         /// @details Uses a standard mutex for optimal performance
@@ -128,13 +121,9 @@ namespace siddiqsoft::arrp
         mutable std::mutex m_pool_lock {};
 #endif
 
-        // ========== Member Variables - Resource Storage ==========
-
         /// @brief Internal deque storing the pooled resources
         /// @details Uses FIFO ordering: resources are added to back, retrieved from front
         std::deque<T> m_pool {};
-
-        // ========== Member Variables - Statistics ==========
 
         /// @brief Number of resources currently checked out from the pool
         /// @details Uses unsigned type to prevent negative values that could break pool logic.
@@ -157,7 +146,6 @@ namespace siddiqsoft::arrp
         /// @details m_counter_borrows: Resources borrowed from pool
         std::atomic_uint64_t m_counter_seeds {0}, m_counter_ondemand_adds {0}, m_counter_returns {0}, m_counter_borrows {0};
 
-        // ========== Member Variables - Callbacks ==========
 
         /// @brief Callback to create and add new resources to the pool
         /// @details Invoked when the pool needs a resource and is within capacity limits.
@@ -172,7 +160,6 @@ namespace siddiqsoft::arrp
         /// @warning MUST NOT call any pool methods to avoid deadlock. Only perform cleanup operations.
         std::function<void(T&&)> m_callback_on_resource_cleanup {};
 
-        // ========== Private Helper Methods ==========
 
         /// @brief Sets the capacity. This is internal and can only be called from the constructor.
         /// @details The capacity of the internal queue must not be altered once set.
@@ -236,8 +223,6 @@ namespace siddiqsoft::arrp
         }
 
     public:
-        // ========== Deleted Constructors ==========
-
         /// @brief Copy constructor is deleted
         /// @details resource_pool is not copyable to prevent resource duplication
         resource_pool(resource_pool&) = delete;
@@ -254,7 +239,6 @@ namespace siddiqsoft::arrp
         /// @details resource_pool is not movable to maintain resource ownership
         resource_pool& operator=(resource_pool&& src) = delete;
 
-        // ========== Constructors ==========
 
         /// @brief Constructs a resource pool with capacity and auto-grow policy
         ///
@@ -330,7 +314,6 @@ namespace siddiqsoft::arrp
             set_capacity(resource_pool_limits::DefaultCapacity);
         }
 
-        // ========== Destructor ==========
 
         /// @brief Destructor - cleans up all resources in the pool
         ///
@@ -353,7 +336,6 @@ namespace siddiqsoft::arrp
             this->clear();
         }
 
-        // ========== Resource Creation ==========
 
         /// @brief Create a resource that is wired to invoke the return_to_pool in the destructor of the SRT class.
         /// @note The scoped_resource<T> cannot be directly instantiated and thus this method is the only means
@@ -371,7 +353,6 @@ namespace siddiqsoft::arrp
                         std::forward<Args>(args)...};
         }
 
-        // ========== Pool Management ==========
 
         /// @brief Clears all resources from the pool
         ///
@@ -421,7 +402,6 @@ namespace siddiqsoft::arrp
             return m_pool.size();
         }
 
-        // ========== Resource Borrowing ==========
 
         /// @brief Borrows a resource from the pool
         ///
@@ -571,7 +551,6 @@ namespace siddiqsoft::arrp
             return {};
         }
 
-        // ========== Resource Return (Protected) ==========
 
     protected:
         /// @brief Returns a resource to the pool
