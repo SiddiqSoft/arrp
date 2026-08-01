@@ -284,7 +284,7 @@ TEST(custom_scoped_resource, file_persistence_across_cycles)
 
         // Verify both writes are in the file
         FILE* verify_file = std::fopen(temp_file.c_str(), "r");
-        ASSERT_NE(nullptr, verify_file);
+        ASSERT_FALSE(verify_file==NULL);
 
         char buffer[200] = {0};
         std::fread(buffer, 1, sizeof(buffer), verify_file);
