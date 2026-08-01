@@ -700,6 +700,7 @@ TEST(counter_balance, high_concurrency_stress)
 /// @brief Stress test with mixed operations
 TEST(counter_balance, mixed_operations_stress)
 {
+    constexpr int EXPECTED_THREADS = 5;
     siddiqsoft::arrp::resource_pool<std::string> pool {};
 
     for (int i = 0; i < 30; ++i) {
@@ -711,14 +712,36 @@ TEST(counter_balance, mixed_operations_stress)
     std::atomic_int           borrows {0};
     std::atomic_int           adds {0};
     std::atomic_int           invalidates {0};
-    std::barrier              start_barrier {5};
+    std::barrier              start_barrier {EXPECTED_THREADS};
+    std::atomic_int sync_threads_ready{0};
+
+    auto             sync_threads_point = [&] {
+#if defined(_WIN64)
+        sync_threads_ready++;
+        while (sync_threads_ready.load() < EXPECTED_THREADS) {
+            std::this_thread::yield();
+        }
+#else
+        start_barrier.arrive_and_wait();
+#endif
+        std::println(std::cerr, "   concurrent_json_deadlock_detection - All threads ready to continue..{}/{}", sync_threads_ready.load(), EXPECTED_THREADS);
+    };
 
     std::vector<std::jthread> threads;
 
+    // Add thread
+    threads.emplace_back([&]() {
+        sync_threads_point();
+        for (int i = 0; i < 100; ++i) {
+            pool.seed_to_pool(std::format("new-{}", i));
+            adds++;
+        }
+    });
+
     // Borrow thread
     threads.emplace_back([&]() {
-        start_barrier.arrive_and_wait();
-        for (int i = 0; i < 200; ++i) {
+        sync_threads_point();
+        for (int i = 0; i < 500; ++i) {
             auto res = pool.borrow_from_pool();
             if (res.has_value()) {
                 borrows++;
@@ -726,18 +749,9 @@ TEST(counter_balance, mixed_operations_stress)
         }
     });
 
-    // Add thread
-    threads.emplace_back([&]() {
-        start_barrier.arrive_and_wait();
-        for (int i = 0; i < 100; ++i) {
-            pool.seed_to_pool(std::format("new-{}", i));
-            adds++;
-        }
-    });
-
     // Invalidate thread
     threads.emplace_back([&]() {
-        start_barrier.arrive_and_wait();
+        sync_threads_point();
         for (int i = 0; i < 100; ++i) {
             auto res = pool.borrow_from_pool();
             if (res.has_value()) {
@@ -749,7 +763,7 @@ TEST(counter_balance, mixed_operations_stress)
 
     // Monitor thread 1
     threads.emplace_back([&]() {
-        start_barrier.arrive_and_wait();
+        sync_threads_point();
         for (int i = 0; i < 300; ++i) {
             int64_t checkedout = get_borrow_count(pool);
             EXPECT_GE(checkedout, 0);
@@ -759,7 +773,7 @@ TEST(counter_balance, mixed_operations_stress)
 
     // Monitor thread 2
     threads.emplace_back([&]() {
-        start_barrier.arrive_and_wait();
+        sync_threads_point();
         for (int i = 0; i < 300; ++i) {
             auto size = pool.size();
             EXPECT_TRUE(size.has_value());
@@ -767,6 +781,7 @@ TEST(counter_balance, mixed_operations_stress)
         }
     });
 
+    std::this_thread::sleep_for(std::chrono::seconds(5)); // Allow threads to run for a while
     threads.clear();
 
     // Final state: counter should be balanced
