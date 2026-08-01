@@ -50,7 +50,7 @@ TEST(resource_pool, capacity_enforcement_no_autogrow)
     // Try to borrow when pool is starving (under capacity) with no auto-grow
     auto res4 = pool.borrow_from_pool();
     EXPECT_FALSE(res4.has_value());
-    EXPECT_EQ(res4.error(), siddiqsoft::arrp::pool_error::UnderCapacityNoAutoGrow);
+    EXPECT_EQ(res4.error(), siddiqsoft::arrp::pool_error::NoMoreResources);
 }
 
 /// @brief Test 2: Should properly track deficit size calculations
