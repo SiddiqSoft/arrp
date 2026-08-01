@@ -348,7 +348,7 @@ namespace siddiqsoft::arrp
             // Allow the compiler to use NRVO (move elision; do not use std::move here!)
             return SRT {[this](T&& src, bool isvalid) {
                             // this callback puts the resource back..
-                            return this->return_to_pool(std::forward<T&&>(src), isvalid);
+                            return this->return_to_pool(std::forward<T>(src), isvalid);
                         },
                         std::forward<Args>(args)...};
         }
@@ -382,6 +382,7 @@ namespace siddiqsoft::arrp
                 std::print(std::cerr, "{} - exception while delegating to on_cleanup: {}\n", __func__, ex.what());
             }
 
+            // This will clear the pool (of any remaining resources) and reset the size to zero.
             m_pool.clear();
 
             return {};
