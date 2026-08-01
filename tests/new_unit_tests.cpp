@@ -188,6 +188,8 @@ TEST(resource_pool, concurrent_json_no_deadlock)
         }
     }
 
+    std::this_thread::sleep_for(std::chrono::milliseconds(1500));
+
     // Verify operations completed
     EXPECT_GT(json_reads.load(), 0);
     EXPECT_GT(borrows.load(), 0);

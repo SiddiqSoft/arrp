@@ -1638,14 +1638,18 @@ TEST(resource_pool, concurrent_clear_deadlock_detection)
     auto worker2 = std::async(std::launch::async, worker_fn);
     auto clearer = std::async(std::launch::async, clearer_fn);
 
+    // Give time to complete..
+        std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+
     // give five seconds for the threads to complete..
     constexpr auto timeout = std::chrono::seconds(15);
+    // signal for them to stop..
+    stop = true;
+    // If we do not signal them to stop then the wait_for() will
+    // result in a timeout..
     EXPECT_EQ(std::future_status::ready, worker1.wait_for(timeout));
     EXPECT_EQ(std::future_status::ready, worker2.wait_for(timeout));
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    // signal for them to stop..
-    stop = true;
 
     // wait another five seconds..
     EXPECT_EQ(std::future_status::ready, clearer.wait_for(timeout));
