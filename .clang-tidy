@@ -1,4 +1,5 @@
 Checks: 'modernize-*,cppcoreguidelines-*,-modernize-use-trailing-return-type,-cppcoreguidelines-avoid-magic-numbers'
 
 # Ignore everything except our own headers and tests
-HeaderFilterRegex: '^(include/siddiqsoft/|tests/)'
+#HeaderFilterRegex: '^(include/siddiqsoft/|tests/)'
+HeaderFilterRegex: '^(?!\.cpmcache/).*'

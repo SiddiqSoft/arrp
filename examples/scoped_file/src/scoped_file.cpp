@@ -15,6 +15,9 @@
 #include "nlohmann/json.hpp"
 #include "../../../include/siddiqsoft/arrp.hpp"
 
+/// @brief A simple RAII wrapper for managing file resources
+/// @details This class encapsulates a file handle (FILE*) and ensures that the file is properly closed
+/// when the ScopedFile object goes out of scope. It supports move semantics to transfer ownership of the file handle.
 class ScopedFile
 {
     std::FILE*  m_filehandle {nullptr};

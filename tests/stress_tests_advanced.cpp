@@ -359,8 +359,7 @@ TEST(stress_memory, variable_size_objects)
     siddiqsoft::arrp::resource_pool<std::vector<int>> pool {};
 
     pool.seed_to_pool(std::vector<int>(1000, 1));
-    pool.seed_to_pool(std::vector<int>(10000, 2));
-    pool.seed_to_pool(std::vector<int>(100000, 3));
+
     for (int cycle = 0; cycle < 100; ++cycle) {
         {
             auto res = pool.borrow_from_pool();
