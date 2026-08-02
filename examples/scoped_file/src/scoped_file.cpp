@@ -1,8 +1,16 @@
 #include <print>
 #include <format>
 
+#include <cerrno>
+#include <chrono>
 #include <cstdio>
+#include <cstring>
 #include <iostream>
+
+#if defined(WIN32)
+#else
+#include <unistd.h>
+#endif
 
 #include "nlohmann/json.hpp"
 #include "../../../include/siddiqsoft/arrp.hpp"
@@ -56,8 +64,8 @@ public:
         return *this;
     }
 
-               operator FILE*() const { return m_filehandle; }
-    std::FILE* get_filehandle() const { return m_filehandle; }
+               operator FILE*() const noexcept { return m_filehandle; }
+    std::FILE* get_filehandle() const noexcept { return m_filehandle; }
 
     ~ScopedFile()
     {
@@ -83,7 +91,13 @@ int main(int argc, char** argv)
         std::println(std::cerr, "{} - Successfully borrowed resource from pool.", __func__);
         auto ct = std::chrono::system_clock::now();
 
-        fprintf(myfile.value()->get_filehandle(), std::format("{} - Hello, World!\n", ct.time_since_epoch().count()).c_str());
+#if defined(WIN32)
+        fprintf(myfile.value()->get_filehandle(),
+                std::format("{} - {} - Hello, World!\n", rand(), ct.time_since_epoch().count()).c_str());
+#else
+        fprintf(myfile.value()->get_filehandle(),
+                std::format("{} - {} - Hello, World!\n", getpid(), ct.time_since_epoch().count()).c_str());
+#endif
         fflush(myfile.value()->get_filehandle());
     }
     else {

@@ -378,20 +378,18 @@ namespace siddiqsoft::arrp
                 if (m_is_shutdown) return std::unexpected(pool_error::ShutdownInitiated);
 
                 if (!m_pool.empty()) {
-                    // The pool is non-empty; return from the pool
-                    // Return first element from the pool and pop it on scope end
-                    RunOnEnd pop_guard([&]() {
-                        m_pool.pop_front();
-                        m_resources_checkedout++;
-                        m_counter_borrows++;
-                    });
+                    // Move the resource out of the pool while holding the lock.
+                    T resource = std::move(m_pool.front());
+                    m_pool.pop_front();
 
-                    // Make a wrapper..
-                    // Create a SRT element and wire up the auto-return callback to return
-                    // the resource back to this object.
-                    return create_resource(std::move(m_pool.front()));
-                    // Allow the compiler to use NRVO (move elision; do not use std::move here!)
-                    // The pop_front() happens within this scope and within the lock!
+                    // Release the lock before constructing the scoped wrapper
+                    // and updating the borrow counters.
+                    l.unlock();
+
+                    auto borrowed = create_resource(std::move(resource));
+                    m_resources_checkedout++;
+                    m_counter_borrows++;
+                    return borrowed;
                 }
                 else if (is_pool_starving()) {
                     // We're under-capacity.. but no dynamic resource provider
@@ -428,7 +426,7 @@ namespace siddiqsoft::arrp
             // Check inside the lock..
             if (m_is_shutdown) return std::unexpected(pool_error::ShutdownInitiated);
 
-            m_pool.emplace_back(T {std::forward<Args&&>(args)...});
+            m_pool.emplace_back(std::forward<Args>(args)...);
             m_counter_seeds++;
 
             // Update peak pool size for statistics
