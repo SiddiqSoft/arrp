@@ -31,7 +31,13 @@ int main(int argc, char** argv)
 {
     using Pool = siddiqsoft::arrp::resource_pool<ScopedFile>;
 
-    Pool pool(1, [](Pool& pool) { return pool.create_resource("example.txt", "w"); });
+    Pool pool(1, [](Pool& pool) {
+        std::println(std::cerr, "{} - Asked to crete resource.", __func__);
+        return pool.create_resource("example.txt", "w");
+    });
 
+    
+    pool.seed_to_pool("example_scoped_file.txt", "w+");
+    auto myfile = pool.borrow_from_pool();
     return 0;
 }
