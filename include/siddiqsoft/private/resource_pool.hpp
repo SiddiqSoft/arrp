@@ -48,8 +48,8 @@
 #include <memory>
 #include <expected>
 
-#include "private/common.hpp"
-#include "private/scoped_resource.hpp"
+#include "common.hpp"
+#include "scoped_resource.hpp"
 #include "siddiqsoft/RunOnEnd.hpp"
 
 namespace siddiqsoft::arrp

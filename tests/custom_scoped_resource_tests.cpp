@@ -27,7 +27,7 @@
 #endif
 
 #include "nlohmann/json.hpp"
-#include "../include/siddiqsoft/resource_pool.hpp"
+#include "../include/siddiqsoft/private/resource_pool.hpp"
 
 namespace fs = std::filesystem;
 

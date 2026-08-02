@@ -31,7 +31,7 @@
 #include <memory>
 
 #include "nlohmann/json.hpp"
-#include "../include/siddiqsoft/resource_pool.hpp"
+#include "../include/siddiqsoft/private/resource_pool.hpp"
 
 // NOLINTBEGIN(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 

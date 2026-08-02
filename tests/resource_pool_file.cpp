@@ -50,7 +50,7 @@
 #include <filesystem>
 
 #include "nlohmann/json.hpp"
-#include "../include/siddiqsoft/resource_pool.hpp"
+#include "../include/siddiqsoft/private/resource_pool.hpp"
 
 // Helper function to get a platform-independent temporary file path
 inline std::string get_temp_file_path(const std::string& filename)
