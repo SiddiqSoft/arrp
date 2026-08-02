@@ -126,16 +126,17 @@ namespace siddiqsoft::arrp
         /// @param is_valid Whether the resource is valid and should be reused
         using PutbackCallbackFunc = std::function<void(T&&, bool)>;
 
+    protected:
+        /// @brief The actual resource being wrapped
+        /// @details Stores the resource object that will be managed by this wrapper
+        T m_rsrc {};
+
     private:
         // Allow resource_pool to access protected members
         template <typename U, typename SRT>
             requires NonNumericMoveConstructible<U> && std::derived_from<SRT, scoped_resource<U>>
         friend class resource_pool;
 
-
-        /// @brief The actual resource being wrapped
-        /// @details Stores the resource object that will be managed by this wrapper
-        T m_rsrc {};
 
         /// @brief Callback function to return the resource to the pool
         /// @details Called by destructor when resource is valid. Typically returns the

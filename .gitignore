@@ -18,6 +18,8 @@ CMakeFiles/
 out/
 Testing/
 CMakeCache.txt
+**/build/
+**/.cpmcache
 **/*.cmake
 **/*.vcxproj
 **/*.sln
