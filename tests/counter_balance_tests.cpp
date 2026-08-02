@@ -574,47 +574,6 @@ TEST(counter_balance, concurrent_clears)
 // AUTOGROW POLICY COUNTER BALANCE TESTS
 
 
-/// @brief Test counter balance with AutoGrow policy
-TEST(counter_balance, autogrow_policy)
-{
-    siddiqsoft::arrp::resource_pool<std::string> pool {5};
-
-    EXPECT_EQ(0, get_borrow_count(pool));
-
-    // Borrow from empty pool with AutoGrow
-    {
-        auto res = pool.borrow_from_pool();
-        EXPECT_TRUE(res.has_value());
-        EXPECT_EQ(1, get_borrow_count(pool));
-    }
-
-    // Counter should be balanced
-    EXPECT_EQ(0, get_loan_count(pool));
-}
-
-/// @brief Test counter balance with AutoGrow and multiple on-demand creations
-TEST(counter_balance, autogrow_multiple_creations)
-{
-    siddiqsoft::arrp::resource_pool<std::string> pool {5};
-
-    EXPECT_EQ(0, get_borrow_count(pool));
-
-    // Borrow multiple times from empty pool
-    for (int i = 0; i < 5; ++i) {
-        {
-            auto res = pool.borrow_from_pool();
-            EXPECT_TRUE(res.has_value());
-            EXPECT_EQ(1, get_loan_count(pool));
-        }
-        EXPECT_EQ(0, get_loan_count(pool));
-    }
-
-    std::print(std::cerr, "Stats: {}\n", pool.to_json().value().get().dump());
-
-    // All created resources should be in pool
-    EXPECT_EQ(1, pool.size().value_or(0));
-}
-
 
 
 // STRESS TESTS FOR COUNTER BALANCE

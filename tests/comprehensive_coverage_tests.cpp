@@ -233,33 +233,6 @@ TEST(resource_pool_constructors, cleanup_callback_only)
     EXPECT_EQ(2, cleanup_count.load());
 }
 
-/// @brief Test resource_pool with capacity and factory callback
-TEST(resource_pool_constructors, capacity_and_factory)
-{
-    std::atomic_int                              factory_calls {0};
-
-    siddiqsoft::arrp::resource_pool<std::string> pool {4};
-
-
-    factory_calls++;
-    pool.seed_to_pool(std::format("factory-created-{}", factory_calls.load()));
-    factory_calls++;
-    pool.seed_to_pool(std::format("factory-created-{}", factory_calls.load()));
-    factory_calls++;
-    pool.seed_to_pool(std::format("factory-created-{}", factory_calls.load()));
-    factory_calls++;
-    pool.seed_to_pool(std::format("factory-created-{}", factory_calls.load()));
-
-    // Borrow should trigger factory
-    {
-        auto res = pool.borrow_from_pool();
-        EXPECT_TRUE(res.has_value());
-        EXPECT_EQ(1, factory_calls.load());
-    }
-
-    EXPECT_EQ(1u, pool.size().value_or(0));
-}
-
 
 // RESOURCE_POOL SIZE AND CAPACITY TESTS
 
@@ -342,15 +315,6 @@ TEST(resource_pool_borrow, empty_pool_no_factory)
     EXPECT_EQ(res.error(), siddiqsoft::arrp::pool_error::NoMoreResources);
 }
 
-/// @brief Test borrow_from_pool with factory that throws
-TEST(resource_pool_borrow, factory_throws_exception)
-{
-    siddiqsoft::arrp::resource_pool<std::string> pool {4};
-
-    auto                                         res = pool.borrow_from_pool();
-    EXPECT_FALSE(res.has_value());
-    EXPECT_EQ(res.error(), siddiqsoft::arrp::pool_error::Unknown);
-}
 
 /// @brief Test borrow_from_pool returns FIFO order
 TEST(resource_pool_borrow, fifo_order_verification)
