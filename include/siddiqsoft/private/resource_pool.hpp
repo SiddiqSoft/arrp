@@ -89,14 +89,6 @@ namespace siddiqsoft::arrp
         requires NonNumericMoveConstructible<T> && std::derived_from<SRT, scoped_resource<T>>
     class resource_pool
     {
-    public:
-        /// @brief Default callback that does not auto-grow the resource pool
-        /// @details Returns an error indicating no more resources are available
-        static inline std::function<std::expected<SRT, pool_error>(resource_pool&)> CallbackDoNotAutoAddResource =
-                [](resource_pool&) -> std::expected<SRT, pool_error> {
-            return std::unexpected(pool_error::NoMoreResources);
-        };
-
     private:
         /// @brief Maximum number of resources that can be in the pool
         /// @details Clamped to range [MinimumCapacity, MaxCapacity] during construction
@@ -146,20 +138,12 @@ namespace siddiqsoft::arrp
         /// @details m_counter_borrows: Resources borrowed from pool
         std::atomic_uint64_t m_counter_seeds {0}, m_counter_ondemand_adds {0}, m_counter_returns {0}, m_counter_borrows {0};
 
-
-        /// @brief Callback to create and add new resources to the pool
-        /// @details Invoked when the pool needs a resource and is within capacity limits.
-        /// The client cannot directly add resources; instead, they provide this factory callback.
-        /// @warning MUST NOT call any pool methods to avoid deadlock. Only create and return resources.
-        std::function<std::expected<SRT, pool_error>(resource_pool&)> m_callback_to_add_new_raw_resource_to_pool {};
-
         /// @brief Callback on resource cleanup during pool destruction
         /// @details This method is invoked within a lock and inside of a for-loop across each
         /// resource in the internal deque.
         /// This approach allows the client to perform any final cleanup for the given resource.
         /// @warning MUST NOT call any pool methods to avoid deadlock. Only perform cleanup operations.
         std::function<void(T&&)> m_callback_on_resource_cleanup {};
-
 
         /// @brief Sets the capacity. This is internal and can only be called from the constructor.
         /// @details The capacity of the internal queue must not be altered once set.
@@ -240,39 +224,6 @@ namespace siddiqsoft::arrp
         resource_pool& operator=(resource_pool&& src) = delete;
 
 
-        /// @brief Constructs a resource pool with capacity and auto-grow policy
-        ///
-        /// @param init_capacity Initial capacity of the pool (defaults to DefaultCapacity)
-        /// @param add_policy Auto-grow policy (defaults to NoGrow). Controls on-demand resource creation.
-        ///
-        /// @note Capacity is clamped to valid range [MinimumCapacity, MaxCapacity]
-        /// @note If add_policy is AutoGrow, resources are created on-demand up to capacity
-        /// @note If add_policy is NoGrow, pool returns error when exhausted
-        resource_pool(uint8_t         init_capacity = resource_pool_limits::DefaultCapacity,
-                      auto_add_policy add_policy    = auto_add_policy::NoGrow)
-        {
-#if defined(DEBUG)
-            std::print(std::cerr,
-                       "{}(x,b) - Invoked; init_capacity:{} with new add_policy: {}\n",
-                       __func__,
-                       init_capacity,
-                       add_policy);
-#endif
-            set_capacity(init_capacity);
-
-            if (add_policy == auto_add_policy::NoGrow) {
-                m_callback_to_add_new_raw_resource_to_pool = CallbackDoNotAutoAddResource;
-            }
-            else if (add_policy == auto_add_policy::AutoGrow) {
-                // This method is declared here as lambda to capture the this pointer
-                // whereas if we attempted to declared it earlier as a static inline then the
-                // this pointer would not be captured.
-                m_callback_to_add_new_raw_resource_to_pool = [this](resource_pool& pool) -> std::expected<SRT, pool_error> {
-                    return create_resource();
-                };
-            }
-        }
-
         /// @brief Constructs a resource pool with factory and cleanup callbacks
         ///
         /// @param init_capacity Initial capacity of the pool
@@ -282,19 +233,10 @@ namespace siddiqsoft::arrp
         /// @note The factory callback is required and must return std::expected<SRT, pool_error>. It must NOT call pool methods.
         /// @note The cleanup callback is optional and invoked for each resource during destruction
         /// @note Capacity is clamped to valid range [MinimumCapacity, MaxCapacity]
-        resource_pool(uint8_t                                                         init_capacity,
-                      std::function<std::expected<SRT, pool_error>(resource_pool&)>&& new_resource_callback,
+        resource_pool(uint8_t                                                         init_capacity = resource_pool_limits::DefaultCapacity,
                       std::function<void(T&&)>&&                                      on_shutdown_callback = {})
-            : m_callback_to_add_new_raw_resource_to_pool(new_resource_callback ? std::move(new_resource_callback)
-                                                                               : CallbackDoNotAutoAddResource)
-            , m_callback_on_resource_cleanup(std::move(on_shutdown_callback))
+            : m_callback_on_resource_cleanup(std::move(on_shutdown_callback))
         {
-#if defined(DEBUG)
-            std::print(std::cerr,
-                       "{}(x,y,z) - Invoked; init_capacity:{} with new resource callback and optional cleanup callback\n",
-                       __func__,
-                       init_capacity);
-#endif
             set_capacity(init_capacity);
         }
 
@@ -305,12 +247,8 @@ namespace siddiqsoft::arrp
         /// @note Uses default capacity and no auto-grow policy
         /// @note The cleanup callback is optional and invoked for each resource during destruction
         resource_pool(std::function<void(T&&)>&& on_shutdown_callback)
-            : m_callback_to_add_new_raw_resource_to_pool(CallbackDoNotAutoAddResource)
-            , m_callback_on_resource_cleanup(std::move(on_shutdown_callback))
+            : m_callback_on_resource_cleanup(std::move(on_shutdown_callback))
         {
-#if defined(DEBUG)
-            std::print(std::cerr, "{}(z) - Invoked;  with new cleanup callback\n", __func__);
-#endif
             set_capacity(resource_pool_limits::DefaultCapacity);
         }
 
@@ -454,27 +392,6 @@ namespace siddiqsoft::arrp
                     return create_resource(std::move(m_pool.front()));
                     // Allow the compiler to use NRVO (move elision; do not use std::move here!)
                     // The pop_front() happens within this scope and within the lock!
-                }
-                else if (is_pool_starving() && m_callback_to_add_new_raw_resource_to_pool) {
-                    // We have no more items in the pool (we're starting up or everything is
-                    // checked out) but we have not reached the limit. The limit is number
-                    // of m_resources_checkedout + pool.size() < m_capacity We are
-                    // under-capacity.. so we can return to the caller a new item..
-                    // We should unlock the resource and ..
-                    l.unlock();
-
-                    // Update the attempted delegated calls to add new raw resource to pool.
-                    // ..delegate the new resource acquisition outside the lock.
-                    return m_callback_to_add_new_raw_resource_to_pool(*this).and_then(
-                            [&](auto item) -> std::expected<SRT, pool_error> {
-                                m_resources_checkedout++;
-                                // This is a borrow even though it was not from our pool..
-                                m_counter_borrows++;
-                                // Guarenteed to count after the invocation to the callback
-                                m_counter_ondemand_adds++;
-                                // We're not performing any change to the original, just return it back.
-                                return item;
-                            });
                 }
                 else if (is_pool_starving()) {
                     // We're under-capacity.. but no dynamic resource provider

@@ -585,7 +585,7 @@ TEST(custom_scoped_resource, capacity_limits)
 
     try {
         siddiqsoft::arrp::resource_pool<FILE*> pool {
-                2, {}, [temp_file](FILE*&& fh) {
+                2, [temp_file](FILE*&& fh) {
                     if (fh != nullptr) {
                         std::print(std::cerr, "{} - closing `{}` filehandle:{:p}\n", __func__, temp_file, (void*)fh);
                         fclose(fh);

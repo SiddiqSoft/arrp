@@ -258,10 +258,7 @@ TEST(counter_balance, moved_resources)
 /// @brief Test counter balance when exception occurs during borrow
 TEST(counter_balance, exception_during_borrow)
 {
-    siddiqsoft::arrp::resource_pool<std::string> pool {
-            4, [](auto&) -> std::expected<siddiqsoft::arrp::scoped_resource<std::string>, siddiqsoft::arrp::pool_error> {
-                throw std::runtime_error("Factory error");
-            }};
+    siddiqsoft::arrp::resource_pool<std::string> pool {4};
 
     EXPECT_EQ(0, get_borrow_count(pool));
 
@@ -580,7 +577,7 @@ TEST(counter_balance, concurrent_clears)
 /// @brief Test counter balance with AutoGrow policy
 TEST(counter_balance, autogrow_policy)
 {
-    siddiqsoft::arrp::resource_pool<std::string> pool {5, siddiqsoft::arrp::auto_add_policy::AutoGrow};
+    siddiqsoft::arrp::resource_pool<std::string> pool {5};
 
     EXPECT_EQ(0, get_borrow_count(pool));
 
@@ -598,7 +595,7 @@ TEST(counter_balance, autogrow_policy)
 /// @brief Test counter balance with AutoGrow and multiple on-demand creations
 TEST(counter_balance, autogrow_multiple_creations)
 {
-    siddiqsoft::arrp::resource_pool<std::string> pool {5, siddiqsoft::arrp::auto_add_policy::AutoGrow};
+    siddiqsoft::arrp::resource_pool<std::string> pool {5};
 
     EXPECT_EQ(0, get_borrow_count(pool));
 
@@ -618,41 +615,6 @@ TEST(counter_balance, autogrow_multiple_creations)
     EXPECT_EQ(1, pool.size().value_or(0));
 }
 
-/// @brief Test counter balance with custom factory callback
-TEST(counter_balance, custom_factory_callback)
-{
-    std::atomic_int                              factory_calls {0};
-
-    siddiqsoft::arrp::resource_pool<std::string> pool {
-            5,
-            [&factory_calls](
-                    auto& p) -> std::expected<siddiqsoft::arrp::scoped_resource<std::string>, siddiqsoft::arrp::pool_error> {
-                factory_calls++;
-                return p.create_resource(std::format("factory-{}", factory_calls.load()));
-            }};
-
-    EXPECT_EQ(0, get_loan_count(pool));
-
-    // Borrow from empty pool with factory
-    {
-        // On an empty pool.. we will create a new resource
-        // this will not be in the pool..
-        auto res = pool.borrow_from_pool();
-        EXPECT_TRUE(res.has_value());
-
-        std::println(std::cerr, "  the resource: {}", **res);
-
-        EXPECT_EQ(1, get_borrow_count(pool));
-        EXPECT_EQ(1, factory_calls.load());
-
-        std::print(std::cerr, "    Stats before return: {}\n", pool.to_json().value().get().dump());
-    }
-
-    std::print(std::cerr, "    Stats: {}\n", pool.to_json().value().get().dump());
-
-    // Counter should be balanced
-    EXPECT_EQ(0, get_loan_count(pool));
-}
 
 
 // STRESS TESTS FOR COUNTER BALANCE

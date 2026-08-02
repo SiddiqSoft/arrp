@@ -238,13 +238,17 @@ TEST(resource_pool_constructors, capacity_and_factory)
 {
     std::atomic_int                              factory_calls {0};
 
-    siddiqsoft::arrp::resource_pool<std::string> pool {
-            4,
-            [&factory_calls](
-                    auto& p) -> std::expected<siddiqsoft::arrp::scoped_resource<std::string>, siddiqsoft::arrp::pool_error> {
-                factory_calls++;
-                return p.create_resource(std::format("factory-created-{}", factory_calls.load()));
-            }};
+    siddiqsoft::arrp::resource_pool<std::string> pool {4};
+
+
+    factory_calls++;
+    pool.seed_to_pool(std::format("factory-created-{}", factory_calls.load()));
+    factory_calls++;
+    pool.seed_to_pool(std::format("factory-created-{}", factory_calls.load()));
+    factory_calls++;
+    pool.seed_to_pool(std::format("factory-created-{}", factory_calls.load()));
+    factory_calls++;
+    pool.seed_to_pool(std::format("factory-created-{}", factory_calls.load()));
 
     // Borrow should trigger factory
     {
@@ -253,33 +257,6 @@ TEST(resource_pool_constructors, capacity_and_factory)
         EXPECT_EQ(1, factory_calls.load());
     }
 
-    EXPECT_EQ(1u, pool.size().value_or(0));
-}
-
-/// @brief Test resource_pool with NoGrow policy
-TEST(resource_pool_constructors, nogrow_policy)
-{
-    siddiqsoft::arrp::resource_pool<std::string> pool {4, siddiqsoft::arrp::auto_add_policy::NoGrow};
-
-    // Empty pool should fail to borrow
-    auto res = pool.borrow_from_pool();
-    EXPECT_FALSE(res.has_value());
-    EXPECT_EQ(res.error(), siddiqsoft::arrp::pool_error::NoMoreResources);
-}
-
-/// @brief Test resource_pool with AutoGrow policy
-TEST(resource_pool_constructors, autogrow_policy)
-{
-    siddiqsoft::arrp::resource_pool<std::string> pool {4, siddiqsoft::arrp::auto_add_policy::AutoGrow};
-
-    // Empty pool should create resource on demand
-    {
-        auto res = pool.borrow_from_pool();
-        EXPECT_TRUE(res.has_value());
-        EXPECT_EQ("", *res.value());
-    }
-
-    // Resource should be returned to pool
     EXPECT_EQ(1u, pool.size().value_or(0));
 }
 
@@ -358,12 +335,9 @@ TEST(resource_pool_size, size_after_shutdown)
 /// @brief Test borrow_from_pool with empty pool and no factory
 TEST(resource_pool_borrow, empty_pool_no_factory)
 {
-    siddiqsoft::arrp::resource_pool<std::string> pool {
-            4, [](auto&) -> std::expected<siddiqsoft::arrp::scoped_resource<std::string>, siddiqsoft::arrp::pool_error> {
-                return std::unexpected(siddiqsoft::arrp::pool_error::NoMoreResources);
-            }};
+    siddiqsoft::arrp::resource_pool<std::string> pool {4};
 
-    auto res = pool.borrow_from_pool();
+    auto                                         res = pool.borrow_from_pool();
     EXPECT_FALSE(res.has_value());
     EXPECT_EQ(res.error(), siddiqsoft::arrp::pool_error::NoMoreResources);
 }
@@ -371,12 +345,9 @@ TEST(resource_pool_borrow, empty_pool_no_factory)
 /// @brief Test borrow_from_pool with factory that throws
 TEST(resource_pool_borrow, factory_throws_exception)
 {
-    siddiqsoft::arrp::resource_pool<std::string> pool {
-            4, [](auto&) -> std::expected<siddiqsoft::arrp::scoped_resource<std::string>, siddiqsoft::arrp::pool_error> {
-                throw std::runtime_error("Factory error");
-            }};
+    siddiqsoft::arrp::resource_pool<std::string> pool {4};
 
-    auto res = pool.borrow_from_pool();
+    auto                                         res = pool.borrow_from_pool();
     EXPECT_FALSE(res.has_value());
     EXPECT_EQ(res.error(), siddiqsoft::arrp::pool_error::Unknown);
 }

@@ -24,7 +24,7 @@ TEST(resource_pool, capacity_enforcement_no_autogrow)
     constexpr uint8_t POOL_CAPACITY = 3;
 
     // Create pool with fixed capacity and no auto-grow
-    siddiqsoft::arrp::resource_pool<std::string> pool {POOL_CAPACITY, siddiqsoft::arrp::auto_add_policy::NoGrow};
+    siddiqsoft::arrp::resource_pool<std::string> pool {POOL_CAPACITY};
 
     // Seed the pool to capacity
     pool.seed_to_pool(std::string("res1"));
