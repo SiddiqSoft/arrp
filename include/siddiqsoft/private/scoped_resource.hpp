@@ -129,7 +129,7 @@ namespace siddiqsoft::arrp
     protected:
         /// @brief The actual resource being wrapped
         /// @details Stores the resource object that will be managed by this wrapper
-        T m_rsrc {};
+        T m_rsrc;
 
     private:
         // Allow resource_pool to access protected members
@@ -149,11 +149,12 @@ namespace siddiqsoft::arrp
         /// - false: resource will NOT be returned to pool on destruction
         bool m_is_valid {false};
 
-    public:
-        /// @brief Default constructor is deleted
-        /// @details scoped_resource must be constructed with a callback and resource
-        scoped_resource() = delete;
+    protected:
+        /// @brief Default constructor is protected to allow derived classes
+        /// construct their own data.
+        scoped_resource() = default;
 
+    public:
         /// @brief Copy constructor is deleted
         /// @details scoped_resource is move-only to prevent resource ownership ambiguity
         /// and ensure proper RAII semantics. Only one scoped_resource can own a resource.
@@ -165,6 +166,13 @@ namespace siddiqsoft::arrp
         /// Copy assignment is not allowed to maintain move-only semantics
         /// and prevent resource ownership ambiguity.
         scoped_resource& operator=(const scoped_resource&) = delete;
+
+    protected:
+        scoped_resource& set_putback_callback(PutbackCallbackFunc&& f)
+        {
+            m_putback_callback = std::move(f);
+            return *this;
+        }
 
     public:
         /// @brief Constructs a scoped_resource with a callback and resource
