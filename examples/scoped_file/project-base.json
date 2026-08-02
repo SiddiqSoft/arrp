@@ -10,8 +10,7 @@
                 "CMAKE_PROJECT_DESCRIPTION": "scoped_file example",
                 "CMAKE_CXX_STANDARD": "23",
                 "scoped_file_BUILD_TESTS": "ON",
-                "CI_BUILDID": "0.0.0",
-                "CPM_SOURCE_CACHE": "$HOME/.cache/.cpmcache"
+                "CI_BUILDID": "0.0.0"
             },
             "hidden": true
         }
