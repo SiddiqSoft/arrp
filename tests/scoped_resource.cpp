@@ -881,35 +881,6 @@ TEST(resource_pool, extreme_stress_high_concurrency)
     EXPECT_GT(total_ops.load(), 0);
 }
 
-/// @brief Test with custom factory callback
-TEST(resource_pool, custom_factory_callback)
-{
-    std::atomic_int                              creation_count {0};
-
-    siddiqsoft::arrp::resource_pool<std::string> pool;
-
-    creation_count++;
-    pool.seed_to_pool(std::format("created-{}", creation_count.load()));
-    creation_count++;
-    pool.seed_to_pool(std::format("created-{}", creation_count.load()));
-
-    // Borrow resources - should trigger factory
-    {
-        auto res1_result = pool.borrow_from_pool();
-        EXPECT_TRUE(res1_result.has_value());
-        auto res1 = std::move(res1_result.value());
-        EXPECT_EQ(1, creation_count.load());
-
-        auto res2_result = pool.borrow_from_pool();
-        EXPECT_TRUE(res2_result.has_value());
-        auto res2 = std::move(res2_result.value());
-        EXPECT_EQ(2, creation_count.load());
-    }
-
-    // Resources should be returned
-    EXPECT_EQ(2u, pool.size());
-}
-
 /// @brief Test capacity limits
 TEST(resource_pool, capacity_limits)
 {

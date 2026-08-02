@@ -64,7 +64,6 @@ namespace siddiqsoft::arrp
     enum class pool_error : uint8_t
     {
         NoMoreResources,         ///< Pool is exhausted and no factory callback available
-        UnderCapacityNoAutoGrow, ///< Pool is under capacity but auto-grow is disabled
         ShutdownInitiated,       ///< Pool is shutting down
         Unknown                  ///< Unknown error
     };
@@ -102,7 +101,6 @@ struct std::formatter<siddiqsoft::arrp::pool_error> : std::formatter<std::string
     {
         switch (pe) {
             case siddiqsoft::arrp::pool_error::NoMoreResources: return std::format_to(ctx.out(), "NoMoreResources");
-            case siddiqsoft::arrp::pool_error::UnderCapacityNoAutoGrow: return std::format_to(ctx.out(), "UnderCapacityNoAutoGrow");
             case siddiqsoft::arrp::pool_error::ShutdownInitiated: return std::format_to(ctx.out(), "ShutdownInitiated");
             default: return std::format_to(ctx.out(), "Unknown");
         }

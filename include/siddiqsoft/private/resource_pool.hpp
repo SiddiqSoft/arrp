@@ -233,8 +233,8 @@ namespace siddiqsoft::arrp
         /// @note The factory callback is required and must return std::expected<SRT, pool_error>. It must NOT call pool methods.
         /// @note The cleanup callback is optional and invoked for each resource during destruction
         /// @note Capacity is clamped to valid range [MinimumCapacity, MaxCapacity]
-        resource_pool(uint8_t                                                         init_capacity = resource_pool_limits::DefaultCapacity,
-                      std::function<void(T&&)>&&                                      on_shutdown_callback = {})
+        resource_pool(uint8_t                    init_capacity        = resource_pool_limits::DefaultCapacity,
+                      std::function<void(T&&)>&& on_shutdown_callback = {})
             : m_callback_on_resource_cleanup(std::move(on_shutdown_callback))
         {
             set_capacity(init_capacity);
@@ -391,9 +391,9 @@ namespace siddiqsoft::arrp
                     m_counter_borrows++;
                     return borrowed;
                 }
-                else if (is_pool_starving()) {
+                else {
                     // We're under-capacity.. but no dynamic resource provider
-                    return std::unexpected(siddiqsoft::arrp::pool_error::UnderCapacityNoAutoGrow);
+                    return std::unexpected(siddiqsoft::arrp::pool_error::NoMoreResources);
                 }
             } // scope end
             catch (std::exception& ex) {
