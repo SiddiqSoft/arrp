@@ -1,0 +1,18 @@
+{
+    "version": 8,
+    "configurePresets": [
+        {
+            "name": "Project-Base",
+            "displayName": "Project Base",
+            "description": "Base preset for all project configurations.",
+            "cacheVariables": {
+                "CMAKE_PROJECT_NAME": "scoped_curl",
+                "CMAKE_PROJECT_DESCRIPTION": "scoped_curl example",
+                "CMAKE_CXX_STANDARD": "23",
+                "scoped_curl_BUILD_TESTS": "ON",
+                "CI_BUILDID": "0.0.0"
+            },
+            "hidden": true
+        }
+    ]
+}

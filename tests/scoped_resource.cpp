@@ -1417,28 +1417,6 @@ TEST(resource_pool_adversarial, concurrent_clear_rapid_ops_FIXED)
     auto             start_time   = std::chrono::steady_clock::now();
     constexpr auto   TEST_TIMEOUT = std::chrono::seconds(5);
 
-    // Thread that clears
-    std::jthread clearer([&](std::stop_token st) {
-        while (!st.stop_requested() && !stop.load()) {
-            // DEADLOCK FIX: Check for timeout
-            if (std::chrono::steady_clock::now() - start_time > TEST_TIMEOUT) {
-                std::println(std::cerr, "   concurrent_clear_rapid_ops_FIXED - Clearer thread exiting due to timeout.");
-                break;
-            }
-
-            pool.clear();
-            clears++;
-            std::this_thread::sleep_for(std::chrono::milliseconds(10)); // INCREASED from 5
-
-            // Repopulate
-            for (int i = 0; i < 10; ++i) {
-                pool.seed_to_pool(std::format("resource-{}", i));
-            }
-            std::println(std::cerr, "   concurrent_clear_rapid_ops_FIXED - Clearer thread repopulated pool. clears: {}. pool: {}", clears.load(), pool.size().value_or(-1));
-        }
-        std::println(std::cerr, "   concurrent_clear_rapid_ops_FIXED - Clearer thread ending. clears: {}", clears.load());
-    });
-
     // Threads that borrow/add
     std::vector<std::jthread> workers;
     for (int t = 0; t < 4; ++t) {
@@ -1457,9 +1435,38 @@ TEST(resource_pool_adversarial, concurrent_clear_rapid_ops_FIXED)
                     auto res = std::move(result.value());
                 }
             }
-            std::println(std::cerr, "   concurrent_clear_rapid_ops_FIXED - Thread ending. clears: {} borrows: {}", clears.load(), borrows.load());
+            std::println(std::cerr,
+                         "   concurrent_clear_rapid_ops_FIXED - Thread ending. clears: {} borrows: {}",
+                         clears.load(),
+                         borrows.load());
         });
     }
+
+    // Thread that clears
+    std::jthread clearer([&](std::stop_token st) {
+        while (!st.stop_requested() && !stop.load()) {
+            // DEADLOCK FIX: Check for timeout
+            if (std::chrono::steady_clock::now() - start_time > TEST_TIMEOUT) {
+                std::println(std::cerr, "   concurrent_clear_rapid_ops_FIXED - Clearer thread exiting due to timeout.");
+                break;
+            }
+
+            pool.clear();
+            clears++;
+            std::this_thread::sleep_for(std::chrono::milliseconds(10)); // INCREASED from 5
+
+            // Repopulate
+            for (int i = 0; i < 10; ++i) {
+                pool.seed_to_pool(std::format("resource-{}", i));
+            }
+            std::println(std::cerr,
+                         "   concurrent_clear_rapid_ops_FIXED - Clearer thread repopulated pool. clears: {}. pool: {}",
+                         clears.load(),
+                         pool.size().value_or(-1));
+        }
+        std::println(std::cerr, "   concurrent_clear_rapid_ops_FIXED - Clearer thread ending. clears: {}", clears.load());
+    });
+
 
     std::this_thread::sleep_for(std::chrono::seconds(3)); // Allow some time for operations
     workers.clear();
