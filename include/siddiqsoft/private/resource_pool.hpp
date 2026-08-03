@@ -47,6 +47,7 @@
 #include <type_traits>
 #include <memory>
 #include <expected>
+#include <semaphore>
 
 #include "common.hpp"
 #include "scoped_resource.hpp"
@@ -116,6 +117,9 @@ namespace siddiqsoft::arrp
         /// @brief Internal deque storing the pooled resources
         /// @details Uses FIFO ordering: resources are added to back, retrieved from front
         std::deque<T> m_pool {};
+
+        /// @brief Semaphore to track available resources in the pool
+        std::counting_semaphore<> m_pool_semaphore {0};
 
         /// @brief Number of resources currently checked out from the pool
         /// @details Uses unsigned type to prevent negative values that could break pool logic.
@@ -309,7 +313,10 @@ namespace siddiqsoft::arrp
             try {
                 if (m_callback_on_resource_cleanup && !m_pool.empty()) {
                     while (!m_pool.empty()) {
-                        RunOnEnd roe([&] { m_pool.pop_front(); });
+                        RunOnEnd roe([&] {
+                            m_pool.pop_front();
+                            m_pool_semaphore.acquire();
+                        });
                         // delegate to the cleanup.
                         // the delegate must not invoke any pool member to avoid deadlocks.
                         m_callback_on_resource_cleanup(std::move(m_pool.front()));
@@ -366,34 +373,42 @@ namespace siddiqsoft::arrp
         ///     std::print(std::cerr, "Failed to borrow resource\n");
         /// }
         /// @endcode
-        [[nodiscard]] auto borrow_from_pool() -> std::expected<SRT, pool_error>
+        [[nodiscard]] auto borrow_from_pool(std::chrono::nanoseconds timeout = {}) -> std::expected<SRT, pool_error>
         {
             try {
                 // @note We use a unique_lock vs a scoped_lock to allow ourselves
                 // to create the resource outside the lock!
-                std::unique_lock l(m_pool_lock);
 
                 // Now that we're inside the lock, we should check again to ensure that
                 // the shutdown is not in progress..
                 if (m_is_shutdown) return std::unexpected(pool_error::ShutdownInitiated);
 
-                if (!m_pool.empty()) {
-                    // Move the resource out of the pool while holding the lock.
-                    T resource = std::move(m_pool.front());
-                    m_pool.pop_front();
+                // If the pool is empty, we can check if we're under capacity and if so, we can create a new resource on-demand.
+                if (timeout.count() == 0 ? m_pool_semaphore.try_acquire() : m_pool_semaphore.try_acquire_for(timeout)) {
+                    // We likely have a resource available.. grab a lock.
+                    std::unique_lock l(m_pool_lock);
+                    // We have a resource available.. just to be sure, we'll check the pool size inside the lock..
+                    if (!m_pool.empty()) {
+                        // Move the resource out of the pool while holding the lock.
+                        T resource = std::move(m_pool.front());
+                        m_pool.pop_front();
 
-                    // Release the lock before constructing the scoped wrapper
-                    // and updating the borrow counters.
-                    l.unlock();
+                        // Release the lock before constructing the scoped wrapper
+                        // and updating the borrow counters.
+                        l.unlock();
 
-                    auto borrowed = create_resource(std::move(resource));
-                    m_resources_checkedout++;
-                    m_counter_borrows++;
-                    return borrowed;
+                        auto borrowed = create_resource(std::move(resource));
+                        m_resources_checkedout++;
+                        m_counter_borrows++;
+                        return borrowed;
+                    }
+                    else {
+                        // We're under-capacity.. but no dynamic resource provider
+                        return std::unexpected(siddiqsoft::arrp::pool_error::NoMoreResources);
+                    }
                 }
                 else {
-                    // We're under-capacity.. but no dynamic resource provider
-                    return std::unexpected(siddiqsoft::arrp::pool_error::NoMoreResources);
+                    return std::unexpected(siddiqsoft::arrp::pool_error::Timeout);
                 }
             } // scope end
             catch (std::exception& ex) {
@@ -421,19 +436,24 @@ namespace siddiqsoft::arrp
         template <typename... Args>
         auto seed_to_pool(Args&&... args) -> std::expected<void, pool_error>
         {
-            std::scoped_lock l(m_pool_lock);
+            {
+                std::scoped_lock l(m_pool_lock);
 
-            // Check inside the lock..
-            if (m_is_shutdown) return std::unexpected(pool_error::ShutdownInitiated);
+                // Check inside the lock..
+                if (m_is_shutdown) return std::unexpected(pool_error::ShutdownInitiated);
 
-            m_pool.emplace_back(std::forward<Args>(args)...);
-            m_counter_seeds++;
+                m_pool.emplace_back(std::forward<Args>(args)...);
+                m_counter_seeds++;
 
-            // Update peak pool size for statistics
-            auto current_size = m_pool.size();
-            if (current_size > m_peak_poolsize.load()) {
-                m_peak_poolsize = current_size;
+                // Update peak pool size for statistics
+                auto current_size = m_pool.size();
+                if (current_size > m_peak_poolsize.load()) {
+                    m_peak_poolsize = current_size;
+                }
             }
+
+            // Signal the semaphore outside the lock to avoid potential deadlocks.
+            m_pool_semaphore.release(); // resource is available, increment semaphore
 
             return {};
         }
@@ -450,19 +470,24 @@ namespace siddiqsoft::arrp
         /// management will not work properly!
         auto seed_to_pool(T&& item) -> std::expected<void, pool_error>
         {
-            std::scoped_lock l(m_pool_lock);
+            {
+                std::scoped_lock l(m_pool_lock);
 
-            // Check inside the lock..
-            if (m_is_shutdown) return std::unexpected(pool_error::ShutdownInitiated);
+                // Check inside the lock..
+                if (m_is_shutdown) return std::unexpected(pool_error::ShutdownInitiated);
 
-            m_pool.emplace_back(std::move(item));
-            m_counter_seeds++;
+                m_pool.emplace_back(std::move(item));
+                m_counter_seeds++;
 
-            // Update peak pool size for statistics
-            auto current_size = m_pool.size();
-            if (current_size > m_peak_poolsize.load()) {
-                m_peak_poolsize = current_size;
+                // Update peak pool size for statistics
+                auto current_size = m_pool.size();
+                if (current_size > m_peak_poolsize.load()) {
+                    m_peak_poolsize = current_size;
+                }
             }
+
+            // Signal the semaphore outside the lock to avoid potential deadlocks.
+            m_pool_semaphore.release(); // resource is available, increment semaphore
 
             return {};
         }
@@ -487,26 +512,31 @@ namespace siddiqsoft::arrp
         /// management will not work properly!
         void return_to_pool(T&& item, bool isvalid)
         {
-            std::scoped_lock l(m_pool_lock);
+            {
+                std::scoped_lock l(m_pool_lock);
 
-            // Check inside the lock..
-            if (m_is_shutdown) return;
+                // Check inside the lock..
+                if (m_is_shutdown) return;
 
-            m_resources_checkedout--;
+                m_resources_checkedout--;
 
-            if (isvalid) {
-                m_pool.push_back(std::move(item));
-                m_counter_returns++;
+                if (isvalid) {
+                    m_pool.push_back(std::move(item));
+                    m_counter_returns++;
 
-                // Update peak pool size for statistics
-                auto current_size = m_pool.size();
-                if (current_size > m_peak_poolsize.load()) {
-                    m_peak_poolsize = current_size;
+                    // Update peak pool size for statistics
+                    auto current_size = m_pool.size();
+                    if (current_size > m_peak_poolsize.load()) {
+                        m_peak_poolsize = current_size;
+                    }
+                }
+                else {
+                    m_counter_abandons++;
                 }
             }
-            else {
-                m_counter_abandons++;
-            }
+
+            // Signal the semaphore outside the lock to avoid potential deadlocks.
+            m_pool_semaphore.release(); // resource is available, increment semaphore
         }
 
 #if defined(NLOHMANN_JSON_VERSION_MAJOR)

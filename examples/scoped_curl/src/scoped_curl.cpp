@@ -85,7 +85,7 @@ public:
 
 void do_request(siddiqsoft::arrp::resource_pool<ScopedCurl>& pool, const char* url)
 {
-    auto sc = pool.borrow_from_pool();
+    auto sc = pool.borrow_from_pool(std::chrono::milliseconds(1000));
     if (sc.has_value()) {
         auto&& myCurlHandle = **sc;
         if (myCurlHandle) {
@@ -117,7 +117,6 @@ int main(int argc, char** argv)
         siddiqsoft::arrp::resource_pool<ScopedCurl> pool {};
 
         pool.seed_to_pool();
-        pool.seed_to_pool();
 
         // We're performing one request at a time and therefore the pool will not be exhausted.
         std::future<void> f1 = std::async(std::launch::async, do_request, std::ref(pool), "https://www.example.com");
@@ -128,6 +127,7 @@ int main(int argc, char** argv)
 
         f1.get();
         f2.get();
+        std::println(std::cerr, "\n\n{} - Final test stats:{}", __func__, pool.to_json().value().get().dump());
         return 0;
     }
     else {
