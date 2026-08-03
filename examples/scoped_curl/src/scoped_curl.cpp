@@ -6,6 +6,7 @@
 #include <cstdio>
 #include <cstring>
 #include <iostream>
+#include <future>
 
 #include "curl/curl.h"
 
@@ -23,19 +24,17 @@
 class ScopedCurl
 {
     CURL*                        m_curlhandle {nullptr};
-    std::string                  m_url {};
     std::shared_ptr<std::string> m_content {new std::string {}};
 
 public:
-    ScopedCurl(const std::string url)
-        : m_url(url)
-        , m_curlhandle(curl_easy_init())
+    ScopedCurl()
+        : m_curlhandle(curl_easy_init())
     {
         if (m_curlhandle != nullptr) {
-            std::println(std::cerr, "{} - Successfully initialized curl handle: {}", __func__, m_url);
+            std::println(std::cerr, "{} - Successfully initialized curl handle", __func__);
         }
         else {
-            std::println(std::cerr, "{} - Failed to initialize curl handle: {}", __func__, m_url);
+            std::println(std::cerr, "{} - Failed to initialize curl handle", __func__);
             throw std::runtime_error("Failed to initialize curl handle");
         }
     }
@@ -51,7 +50,7 @@ public:
     // with the guarantee that the resource will be returned to the pool when the scoped_resource<> goes out of scope.
     ScopedCurl(ScopedCurl&& other) noexcept
         : m_curlhandle(other.m_curlhandle)
-        , m_url(std::move(other.m_url))
+        , m_content(std::move(other.m_content))
     {
         other.m_curlhandle = nullptr;
     }
@@ -64,20 +63,18 @@ public:
                 m_curlhandle = nullptr;
             }
             m_curlhandle       = other.m_curlhandle;
-            m_url              = std::move(other.m_url);
+            m_content          = std::move(other.m_content);
             other.m_curlhandle = nullptr;
         }
         return *this;
     }
 
-                               operator CURL*() const noexcept { return m_curlhandle; }
-
-    [[nodiscard]] std::string& get_url() noexcept { return m_url; }
+    operator CURL*() const noexcept { return m_curlhandle; }
 
     ~ScopedCurl()
     {
         if (m_curlhandle != nullptr) {
-            std::println(std::cerr, "{} - Closing the url: {}", __func__, m_url);
+            std::println(std::cerr, "{} - Closing the handle", __func__);
             curl_easy_cleanup(m_curlhandle);
 
             m_curlhandle = nullptr;
@@ -85,29 +82,23 @@ public:
     }
 };
 
-int main(int argc, char** argv)
+
+void do_request(siddiqsoft::arrp::resource_pool<ScopedCurl>& pool, const char* url)
 {
-    using Pool = siddiqsoft::arrp::resource_pool<ScopedCurl>;
-
-
-    if (auto rc = curl_global_init(CURL_GLOBAL_ALL); rc == CURLE_OK) {
-        Pool pool {};
-
-        pool.seed_to_pool("https://www.google.com");
-
-        auto myCurlHandle = pool.borrow_from_pool().value();
-        if (*myCurlHandle) {
+    auto sc = pool.borrow_from_pool();
+    if (sc.has_value()) {
+        auto&& myCurlHandle = **sc;
+        if (myCurlHandle) {
             std::println(std::cerr, "{} - Successfully borrowed resource from pool.", __func__);
             auto ct = std::chrono::system_clock::now();
 
             // Setup the curl options for the request
-            if (auto rc = curl_easy_setopt(*myCurlHandle, CURLOPT_URL, (*myCurlHandle).get_url().c_str()); rc != CURLE_OK) {
-                std::println(
-                        std::cerr, "{} - Failed to set URL:{} -- {}", __func__, (*myCurlHandle).get_url(), curl_easy_strerror(rc));
+            if (auto rc = curl_easy_setopt(myCurlHandle, CURLOPT_URL, url); rc != CURLE_OK) {
+                std::println(std::cerr, "{} - Failed to set URL:{} -- {}", __func__, url, curl_easy_strerror(rc));
             }
 
             // Do the curl request and check for errors
-            if (auto rc = curl_easy_perform(*myCurlHandle); rc != CURLE_OK) {
+            if (auto rc = curl_easy_perform(myCurlHandle); rc != CURLE_OK) {
                 std::println(std::cerr, "{} - Failed to perform curl request: {}", __func__, curl_easy_strerror(rc));
             }
             else {
@@ -117,6 +108,26 @@ int main(int argc, char** argv)
         else {
             std::println(std::cerr, "{} - Failed to borrow resource from pool.", __func__);
         }
+    }
+}
+
+int main(int argc, char** argv)
+{
+    if (auto rc = curl_global_init(CURL_GLOBAL_ALL); rc == CURLE_OK) {
+        siddiqsoft::arrp::resource_pool<ScopedCurl> pool {};
+
+        pool.seed_to_pool();
+        pool.seed_to_pool();
+
+        // We're performing one request at a time and therefore the pool will not be exhausted.
+        std::future<void> f1 = std::async(std::launch::async, do_request, std::ref(pool), "https://www.example.com");
+        std::println(std::cerr, "\n{} - Post test stats:{}", __func__, pool.to_json().value().get().dump());
+
+        std::future<void> f2 = std::async(std::launch::async, do_request, std::ref(pool), "https://www.google.com");
+        std::println(std::cerr, "\n{} - Post test stats:{}", __func__, pool.to_json().value().get().dump());
+
+        f1.get();
+        f2.get();
         return 0;
     }
     else {
