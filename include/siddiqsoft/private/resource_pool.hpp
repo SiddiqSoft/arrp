@@ -403,12 +403,14 @@ namespace siddiqsoft::arrp
                         return borrowed;
                     }
                     else {
-                        // We're under-capacity.. but no dynamic resource provider
                         return std::unexpected(siddiqsoft::arrp::pool_error::NoMoreResources);
                     }
                 }
-                else {
+                else if (timeout.count() > 0) {
                     return std::unexpected(siddiqsoft::arrp::pool_error::Timeout);
+                }
+                else {
+                    return std::unexpected(siddiqsoft::arrp::pool_error::NoMoreResources);
                 }
             } // scope end
             catch (std::exception& ex) {

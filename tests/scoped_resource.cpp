@@ -226,12 +226,12 @@ TEST(resource_pool, T_checkin_checkout_vector_string)
 /// @brief Test that borrow on an empty pool throws
 TEST(resource_pool, borrow_empty_throws)
 {
-    // Custom allocator that does not allocate and rather throws..
     siddiqsoft::arrp::resource_pool<std::string> rp;
 
 
     auto                                         result = rp.borrow_from_pool();
     EXPECT_FALSE(result.has_value());
+
     EXPECT_EQ(result.error(), siddiqsoft::arrp::pool_error::NoMoreResources);
 }
 
@@ -239,7 +239,7 @@ TEST(resource_pool, borrow_empty_throws)
 /// @brief Test clear empties the pool
 TEST(resource_pool, clear)
 {
-    // Custom allocator that does not allocate and rather throws..
+    // Custom allocator that does not allocate and rather tj hrows..
     siddiqsoft::arrp::resource_pool<std::string> rp;
 
     rp.seed_to_pool(std::string("1"));
