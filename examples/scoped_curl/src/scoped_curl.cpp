@@ -82,10 +82,11 @@ public:
     }
 };
 
+std::atomic_int g_request_count {0};
 
-void do_request(siddiqsoft::arrp::resource_pool<ScopedCurl>& pool, const char* url)
+void            do_request(siddiqsoft::arrp::resource_pool<ScopedCurl>& pool, const char* url)
 {
-    auto sc = pool.borrow_from_pool(std::chrono::milliseconds(1000));
+    auto sc = pool.borrow_from_pool(std::chrono::milliseconds(2000));
     if (sc.has_value()) {
         auto&& myCurlHandle = **sc;
         if (myCurlHandle) {
@@ -103,6 +104,7 @@ void do_request(siddiqsoft::arrp::resource_pool<ScopedCurl>& pool, const char* u
             }
             else {
                 std::println(std::cerr, "{} - Successfully performed curl request.", __func__);
+                g_request_count++;
             }
         }
         else {
@@ -116,8 +118,6 @@ int main(int argc, char** argv)
     if (auto rc = curl_global_init(CURL_GLOBAL_ALL); rc == CURLE_OK) {
         siddiqsoft::arrp::resource_pool<ScopedCurl> pool {};
 
-        pool.seed_to_pool();
-
         // We're performing one request at a time and therefore the pool will not be exhausted.
         std::future<void> f1 = std::async(std::launch::async, do_request, std::ref(pool), "https://www.example.com");
         std::println(std::cerr, "\n{} - Post test stats:{}", __func__, pool.to_json().value().get().dump());
@@ -125,10 +125,17 @@ int main(int argc, char** argv)
         std::future<void> f2 = std::async(std::launch::async, do_request, std::ref(pool), "https://www.google.com");
         std::println(std::cerr, "\n{} - Post test stats:{}", __func__, pool.to_json().value().get().dump());
 
+        // Now, we will seed the pool with a single resource.
+        // We expect both operations to complete!
+        pool.seed_to_pool();
+
+        // The threads will wait here for the tasks to complete.
         f1.get();
         f2.get();
+
+
         std::println(std::cerr, "\n\n{} - Final test stats:{}", __func__, pool.to_json().value().get().dump());
-        return 0;
+        return g_request_count.load() == 2 ? EXIT_SUCCESS : EXIT_FAILURE;
     }
     else {
         std::println(std::cerr, "{} - Failed to initialize curl global state.", __func__);
