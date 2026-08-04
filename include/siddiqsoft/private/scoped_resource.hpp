@@ -184,7 +184,7 @@ namespace siddiqsoft::arrp
         /// @brief Copy constructor is deleted
         /// @details scoped_resource is move-only to prevent resource ownership ambiguity
         /// and ensure proper RAII semantics. Only one scoped_resource can own a resource.
-        explicit scoped_resource(const T&) = delete;
+        scoped_resource(const scoped_resource&) = delete;
 
         /// @brief Copy assignment operator is deleted
         ///
@@ -308,12 +308,25 @@ namespace siddiqsoft::arrp
         /// @return Pointer to the wrapped resource, or nullptr if invalid
         /// @note Returns nullptr if resource is invalid
         auto operator->() -> T* { return m_is_valid ? &m_rsrc : nullptr; }
+        auto operator->() const -> const T* { return m_is_valid ? &m_rsrc : nullptr; }
+
+        /// @brief Explicit conversion to resource value
+        /// @returns The wrapped resource, moving it out of this wrapper.
+        /// @note Invalidates the scoped_resource to prevent double-return during destruction.
+        explicit operator T() &&
+        {
+            m_is_valid = false;
+            return std::move(m_rsrc);
+        }
 
         /// @brief Explicit conversion to resource reference
         /// @return Reference to the wrapped resource
         /// @warning Behavior is undefined if resource has been invalidated
-        explicit operator T() { return m_rsrc; }
-        explicit operator T&() { return m_rsrc; }
+        explicit operator T&() & { return m_rsrc; }
+        explicit operator const T&() const& { return m_rsrc; }
+
+        /// @brief Explicit bool conversion to indicate resource validity
+        explicit operator bool() const noexcept { return m_is_valid; }
 
         /// @brief This bit of code allows the client to get at the available
         /// conversion within the stored type T.
@@ -331,6 +344,7 @@ namespace siddiqsoft::arrp
         /// fputs("Hello World", myfile);
         /// 
         template <typename InnerType>
+            requires std::convertible_to<const T&, InnerType>
         operator InnerType() const
         {
             return static_cast<InnerType>(m_rsrc);
