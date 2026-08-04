@@ -1407,6 +1407,7 @@ TEST(resource_pool, concurrent_clear_with_operations_FIXED)
 TEST(resource_pool_adversarial, concurrent_clear_rapid_ops_FIXED)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool;
+
     for (int i = 0; i < 20; ++i) {
         pool.seed_to_pool(std::format("resource-{}", i));
     }
@@ -1429,16 +1430,20 @@ TEST(resource_pool_adversarial, concurrent_clear_rapid_ops_FIXED)
                     break;
                 }
 
-                auto result = pool.borrow_from_pool();
+                auto result = pool.borrow_from_pool(std::chrono::milliseconds(50));
                 if (result.has_value()) {
                     borrows++;
                     auto res = std::move(result.value());
+                    std::this_thread::sleep_for(std::chrono::milliseconds(50));
                 }
+
+                std::println(std::cerr,
+                             "   concurrent_clear_rapid_ops_FIXED - Worker thread pool. borrows: {}. pool: {}",
+                             borrows.load(),
+                             pool.size().value_or(-1));
             }
-            std::println(std::cerr,
-                         "   concurrent_clear_rapid_ops_FIXED - Thread ending. clears: {} borrows: {}",
-                         clears.load(),
-                         borrows.load());
+
+            std::println(std::cerr, "   concurrent_clear_rapid_ops_FIXED - Worker thread ending. borrows: {}", borrows.load());
         });
     }
 

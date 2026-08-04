@@ -99,6 +99,8 @@ namespace siddiqsoft::arrp
     /// @note Move-only semantics: Copy operations are deleted to prevent resource ownership ambiguity
     /// @note RAII pattern: Resource is automatically returned to pool on destruction
     /// @note Callback-based: Uses std::function callback to return resource to pool
+    /// @note Not directly constructible: Only resource_pool can create instances
+    /// @note Validity tracking: Tracks whether resource is valid and should be returned to pool
     ///
     /// @example
     /// @code
@@ -137,7 +139,6 @@ namespace siddiqsoft::arrp
             requires NonNumericMoveConstructible<U> && std::derived_from<SRT, scoped_resource<U>>
         friend class resource_pool;
 
-
         /// @brief Callback function to return the resource to the pool
         /// @details Called by destructor when resource is valid. Typically returns the
         ///          resource to the resource_pool for reuse.
@@ -154,6 +155,28 @@ namespace siddiqsoft::arrp
         /// construct their own data.
         scoped_resource() = default;
 
+    private:
+        /// @brief Constructs a scoped_resource with a callback and resource
+        ///
+        /// @note Only resource_pool may create scoped_resource instances.
+        explicit scoped_resource(PutbackCallbackFunc&& f, T&& src)
+            : m_rsrc(std::move(src))
+            , m_putback_callback(std::move(f))
+        {
+            m_is_valid = true;
+        }
+
+        /// @brief Constructs a scoped_resource with a callback and in-place constructed resource
+        ///
+        /// @note Only resource_pool may create scoped_resource instances.
+        template <typename... Args>
+        scoped_resource(PutbackCallbackFunc&& f, Args&&... args)
+            : m_rsrc(std::forward<Args>(args)...)
+            , m_putback_callback(std::move(f))
+        {
+            m_is_valid = true;
+        }
+
     public:
         /// @brief Copy constructor is deleted
         /// @details scoped_resource is move-only to prevent resource ownership ambiguity
@@ -166,47 +189,6 @@ namespace siddiqsoft::arrp
         /// Copy assignment is not allowed to maintain move-only semantics
         /// and prevent resource ownership ambiguity.
         scoped_resource& operator=(const scoped_resource&) = delete;
-
-    protected:
-        scoped_resource& set_putback_callback(PutbackCallbackFunc&& f)
-        {
-            m_putback_callback = std::move(f);
-            return *this;
-        }
-
-    public:
-        /// @brief Constructs a scoped_resource with a callback and resource
-        ///
-        /// @param f The callback function to invoke on destruction
-        /// @param src The resource to manage (moved)
-        ///
-        /// @note The callback is stored and invoked during destruction
-        /// @note The resource is moved into the wrapper
-        /// @note The resource is marked as valid
-        /// @note Protected: Only accessible via resource_pool friend class
-        explicit scoped_resource(PutbackCallbackFunc&& f, T&& src)
-            : m_rsrc(std::move(src))
-            , m_putback_callback(std::move(f))
-            , m_is_valid(true)
-        {
-        }
-
-        /// @brief Constructs a scoped_resource with a callback and in-place constructed resource
-        ///
-        /// @tparam Args Types of arguments to forward to T's constructor
-        /// @param f The callback function to invoke on destruction
-        /// @param args Arguments to forward to T's constructor
-        ///
-        /// @note The resource is constructed in-place
-        /// @note The resource is marked as valid
-        /// @note Protected: Only accessible via resource_pool friend class
-        template <typename... Args>
-        scoped_resource(PutbackCallbackFunc&& f, Args&&... args)
-            : m_rsrc(std::forward<Args>(args)...)
-            , m_putback_callback(std::move(f))
-            , m_is_valid(true)
-        {
-        }
 
     public:
         /// @brief Move constructor
@@ -371,6 +353,8 @@ namespace siddiqsoft::arrp
         /// @note Const: Does not modify the resource
         virtual bool is_valid() const { return m_is_valid; }
 
+
+        virtual bool has_value() const { return m_is_valid; }
 
 #if defined(NLOHMANN_JSON_VERSION_MAJOR)
     public:
