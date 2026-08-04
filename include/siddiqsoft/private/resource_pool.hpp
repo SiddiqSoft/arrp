@@ -169,10 +169,6 @@ namespace siddiqsoft::arrp
                 else {
                     m_capacity = init_capacity;
                 }
-
-                // Updated the capacity in the stats..
-                m_json["capacity"] = m_capacity;
-
 #if defined(DEBUG)
                 std::print(std::cerr, "{} - capacity: {}  init_capacity:{}\n", __func__, m_capacity, init_capacity);
 #endif
@@ -577,35 +573,30 @@ namespace siddiqsoft::arrp
         ///     std::cout << json_result.value().get().dump(2) << std::endl;
         /// }
         /// @endcode
-        auto to_json() const ->  nlohmann::json
+        auto to_json() const -> nlohmann::json
         {
-            {
-                std::scoped_lock l(m_pool_lock);
+            nlohmann::json   stats;
+            std::scoped_lock l(m_pool_lock);
 
-                // Update the pool statistics
-                m_json["size"]     = m_pool.size();                  ///< Available resources in pool
-                m_json["deficit"]  = deficit_size();                 ///< Resources needed to reach capacity
-                m_json["capacity"] = m_capacity;                     ///< Maximum resources
-                m_json["peaksize"] = m_peak_poolsize.load();         ///< Peak pool size reached
-                m_json["abandons"] = m_counter_abandons.load();      ///< Invalidated resources
-                m_json["seeds"]    = m_counter_seeds.load();         ///< Resources added via seed_to_pool()
-                m_json["autoadds"] = m_counter_ondemand_adds.load(); ///< Resources created on-demand
-                m_json["returns"]  = m_counter_returns.load();       ///< Resources returned to pool
-                m_json["borrows"]  = m_counter_borrows.load();       ///< Resources borrowed from pool
-                m_json["loans"]    = loan_size();                    ///< Currently borrowed resources
+            // Update the pool statistics
+            stats["size"]     = m_pool.size();                  ///< Available resources in pool
+            stats["deficit"]  = deficit_size();                 ///< Resources needed to reach capacity
+            stats["capacity"] = m_capacity;                     ///< Maximum resources
+            stats["peaksize"] = m_peak_poolsize.load();         ///< Peak pool size reached
+            stats["abandons"] = m_counter_abandons.load();      ///< Invalidated resources
+            stats["seeds"]    = m_counter_seeds.load();         ///< Resources added via seed_to_pool()
+            stats["autoadds"] = m_counter_ondemand_adds.load(); ///< Resources created on-demand
+            stats["returns"]  = m_counter_returns.load();       ///< Resources returned to pool
+            stats["borrows"]  = m_counter_borrows.load();       ///< Resources borrowed from pool
+            stats["loans"]    = loan_size();                    ///< Currently borrowed resources
 
-                // This field is only available when there is a supported data-type
-                if constexpr (std::is_same_v<T, nlohmann::json> || std::is_same_v<T, std::string>) {
-                    m_json["items"] = m_pool;
-                }
+            // This field is only available when there is a supported data-type
+            if constexpr (std::is_same_v<T, nlohmann::json> || std::is_same_v<T, std::string>) {
+                stats["items"] = m_pool;
             }
 
-            return m_json;
+            return stats;
         }
-
-    private:
-        /// @brief JSON object for statistics
-        mutable nlohmann::json m_json {{"_typver", "siddiqsoft.arrp.resource_pool/0.0.0"}, {"capacity", m_capacity}};
 #endif
     };
 

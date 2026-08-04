@@ -173,7 +173,7 @@ TEST(resource_pool, concurrent_json_no_deadlock)
     auto json_thread = std::jthread([&]() {
         sync_threads_point();
         for (int i = 0; i < 50; ++i) {
-            auto& json = pool.to_json();
+            auto json = pool.to_json();
             EXPECT_TRUE(json.contains("seeds"));
             json_reads++;
         }

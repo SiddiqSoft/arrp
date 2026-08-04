@@ -1010,7 +1010,7 @@ TEST(stress_ultimate, comprehensive_stress)
                     else {
                         // JSON serialization (guard against concurrent issues)
                         try {
-                            auto json = pool.to_json();
+                            const auto json = pool.to_json();
                             if (json.is_object()) {
                                 EXPECT_TRUE(json.contains("returns"));
                             }
@@ -1051,7 +1051,7 @@ TEST(stress_ultimate, comprehensive_stress)
     std::cerr << "Total clears: " << total_clears.load() << '\n';
     std::cerr << "Final pool size: " << pool.size() << '\n';
     try {
-        auto json = pool.to_json();
+        const auto json = pool.to_json();
         if (json.is_object()) {
             std::cerr << "Pool state: " << json.dump(2) << '\n';
         }

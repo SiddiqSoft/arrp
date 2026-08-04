@@ -832,7 +832,7 @@ TEST(resource_pool, json_serialization_counters)
         auto res = std::move(res_result);
     }
 
-    auto& json = pool.to_json();
+    auto json = pool.to_json();
 
     // Verify JSON structure
     EXPECT_TRUE(json.contains("_typver"));
@@ -1325,7 +1325,7 @@ TEST(resource_pool_adversarial, concurrent_json_serialization)
     threads.emplace_back([&]() {
         start_barrier.arrive_and_wait();
         for (int i = 0; i < 50; ++i) {
-            auto& json = pool.to_json();
+            auto json = pool.to_json();
             json_calls++;
             EXPECT_TRUE(json.contains("seeds"));
         }
@@ -1622,7 +1622,7 @@ TEST(resource_pool, concurrent_json_deadlock_detection)
     auto json_fn = [&]() {
         sync_threads_point();
         for (int i = 0; i < 100; ++i) {
-            auto& json = pool.to_json();
+            auto json = pool.to_json();
             EXPECT_TRUE(json.contains("seeds"));
             std::this_thread::sleep_for(std::chrono::microseconds(10));
         }
