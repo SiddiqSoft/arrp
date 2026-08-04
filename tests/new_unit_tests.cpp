@@ -61,21 +61,21 @@ TEST(resource_pool, deficit_size_calculation)
 
     // Initially, pool is empty: deficit = capacity - (pool_size + checked_out)
     // deficit = 5 - (0 + 0) = 5
-    auto json1 = pool.to_json().value().get();
+    auto json1 = pool.to_json();
     EXPECT_EQ(5, json1["deficit"]);
 
     // Add 2 resources to pool
     pool.seed_to_pool(std::string("res1"));
     pool.seed_to_pool(std::string("res2"));
     // deficit = 5 - (2 + 0) = 3
-    auto json2 = pool.to_json().value().get();
+    auto json2 = pool.to_json();
     EXPECT_EQ(3, json2["deficit"]);
 
     // Borrow 1 resource
     auto res = pool.borrow_from_pool();
     EXPECT_TRUE(res.has_value());
     // deficit = 5 - (1 + 1) = 3 (pool has 1, checked out has 1)
-    auto json3 = pool.to_json().value().get();
+    auto json3 = pool.to_json();
     EXPECT_EQ(3, json3["deficit"]);
 
     // Return the resource
@@ -95,7 +95,7 @@ TEST(resource_pool, loan_size_with_abandons)
     pool.seed_to_pool(std::string("res3"));
 
     // Initial state: loans = 0
-    auto json1 = pool.to_json().value().get();
+    auto json1 = pool.to_json();
     EXPECT_EQ(0, json1["loans"]);
 
     // Borrow 2 resources
@@ -105,21 +105,21 @@ TEST(resource_pool, loan_size_with_abandons)
     EXPECT_TRUE(res2.has_value());
 
     // loans = borrows - returns - abandons = 2 - 0 - 0 = 2
-    auto json2 = pool.to_json().value().get();
+    auto json2 = pool.to_json();
     EXPECT_EQ(2, json2["loans"]);
 
     // Invalidate one resource (abandon it)
-    res1.value().invalidate();
+    res1.invalidate();
 
     // Return both resources
     // res1 is abandoned, res2 is returned
     // loans = 2 - 1 - 1 = 0 (1 return, 1 abandon)
     {
-        auto temp1 = std::move(res1.value());
-        auto temp2 = std::move(res2.value());
+        auto temp1 = std::move(res1);
+        auto temp2 = std::move(res2);
     }
 
-    auto json3 = pool.to_json().value().get();
+    auto json3 = pool.to_json();
     EXPECT_EQ(0, json3["loans"]);
     EXPECT_EQ(1, json3["abandons"]);
     EXPECT_EQ(1, json3["returns"]);
@@ -173,7 +173,7 @@ TEST(resource_pool, concurrent_json_no_deadlock)
     auto json_thread = std::jthread([&]() {
         sync_threads_point();
         for (int i = 0; i < 50; ++i) {
-            auto& json = pool.to_json().value().get();
+            auto& json = pool.to_json();
             EXPECT_TRUE(json.contains("seeds"));
             json_reads++;
         }
@@ -211,14 +211,14 @@ TEST(scoped_resource, move_assignment_returns_previous)
     // Borrow first resource
     auto res1_result = pool.borrow_from_pool();
     EXPECT_TRUE(res1_result.has_value());
-    auto res1 = std::move(res1_result.value());
+    auto res1 = std::move(res1_result);
     EXPECT_EQ("original", *res1);
     EXPECT_EQ(1u, pool.size());
 
     // Borrow second resource
     auto res2_result = pool.borrow_from_pool();
     EXPECT_TRUE(res2_result.has_value());
-    auto res2 = std::move(res2_result.value());
+    auto res2 = std::move(res2_result);
     EXPECT_EQ("replacement", *res2);
     EXPECT_EQ(0u, pool.size());
 
@@ -233,7 +233,7 @@ TEST(scoped_resource, move_assignment_returns_previous)
     // Verify we can borrow the original resource
     auto res3_result = pool.borrow_from_pool();
     EXPECT_TRUE(res3_result.has_value());
-    auto res3 = std::move(res3_result.value());
+    auto res3 = std::move(res3_result);
     EXPECT_EQ("original", *res3);
 }
 

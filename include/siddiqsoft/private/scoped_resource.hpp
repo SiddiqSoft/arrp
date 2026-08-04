@@ -150,7 +150,7 @@ namespace siddiqsoft::arrp
         /// - false: resource will NOT be returned to pool on destruction
         bool       m_is_valid {false};
 
-        pool_error m_error_code {pool_error::None};
+        pool_error m_error_code {pool_error::Ok};
 
     protected:
         /// @brief Default constructor is protected to allow derived classes
@@ -175,6 +175,7 @@ namespace siddiqsoft::arrp
         scoped_resource(PutbackCallbackFunc&& f, Args&&... args)
             : m_rsrc(std::forward<Args>(args)...)
             , m_putback_callback(std::move(f))
+            , m_error_code(pool_error::Ok)
         {
             m_is_valid = true;
         }
@@ -362,7 +363,12 @@ namespace siddiqsoft::arrp
         /// @note Const: Does not modify the resource
         virtual bool is_valid() const { return m_is_valid; }
 
-        pool_error   error_code() const { return m_error_code; }
+        auto&        set_error(pool_error err)
+        {
+            m_error_code = err;
+            return *this;
+        }
+        pool_error   error() const { return m_error_code; }
         virtual bool has_value() const { return m_is_valid; }
 
 #if defined(NLOHMANN_JSON_VERSION_MAJOR)

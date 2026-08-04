@@ -63,7 +63,7 @@ namespace siddiqsoft::arrp
     /// Indicates various error conditions that can occur during pool operations.
     enum class pool_error : uint8_t
     {
-        None = 0,          ///< No error; operation succeeded
+        Ok = 0,            ///< No error; operation succeeded
         NoMoreResources,   ///< Pool is exhausted and no factory callback available
         ShutdownInitiated, ///< Pool is shutting down
         Timeout,           ///< Resource was not available within the specified timeout
@@ -102,9 +102,11 @@ struct std::formatter<siddiqsoft::arrp::pool_error> : std::formatter<std::string
     auto format(siddiqsoft::arrp::pool_error& pe, auto& ctx) const noexcept
     {
         switch (pe) {
+            case siddiqsoft::arrp::pool_error::Ok: return std::format_to(ctx.out(), "Ok");
             case siddiqsoft::arrp::pool_error::NoMoreResources: return std::format_to(ctx.out(), "NoMoreResources");
             case siddiqsoft::arrp::pool_error::ShutdownInitiated: return std::format_to(ctx.out(), "ShutdownInitiated");
-            default: return std::format_to(ctx.out(), "Unknown");
+            case siddiqsoft::arrp::pool_error::Timeout: return std::format_to(ctx.out(), "Timeout");
+            case siddiqsoft::arrp::pool_error::Unknown: return std::format_to(ctx.out(), "Unknown");
         }
     }
 };

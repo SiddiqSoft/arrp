@@ -45,13 +45,15 @@
 template <typename T>
 int64_t get_borrow_count(siddiqsoft::arrp::resource_pool<T>& pool)
 {
-    return pool.to_json().transform([](nlohmann::json& doc) { return doc.value("borrows", -1); }).value();
+    auto doc = pool.to_json();
+    return doc.value("borrows", -1);
 }
 
 template <typename T>
 int64_t get_loan_count(siddiqsoft::arrp::resource_pool<T>& pool)
 {
-    return pool.to_json().transform([](nlohmann::json& doc) { return doc.value("loans", -1); }).value();
+    auto doc = pool.to_json();
+    return doc.value("loans", -1);
 }
 
 
@@ -104,7 +106,7 @@ TEST(counter_balance, multiple_sequential_borrows)
 
     // Final state: all returned
     EXPECT_EQ(0, get_loan_count(pool));
-    EXPECT_EQ(5, pool.size().value_or(0));
+    EXPECT_EQ(5, pool.size());
 }
 
 /// @brief Test counter balance with multiple concurrent borrows
@@ -163,7 +165,7 @@ TEST(counter_balance, invalidated_resources)
         EXPECT_EQ(2, get_borrow_count(pool));
 
         // Invalidate one resource
-        res1.value().invalidate();
+        res1.invalidate();
         EXPECT_EQ(2, get_borrow_count(pool)); // Still checked out
     }
 
@@ -171,7 +173,7 @@ TEST(counter_balance, invalidated_resources)
     EXPECT_EQ(0, get_loan_count(pool));
 
     // But only one should be in the pool (the other was invalidated)
-    EXPECT_EQ(1, pool.size().value_or(-1));
+    EXPECT_EQ(1, pool.size());
 }
 
 
@@ -225,7 +227,7 @@ TEST(counter_balance, moved_resources)
     pool.seed_to_pool(custom_mr {"resource-2"});
 
     EXPECT_EQ(0, get_borrow_count(pool));
-    EXPECT_EQ(2, pool.size().value_or(0));
+    EXPECT_EQ(2, pool.size());
 
     {
         auto res1 = pool.borrow_from_pool();
@@ -241,14 +243,14 @@ TEST(counter_balance, moved_resources)
         EXPECT_EQ(2, get_borrow_count(pool)); // Still 2 checked out
     }
 
-    std::print(std::cerr, "Stats: {}\n", pool.to_json().value().get().dump());
+    std::print(std::cerr, "Stats: {}\n", pool.to_json().dump());
 
     // After scope: both should be decremented
     // The custom resource cleans up properly!
     EXPECT_EQ(0, get_loan_count(pool));
 
     // Both resources should be back in the pool!
-    EXPECT_EQ(2, pool.size().value_or(0));
+    EXPECT_EQ(2, pool.size());
 }
 
 
@@ -326,7 +328,7 @@ TEST(counter_balance, nested_exception_handling)
         // Exception caught
     }
 
-    std::print(std::cerr, "Stats: {}\n", pool.to_json().value().get().dump());
+    std::print(std::cerr, "Stats: {}\n", pool.to_json().dump());
 
     // Counter should be balanced
     EXPECT_EQ(0, get_loan_count(pool));
@@ -436,7 +438,7 @@ TEST(counter_balance, concurrent_invalidations)
                 auto res = pool.borrow_from_pool();
                 if (res.has_value()) {
                     if (i % 3 == 0) {
-                        res.value().invalidate();
+                        res.invalidate();
                         invalidated++;
                     }
                     else {
@@ -454,7 +456,7 @@ TEST(counter_balance, concurrent_invalidations)
 
     // Pool should contain only non-invalidated resources
     int64_t expected_size = 30 - invalidated.load();
-    EXPECT_EQ(expected_size, static_cast<int64_t>(pool.size().value_or(0)));
+    EXPECT_EQ(expected_size, static_cast<int64_t>(pool.size()));
 }
 
 /// @brief Test counter balance with concurrent adds and borrows
@@ -574,8 +576,6 @@ TEST(counter_balance, concurrent_clears)
 // AUTOGROW POLICY COUNTER BALANCE TESTS
 
 
-
-
 // STRESS TESTS FOR COUNTER BALANCE
 
 
@@ -611,7 +611,7 @@ TEST(counter_balance, high_concurrency_stress)
 
     threads.clear();
 
-    std::print(std::cerr, "Stats: {}\n", pool.to_json().value().get().dump());
+    std::print(std::cerr, "Stats: {}\n", pool.to_json().dump());
 
     // Final state: counter should be balanced
     EXPECT_EQ(0, get_loan_count(pool));
@@ -679,7 +679,7 @@ TEST(counter_balance, mixed_operations_stress)
         for (int i = 0; i < 100; ++i) {
             auto res = pool.borrow_from_pool();
             if (res.has_value()) {
-                res.value().invalidate();
+                res.invalidate();
                 invalidates++;
             }
         }
@@ -700,7 +700,7 @@ TEST(counter_balance, mixed_operations_stress)
         sync_threads_point();
         for (int i = 0; i < 300; ++i) {
             auto size = pool.size();
-            EXPECT_TRUE(size.has_value());
+            EXPECT_GE(size, 0);
             std::this_thread::sleep_for(std::chrono::milliseconds(19));
         }
     });
@@ -752,7 +752,7 @@ TEST(counter_balance, maximum_capacity)
     for (int i = 0; i < 10; ++i) {
         auto res = pool.borrow_from_pool();
         EXPECT_TRUE(res.has_value());
-        resources.push_back(std::move(res.value()));
+        resources.push_back(std::move(res));
     }
 
     EXPECT_EQ(10, get_borrow_count(pool));
@@ -799,7 +799,7 @@ TEST(counter_balance, counter_size_consistency)
     }
 
     EXPECT_EQ(0, get_borrow_count(pool));
-    EXPECT_EQ(10, pool.size().value_or(0));
+    EXPECT_EQ(10, pool.size());
 
     // Borrow 5
     {
@@ -812,28 +812,28 @@ TEST(counter_balance, counter_size_consistency)
                 auto p5 = pool.borrow_from_pool();
 
                 EXPECT_EQ(5, get_borrow_count(pool));
-                EXPECT_EQ(5, pool.size().value_or(0));
+                EXPECT_EQ(5, pool.size());
 
                 std::println(std::cerr,
                              "....before returning 3... resources: {}. stats: {}",
                              0, // resources.size(),
-                             pool.to_json().value().get().dump());
+                             pool.to_json().dump());
             }
             EXPECT_EQ(2, get_loan_count(pool));
-            EXPECT_EQ(8, pool.size().value_or(0));
+            EXPECT_EQ(8, pool.size());
             std::println(std::cerr,
                          ".....after returning 3...resources:{}. stats: {}",
                          0, // resources.size(),
-                         pool.to_json().value().get().dump());
+                         pool.to_json().dump());
         }
     } // release all five..
     std::println(std::cerr,
                  ".....after returning all borrowed...resources:{}. stats: {}",
                  0, // resources.size(),
-                 pool.to_json().value().get().dump());
+                 pool.to_json().dump());
 
     EXPECT_EQ(0, get_loan_count(pool));
-    EXPECT_EQ(10, pool.size().value_or(-1));
+    EXPECT_EQ(10, pool.size());
 }
 
 TEST(counter_balance, counter_size_consistency_2)
@@ -845,39 +845,36 @@ TEST(counter_balance, counter_size_consistency_2)
     }
 
     EXPECT_EQ(0, get_borrow_count(pool));
-    EXPECT_EQ(10, pool.size().value_or(0));
+    EXPECT_EQ(10, pool.size());
 
     // Borrow 5
     {
         std::vector<siddiqsoft::arrp::scoped_resource<std::string>> holdResources;
 
         for (int i = 0; i < 5; i++) {
-            holdResources.emplace_back(pool.borrow_from_pool().value());
+            holdResources.emplace_back(pool.borrow_from_pool());
         }
 
         EXPECT_EQ(5, get_borrow_count(pool));
-        EXPECT_EQ(5, pool.size().value_or(0));
+        EXPECT_EQ(5, pool.size());
 
         std::println(std::cerr,
                      "....before returning 3... resources: {}. stats: {}",
                      0, // resources.size(),
-                     pool.to_json().value().get().dump());
+                     pool.to_json().dump());
         // Release three resources only...
         auto _ = holdResources.erase(holdResources.begin(), holdResources.begin() + 3);
         // This is important for std::vector!
         holdResources.shrink_to_fit();
 
         EXPECT_EQ(2, get_loan_count(pool));
-        EXPECT_EQ(8, pool.size().value_or(0));
-        std::println(std::cerr,
-                     ".....after returning 3...resources:{}. stats: {}",
-                     holdResources.size(),
-                     pool.to_json().value().get().dump());
+        EXPECT_EQ(8, pool.size());
+        std::println(std::cerr, ".....after returning 3...resources:{}. stats: {}", holdResources.size(), pool.to_json().dump());
     } // release all five..
-    std::println(std::cerr, ".....after returning all borrowed... stats: {}", pool.to_json().value().get().dump());
+    std::println(std::cerr, ".....after returning all borrowed... stats: {}", pool.to_json().dump());
 
     EXPECT_EQ(0, get_loan_count(pool));
-    EXPECT_EQ(10, pool.size().value_or(-1));
+    EXPECT_EQ(10, pool.size());
 }
 
 /// @brief Test counter consistency across JSON serialization
@@ -899,10 +896,9 @@ TEST(counter_balance, counter_json_consistency)
         int64_t checkedout = get_borrow_count(pool);
         EXPECT_EQ(2, checkedout);
 
-        auto json = pool.to_json();
-        EXPECT_TRUE(json.has_value());
+        auto j = pool.to_json();
+        EXPECT_TRUE(j.is_object());
 
-        auto& j = json.value().get();
         EXPECT_EQ(3, j["size"].get<size_t>());
         EXPECT_EQ(5, j["seeds"].get<uint8_t>());
     }

@@ -306,7 +306,7 @@ namespace siddiqsoft::arrp
         /// @note Thread-safe: Uses exclusive lock
         /// @note Cleanup callback is invoked for each resource if provided
         /// @note Exceptions from cleanup callback are caught and logged
-        auto clear() -> std::expected<void, pool_error>
+        auto clear() -> pool_error
         {
             std::scoped_lock l(m_pool_lock);
 
@@ -330,7 +330,7 @@ namespace siddiqsoft::arrp
             // This will clear the pool (of any remaining resources) and reset the size to zero.
             m_pool.clear();
 
-            return {};
+            return pool_error::Ok;
         }
 
         /// @brief Gets the current size of the pool
@@ -340,10 +340,8 @@ namespace siddiqsoft::arrp
         /// @note Thread-safe: Uses exclusive lock
         /// @note Returns error if pool is shutting down
         /// @note Does not include checked-out resources
-        [[nodiscard]] auto size() const -> std::expected<size_t, pool_error>
+        [[nodiscard]] auto size() const
         {
-            if (m_is_shutdown) return std::unexpected(pool_error::ShutdownInitiated);
-
             std::scoped_lock l(m_pool_lock);
             return m_pool.size();
         }
@@ -375,15 +373,13 @@ namespace siddiqsoft::arrp
         /// @endcode
         [[nodiscard]] auto borrow_from_pool(std::chrono::nanoseconds timeout = {}) -> SRT
         {
-            SRT no_resource = create_resource(pool_error::NoMoreResources);
-
             try {
                 // @note We use a unique_lock vs a scoped_lock to allow ourselves
                 // to create the resource outside the lock!
 
                 // Now that we're inside the lock, we should check again to ensure that
                 // the shutdown is not in progress..
-                if (m_is_shutdown) return std::unexpected(pool_error::ShutdownInitiated);
+                if (m_is_shutdown) return SRT {pool_error::ShutdownInitiated};
 
                 // If the pool is empty, we can check if we're under capacity and if so, we can create a new resource on-demand.
                 if (timeout.count() == 0 ? m_pool_semaphore.try_acquire() : m_pool_semaphore.try_acquire_for(timeout)) {
@@ -405,25 +401,25 @@ namespace siddiqsoft::arrp
                         return borrowed;
                     }
                     else {
-                        return std::unexpected(siddiqsoft::arrp::pool_error::NoMoreResources);
+                        return SRT {siddiqsoft::arrp::pool_error::NoMoreResources};
                     }
                 }
                 else if (timeout.count() > 0) {
-                    return std::unexpected(siddiqsoft::arrp::pool_error::Timeout);
+                    return SRT {siddiqsoft::arrp::pool_error::Timeout};
                 }
                 else {
-                    return std::unexpected(siddiqsoft::arrp::pool_error::NoMoreResources);
+                    return SRT {siddiqsoft::arrp::pool_error::NoMoreResources};
                 }
             } // scope end
             catch (std::exception& ex) {
-                return std::unexpected(pool_error::Unknown);
+                return SRT {siddiqsoft::arrp::pool_error::Unknown};
             }
             catch (...) {
                 std::print(std::cerr, "UNKNOWN Error in borrow_from_pool\n");
-                return std::unexpected(pool_error::Unknown);
+                return SRT {siddiqsoft::arrp::pool_error::Unknown};
             }
 
-            return std::unexpected(pool_error::NoMoreResources);
+            return SRT {siddiqsoft::arrp::pool_error::NoMoreResources};
         }
 
         /// @brief Adds a resource to the pool by constructing it in-place
@@ -438,13 +434,13 @@ namespace siddiqsoft::arrp
         /// @note This method MUST NOT be invoked to "return"; use the return_to_pool() method otherwise the accounting and resource
         /// management will not work properly!
         template <typename... Args>
-        auto seed_to_pool(Args&&... args) -> std::expected<void, pool_error>
+        auto seed_to_pool(Args&&... args) -> pool_error
         {
             {
                 std::scoped_lock l(m_pool_lock);
 
                 // Check inside the lock..
-                if (m_is_shutdown) return std::unexpected(pool_error::ShutdownInitiated);
+                if (m_is_shutdown) return pool_error::ShutdownInitiated;
 
                 m_pool.emplace_back(std::forward<Args>(args)...);
                 m_counter_seeds++;
@@ -459,7 +455,7 @@ namespace siddiqsoft::arrp
             // Signal the semaphore outside the lock to avoid potential deadlocks.
             m_pool_semaphore.release(); // resource is available, increment semaphore
 
-            return {};
+            return pool_error::Ok;
         }
 
         /// @brief Adds a resource to the pool by moving it
@@ -472,13 +468,13 @@ namespace siddiqsoft::arrp
         /// @note Returns error if pool is shutting down
         /// @note This method MUST NOT be invoked to "return"; use the return_to_pool() method otherwise the accounting and resource
         /// management will not work properly!
-        auto seed_to_pool(T&& item) -> std::expected<void, pool_error>
+        auto seed_to_pool(T&& item) -> pool_error
         {
             {
                 std::scoped_lock l(m_pool_lock);
 
                 // Check inside the lock..
-                if (m_is_shutdown) return std::unexpected(pool_error::ShutdownInitiated);
+                if (m_is_shutdown) return pool_error::ShutdownInitiated;
 
                 m_pool.emplace_back(std::move(item));
                 m_counter_seeds++;
@@ -493,7 +489,7 @@ namespace siddiqsoft::arrp
             // Signal the semaphore outside the lock to avoid potential deadlocks.
             m_pool_semaphore.release(); // resource is available, increment semaphore
 
-            return {};
+            return pool_error::Ok;
         }
 
 
@@ -517,7 +513,7 @@ namespace siddiqsoft::arrp
         void return_to_pool(T&& item, bool isvalid)
         {
             {
-                std::scoped_lock l(m_pool_lock);
+                std::unique_lock l(m_pool_lock);
 
                 // Check inside the lock..
                 if (m_is_shutdown) return;
@@ -533,14 +529,15 @@ namespace siddiqsoft::arrp
                     if (current_size > m_peak_poolsize.load()) {
                         m_peak_poolsize = current_size;
                     }
+
+                    l.unlock();
+                    // Signal the semaphore outside the lock to avoid potential deadlocks.
+                    if (isvalid) m_pool_semaphore.release(); // resource is available, increment semaphore
                 }
                 else {
                     m_counter_abandons++;
                 }
             }
-
-            // Signal the semaphore outside the lock to avoid potential deadlocks.
-            m_pool_semaphore.release(); // resource is available, increment semaphore
         }
 
 #if defined(NLOHMANN_JSON_VERSION_MAJOR)
@@ -580,12 +577,10 @@ namespace siddiqsoft::arrp
         ///     std::cout << json_result.value().get().dump(2) << std::endl;
         /// }
         /// @endcode
-        auto to_json() const -> std::expected<std::reference_wrapper<nlohmann::json>, siddiqsoft::arrp::pool_error>
+        auto to_json() const ->  nlohmann::json
         {
             {
                 std::scoped_lock l(m_pool_lock);
-
-                if (m_is_shutdown) return std::unexpected(siddiqsoft::arrp::pool_error::ShutdownInitiated);
 
                 // Update the pool statistics
                 m_json["size"]     = m_pool.size();                  ///< Available resources in pool
@@ -605,7 +600,7 @@ namespace siddiqsoft::arrp
                 }
             }
 
-            return std::ref(m_json);
+            return m_json;
         }
 
     private:
@@ -641,7 +636,7 @@ struct std::formatter<siddiqsoft::arrp::resource_pool<T, SRT>> : std::formatter<
     auto format(const siddiqsoft::arrp::resource_pool<T, SRT>& pool, auto& ctx) const
     {
 #if defined(NLOHMANN_JSON_VERSION_MAJOR)
-        return std::format_to(ctx.out(), "{}", pool.to_json().value().get().dump());
+        return std::format_to(ctx.out(), "{}", pool.to_json().dump());
 #else
         return std::format_to(ctx.out(), "--to--be--implemented--");
 #endif

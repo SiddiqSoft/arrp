@@ -47,7 +47,7 @@ TEST(scoped_resource_operators, pointer_access)
     {
         auto res = pool.borrow_from_pool();
         EXPECT_TRUE(res.has_value());
-        auto& sr = res.value();
+        auto& sr = res;
 
         // Test operator->
         EXPECT_NE(nullptr, sr.operator->());
@@ -60,7 +60,7 @@ TEST(scoped_resource_operators, pointer_access)
     {
         auto res = pool.borrow_from_pool();
         EXPECT_TRUE(res.has_value());
-        EXPECT_EQ("test-string-modified", *res.value());
+        EXPECT_EQ("test-string-modified", *res);
     }
 }
 
@@ -73,7 +73,7 @@ TEST(scoped_resource_operators, explicit_conversion)
     {
         auto res = pool.borrow_from_pool();
         EXPECT_TRUE(res.has_value());
-        auto& sr = res.value();
+        auto& sr = res;
 
         // Test explicit conversion to T&
         auto& ref = static_cast<std::string&>(sr);
@@ -84,7 +84,7 @@ TEST(scoped_resource_operators, explicit_conversion)
     {
         auto res = pool.borrow_from_pool();
         EXPECT_TRUE(res.has_value());
-        EXPECT_EQ("conversion-test-converted", *res.value());
+        EXPECT_EQ("conversion-test-converted", *res);
     }
 }
 
@@ -97,7 +97,7 @@ TEST(scoped_resource_operators, is_valid_method)
     {
         auto res = pool.borrow_from_pool();
         EXPECT_TRUE(res.has_value());
-        auto& sr = res.value();
+        auto& sr = res;
 
         EXPECT_TRUE(sr.is_valid());
         sr.invalidate();
@@ -105,7 +105,7 @@ TEST(scoped_resource_operators, is_valid_method)
     }
 
     // Resource should not be returned
-    EXPECT_EQ(0u, pool.size().value_or(0));
+    EXPECT_EQ(0u, pool.size());
 }
 
 
@@ -157,7 +157,7 @@ TEST(scoped_resource_operators, move_assignment_self_protection)
 
     pool.seed_to_pool(custom_masp {"resource1"});
     pool.seed_to_pool(custom_masp {"resource2"});
-    EXPECT_EQ(2, pool.size().value_or(-1));
+    EXPECT_EQ(2, pool.size());
 
     { // borrow two and clobber one of them..
         auto res1 = pool.borrow_from_pool();
@@ -166,8 +166,8 @@ TEST(scoped_resource_operators, move_assignment_self_protection)
         EXPECT_TRUE(res1.has_value());
         EXPECT_TRUE(res2.has_value());
 
-        auto& sr1 = res1.value();
-        auto& sr2 = res2.value();
+        auto& sr1 = res1;
+        auto& sr2 = res2;
 
         // Move assign sr2 to sr1:
         // - sr1's current resource ("resource1") is returned to the pool first
@@ -184,7 +184,7 @@ TEST(scoped_resource_operators, move_assignment_self_protection)
     // sr2 is invalid so nothing is returned for it.
     // "resource1" was already returned during the move-assignment above.
     // Net result: both resources are back in the pool.
-    EXPECT_EQ(2, pool.size().value_or(-1));
+    EXPECT_EQ(2, pool.size());
 }
 
 /// @brief Test scoped_resource with nullptr pointer access
@@ -196,7 +196,7 @@ TEST(scoped_resource_operators, nullptr_pointer_access)
     {
         auto res = pool.borrow_from_pool();
         EXPECT_TRUE(res.has_value());
-        auto& sr = res.value();
+        auto& sr = res;
 
         // Before invalidation, operator-> should return valid pointer
         EXPECT_NE(nullptr, sr.operator->());
@@ -226,7 +226,7 @@ TEST(resource_pool_constructors, cleanup_callback_only)
         pool.seed_to_pool(std::string("item1"));
         pool.seed_to_pool(std::string("item2"));
 
-        EXPECT_EQ(2u, pool.size().value_or(0));
+        EXPECT_EQ(2u, pool.size());
     }
 
     // Destructor should call cleanup for both items
@@ -250,15 +250,22 @@ TEST(resource_pool_size, concurrent_size_accuracy)
     // Thread 1: Add resources
     threads.emplace_back([&]() {
         start_barrier.arrive_and_wait();
+
+        std::println(std::cerr, "Adding 50 resources to the pool...");
         for (int i = 0; i < 50; ++i) {
-            pool.seed_to_pool(std::format("resource-{}", i));
+            EXPECT_EQ(siddiqsoft::arrp::pool_error::Ok, pool.seed_to_pool(std::format("resource-{}", i)));
             add_count++;
         }
+
+        std::println(std::cerr, "Finished Adding 50 resources to the pool...{}", pool.to_json().dump());
+        EXPECT_GE(pool.size(), 50);
     });
+
 
     // Thread 2: Borrow resources
     threads.emplace_back([&]() {
         start_barrier.arrive_and_wait();
+        std::this_thread::sleep_for(std::chrono::milliseconds(300));
         for (int i = 0; i < 25; ++i) {
             auto res = pool.borrow_from_pool();
             if (res.has_value()) {
@@ -270,13 +277,15 @@ TEST(resource_pool_size, concurrent_size_accuracy)
     // Thread 3: Check size
     threads.emplace_back([&]() {
         start_barrier.arrive_and_wait();
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
         for (int i = 0; i < 10; ++i) {
             auto sz = pool.size();
-            EXPECT_TRUE(sz.has_value());
+            EXPECT_GT(sz, 0);
             std::this_thread::sleep_for(std::chrono::milliseconds(5));
         }
     });
 
+    std::this_thread::sleep_for(std::chrono::seconds(1));
     threads.clear();
 
     EXPECT_EQ(50, add_count.load());
@@ -298,7 +307,7 @@ TEST(resource_pool_size, size_after_shutdown)
     // But we can test that a new pool works fine
     siddiqsoft::arrp::resource_pool<std::string> new_pool {};
     new_pool.seed_to_pool(std::string("new"));
-    EXPECT_EQ(1u, new_pool.size().value_or(0));
+    EXPECT_EQ(1u, new_pool.size());
 }
 
 
@@ -330,19 +339,19 @@ TEST(resource_pool_borrow, fifo_order_verification)
     {
         auto res1 = pool.borrow_from_pool();
         EXPECT_TRUE(res1.has_value());
-        EXPECT_EQ("first", *res1.value());
+        EXPECT_EQ("first", *res1);
 
         auto res2 = pool.borrow_from_pool();
         EXPECT_TRUE(res2.has_value());
-        EXPECT_EQ("second", *res2.value());
+        EXPECT_EQ("second", *res2);
 
         auto res3 = pool.borrow_from_pool();
         EXPECT_TRUE(res3.has_value());
-        EXPECT_EQ("third", *res3.value());
+        EXPECT_EQ("third", *res3);
     }
 
     // All returned
-    EXPECT_EQ(3u, pool.size().value_or(0));
+    EXPECT_EQ(3u, pool.size());
 }
 
 /// @brief Test borrow_from_pool with capacity limits
@@ -377,13 +386,13 @@ TEST(resource_pool_add, variadic_arguments)
     // Add using variadic constructor
     pool.seed_to_pool(42, "answer");
 
-    EXPECT_EQ(1u, pool.size().value_or(0));
+    EXPECT_EQ(1u, pool.size());
 
     {
         auto res = pool.borrow_from_pool();
         EXPECT_TRUE(res.has_value());
-        EXPECT_EQ(42, (*res.value()).first);
-        EXPECT_EQ("answer", (*res.value()).second);
+        EXPECT_EQ(42, (*res).first);
+        EXPECT_EQ("answer", (*res).second);
     }
 }
 
@@ -400,7 +409,7 @@ TEST(resource_pool_add, rvalue_reference)
     {
         auto res = pool.borrow_from_pool();
         EXPECT_TRUE(res.has_value());
-        EXPECT_EQ(5u, (*res.value()).size());
+        EXPECT_EQ(5u, (*res).size());
     }
 }
 
@@ -418,7 +427,7 @@ TEST(resource_pool_add, add_after_shutdown)
     // New pool should work fine
     siddiqsoft::arrp::resource_pool<std::string> new_pool {};
     auto                                         result = new_pool.seed_to_pool(std::string("new-item"));
-    EXPECT_TRUE(result.has_value());
+    EXPECT_TRUE(result == siddiqsoft::arrp::pool_error::Ok);
 }
 
 
@@ -437,7 +446,7 @@ TEST(resource_pool_return, valid_resource_return)
         // Resource will be returned on destruction
     }
 
-    EXPECT_EQ(1u, pool.size().value_or(0));
+    EXPECT_EQ(1u, pool.size());
 }
 
 /// @brief Test return_to_pool with invalid resource
@@ -449,11 +458,11 @@ TEST(resource_pool_return, invalid_resource_not_returned)
     {
         auto res = pool.borrow_from_pool();
         EXPECT_TRUE(res.has_value());
-        res.value().invalidate();
+        res.invalidate();
         // Resource will NOT be returned on destruction
     }
 
-    EXPECT_EQ(0u, pool.size().value_or(0));
+    EXPECT_EQ(0u, pool.size());
 }
 
 
@@ -472,13 +481,13 @@ TEST(resource_pool_clear, with_cleanup_callback)
         pool.seed_to_pool(std::string("2"));
         pool.seed_to_pool(std::string("3"));
 
-        EXPECT_EQ(3u, pool.size().value_or(0));
+        EXPECT_EQ(3u, pool.size());
 
         auto result = pool.clear();
-        EXPECT_TRUE(result.has_value());
+        EXPECT_EQ(siddiqsoft::arrp::pool_error::Ok, result);
 
         EXPECT_EQ(3, cleanup_count.load());
-        EXPECT_EQ(0u, pool.size().value_or(0));
+        EXPECT_EQ(0u, pool.size());
     }
 }
 
@@ -490,11 +499,11 @@ TEST(resource_pool_clear, without_cleanup_callback)
     pool.seed_to_pool(std::string("1"));
     pool.seed_to_pool(std::string("2"));
 
-    EXPECT_EQ(2u, pool.size().value_or(0));
+    EXPECT_EQ(2u, pool.size());
 
     auto result = pool.clear();
-    EXPECT_TRUE(result.has_value());
-    EXPECT_EQ(0u, pool.size().value_or(0));
+    EXPECT_EQ(siddiqsoft::arrp::pool_error::Ok, result);
+    EXPECT_EQ(0u, pool.size());
 }
 
 /// @brief Test clear during concurrent borrow operations
@@ -505,7 +514,7 @@ TEST(resource_pool_clear, concurrent_with_borrow)
     for (int i = 0; i < 10; ++i) {
         pool.seed_to_pool(std::format("resource-{}", i));
     }
-    EXPECT_EQ(10, pool.size().value_or(0));
+    EXPECT_EQ(10, pool.size());
 
     std::atomic_bool stop {false};
     std::atomic_int  clears {0};
@@ -560,10 +569,9 @@ TEST(resource_pool_json, empty_pool_serialization)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool {};
 
-    auto                                         json = pool.to_json();
-    EXPECT_TRUE(json.has_value());
+    auto                                         j = pool.to_json();
+    EXPECT_TRUE(j.is_object());
 
-    auto& j = json.value().get();
     EXPECT_TRUE(j.contains("_typver"));
     EXPECT_TRUE(j.contains("capacity"));
     EXPECT_TRUE(j.contains("size"));
@@ -583,10 +591,9 @@ TEST(resource_pool_json, populated_pool_serialization)
     EXPECT_TRUE(res.has_value());
 
 
-    auto json = pool.to_json();
-    EXPECT_TRUE(json.has_value());
+    auto j = pool.to_json();
+    EXPECT_TRUE(j.is_object());
 
-    auto& j = json.value().get();
     EXPECT_EQ(1u, j["size"].get<size_t>());
 }
 
@@ -603,10 +610,9 @@ TEST(resource_pool_json, counter_tracking)
         EXPECT_TRUE(res.has_value());
     }
 
-    auto json = pool.to_json();
-    EXPECT_TRUE(json.has_value());
+    auto j = pool.to_json();
+    EXPECT_TRUE(j.is_object());
 
-    auto& j = json.value().get();
     std::print(std::cerr, "contents of the stats:{}\n", j.dump());
     EXPECT_EQ(5u, j["returns"].get<uint64_t>());
 }
@@ -623,7 +629,7 @@ TEST(resource_pool_json, invalid_returns_tracking)
     {
         auto res = pool.borrow_from_pool();
         EXPECT_TRUE(res.has_value());
-        res.value().invalidate();
+        res.invalidate();
     }
 
     // Return one normally
@@ -632,10 +638,9 @@ TEST(resource_pool_json, invalid_returns_tracking)
         EXPECT_TRUE(res.has_value());
     }
 
-    auto json = pool.to_json();
-    EXPECT_TRUE(json.has_value());
+    auto j = pool.to_json();
+    EXPECT_TRUE(j.is_object());
 
-    auto& j = json.value().get();
     EXPECT_EQ(1u, j["abandons"].get<uint16_t>());
 }
 
@@ -650,10 +655,9 @@ TEST(resource_pool_json, json_type_resources)
     pool.seed_to_pool(std::move(j1));
     pool.seed_to_pool(std::move(j2));
 
-    auto json = pool.to_json();
-    EXPECT_TRUE(json.has_value());
+    auto j = pool.to_json();
+    EXPECT_TRUE(j.is_object());
 
-    auto& j = json.value().get();
     EXPECT_EQ(2u, j["size"].get<size_t>());
     EXPECT_TRUE(j.contains("items"));
 }
@@ -679,7 +683,7 @@ TEST(resource_pool_lifecycle, destructor_cleanup)
         EXPECT_TRUE(res.has_value());
 
         // Now we have 2 in pool, 1 checked out
-        EXPECT_EQ(2u, pool.size().value_or(0));
+        EXPECT_EQ(2u, pool.size());
     }
 
     // Destructor should clean up the 2 items in pool
@@ -695,9 +699,9 @@ TEST(resource_pool_lifecycle, post_destruction_behavior)
 
     // Create a new pool after the first one
     siddiqsoft::arrp::resource_pool<std::string> pool2 {};
-    pool2.seed_to_pool(std::string("item2"));
+    EXPECT_EQ(siddiqsoft::arrp::pool_error::Ok, pool2.seed_to_pool(std::string("item2")));
 
-    EXPECT_EQ(1u, pool2.size().value_or(0));
+    EXPECT_EQ(1u, pool2.size());
 }
 
 
@@ -710,14 +714,14 @@ TEST(edge_cases, minimum_capacity)
     siddiqsoft::arrp::resource_pool<std::string> pool {siddiqsoft::arrp::resource_pool_limits::MinimumCapacity};
 
     pool.seed_to_pool(std::string("item"));
-    EXPECT_EQ(1u, pool.size().value_or(0));
+    EXPECT_EQ(1u, pool.size());
 
     {
         auto res = pool.borrow_from_pool();
         EXPECT_TRUE(res.has_value());
     }
 
-    EXPECT_EQ(1u, pool.size().value_or(0));
+    EXPECT_EQ(1u, pool.size());
 }
 
 /// @brief Test with maximum capacity
@@ -727,14 +731,14 @@ TEST(edge_cases, maximum_capacity)
 
     // Add one item
     pool.seed_to_pool(std::string("item"));
-    EXPECT_EQ(1u, pool.size().value_or(0));
+    EXPECT_EQ(1u, pool.size());
 
     {
         auto res = pool.borrow_from_pool();
         EXPECT_TRUE(res.has_value());
     }
 
-    EXPECT_EQ(1u, pool.size().value_or(0));
+    EXPECT_EQ(1u, pool.size());
 }
 
 /// @brief Test with capacity exceeding maximum
@@ -746,7 +750,7 @@ TEST(edge_cases, capacity_exceeds_maximum)
 
     // Pool should still work with clamped capacity
     pool.seed_to_pool(std::string("item"));
-    EXPECT_EQ(1u, pool.size().value_or(0));
+    EXPECT_EQ(1u, pool.size());
 }
 
 /// @brief Test with empty string resources
@@ -757,7 +761,7 @@ TEST(edge_cases, empty_string_resources)
     pool.seed_to_pool(std::string(""));
     pool.seed_to_pool(std::string(""));
 
-    EXPECT_EQ(2u, pool.size().value_or(0));
+    EXPECT_EQ(2u, pool.size());
 
     {
         auto res1 = pool.borrow_from_pool();
@@ -765,11 +769,11 @@ TEST(edge_cases, empty_string_resources)
 
         EXPECT_TRUE(res1.has_value());
         EXPECT_TRUE(res2.has_value());
-        EXPECT_EQ("", *res1.value());
-        EXPECT_EQ("", *res2.value());
+        EXPECT_EQ("", *res1);
+        EXPECT_EQ("", *res2);
     }
 
-    EXPECT_EQ(2u, pool.size().value_or(0));
+    EXPECT_EQ(2u, pool.size());
 }
 
 /// @brief Test with very large strings
@@ -783,10 +787,10 @@ TEST(edge_cases, large_string_resources)
     {
         auto res = pool.borrow_from_pool();
         EXPECT_TRUE(res.has_value());
-        EXPECT_EQ(1000000u, res.value()->size());
+        EXPECT_EQ(1000000u, res->size());
     }
 
-    EXPECT_EQ(1u, pool.size().value_or(0));
+    EXPECT_EQ(1u, pool.size());
 }
 
 /// @brief Test with nested containers
@@ -802,11 +806,11 @@ TEST(edge_cases, nested_containers)
     {
         auto res = pool.borrow_from_pool();
         EXPECT_TRUE(res.has_value());
-        EXPECT_EQ(3u, res.value()->size());
-        EXPECT_EQ(3u, (*res.value())[0].size());
+        EXPECT_EQ(3u, res->size());
+        EXPECT_EQ(3u, (*res)[0].size());
     }
 
-    EXPECT_EQ(1u, pool.size().value_or(0));
+    EXPECT_EQ(1u, pool.size());
 }
 
 
@@ -834,7 +838,7 @@ TEST(concurrent_edge_cases, rapid_invalidation)
                 auto res = pool.borrow_from_pool();
                 if (res.has_value()) {
                     if (i % 3 == 0) {
-                        res.value().invalidate();
+                        res.invalidate();
                         invalidated++;
                     }
                     else {
@@ -849,7 +853,7 @@ TEST(concurrent_edge_cases, rapid_invalidation)
 
     EXPECT_GT(invalidated.load(), 0);
     EXPECT_GT(returned.load(), 0);
-    EXPECT_EQ(20u - invalidated.load(), pool.size().value_or(0));
+    EXPECT_EQ(20u - invalidated.load(), pool.size());
 }
 
 /// @brief Test concurrent access with mixed resource types
@@ -861,7 +865,7 @@ TEST(concurrent_edge_cases, mixed_operations_stress)
         pool.seed_to_pool(std::format("resource-{}", i));
     }
 
-    EXPECT_EQ(10, pool.size().value_or(0));
+    EXPECT_EQ(10, pool.size());
 
     std::atomic_int           borrows {0};
     std::atomic_int           adds {0};
@@ -908,7 +912,7 @@ TEST(concurrent_edge_cases, mixed_operations_stress)
         start_barrier.arrive_and_wait();
         for (int i = 0; i < 50; ++i) {
             auto json = pool.to_json();
-            if (json.has_value()) {
+            if (json.is_object()) {
                 json_calls++;
             }
         }
@@ -937,11 +941,11 @@ TEST(concurrent_edge_cases, alternating_validity)
     for (int i = 0; i < 30; ++i) {
         auto res = pool.borrow_from_pool();
         if (res.has_value()) {
-            resources.push_back(std::move(res.value()));
+            resources.push_back(std::move(res));
         }
     }
 
-    EXPECT_EQ(0u, pool.size().value_or(0));
+    EXPECT_EQ(0u, pool.size());
 
     // Invalidate every other one
     for (size_t i = 0; i < resources.size(); i += 2) {
@@ -952,7 +956,7 @@ TEST(concurrent_edge_cases, alternating_validity)
     resources.clear();
 
     // Should have 15 resources back (the non-invalidated ones)
-    EXPECT_EQ(15u, pool.size().value_or(0));
+    EXPECT_EQ(15u, pool.size());
 }
 
 
@@ -1017,8 +1021,8 @@ TEST(formatters, scoped_resource_format)
     {
         auto res = pool.borrow_from_pool();
         if (res.has_value()) {
-            std::print(std::cerr, "{}\n", **res);
-            std::string formatted = std::format("{}", **res);
+            std::print(std::cerr, "{}\n", *res);
+            std::string formatted = std::format("{}", *res);
             EXPECT_FALSE(formatted.empty());
         }
     }

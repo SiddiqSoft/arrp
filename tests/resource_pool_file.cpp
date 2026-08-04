@@ -83,34 +83,34 @@ TEST(resource_pool_file, basic_file_pool)
     // Create resource pool for FILE* handles
     siddiqsoft::arrp::resource_pool<FILE*> file_pool;
 
-    EXPECT_EQ(0, file_pool.size().value_or(0));
+    EXPECT_EQ(0, file_pool.size());
     {
         auto fp = std::fopen(temp_file.c_str(), "w+");
         ASSERT_NE(nullptr, fp);
         file_pool.seed_to_pool(std::move(fp));
     }
 
-    EXPECT_EQ(1u, file_pool.size().value_or(0));
+    EXPECT_EQ(1u, file_pool.size());
 
     // Borrow the file
     {
-        auto file_result = file_pool.borrow_from_pool();
+        siddiqsoft::arrp::scoped_resource<FILE*> file_result = file_pool.borrow_from_pool();
         EXPECT_TRUE(file_result.has_value());
-        auto file_wrapper = std::move(file_result.value());
-        EXPECT_EQ(0u, file_pool.size().value_or(0));
+        auto file_wrapper = std::move(file_result);
+        EXPECT_EQ(0u, file_pool.size());
 
         // Write to the file
         std::print(*file_wrapper, "Hello, World!\n");
     }
     // File is automatically returned to pool
 
-    EXPECT_EQ(1u, file_pool.size().value_or(0));
+    EXPECT_EQ(1u, file_pool.size());
 
     // Borrow again and verify content
     {
         auto file_result = file_pool.borrow_from_pool();
         EXPECT_TRUE(file_result.has_value());
-        auto file_wrapper = std::move(file_result.value());
+        auto file_wrapper = std::move(file_result);
         std::rewind(*file_wrapper);
 
         std::array<char, 100> buffer {};
@@ -137,18 +137,18 @@ TEST(resource_pool_file, concurrent_file_access)
     ASSERT_NE(nullptr, fp);
     std::print(std::cerr, "About to add..{:p}\n", static_cast<void*>(fp));
     file_pool.seed_to_pool(std::move(fp));
-    EXPECT_EQ(1u, file_pool.size().value_or(0));
+    EXPECT_EQ(1u, file_pool.size());
 
     std::atomic<int>         write_count {0};
     std::vector<std::thread> threads;
 
-    std::print(std::cerr, "About to kick off the threads to use pool with {} items.\n", file_pool.size().value_or(0));
+    std::print(std::cerr, "About to kick off the threads to use pool with {} items.\n", file_pool.size());
     // Create multiple threads that write to the file
     for (int i = 0; i < 3; ++i) {
         threads.emplace_back([&file_pool, &write_count, i]() {
             auto file_result = file_pool.borrow_from_pool();
             if (file_result.has_value()) {
-                auto fw = std::move(file_result.value());
+                auto fw = std::move(file_result);
                 std::print(*fw, "Thread %d\n", i);
                 ++write_count;
             }
@@ -164,7 +164,7 @@ TEST(resource_pool_file, concurrent_file_access)
     }
 
     EXPECT_GE(write_count, 1);
-    EXPECT_EQ(1u, file_pool.size().value_or(0));
+    EXPECT_EQ(1u, file_pool.size());
 
     // Cleanup
     safe_remove_file(temp_file);
@@ -185,24 +185,23 @@ TEST(resource_pool_file, file_read_write_operations)
         ASSERT_NE(nullptr, fp);
 
         file_pool.seed_to_pool(std::move(fp));
-        EXPECT_EQ(1u, file_pool.size().value_or(0));
+        EXPECT_EQ(1u, file_pool.size());
 
         auto file_result = file_pool.borrow_from_pool();
         EXPECT_TRUE(file_result.has_value());
-        auto fw = std::move(file_result.value());
-        std::print(*fw, "Line 1\n");
-        std::print(*fw, "Line 2\n");
-        std::print(*fw, "Line 3\n");
-        std::fflush(*fw);
+        std::print(*file_result, "Line 1\n");
+        std::print(*file_result, "Line 2\n");
+        std::print(*file_result, "Line 3\n");
+        std::fflush(*file_result);
     }
 
-    EXPECT_EQ(1u, file_pool.size().value_or(0));
+    EXPECT_EQ(1u, file_pool.size());
 
     // Read from file
     {
         auto file_result = file_pool.borrow_from_pool();
         EXPECT_TRUE(file_result.has_value());
-        auto fw = std::move(file_result.value());
+        auto fw = std::move(file_result);
         std::rewind(*fw);
 
         std::array<char, 100> buffer {};

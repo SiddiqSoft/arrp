@@ -186,17 +186,17 @@ TEST(resource_pool, serializer_1)
         EXPECT_EQ(2, rp.size());
         std::print(std::cerr, "resource_pool::serializer_1 - after adding      stats:{}\n", rp);
 
-        auto p1 = rp.borrow_from_pool().transform([](auto item) {
-            *item = std::string("updated-").append(*item);
-            return item;
-        });
+        auto p1 = rp.borrow_from_pool();
+        if (p1.has_value()) {
+            *p1 = std::string("updated-").append(*p1);
+        }
 
         EXPECT_EQ(1, rp.size());
         // This expression makes sense only for this test.
-        auto p2 = rp.borrow_from_pool().transform([](auto item) {
-            *item = std::string("updated-").append(*item);
-            return item;
-        });
+        auto p2 = rp.borrow_from_pool();
+        if (p2.has_value()) {
+            *p2 = std::string("updated-").append(*p2);
+        }
 
         EXPECT_EQ(0, rp.size());
 
@@ -223,11 +223,11 @@ TEST(resource_pool, serializer_pair)
         EXPECT_EQ(2, rp.size());
 
         auto p1 = rp.borrow_from_pool();
-        auto p2 = rp.borrow_from_pool().transform([](auto&& item) {
-            item.invalidate();
-            (*item).first = 2020;
-            return std::move(item);
-        });
+        siddiqsoft::arrp::scoped_resource<custom2> p2 = rp.borrow_from_pool();
+        if (p2.has_value()) {
+            (*p2).first = 2020;
+            p2.invalidate(); // This resource will not be returned to the pool
+        }
 
         std::print(std::cerr, "resource_pool::serializer_pair -    stats:{}\n", rp);
 

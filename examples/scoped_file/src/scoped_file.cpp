@@ -95,13 +95,13 @@ int main(int argc, char** argv)
         auto ct = std::chrono::system_clock::now();
 
 #if defined(WIN32)
-        fprintf(myfile.value()->get_filehandle(),
+        fprintf(myfile->get_filehandle(),
                 std::format("{} - {} - Hello, World!\n", rand(), ct.time_since_epoch().count()).c_str());
 #else
-        fprintf(myfile.value()->get_filehandle(),
+        fprintf(myfile->get_filehandle(),
                 std::format("{} - {} - Hello, World!\n", getpid(), ct.time_since_epoch().count()).c_str());
 #endif
-        fflush(myfile.value()->get_filehandle());
+        fflush(myfile->get_filehandle());
     }
     else {
         std::println(std::cerr, "{} - Failed to borrow resource from pool.", __func__);

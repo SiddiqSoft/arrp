@@ -58,7 +58,7 @@ TEST(resource_pool, T_string)
 
     EXPECT_NO_THROW({
         siddiqsoft::arrp::resource_pool<std::string> rp {};
-        std::print(std::cerr, "{} - Capacity:{}\n", __func__, rp.size().value_or(0));
+        std::print(std::cerr, "{} - Capacity:{}\n", __func__, rp.size());
         passTest = true;
     });
 
@@ -76,17 +76,17 @@ TEST(resource_pool, T_shared_ptr_string)
         rp.seed_to_pool(std::shared_ptr<std::string>(new std::string(__TIME__)));
         EXPECT_EQ(1, rp.size()) << "Pool must have only one item";
 
-        std::print(std::cerr, "{} - 0 - {}\n", __func__, rp.to_json().value().get().dump());
+        std::print(std::cerr, "{} - 0 - {}\n", __func__, rp.to_json().dump());
 
         {
             auto item_result = rp.borrow_from_pool();
             EXPECT_TRUE(item_result.has_value());
-            auto item = std::move(item_result.value());
+            auto item = std::move(item_result);
             EXPECT_EQ(0, rp.size()) << "Pool must be empty!";
             EXPECT_EQ(__TIME__, **item);
             (*item)->append("-ok");
 
-            std::print(std::cerr, "{} - 1 -  {}\n", __func__, rp.to_json().value().get().dump());
+            std::print(std::cerr, "{} - 1 -  {}\n", __func__, rp.to_json().dump());
         }
 
         // item is automatically returned to pool when it goes out of scope
@@ -95,7 +95,7 @@ TEST(resource_pool, T_shared_ptr_string)
         {
             auto item2_result = rp.borrow_from_pool();
             EXPECT_TRUE(item2_result.has_value());
-            auto item2 = std::move(item2_result.value());
+            auto item2 = std::move(item2_result);
             EXPECT_EQ(0, rp.size());
             EXPECT_TRUE((*item2)->ends_with("-ok"));
         }
@@ -125,7 +125,7 @@ TEST(resource_pool, T_unique_ptr_string)
         {
             auto item_result = rp.borrow_from_pool();
             EXPECT_TRUE(item_result.has_value());
-            auto&& item = std::move(item_result.value());
+            auto&& item = std::move(item_result);
             EXPECT_EQ(0, rp.size());
             EXPECT_EQ(__TIME__, **item);
             (*item)->append("-ok");
@@ -136,7 +136,7 @@ TEST(resource_pool, T_unique_ptr_string)
         {
             auto item2_result = rp.borrow_from_pool();
             EXPECT_TRUE(item2_result.has_value());
-            auto&& item2 = std::move(item2_result.value());
+            auto&& item2 = std::move(item2_result);
             EXPECT_EQ(0, rp.size());
             EXPECT_TRUE((*item2)->ends_with("-ok"));
         }
@@ -164,7 +164,7 @@ TEST(resource_pool, T_checkin_checkout_unique_ptr_string)
         {
             auto item_result = rp.borrow_from_pool();
             EXPECT_TRUE(item_result.has_value());
-            [[maybe_unused]] auto&& item = std::move(item_result.value());
+            [[maybe_unused]] auto&& item = std::move(item_result);
         }
         // Resource is automatically returned to pool
         EXPECT_EQ(1, rp.size());
@@ -172,7 +172,7 @@ TEST(resource_pool, T_checkin_checkout_unique_ptr_string)
         {
             auto item2_result = rp.borrow_from_pool();
             EXPECT_TRUE(item2_result.has_value());
-            auto&& item2 = std::move(item2_result.value());
+            auto&& item2 = std::move(item2_result);
             EXPECT_EQ(0, rp.size());
             EXPECT_EQ(__TIME__, **item2);
         }
@@ -199,7 +199,7 @@ TEST(resource_pool, T_checkin_checkout_vector_string)
         {
             auto item_result = rp.borrow_from_pool();
             EXPECT_TRUE(item_result.has_value());
-            [[maybe_unused]] auto&& item = std::move(item_result.value());
+            [[maybe_unused]] auto&& item = std::move(item_result);
         }
         // Resource is automatically returned to pool
         EXPECT_EQ(1, rp.size());
@@ -207,7 +207,7 @@ TEST(resource_pool, T_checkin_checkout_vector_string)
         {
             auto item2_result = rp.borrow_from_pool();
             EXPECT_TRUE(item2_result.has_value());
-            auto item2 = std::move(item2_result.value());
+            auto item2 = std::move(item2_result);
             (*item2).emplace_back("1");
             (*item2).emplace_back("2");
             (*item2).emplace_back("3");
@@ -270,7 +270,7 @@ TEST(resource_pool, multiple_items)
     for (int i = 0; i < 10; i++) {
         auto item_result = rp.borrow_from_pool();
         EXPECT_TRUE(item_result.has_value());
-        auto item = std::move(item_result.value());
+        auto item = std::move(item_result);
         EXPECT_EQ(std::format("{}", i), *item);
     }
     EXPECT_EQ(10u, rp.size());
@@ -286,7 +286,7 @@ TEST(resource_pool, round_trip_preserves_value)
     {
         auto item_result = rp.borrow_from_pool();
         EXPECT_TRUE(item_result.has_value());
-        auto item = std::move(item_result.value());
+        auto item = std::move(item_result);
         EXPECT_EQ("hello", *item);
         *item += " world";
     }
@@ -295,7 +295,7 @@ TEST(resource_pool, round_trip_preserves_value)
     {
         auto item2_result = rp.borrow_from_pool();
         EXPECT_TRUE(item2_result.has_value());
-        auto item2 = std::move(item2_result.value());
+        auto item2 = std::move(item2_result);
         EXPECT_EQ("hello world", *item2);
     }
 }
@@ -315,12 +315,12 @@ TEST(resource_pool, json_type)
     EXPECT_TRUE(dummy.is_null());
     EXPECT_EQ(2u, rp.size());
 
-    std::print(std::cerr, "{}\n", rp.to_json().value().get().dump());
+    std::print(std::cerr, "{}\n", rp.to_json().dump());
 
     try {
         auto item_result = rp.borrow_from_pool();
         EXPECT_TRUE(item_result.has_value());
-        auto item = *(item_result.value());
+        auto item = *(item_result);
 
         std::print(std::cerr, "{}\n", item.dump());
         EXPECT_EQ("nothing", item["everything"]);
@@ -349,7 +349,7 @@ TEST(resource_pool, pair_type)
     try {
         auto item_result = rp.borrow_from_pool();
         EXPECT_TRUE(item_result.has_value());
-        auto item = *(item_result.value());
+        auto item = *(item_result);
 
         EXPECT_EQ(99, item.first);
         EXPECT_EQ("hello", item.second);
@@ -385,7 +385,7 @@ TEST(resource_pool, concurrent_access)
                 auto result = rp.borrow_from_pool();
                 if (result.has_value()) {
                     borrowCount++;
-                    auto item = std::move(result.value());
+                    auto item = std::move(result);
                     // Simulate some work
                     std::this_thread::sleep_for(std::chrono::microseconds(10));
                 }
@@ -397,7 +397,7 @@ TEST(resource_pool, concurrent_access)
     threads.clear();
 
     // All items should be back in the pool
-    EXPECT_EQ(ITERATIONS, static_cast<int>(rp.size().value()));
+    EXPECT_EQ(ITERATIONS, static_cast<int>(rp.size()));
 }
 
 
@@ -445,7 +445,7 @@ TEST(resource_pool, starvation_under_contention)
                 auto result = rp.borrow_from_pool();
                 if (result.has_value()) {
                     successCount++;
-                    auto item = std::move(result.value());
+                    auto item = std::move(result);
                     // Simulate work
                     std::this_thread::sleep_for(std::chrono::microseconds(50));
                 }
@@ -492,7 +492,7 @@ TEST(resource_pool, high_throughput_cycling)
                 auto result = rp.borrow_from_pool();
                 if (result.has_value()) {
                     totalBorrows++;
-                    auto item = std::move(result.value());
+                    auto item = std::move(result);
                     // Immediately return
                 }
             }
@@ -522,8 +522,8 @@ TEST(resource_pool, borrow_after_drain_fails)
         auto b_result = rp.borrow_from_pool();
         EXPECT_TRUE(a_result.has_value());
         EXPECT_TRUE(b_result.has_value());
-        auto a = std::move(a_result.value());
-        auto b = std::move(b_result.value());
+        auto a = std::move(a_result);
+        auto b = std::move(b_result);
         EXPECT_EQ(0u, rp.size());
 
         // This must be checked prior to the a and b going out of
@@ -587,7 +587,7 @@ TEST(resource_pool, concurrent_unique_ptr)
             for (int c = 0; c < CYCLES; c++) {
                 auto result = rp.borrow_from_pool();
                 if (result.has_value()) {
-                    auto&& item = std::move(result.value());
+                    auto&& item = std::move(result);
                     EXPECT_NE(nullptr, *item);
                     totalBorrows++;
                 }
@@ -622,19 +622,19 @@ TEST(resource_pool, multiple_shared_ptr_items)
     {
         auto item1_result = rp.borrow_from_pool();
         EXPECT_TRUE(item1_result.has_value());
-        auto item1 = std::move(item1_result.value());
+        auto item1 = std::move(item1_result);
         EXPECT_EQ("resource-1", **item1);
         EXPECT_EQ(2u, rp.size());
 
         auto item2_result = rp.borrow_from_pool();
         EXPECT_TRUE(item2_result.has_value());
-        auto item2 = std::move(item2_result.value());
+        auto item2 = std::move(item2_result);
         EXPECT_EQ("resource-2", **item2);
         EXPECT_EQ(1u, rp.size());
 
         auto item3_result = rp.borrow_from_pool();
         EXPECT_TRUE(item3_result.has_value());
-        auto item3 = std::move(item3_result.value());
+        auto item3 = std::move(item3_result);
         EXPECT_EQ("resource-3", **item3);
         EXPECT_EQ(0u, rp.size());
     }
@@ -665,7 +665,7 @@ TEST(resource_pool, shared_ptr_custom_deleter)
         {
             auto item_result = rp.borrow_from_pool();
             EXPECT_TRUE(item_result.has_value());
-            auto item = std::move(item_result.value());
+            auto item = std::move(item_result);
             EXPECT_EQ("custom-deleter-test", **item);
         }
         // Item returned to pool
@@ -688,7 +688,7 @@ TEST(resource_pool, shared_ptr_modification_persistence)
     {
         auto item_result = rp.borrow_from_pool();
         EXPECT_TRUE(item_result.has_value());
-        auto item = std::move(item_result.value());
+        auto item = std::move(item_result);
         **item += "-modified";
         EXPECT_EQ("initial-modified", **item);
     }
@@ -698,7 +698,7 @@ TEST(resource_pool, shared_ptr_modification_persistence)
     {
         auto item2_result = rp.borrow_from_pool();
         EXPECT_TRUE(item2_result.has_value());
-        auto item2 = std::move(item2_result.value());
+        auto item2 = std::move(item2_result);
         EXPECT_EQ("initial-modified", **item2);
         **item2 += "-again";
     }
@@ -708,7 +708,7 @@ TEST(resource_pool, shared_ptr_modification_persistence)
     {
         auto item3_result = rp.borrow_from_pool();
         EXPECT_TRUE(item3_result.has_value());
-        auto item3 = std::move(item3_result.value());
+        auto item3 = std::move(item3_result);
         EXPECT_EQ("initial-modified-again", **item3);
     }
 }
@@ -737,7 +737,7 @@ TEST(resource_pool, concurrent_shared_ptr_access)
             for (int c = 0; c < CYCLES; c++) {
                 auto result = rp.borrow_from_pool();
                 if (result.has_value()) {
-                    auto item = std::move(result.value());
+                    auto item = std::move(result);
                     EXPECT_NE(nullptr, *item);
                     EXPECT_FALSE((**item).empty());
                     totalBorrows++;
@@ -764,7 +764,7 @@ TEST(scoped_resource, dereference_operator)
 
     auto resource_result = pool.borrow_from_pool();
     EXPECT_TRUE(resource_result.has_value());
-    auto resource = std::move(resource_result.value());
+    auto resource = std::move(resource_result);
 
     // Test dereference operator
     EXPECT_EQ("test", *resource);
@@ -784,7 +784,7 @@ TEST(scoped_resource, invalidate)
     {
         auto resource_result = pool.borrow_from_pool();
         EXPECT_TRUE(resource_result.has_value());
-        auto resource = std::move(resource_result.value());
+        auto resource = std::move(resource_result);
         EXPECT_EQ(1u, pool.size());
 
         // Invalidate the resource
@@ -804,7 +804,7 @@ TEST(scoped_resource, move_semantics)
     {
         auto resource1_result = pool.borrow_from_pool();
         EXPECT_TRUE(resource1_result.has_value());
-        auto resource1 = std::move(resource1_result.value());
+        auto resource1 = std::move(resource1_result);
         EXPECT_EQ("original", *resource1);
 
         // Move to resource2
@@ -829,10 +829,10 @@ TEST(resource_pool, json_serialization_counters)
     {
         auto res_result = pool.borrow_from_pool();
         EXPECT_TRUE(res_result.has_value());
-        auto res = std::move(res_result.value());
+        auto res = std::move(res_result);
     }
 
-    auto& json = pool.to_json().value().get();
+    auto& json = pool.to_json();
 
     // Verify JSON structure
     EXPECT_TRUE(json.contains("_typver"));
@@ -867,7 +867,7 @@ TEST(resource_pool, extreme_stress_high_concurrency)
                 auto result = pool.borrow_from_pool();
                 if (result.has_value()) {
                     total_ops++;
-                    auto res = std::move(result.value());
+                    auto res = std::move(result);
                     // Simulate minimal work
                     std::this_thread::yield();
                 }
@@ -905,10 +905,10 @@ TEST(resource_pool, capacity_limits)
     EXPECT_TRUE(r3_result.has_value());
     EXPECT_TRUE(r4_result.has_value());
 
-    auto r1 = std::move(r1_result.value());
-    auto r2 = std::move(r2_result.value());
-    auto r3 = std::move(r3_result.value());
-    auto r4 = std::move(r4_result.value());
+    auto r1 = std::move(r1_result);
+    auto r2 = std::move(r2_result);
+    auto r3 = std::move(r3_result);
+    auto r4 = std::move(r4_result);
 
     EXPECT_EQ(0u, pool.size());
 
@@ -928,13 +928,13 @@ TEST(resource_pool, rapid_cycles)
         {
             auto vec_result = pool.borrow_from_pool();
             EXPECT_TRUE(vec_result.has_value());
-            auto vec = std::move(vec_result.value());
+            auto vec = std::move(vec_result);
             (*vec).push_back(6);
         }
     }
 
     // After all that.. we should still be back at one item in the pool.
-    std::print(std::cerr, "  >> Post completion: {}", pool.to_json().value().get().dump(2));
+    std::print(std::cerr, "  >> Post completion: {}", pool.to_json().dump(2));
     EXPECT_EQ(1u, pool.size());
 }
 
@@ -952,7 +952,7 @@ TEST(resource_pool, large_objects)
     {
         auto vec_result = pool.borrow_from_pool();
         EXPECT_TRUE(vec_result.has_value());
-        auto vec = std::move(vec_result.value());
+        auto vec = std::move(vec_result);
         EXPECT_EQ(LARGE_SIZE, (*vec).size());
     }
 
@@ -968,7 +968,7 @@ TEST(resource_pool, exception_safety)
     try {
         auto res_result = pool.borrow_from_pool();
         EXPECT_TRUE(res_result.has_value());
-        // auto res = std::move(res_result.value());
+        // auto res = std::move(res_result);
         throw std::runtime_error("Test exception");
     }
     catch (const std::runtime_error&) {
@@ -976,7 +976,7 @@ TEST(resource_pool, exception_safety)
     }
 
     // Resource should still be returned to pool
-    EXPECT_EQ(1, *pool.size());
+    EXPECT_EQ(1, pool.size());
 }
 
 /// @brief Test move assignment operator
@@ -992,8 +992,8 @@ TEST(scoped_resource, move_assignment)
     EXPECT_TRUE(res1_result.has_value());
     EXPECT_TRUE(res2_result.has_value());
 
-    auto res1 = std::move(res1_result.value());
-    auto res2 = std::move(res2_result.value());
+    auto res1 = std::move(res1_result);
+    auto res2 = std::move(res2_result);
 
     EXPECT_EQ("res1", *res1);
     EXPECT_EQ("res2", *res2);
@@ -1022,8 +1022,8 @@ TEST(resource_pool, multiple_pools)
         EXPECT_TRUE(res1_result.has_value());
         EXPECT_TRUE(res2_result.has_value());
 
-        auto res1 = std::move(res1_result.value());
-        auto res2 = std::move(res2_result.value());
+        auto res1 = std::move(res1_result);
+        auto res2 = std::move(res2_result);
 
         EXPECT_EQ("pool1-res", *res1);
         EXPECT_EQ("pool2-res", *res2);
@@ -1051,7 +1051,7 @@ TEST(resource_pool, fifo_ordering_concurrent)
             for (int i = 0; i < 2; ++i) {
                 auto res_result = pool.borrow_from_pool();
                 if (res_result.has_value()) {
-                    auto res = std::move(res_result.value());
+                    auto res = std::move(res_result);
                     {
                         std::scoped_lock<std::mutex> lock(retrieved_lock);
                         retrieved.push_back(*res);
@@ -1082,7 +1082,7 @@ TEST(resource_pool_adversarial, rapid_exception_cycles)
         try {
             auto res_result = pool.borrow_from_pool();
             if (res_result.has_value()) {
-                auto res = std::move(res_result.value());
+                auto res = std::move(res_result);
                 if (i % 3 == 0) {
                     throw std::runtime_error("Adversarial exception");
                 }
@@ -1118,7 +1118,7 @@ TEST(resource_pool_adversarial, concurrent_invalidation)
             for (int i = 0; i < ITERATIONS; ++i) {
                 auto result = pool.borrow_from_pool();
                 if (result.has_value()) {
-                    auto res = std::move(result.value());
+                    auto res = std::move(result);
                     if (i % 5 == 0) {
                         res.invalidate();
                         invalidated++;
@@ -1148,7 +1148,7 @@ TEST(resource_pool_adversarial, alternating_clear_borrow)
         // Try to borrow
         auto result = pool.borrow_from_pool();
         if (result.has_value()) {
-            auto res = std::move(result.value());
+            auto res = std::move(result);
         }
 
         // Clear
@@ -1181,7 +1181,7 @@ TEST(resource_pool_adversarial, extreme_contention_minimal_pool)
                 auto result = pool.borrow_from_pool();
                 if (result.has_value()) {
                     successes++;
-                    auto res = std::move(result.value());
+                    auto res = std::move(result);
                     std::this_thread::sleep_for(std::chrono::microseconds(50));
                 }
                 else {
@@ -1211,7 +1211,7 @@ TEST(resource_pool_adversarial, rapid_move_operations)
     for (int cycle = 0; cycle < 100; ++cycle) {
         auto res1_result = pool.borrow_from_pool();
         if (res1_result.has_value()) {
-            auto res1 = std::move(res1_result.value());
+            auto res1 = std::move(res1_result);
             auto res2 = std::move(res1);
             auto res3 = std::move(res2);
             // res3 goes out of scope and returns to pool
@@ -1235,7 +1235,7 @@ TEST(resource_pool_adversarial, interleaved_invalidate_returns)
     for (int i = 0; i < 20; ++i) {
         auto result = pool.borrow_from_pool();
         if (result.has_value()) {
-            resources.push_back(std::move(result.value()));
+            resources.push_back(std::move(result));
         }
     }
 
@@ -1277,7 +1277,7 @@ TEST(resource_pool_adversarial, random_delays_stress)
                 auto result = pool.borrow_from_pool();
                 if (result.has_value()) {
                     ops++;
-                    auto res = std::move(result.value());
+                    auto res = std::move(result);
                     // Random delay
                     std::this_thread::sleep_for(std::chrono::microseconds(dis(local_gen)));
                 }
@@ -1315,7 +1315,7 @@ TEST(resource_pool_adversarial, concurrent_json_serialization)
             for (int i = 0; i < 100; ++i) {
                 auto result = pool.borrow_from_pool();
                 if (result.has_value()) {
-                    auto res = std::move(result.value());
+                    auto res = std::move(result);
                 }
             }
         });
@@ -1325,7 +1325,7 @@ TEST(resource_pool_adversarial, concurrent_json_serialization)
     threads.emplace_back([&]() {
         start_barrier.arrive_and_wait();
         for (int i = 0; i < 50; ++i) {
-            auto& json = pool.to_json().value().get();
+            auto& json = pool.to_json();
             json_calls++;
             EXPECT_TRUE(json.contains("seeds"));
         }
@@ -1386,7 +1386,7 @@ TEST(resource_pool, concurrent_clear_with_operations_FIXED)
 
                 auto result = rp.borrow_from_pool();
                 if (result.has_value()) {
-                    auto item = std::move(result.value());
+                    auto item = std::move(result);
                     std::this_thread::sleep_for(std::chrono::microseconds(50)); // INCREASED from 10
                 }
             }
@@ -1433,14 +1433,14 @@ TEST(resource_pool_adversarial, concurrent_clear_rapid_ops_FIXED)
                 auto result = pool.borrow_from_pool(std::chrono::milliseconds(50));
                 if (result.has_value()) {
                     borrows++;
-                    auto res = std::move(result.value());
+                    auto res = std::move(result);
                     std::this_thread::sleep_for(std::chrono::milliseconds(50));
                 }
 
                 std::println(std::cerr,
                              "   concurrent_clear_rapid_ops_FIXED - Worker thread pool. borrows: {}. pool: {}",
                              borrows.load(),
-                             pool.size().value_or(-1));
+                             pool.size());
             }
 
             std::println(std::cerr, "   concurrent_clear_rapid_ops_FIXED - Worker thread ending. borrows: {}", borrows.load());
@@ -1467,7 +1467,7 @@ TEST(resource_pool_adversarial, concurrent_clear_rapid_ops_FIXED)
             std::println(std::cerr,
                          "   concurrent_clear_rapid_ops_FIXED - Clearer thread repopulated pool. clears: {}. pool: {}",
                          clears.load(),
-                         pool.size().value_or(-1));
+                         pool.size());
         }
         std::println(std::cerr, "   concurrent_clear_rapid_ops_FIXED - Clearer thread ending. clears: {}", clears.load());
     });
@@ -1524,7 +1524,7 @@ TEST(resource_pool, concurrent_clear_deadlock_detection)
             auto result = pool.borrow_from_pool();
             if (result.has_value()) {
                 ++borrow_cycles;
-                auto res = std::move(result.value());
+                auto res = std::move(result);
                 std::this_thread::sleep_for(std::chrono::microseconds(100));
             }
         }
@@ -1611,7 +1611,7 @@ TEST(resource_pool, concurrent_json_deadlock_detection)
         for (int i = 0; i < 200; ++i) {
             auto result = pool.borrow_from_pool();
             if (result.has_value()) {
-                auto res = std::move(result.value());
+                auto res = std::move(result);
                 std::this_thread::sleep_for(std::chrono::microseconds(5));
             }
         }
@@ -1622,7 +1622,7 @@ TEST(resource_pool, concurrent_json_deadlock_detection)
     auto json_fn = [&]() {
         sync_threads_point();
         for (int i = 0; i < 100; ++i) {
-            auto& json = pool.to_json().value().get();
+            auto& json = pool.to_json();
             EXPECT_TRUE(json.contains("seeds"));
             std::this_thread::sleep_for(std::chrono::microseconds(10));
         }
