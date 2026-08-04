@@ -51,7 +51,6 @@
 
 #include "common.hpp"
 #include "scoped_resource.hpp"
-#include "siddiqsoft/RunOnEnd.hpp"
 
 namespace siddiqsoft::arrp
 {
@@ -150,35 +149,32 @@ namespace siddiqsoft::arrp
         std::function<void(T&&)> m_callback_on_resource_cleanup {};
 
         /// @brief Optional factory callback used to create resources on-demand
-        /// @details Stored as a zero-argument callable that returns `SRT`. Users can
-        /// provide a lambda that captures any required arguments.
-        std::function<T()> m_factory_callback {};
+        /// @details Stored as a zero-argument callable that returns `SRT`.
+        /// Users can provide a lambda that returns either `T` or `SRT`.
+        std::function<SRT()> m_factory_callback {};
 
         /// @brief Sets the capacity. This is internal and can only be called from the constructor.
         /// @details The capacity of the internal queue must not be altered once set.
         void set_capacity(uint8_t init_capacity)
         {
-#if defined(DEBUG)
-            std::print(std::cerr, "{} - capacity: {}  init_capacity:{}\n", __func__, m_capacity, init_capacity);
-#endif
+            if (m_capacity != 0) {
+                return;
+            }
 
-            // We're going to be inside construction context and we're assured
-            // of only one invocation!
-            if (m_capacity == 0) {
-                if (init_capacity > resource_pool_limits::MaxCapacity) {
-                    m_capacity = resource_pool_limits::MaxCapacity;
-                }
-                else if (init_capacity < resource_pool_limits::MinimumCapacity) {
-                    m_capacity = resource_pool_limits::MinimumCapacity;
-                }
-                else {
-                    m_capacity = init_capacity;
-                }
-#if defined(DEBUG)
-                std::print(std::cerr, "{} - capacity: {}  init_capacity:{}\n", __func__, m_capacity, init_capacity);
-#endif
+            if (init_capacity > resource_pool_limits::MaxCapacity) {
+                m_capacity = resource_pool_limits::MaxCapacity;
+            }
+            else if (init_capacity < resource_pool_limits::MinimumCapacity) {
+                m_capacity = resource_pool_limits::MinimumCapacity;
+            }
+            else {
+                m_capacity = init_capacity;
             }
         }
+
+        /// @brief Shared lock type for pool operations
+        using lock_type        = std::scoped_lock<decltype(m_pool_lock)>;
+        using unique_lock_type = std::unique_lock<decltype(m_pool_lock)>;
 
         /// @brief Checks if the pool is starving (under capacity)
         /// @details Returns true if the total number of resources (in pool + checked out) is less than capacity
@@ -197,6 +193,36 @@ namespace siddiqsoft::arrp
         inline int64_t deficit_size() const
         {
             return static_cast<int64_t>(m_capacity) - (static_cast<int64_t>(m_pool.size()) + m_resources_checkedout.load());
+        }
+
+        /// @brief Attempts to acquire a resource from the pool and return it to the caller.
+        /// @param timeout Timeout for semaphore acquisition.
+        /// @param out_resource Output parameter for the acquired resource.
+        /// @return Ok when the resource was acquired, Timeout if the semaphore wait expired,
+        ///         NoMoreResources if no resource was available after acquiring the semaphore.
+        auto try_acquire_pooled_resource(std::chrono::nanoseconds timeout, T& out_resource) -> pool_error
+        {
+            if (timeout.count() == 0) {
+                if (!m_pool_semaphore.try_acquire()) {
+                    return pool_error::NoMoreResources;
+                }
+            }
+            else {
+                if (!m_pool_semaphore.try_acquire_for(timeout)) {
+                    return pool_error::Timeout;
+                }
+            }
+
+            std::unique_lock l(m_pool_lock);
+            if (m_pool.empty()) {
+                l.unlock();
+                m_pool_semaphore.release();
+                return pool_error::NoMoreResources;
+            }
+
+            out_resource = std::move(m_pool.front());
+            m_pool.pop_front();
+            return pool_error::Ok;
         }
 
         /// @brief The loan size is the difference between the borrows and returns and accounting for the abandons.
@@ -324,7 +350,10 @@ namespace siddiqsoft::arrp
         template <typename F>
         void set_factory_callback(F&& f)
         {
-            m_factory_callback = std::function<T()>(std::forward<F>(f));
+            auto factory = std::forward<F>(f);
+            m_factory_callback = [this, factory = std::move(factory)]() mutable -> SRT {
+                return create_from_callback(factory);
+            };
         }
 
         /// @brief Borrow a resource or create one using the saved factory callback
@@ -339,21 +368,15 @@ namespace siddiqsoft::arrp
                 if (m_is_shutdown) return SRT {pool_error::ShutdownInitiated};
 
                 // try to acquire an existing pooled resource
-                if (timeout.count() == 0 ? m_pool_semaphore.try_acquire() : m_pool_semaphore.try_acquire_for(timeout)) {
-                    std::unique_lock l(m_pool_lock);
-                    if (!m_pool.empty()) {
-                        T resource = std::move(m_pool.front());
-                        m_pool.pop_front();
-                        l.unlock();
-
-                        auto borrowed = create_resource(std::move(resource));
-                        m_resources_checkedout++;
-                        m_counter_borrows++;
-                        return borrowed;
-                    }
-                    else {
-                        return SRT {siddiqsoft::arrp::pool_error::NoMoreResources};
-                    }
+                T resource;
+                if (auto err = try_acquire_pooled_resource(timeout, resource); err == pool_error::Ok) {
+                    auto borrowed = create_resource(std::move(resource));
+                    m_resources_checkedout++;
+                    m_counter_borrows++;
+                    return borrowed;
+                }
+                else if (err == pool_error::Timeout) {
+                    return SRT {siddiqsoft::arrp::pool_error::Timeout};
                 }
 
                 // No pooled resource available: try factory if set
@@ -398,13 +421,12 @@ namespace siddiqsoft::arrp
             try {
                 if (m_callback_on_resource_cleanup && !m_pool.empty()) {
                     while (!m_pool.empty()) {
-                        RunOnEnd roe([&] {
-                            m_pool.pop_front();
-                            m_pool_semaphore.acquire();
-                        });
+                        m_pool_semaphore.acquire();
+                        auto item = std::move(m_pool.front());
+                        m_pool.pop_front();
                         // delegate to the cleanup.
                         // the delegate must not invoke any pool member to avoid deadlocks.
-                        m_callback_on_resource_cleanup(std::move(m_pool.front()));
+                        m_callback_on_resource_cleanup(std::move(item));
                     }
                 }
             }
@@ -467,35 +489,20 @@ namespace siddiqsoft::arrp
                 if (m_is_shutdown) return SRT {pool_error::ShutdownInitiated};
 
                 // If the pool is empty, we can check if we're under capacity and if so, we can create a new resource on-demand.
-                if (timeout.count() == 0 ? m_pool_semaphore.try_acquire() : m_pool_semaphore.try_acquire_for(timeout)) {
-                    // We likely have a resource available.. grab a lock.
-                    std::unique_lock l(m_pool_lock);
-                    // We have a resource available.. just to be sure, we'll check the pool size inside the lock..
-                    if (!m_pool.empty()) {
-                        // Move the resource out of the pool while holding the lock.
-                        T resource = std::move(m_pool.front());
-                        m_pool.pop_front();
-
-                        // Release the lock before constructing the scoped wrapper
-                        // and updating the borrow counters.
-                        l.unlock();
-
-                        auto borrowed = create_resource(std::move(resource));
-                        m_resources_checkedout++;
-                        m_counter_borrows++;
-                        return borrowed;
-                    }
-                    else {
-                        return SRT {siddiqsoft::arrp::pool_error::NoMoreResources};
-                    }
+                T resource;
+                if (auto err = try_acquire_pooled_resource(timeout, resource); err == pool_error::Ok) {
+                    auto borrowed = create_resource(std::move(resource));
+                    m_resources_checkedout++;
+                    m_counter_borrows++;
+                    return borrowed;
                 }
-                else if (timeout.count() > 0) {
+                else if (err == pool_error::Timeout) {
                     return SRT {siddiqsoft::arrp::pool_error::Timeout};
                 }
                 else {
                     return SRT {siddiqsoft::arrp::pool_error::NoMoreResources};
                 }
-            } // scope end
+            }
             catch (std::exception& ex) {
                 return SRT {siddiqsoft::arrp::pool_error::Unknown};
             }
