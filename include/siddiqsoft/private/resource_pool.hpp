@@ -46,7 +46,6 @@
 #include <mutex>
 #include <type_traits>
 #include <memory>
-#include <expected>
 #include <semaphore>
 
 #include "common.hpp"

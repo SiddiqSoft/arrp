@@ -30,21 +30,6 @@ namespace siddiqsoft::arrp
         MaxCapacity     = UCHAR_MAX
     };
 
-    /// @brief Controls auto-grow behavior for resource pools
-    ///
-    /// @details
-    /// Determines whether the resource pool automatically creates new resources
-    /// when the pool is starving (empty but under capacity).
-    ///
-    /// @note NoGrow: Pool does not create new resources; returns error when exhausted
-    /// @note AutoGrow: Pool creates new resources on-demand up to capacity limit
-    enum class auto_add_policy : uint8_t
-    {
-        NoGrow,  ///< Do not automatically add resources when pool is starving
-        AutoGrow ///< Automatically add resources when pool is starving and under capacity
-    };
-
-
     /// @brief Reason for releasing a resource back to the pool
     ///
     /// @details
@@ -78,20 +63,6 @@ struct std::formatter<siddiqsoft::arrp::resource_pool_limits> : std::formatter<s
     auto format(siddiqsoft::arrp::resource_pool_limits& pl, auto& ctx) const noexcept
     {
         return std::format_to(ctx.out(), "{}", static_cast<uint8_t>(pl));
-    }
-};
-
-/// @brief Formatter for auto_add_policy
-template <>
-struct std::formatter<siddiqsoft::arrp::auto_add_policy> : std::formatter<std::string>
-{
-    auto format(siddiqsoft::arrp::auto_add_policy& rr, auto& ctx) const noexcept
-    {
-        switch (rr) {
-            case siddiqsoft::arrp::auto_add_policy::NoGrow: return std::format_to(ctx.out(), "NoGrow");
-            case siddiqsoft::arrp::auto_add_policy::AutoGrow: return std::format_to(ctx.out(), "AutoGrow");
-            default: return std::format_to(ctx.out(), "Unknown");
-        }
     }
 };
 

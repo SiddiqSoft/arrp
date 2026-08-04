@@ -313,6 +313,7 @@ namespace siddiqsoft::arrp
         /// @return Reference to the wrapped resource
         /// @warning Behavior is undefined if resource has been invalidated
         explicit operator T() { return m_rsrc; }
+        explicit operator T&() { return m_rsrc; }
 
         /// @brief This bit of code allows the client to get at the available
         /// conversion within the stored type T.
