@@ -89,28 +89,25 @@ void            do_request(siddiqsoft::arrp::resource_pool<ScopedCurl>& pool, co
 {
     auto sc = pool.borrow_from_pool(std::chrono::milliseconds(2000));
     if (sc.has_value()) {
-        auto&& myCurlHandle = *sc;
-        if (myCurlHandle) {
-            std::println(std::cerr, "{} - Successfully borrowed resource from pool.", __func__);
-            auto ct = std::chrono::system_clock::now();
+        std::println(std::cerr, "{} - Successfully borrowed resource from pool.", __func__);
+        auto ct = std::chrono::system_clock::now();
 
-            // Setup the curl options for the request
-            if (auto rc = curl_easy_setopt(myCurlHandle, CURLOPT_URL, url); rc != CURLE_OK) {
-                std::println(std::cerr, "{} - Failed to set URL:{} -- {}", __func__, url, curl_easy_strerror(rc));
-            }
+        // Setup the curl options for the request
+        if (auto rc = curl_easy_setopt(sc, CURLOPT_URL, url); rc != CURLE_OK) {
+            std::println(std::cerr, "{} - Failed to set URL:{} -- {}", __func__, url, curl_easy_strerror(rc));
+        }
 
-            // Do the curl request and check for errors
-            if (auto rc = curl_easy_perform(myCurlHandle); rc != CURLE_OK) {
-                std::println(std::cerr, "{} - Failed to perform curl request: {}", __func__, curl_easy_strerror(rc));
-            }
-            else {
-                std::println(std::cerr, "{} - Successfully performed curl request.", __func__);
-                g_request_count++;
-            }
+        // Do the curl request and check for errors
+        if (auto rc = curl_easy_perform(sc); rc != CURLE_OK) {
+            std::println(std::cerr, "{} - Failed to perform curl request: {}", __func__, curl_easy_strerror(rc));
         }
         else {
-            std::println(std::cerr, "{} - Failed to borrow resource from pool.", __func__);
+            std::println(std::cerr, "{} - Successfully performed curl request.", __func__);
+            g_request_count++;
         }
+    }
+    else {
+        std::println(std::cerr, "{} - Failed to borrow resource from pool.", __func__);
     }
 }
 
