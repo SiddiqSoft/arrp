@@ -27,6 +27,7 @@ class ScopedCurl
     std::shared_ptr<std::string> m_content {new std::string {}};
 
 public:
+    // We must provide a default constructor
     ScopedCurl()
         : m_curlhandle(curl_easy_init())
     {
@@ -88,7 +89,7 @@ void            do_request(siddiqsoft::arrp::resource_pool<ScopedCurl>& pool, co
 {
     auto sc = pool.borrow_from_pool(std::chrono::milliseconds(2000));
     if (sc.has_value()) {
-        auto&& myCurlHandle = **sc;
+        auto&& myCurlHandle = *sc;
         if (myCurlHandle) {
             std::println(std::cerr, "{} - Successfully borrowed resource from pool.", __func__);
             auto ct = std::chrono::system_clock::now();

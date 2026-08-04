@@ -24,6 +24,9 @@ class ScopedFile
     std::string m_filename {};
 
 public:
+    // We must provide a default constructor
+    ScopedFile() = default;
+    
     ScopedFile(const char* filename, const char* mode)
         : m_filename(filename)
     {
