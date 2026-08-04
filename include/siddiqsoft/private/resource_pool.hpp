@@ -578,16 +578,17 @@ namespace siddiqsoft::arrp
             std::scoped_lock l(m_pool_lock);
 
             // Update the pool statistics
-            stats["size"]     = m_pool.size();                  ///< Available resources in pool
-            stats["deficit"]  = deficit_size();                 ///< Resources needed to reach capacity
-            stats["capacity"] = m_capacity;                     ///< Maximum resources
-            stats["peaksize"] = m_peak_poolsize.load();         ///< Peak pool size reached
-            stats["abandons"] = m_counter_abandons.load();      ///< Invalidated resources
-            stats["seeds"]    = m_counter_seeds.load();         ///< Resources added via seed_to_pool()
-            stats["autoadds"] = m_counter_ondemand_adds.load(); ///< Resources created on-demand
-            stats["returns"]  = m_counter_returns.load();       ///< Resources returned to pool
-            stats["borrows"]  = m_counter_borrows.load();       ///< Resources borrowed from pool
-            stats["loans"]    = loan_size();                    ///< Currently borrowed resources
+            stats["_typver"]  = "siddiqsoft.arrp.resource_pool/0.0.0"; ///< Type and version number of the class
+            stats["size"]     = m_pool.size();                         ///< Available resources in pool
+            stats["deficit"]  = deficit_size();                        ///< Resources needed to reach capacity
+            stats["capacity"] = m_capacity;                            ///< Maximum resources
+            stats["peaksize"] = m_peak_poolsize.load();                ///< Peak pool size reached
+            stats["abandons"] = m_counter_abandons.load();             ///< Invalidated resources
+            stats["seeds"]    = m_counter_seeds.load();                ///< Resources added via seed_to_pool()
+            stats["autoadds"] = m_counter_ondemand_adds.load();        ///< Resources created on-demand
+            stats["returns"]  = m_counter_returns.load();              ///< Resources returned to pool
+            stats["borrows"]  = m_counter_borrows.load();              ///< Resources borrowed from pool
+            stats["loans"]    = loan_size();                           ///< Currently borrowed resources
 
             // This field is only available when there is a supported data-type
             if constexpr (std::is_same_v<T, nlohmann::json> || std::is_same_v<T, std::string>) {

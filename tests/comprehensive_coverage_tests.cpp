@@ -571,7 +571,7 @@ TEST(resource_pool_json, empty_pool_serialization)
 
     auto                                         j = pool.to_json();
     EXPECT_TRUE(j.is_object());
-
+    std::println(std::cerr, "{} - Contents: {}", __func__, j.dump());
     EXPECT_TRUE(j.contains("_typver"));
     EXPECT_TRUE(j.contains("capacity"));
     EXPECT_TRUE(j.contains("size"));

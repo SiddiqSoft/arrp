@@ -99,7 +99,6 @@ TEST(scoped_resource_validity, destructor_returns_valid_resource)
     EXPECT_EQ("100", *item);
 }
 
-#if defined(DEBUG)
 
 /**
  * @brief Test that Abandoned resources are not returned to the pool
@@ -309,7 +308,5 @@ TEST(scoped_resource_validity, mixed_valid_invalid_concurrent)
     EXPECT_EQ(static_cast<size_t>(valid_count.load()), pool.size());
     EXPECT_GT(invalid_count.load(), 0);
 }
-
-#endif // defined(DEBUG)
 
 // NOLINTEND(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
