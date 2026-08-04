@@ -312,7 +312,28 @@ namespace siddiqsoft::arrp
         /// @brief Explicit conversion to resource reference
         /// @return Reference to the wrapped resource
         /// @warning Behavior is undefined if resource has been invalidated
-        explicit operator T&() { return m_rsrc; }
+        explicit operator T() { return m_rsrc; }
+
+        /// @brief This bit of code allows the client to get at the available
+        /// conversion within the stored type T.
+        /// @example Consider the following snippet (see the full example in examples/scoped_file)
+        /// class F {
+        ///    FILE* m_fh{};
+        ///    operator FILE*() { return m_fh}
+        /// }
+        /// ...
+        /// resource_pool<F> pool{};
+        /// ...
+        /// Allows us to do things such as
+        /// auto myfile = pool.borrow_from_pool();
+        /// ...
+        /// fputs("Hello World", myfile);
+        /// 
+        template <typename InnerType>
+        operator InnerType() const
+        {
+            return static_cast<InnerType>(m_rsrc);
+        }
 
         /// @brief Assignment operator for resource value
         ///

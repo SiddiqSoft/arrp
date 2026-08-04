@@ -26,11 +26,11 @@ class ScopedFile
 public:
     // We must provide a default constructor
     ScopedFile() = default;
-    
+
     ScopedFile(const char* filename, const char* mode)
         : m_filename(filename)
+        , m_filehandle(std::fopen(filename, mode))
     {
-        m_filehandle = std::fopen(filename, mode);
         if (m_filehandle != nullptr) {
             std::println(std::cerr, "{} - Successfully opened file: {} mode:{}", __func__, m_filename, mode);
         }
@@ -70,8 +70,9 @@ public:
         return *this;
     }
 
-               operator FILE*() const noexcept { return m_filehandle; }
-    std::FILE* get_filehandle() const noexcept { return m_filehandle; }
+    // This operator is called from the template operator InnerType() implementation in the scoped_resource.hpp file
+    operator FILE*() const noexcept { return m_filehandle; }
+
 
     ~ScopedFile()
     {
@@ -98,13 +99,11 @@ int main(int argc, char** argv)
         auto ct = std::chrono::system_clock::now();
 
 #if defined(WIN32)
-        fprintf(myfile->get_filehandle(),
-                std::format("{} - {} - Hello, World!\n", rand(), ct.time_since_epoch().count()).c_str());
+        fprintf(myfile, std::format("{} - {} - Hello, World!\n", rand(), ct.time_since_epoch().count()).c_str());
 #else
-        fprintf(myfile->get_filehandle(),
-                std::format("{} - {} - Hello, World!\n", getpid(), ct.time_since_epoch().count()).c_str());
+        fputs(std::format("{} - {} - Hello, World!\n", getpid(), ct.time_since_epoch().count()).c_str(), myfile);
 #endif
-        fflush(myfile->get_filehandle());
+        fflush(myfile);
     }
     else {
         std::println(std::cerr, "{} - Failed to borrow resource from pool.", __func__);
