@@ -46,6 +46,7 @@
 #include <mutex>
 #include <type_traits>
 #include <memory>
+#include <functional>
 #include <semaphore>
 
 #include "common.hpp"
@@ -147,6 +148,11 @@ namespace siddiqsoft::arrp
         /// This approach allows the client to perform any final cleanup for the given resource.
         /// @warning MUST NOT call any pool methods to avoid deadlock. Only perform cleanup operations.
         std::function<void(T&&)> m_callback_on_resource_cleanup {};
+
+        /// @brief Optional factory callback used to create resources on-demand
+        /// @details Stored as a zero-argument callable that returns `SRT`. Users can
+        /// provide a lambda that captures any required arguments.
+        std::function<T()> m_factory_callback {};
 
         /// @brief Sets the capacity. This is internal and can only be called from the constructor.
         /// @details The capacity of the internal queue must not be altered once set.
@@ -288,6 +294,90 @@ namespace siddiqsoft::arrp
                             return this->return_to_pool(std::forward<T>(src), isvalid);
                         },
                         std::forward<Args>(args)...};
+        }
+
+        // Helper: type alias for a user-provided callback that returns `SRT` and accepts `Args...`.
+        template <typename... Args>
+        using resource_callback_t = std::function<SRT(Args...)>;
+
+        // Helper to create a resource from a user-provided callback.
+        // The callback may return either `SRT` (already-wrapped) or `T` (raw resource).
+        // If it returns `T`, we forward the result to `create_resource` to obtain an `SRT`.
+        template <typename F, typename... Args>
+        auto create_from_callback(F&& f, Args&&... args) -> SRT
+        {
+            using result_t = std::invoke_result_t<F, Args...>;
+
+            if constexpr (std::is_same_v<result_t, SRT>) {
+                return std::invoke(std::forward<F>(f), std::forward<Args>(args)...);
+            }
+            else if constexpr (std::is_same_v<result_t, T>) {
+                return create_resource(std::invoke(std::forward<F>(f), std::forward<Args>(args)...));
+            }
+            else {
+                static_assert(std::is_same_v<result_t, SRT> || std::is_same_v<result_t, T>, "Callback must return either SRT or T");
+            }
+        }
+
+        /// @brief Set the factory callback used to create resources on-demand
+        /// @tparam F Callable type invokable with no arguments returning `SRT` or `T`
+        template <typename F>
+        void set_factory_callback(F&& f)
+        {
+            m_factory_callback = std::function<T()>(std::forward<F>(f));
+        }
+
+        /// @brief Borrow a resource or create one using the saved factory callback
+        ///
+        /// Tries to borrow from the pool first. If no pooled resource is available
+        /// and a factory callback has been set, a new resource is created via
+        /// `create_from_callback` and returned directly (without using the semaphore).
+        /// Counters are updated to account for on-demand adds and borrows.
+        [[nodiscard]] auto borrow_or_create(std::chrono::nanoseconds timeout = {}) -> SRT
+        {
+            try {
+                if (m_is_shutdown) return SRT {pool_error::ShutdownInitiated};
+
+                // try to acquire an existing pooled resource
+                if (timeout.count() == 0 ? m_pool_semaphore.try_acquire() : m_pool_semaphore.try_acquire_for(timeout)) {
+                    std::unique_lock l(m_pool_lock);
+                    if (!m_pool.empty()) {
+                        T resource = std::move(m_pool.front());
+                        m_pool.pop_front();
+                        l.unlock();
+
+                        auto borrowed = create_resource(std::move(resource));
+                        m_resources_checkedout++;
+                        m_counter_borrows++;
+                        return borrowed;
+                    }
+                    else {
+                        return SRT {siddiqsoft::arrp::pool_error::NoMoreResources};
+                    }
+                }
+
+                // No pooled resource available: try factory if set
+                if (m_factory_callback && is_pool_starving()) {
+                    auto created = create_from_callback(m_factory_callback);
+                    m_counter_ondemand_adds++;
+                    m_resources_checkedout++;
+                    m_counter_borrows++;
+                    return created;
+                }
+
+                if (timeout.count() > 0) {
+                    return SRT {siddiqsoft::arrp::pool_error::Timeout};
+                }
+
+                return SRT {siddiqsoft::arrp::pool_error::NoMoreResources};
+            }
+            catch (std::exception& ex) {
+                return SRT {siddiqsoft::arrp::pool_error::Unknown};
+            }
+            catch (...) {
+                std::print(std::cerr, "UNKNOWN Error in borrow_or_create\n");
+                return SRT {siddiqsoft::arrp::pool_error::Unknown};
+            }
         }
 
 
@@ -591,7 +681,7 @@ namespace siddiqsoft::arrp
             stats["loans"]    = loan_size();                           ///< Currently borrowed resources
 
             // This field is only available when there is a supported data-type
-            if constexpr (std::is_same_v<T, nlohmann::json> || std::is_same_v<T, std::string>) {
+            if constexpr (std::is_same_v<T, nlohmann::json> || std::is_same_v<T, std::string> || std::is_arithmetic_v<T>) {
                 stats["items"] = m_pool;
             }
 

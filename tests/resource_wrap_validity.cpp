@@ -309,4 +309,39 @@ TEST(scoped_resource_validity, mixed_valid_invalid_concurrent)
     EXPECT_GT(invalid_count.load(), 0);
 }
 
+
+TEST(scoped_resource_validity, valid_resource_returned_2)
+{
+    siddiqsoft::arrp::resource_pool<std::string> pool;
+
+    // Set the callback that will create the resource for us on demand..
+    pool.set_factory_callback([] { return std::string("42"); });
+
+    // Nothing is created yet..
+    EXPECT_EQ(0u, pool.size());
+
+    {
+        siddiqsoft::arrp::scoped_resource<std::string> wrap = pool.borrow_or_create();
+        EXPECT_TRUE(wrap.has_value());
+        EXPECT_EQ(0u, pool.size());
+        // Don't invalidate - resource should be returned
+    }
+
+    // Pool should have the resource back
+    EXPECT_EQ(1u, pool.size());
+
+    { // scope allows for auto-return
+        auto item = pool.borrow_from_pool();
+        EXPECT_TRUE(item.has_value());
+        EXPECT_EQ("42", *item);
+        EXPECT_EQ(0u, pool.size());
+    }
+
+    EXPECT_EQ(1u, pool.size());
+
+    auto stats = pool.to_json();
+    EXPECT_TRUE(stats.is_object());
+    EXPECT_EQ(1, stats.value("autoadds", -1));
+    std::println(std::cerr, "{} - stats: {}", __func__, stats.dump());
+}
 // NOLINTEND(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
