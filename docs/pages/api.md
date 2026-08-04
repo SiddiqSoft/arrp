@@ -21,7 +21,7 @@ Thread-safe auto-returning resource pool.
 
 | Method | Returns | Description |
 |---|---|---|
-| `borrow_from_pool()` | `std::expected<SRT, pool_error>` | Borrow resource from pool |
+| `borrow_from_pool()` | `SRT` | Borrow resource from pool |
 | `seed_to_pool(Args...)` | `std::expected<void, pool_error>` | Add resource via in-place construction |
 | `seed_to_pool(T&&)` | `std::expected<void, pool_error>` | Add resource via move |
 | `size()` | `std::expected<size_t, pool_error>` | Get available resources count |
@@ -33,7 +33,7 @@ Thread-safe auto-returning resource pool.
 
 **Factory Callback**
 ```cpp
-std::function<std::expected<SRT, pool_error>(resource_pool&)>
+std::function<SRT(resource_pool&)>
 ```
 Called when pool needs a resource. Must NOT call pool methods.
 

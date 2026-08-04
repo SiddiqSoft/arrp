@@ -234,7 +234,7 @@ namespace siddiqsoft::arrp
         /// @param new_resource_callback Factory callback to create new resources
         /// @param on_shutdown_callback Optional cleanup callback invoked on destruction
         ///
-        /// @note The factory callback is required and must return std::expected<SRT, pool_error>. It must NOT call pool methods.
+        /// @note The factory callback is required and must return SRT. It must NOT call pool methods.
         /// @note The cleanup callback is optional and invoked for each resource during destruction
         /// @note Capacity is clamped to valid range [MinimumCapacity, MaxCapacity]
         resource_pool(uint8_t                    init_capacity        = resource_pool_limits::DefaultCapacity,
@@ -355,7 +355,7 @@ namespace siddiqsoft::arrp
         /// the factory callback is invoked to create a new resource on-demand. If the pool is exhausted
         /// and no factory callback is available, returns an error.
         ///
-        /// @return std::expected<SRT, pool_error> containing the borrowed resource or error
+        /// @return SRT containing the borrowed resource or error
         ///
         /// @note Thread-safe: Uses exclusive lock for pool access
         /// @note Factory callback is invoked outside the lock to prevent deadlocks
@@ -373,8 +373,10 @@ namespace siddiqsoft::arrp
         ///     std::print(std::cerr, "Failed to borrow resource\n");
         /// }
         /// @endcode
-        [[nodiscard]] auto borrow_from_pool(std::chrono::nanoseconds timeout = {}) -> std::expected<SRT, pool_error>
+        [[nodiscard]] auto borrow_from_pool(std::chrono::nanoseconds timeout = {}) -> SRT
         {
+            SRT no_resource = create_resource(pool_error::NoMoreResources);
+
             try {
                 // @note We use a unique_lock vs a scoped_lock to allow ourselves
                 // to create the resource outside the lock!

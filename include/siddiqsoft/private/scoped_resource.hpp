@@ -148,7 +148,9 @@ namespace siddiqsoft::arrp
         /// @details Prevents returning uninitialized or moved-out resources
         /// - true: resource will be returned to pool on destruction
         /// - false: resource will NOT be returned to pool on destruction
-        bool m_is_valid {false};
+        bool       m_is_valid {false};
+
+        pool_error m_error_code {pool_error::None};
 
     protected:
         /// @brief Default constructor is protected to allow derived classes
@@ -189,6 +191,13 @@ namespace siddiqsoft::arrp
         /// Copy assignment is not allowed to maintain move-only semantics
         /// and prevent resource ownership ambiguity.
         scoped_resource& operator=(const scoped_resource&) = delete;
+
+        /// @brief Constructs a scoped_resource in an error state
+        scoped_resource(const pool_error& err)
+            : m_is_valid(false)
+            , m_error_code(err)
+        {
+        }
 
     public:
         /// @brief Move constructor
@@ -353,7 +362,7 @@ namespace siddiqsoft::arrp
         /// @note Const: Does not modify the resource
         virtual bool is_valid() const { return m_is_valid; }
 
-
+        pool_error   error_code() const { return m_error_code; }
         virtual bool has_value() const { return m_is_valid; }
 
 #if defined(NLOHMANN_JSON_VERSION_MAJOR)

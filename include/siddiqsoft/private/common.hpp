@@ -63,6 +63,7 @@ namespace siddiqsoft::arrp
     /// Indicates various error conditions that can occur during pool operations.
     enum class pool_error : uint8_t
     {
+        None = 0,          ///< No error; operation succeeded
         NoMoreResources,   ///< Pool is exhausted and no factory callback available
         ShutdownInitiated, ///< Pool is shutting down
         Timeout,           ///< Resource was not available within the specified timeout
