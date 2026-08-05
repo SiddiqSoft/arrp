@@ -20,18 +20,15 @@ public:
 };
 
 int main() {
-    // Create pool with 10 resources, auto-grow enabled
-    siddiqsoft::arrp::resource_pool<MyResource> pool(
-        10,
-        siddiqsoft::arrp::auto_add_policy::AutoGrow
-    );
+    // Create pool with 10 resources
+    siddiqsoft::arrp::resource_pool<MyResource> pool(10);
 
     // Borrow resource
-    auto resource = pool.borrow_from_pool();
+    auto resource = pool.try_borrow();
     if (resource) {
         resource->doWork();
     }
-    // Resource automatically returned when scoped_resource is destroyed
+    // Resource automatically returned when resource_guard is destroyed
 
     return 0;
 }
@@ -44,42 +41,36 @@ int main() {
 @subsection create_simple Simple Pool
 
 ```cpp
-// Default: 8 resources, no auto-grow
+// Default: 8 resources
 siddiqsoft::arrp::resource_pool<MyResource> pool;
 
-// Custom capacity, no auto-grow
+// Custom capacity
 siddiqsoft::arrp::resource_pool<MyResource> pool(20);
-
-// Custom capacity with auto-grow
-siddiqsoft::arrp::resource_pool<MyResource> pool(
-    20,
-    siddiqsoft::arrp::auto_add_policy::AutoGrow
-);
 ```
 
 @subsection create_factory Pool with Factory
 
 ```cpp
-siddiqsoft::arrp::resource_pool<MyResource> pool(
-    10,
-    [](auto& pool) -> std::expected<siddiqsoft::arrp::scoped_resource<MyResource>, 
-                                     siddiqsoft::arrp::pool_error> {
-        return pool.create_resource("arg1", "arg2");
-    }
-);
+siddiqsoft::arrp::resource_pool<MyResource> pool(10);
+pool.set_factory_callback([]() {
+    return MyResource();
+});
+
+auto resource = pool.try_borrow_create();
 ```
 
 @subsection create_cleanup Pool with Cleanup
 
 ```cpp
-siddiqsoft::arrp::resource_pool<MyResource> pool(
-    10,
-    [](auto& pool) { return pool.create_resource(); },
-    [](MyResource&& res) {
-        std::cout << "Cleaning up resource\n";
-        res.cleanup();
-    }
-);
+siddiqsoft::arrp::resource_pool<MyResource> pool(10);
+pool.set_factory_callback([]() {
+    return MyResource();
+});
+
+siddiqsoft::arrp::pool_error result = pool.clear();
+if (result == siddiqsoft::arrp::pool_error::Ok) {
+    std::cout << "Pool cleared\n";
+}
 ```
 
 ---
@@ -89,7 +80,7 @@ siddiqsoft::arrp::resource_pool<MyResource> pool(
 @subsection borrow_basic Basic Borrowing
 
 ```cpp
-auto resource = pool.borrow_from_pool();
+auto resource = pool.try_borrow();
 if (resource) {
     // Use resource
     resource->doWork();
@@ -100,7 +91,7 @@ if (resource) {
 @subsection borrow_error Error Handling
 
 ```cpp
-auto resource = pool.borrow_from_pool();
+auto resource = pool.try_borrow();
 if (!resource) {
     switch (resource.error()) {
         case siddiqsoft::arrp::pool_error::NoMoreResources:
@@ -118,7 +109,7 @@ if (!resource) {
 @subsection borrow_move Move Resource
 
 ```cpp
-auto resource = pool.borrow_from_pool();
+auto resource = pool.try_borrow();
 if (resource) {
     // Extract resource
     auto extracted = std::move(*resource);
@@ -139,7 +130,7 @@ if (resource) {
 
 ```cpp
 MyResource res("config");
-auto result = pool.seed_to_pool(std::move(res));
+auto result = pool.seed(std::move(res));
 if (result) {
     std::cout << "Resource added\n";
 }
@@ -148,7 +139,7 @@ if (result) {
 @subsection seed_inplace Seed via In-Place Construction
 
 ```cpp
-auto result = pool.seed_to_pool("arg1", "arg2", "arg3");
+auto result = pool.seed("arg1", "arg2", "arg3");
 if (result) {
     std::cout << "Resource created and added\n";
 }
@@ -161,7 +152,7 @@ if (result) {
 @subsection invalidate_example Invalidate Resource
 
 ```cpp
-auto resource = pool.borrow_from_pool();
+auto resource = pool.try_borrow();
 if (resource) {
     if (resource->isCorrupted()) {
         resource.invalidate();  // Don't return to pool
@@ -173,7 +164,7 @@ if (resource) {
 @subsection check_validity Check Validity
 
 ```cpp
-auto resource = pool.borrow_from_pool();
+auto resource = pool.try_borrow();
 if (resource && resource.is_valid()) {
     // Resource is valid
 }
@@ -221,12 +212,12 @@ All pool operations are thread-safe:
 
 ```cpp
 std::thread t1([&pool]() {
-    auto res = pool.borrow_from_pool();
+    auto res = pool.try_borrow();
     // Use resource
 });
 
 std::thread t2([&pool]() {
-    auto res = pool.borrow_from_pool();
+    auto res = pool.try_borrow();
     // Use resource
 });
 
@@ -236,10 +227,10 @@ t2.join();
 
 @subsection thread_unsafe NOT Thread-Safe
 
-Individual `scoped_resource` instances are NOT thread-safe:
+Individual `resource_guard` instances are NOT thread-safe:
 
 ```cpp
-auto resource = pool.borrow_from_pool();
+auto resource = pool.try_borrow();
 
 // WRONG: Don't share across threads
 std::thread t([&resource]() {
@@ -254,7 +245,7 @@ std::thread t([&resource]() {
 std::vector<std::thread> threads;
 for (int i = 0; i < 4; ++i) {
     threads.emplace_back([&pool]() {
-        auto resource = pool.borrow_from_pool();
+        auto resource = pool.try_borrow();
         if (resource) {
             resource->doWork();
         }
@@ -270,16 +261,16 @@ for (auto& t : threads) {
 
 @section advanced Advanced Usage
 
-@subsection custom_scoped_resource Custom Scoped Resource
+@subsection custom_resource_guard Custom Scoped Resource
 
 ```cpp
-class MyCustomScoped : public siddiqsoft::arrp::scoped_resource<MyResource> {
+class MyCustomScoped : public siddiqsoft::arrp::resource_guard<MyResource> {
 public:
-    using scoped_resource::scoped_resource;
+    using resource_guard::resource_guard;
     
     void invalidate() override {
         std::cout << "Custom invalidate\n";
-        scoped_resource::invalidate();
+        resource_guard::invalidate();
     }
 };
 
@@ -322,14 +313,14 @@ siddiqsoft::arrp::resource_pool<Resource> pool(255);
 
 ```cpp
 // Good: Quick factory
-[](auto& pool) {
-    return pool.create_resource();
+[]() {
+    return MyResource();
 }
 
 // Bad: Slow factory
-[](auto& pool) {
+[]() {
     std::this_thread::sleep_for(std::chrono::seconds(1));
-    return pool.create_resource();
+    return MyResource();
 }
 ```
 
@@ -337,14 +328,14 @@ siddiqsoft::arrp::resource_pool<Resource> pool(255);
 
 ```cpp
 // WRONG: Deadlock risk
-[](auto& pool) {
+[]() {
     auto size = pool.size();  // DEADLOCK!
-    return pool.create_resource();
+    return MyResource();
 }
 
 // Correct: Only create resource
-[](auto& pool) {
-    return pool.create_resource();
+[]() {
+    return MyResource();
 }
 ```
 
@@ -352,20 +343,20 @@ siddiqsoft::arrp::resource_pool<Resource> pool(255);
 
 ```cpp
 // Good
-auto resource = pool.borrow_from_pool();
+auto resource = pool.try_borrow();
 if (resource) {
     // Use resource
 }
 
 // Bad: Ignoring errors
-auto resource = pool.borrow_from_pool();
+auto resource = pool.try_borrow();
 resource->doWork();  // Undefined behavior if error
 ```
 
 @subsection bp_invalidate Invalidate Corrupted Resources
 
 ```cpp
-auto resource = pool.borrow_from_pool();
+auto resource = pool.try_borrow();
 if (resource) {
     if (!resource->isHealthy()) {
         resource.invalidate();  // Don't return corrupted resource
@@ -379,13 +370,12 @@ if (resource) {
 
 @subsection ts_pool_exhausted Pool Exhausted
 
-**Problem**: `borrow_from_pool()` returns `NoMoreResources`
+**Problem**: `try_borrow()` returns `NoMoreResources`
 
 **Solutions**:
 1. Increase capacity: `resource_pool<T>(20)` instead of `resource_pool<T>(10)`
-2. Enable auto-grow: `auto_add_policy::AutoGrow`
-3. Provide factory callback for on-demand creation
-4. Ensure resources are being returned (check `loans` in statistics)
+2. Provide a factory callback for on-demand creation
+3. Ensure resources are being returned (check `loans` in statistics)
 
 @subsection ts_deadlock Deadlock
 
@@ -393,12 +383,12 @@ if (resource) {
 
 **Causes**:
 1. Calling pool methods from callbacks
-2. Holding scoped_resource across thread boundaries
+2. Holding resource_guard across thread boundaries
 3. Recursive mutex not enabled
 
 **Solutions**:
 1. Don't call pool methods in callbacks
-2. Each thread gets its own scoped_resource
+2. Each thread gets its own resource_guard
 3. Enable recursive mutex if needed: `#define ARRP_USE_RECURSIVE_MUTEX`
 
 @subsection ts_memory_leak Memory Leak
@@ -410,7 +400,7 @@ if (resource) {
 2. Cleanup callback not implemented
 
 **Solutions**:
-1. Ensure scoped_resource goes out of scope
+1. Ensure resource_guard goes out of scope
 2. Implement cleanup callback if needed
 3. Check statistics: `pool.to_json()`
 

@@ -28,7 +28,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="Siddiq-Software-Avatar.png"/></td>
   <td id="projectalign">
-   <div id="projectname">arrp<span id="projectnumber">&#160;0.0.19</span>
+   <div id="projectname">arrp<span id="projectnumber">&#160;0.1.0</span>
    </div>
    <div id="projectbrief">Auto returning resource pool for modern C++</div>
   </td>
@@ -94,8 +94,8 @@ $(function(){initNavTree('Consider-example.html','',''); });
   <div class="headertitle"><div class="title">Consider</div></div>
 </div><!--header-->
 <div class="contents">
-<p>This bit of code allows the client to get at the available conversion within the stored type T. the following snippet (see the full example in examples/scoped_file) class F { FILE* m_fh{}; operator FILE*() { return m_fh} } ... resource_pool&lt;F&gt; pool{}; ... Allows us to do things such as auto myfile = pool.borrow_from_pool(); ... fputs("Hello World", myfile);.</p>
-<p>This bit of code allows the client to get at the available conversion within the stored type T. the following snippet (see the full example in examples/scoped_file) class F { FILE* m_fh{}; operator FILE*() { return m_fh} } ... resource_pool&lt;F&gt; pool{}; ... Allows us to do things such as auto myfile = pool.borrow_from_pool(); ... fputs("Hello World", myfile);</p>
+<p>This bit of code allows the client to get at the available conversion within the stored type T. the following snippet (see the full example in examples/scoped_file) class F { FILE* m_fh{}; operator FILE*() { return m_fh} } ... resource_pool&lt;F&gt; pool{}; ... Allows us to do things such as auto myfile = pool.try_borrow(); ... fputs("Hello World", myfile);.</p>
+<p>This bit of code allows the client to get at the available conversion within the stored type T. the following snippet (see the full example in examples/scoped_file) class F { FILE* m_fh{}; operator FILE*() { return m_fh} } ... resource_pool&lt;F&gt; pool{}; ... Allows us to do things such as auto myfile = pool.try_borrow(); ... fputs("Hello World", myfile);</p>
 <div class="fragment"></div><!-- fragment --> </div><!-- contents -->
 </div><!-- doc-content -->
 </div><!-- container -->

@@ -28,7 +28,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="Siddiq-Software-Avatar.png"/></td>
   <td id="projectalign">
-   <div id="projectname">arrp<span id="projectnumber">&#160;0.0.19</span>
+   <div id="projectname">arrp<span id="projectnumber">&#160;0.1.0</span>
    </div>
    <div id="projectbrief">Auto returning resource pool for modern C++</div>
   </td>
@@ -109,18 +109,15 @@ Basic Example</h2>
 <div class="line">};</div>
 <div class="line"> </div>
 <div class="line"><span class="keywordtype">int</span> main() {</div>
-<div class="line">    <span class="comment">// Create pool with 10 resources, auto-grow enabled</span></div>
-<div class="line">    <a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool&lt;MyResource&gt;</a> pool(</div>
-<div class="line">        10,</div>
-<div class="line">        siddiqsoft::arrp::auto_add_policy::AutoGrow</div>
-<div class="line">    );</div>
+<div class="line">    <span class="comment">// Create pool with 10 resources</span></div>
+<div class="line">    <a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool&lt;MyResource&gt;</a> pool(10);</div>
 <div class="line"> </div>
 <div class="line">    <span class="comment">// Borrow resource</span></div>
-<div class="line">    <span class="keyword">auto</span> resource = pool.borrow_from_pool();</div>
+<div class="line">    <span class="keyword">auto</span> resource = pool.try_borrow();</div>
 <div class="line">    <span class="keywordflow">if</span> (resource) {</div>
 <div class="line">        resource-&gt;doWork();</div>
 <div class="line">    }</div>
-<div class="line">    <span class="comment">// Resource automatically returned when scoped_resource is destroyed</span></div>
+<div class="line">    <span class="comment">// Resource automatically returned when resource_guard is destroyed</span></div>
 <div class="line"> </div>
 <div class="line">    <span class="keywordflow">return</span> 0;</div>
 <div class="line">}</div>
@@ -130,43 +127,38 @@ Basic Example</h2>
 Pool Creation</h1>
 <h2 class="doxsection"><a class="anchor" id="create_simple"></a>
 Simple Pool</h2>
-<div class="fragment"><div class="line"><span class="comment">// Default: 8 resources, no auto-grow</span></div>
+<div class="fragment"><div class="line"><span class="comment">// Default: 8 resources</span></div>
 <div class="line"><a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool&lt;MyResource&gt;</a> pool;</div>
 <div class="line"> </div>
-<div class="line"><span class="comment">// Custom capacity, no auto-grow</span></div>
+<div class="line"><span class="comment">// Custom capacity</span></div>
 <div class="line"><a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool&lt;MyResource&gt;</a> pool(20);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Custom capacity with auto-grow</span></div>
-<div class="line"><a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool&lt;MyResource&gt;</a> pool(</div>
-<div class="line">    20,</div>
-<div class="line">    siddiqsoft::arrp::auto_add_policy::AutoGrow</div>
-<div class="line">);</div>
 </div><!-- fragment --><h2 class="doxsection"><a class="anchor" id="create_factory"></a>
 Pool with Factory</h2>
-<div class="fragment"><div class="line"><a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool&lt;MyResource&gt;</a> pool(</div>
-<div class="line">    10,</div>
-<div class="line">    [](<span class="keyword">auto</span>&amp; pool) -&gt; std::expected&lt;<a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html">siddiqsoft::arrp::scoped_resource&lt;MyResource&gt;</a>, </div>
-<div class="line">                                     siddiqsoft::arrp::pool_error&gt; {</div>
-<div class="line">        <span class="keywordflow">return</span> pool.create_resource(<span class="stringliteral">&quot;arg1&quot;</span>, <span class="stringliteral">&quot;arg2&quot;</span>);</div>
-<div class="line">    }</div>
-<div class="line">);</div>
-<div class="ttc" id="aclasssiddiqsoft_1_1arrp_1_1scoped__resource_html"><div class="ttname"><a href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html">siddiqsoft::arrp::scoped_resource</a></div><div class="ttdef"><b>Definition</b> <a href="scoped__resource_8hpp_source.html#l00117">scoped_resource.hpp:118</a></div></div>
+<div class="fragment"><div class="line"><a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool&lt;MyResource&gt;</a> pool(10);</div>
+<div class="line">pool.<a class="code hl_function" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html#a2d24ea993b55f0b36412143fb998d6f1">set_factory_callback</a>([]() {</div>
+<div class="line">    <span class="keywordflow">return</span> MyResource();</div>
+<div class="line">});</div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">auto</span> resource = pool.try_borrow_create();</div>
+<div class="ttc" id="aclasssiddiqsoft_1_1arrp_1_1resource__pool_html_a2d24ea993b55f0b36412143fb998d6f1"><div class="ttname"><a href="classsiddiqsoft_1_1arrp_1_1resource__pool.html#a2d24ea993b55f0b36412143fb998d6f1">siddiqsoft::arrp::resource_pool::set_factory_callback</a></div><div class="ttdeci">void set_factory_callback(F &amp;&amp;f)</div><div class="ttdoc">Set the factory callback used to create resources on-demand.</div><div class="ttdef"><b>Definition</b> <a href="resource__pool_8hpp_source.html#l00322">resource_pool.hpp:322</a></div></div>
 </div><!-- fragment --><h2 class="doxsection"><a class="anchor" id="create_cleanup"></a>
 Pool with Cleanup</h2>
-<div class="fragment"><div class="line"><a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool&lt;MyResource&gt;</a> pool(</div>
-<div class="line">    10,</div>
-<div class="line">    [](<span class="keyword">auto</span>&amp; pool) { <span class="keywordflow">return</span> pool.create_resource(); },</div>
-<div class="line">    [](MyResource&amp;&amp; res) {</div>
-<div class="line">        std::cout &lt;&lt; <span class="stringliteral">&quot;Cleaning up resource\n&quot;</span>;</div>
-<div class="line">        res.cleanup();</div>
-<div class="line">    }</div>
-<div class="line">);</div>
+<div class="fragment"><div class="line"><a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool&lt;MyResource&gt;</a> pool(10);</div>
+<div class="line">pool.<a class="code hl_function" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html#a2d24ea993b55f0b36412143fb998d6f1">set_factory_callback</a>([]() {</div>
+<div class="line">    <span class="keywordflow">return</span> MyResource();</div>
+<div class="line">});</div>
+<div class="line"> </div>
+<div class="line">siddiqsoft::arrp::pool_error result = pool.<a class="code hl_function" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html#ae93636e0036afd37ba0e0afa599e4225">clear</a>();</div>
+<div class="line"><span class="keywordflow">if</span> (result == siddiqsoft::arrp::pool_error::Ok) {</div>
+<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Pool cleared\n&quot;</span>;</div>
+<div class="line">}</div>
+<div class="ttc" id="aclasssiddiqsoft_1_1arrp_1_1resource__pool_html_ae93636e0036afd37ba0e0afa599e4225"><div class="ttname"><a href="classsiddiqsoft_1_1arrp_1_1resource__pool.html#ae93636e0036afd37ba0e0afa599e4225">siddiqsoft::arrp::resource_pool::clear</a></div><div class="ttdeci">auto clear() -&gt; pool_error</div><div class="ttdoc">Clears all resources from the pool.</div><div class="ttdef"><b>Definition</b> <a href="resource__pool_8hpp_source.html#l00340">resource_pool.hpp:340</a></div></div>
 </div><!-- fragment --><hr  />
 <h1 class="doxsection"><a class="anchor" id="resource_borrowing"></a>
 Borrowing Resources</h1>
 <h2 class="doxsection"><a class="anchor" id="borrow_basic"></a>
 Basic Borrowing</h2>
-<div class="fragment"><div class="line"><span class="keyword">auto</span> resource = pool.borrow_from_pool();</div>
+<div class="fragment"><div class="line"><span class="keyword">auto</span> resource = pool.try_borrow();</div>
 <div class="line"><span class="keywordflow">if</span> (resource) {</div>
 <div class="line">    <span class="comment">// Use resource</span></div>
 <div class="line">    resource-&gt;doWork();</div>
@@ -174,7 +166,7 @@ Basic Borrowing</h2>
 <div class="line">}</div>
 </div><!-- fragment --><h2 class="doxsection"><a class="anchor" id="borrow_error"></a>
 Error Handling</h2>
-<div class="fragment"><div class="line"><span class="keyword">auto</span> resource = pool.borrow_from_pool();</div>
+<div class="fragment"><div class="line"><span class="keyword">auto</span> resource = pool.try_borrow();</div>
 <div class="line"><span class="keywordflow">if</span> (!resource) {</div>
 <div class="line">    <span class="keywordflow">switch</span> (resource.error()) {</div>
 <div class="line">        <span class="keywordflow">case</span> siddiqsoft::arrp::pool_error::NoMoreResources:</div>
@@ -189,7 +181,7 @@ Error Handling</h2>
 <div class="line">}</div>
 </div><!-- fragment --><h2 class="doxsection"><a class="anchor" id="borrow_move"></a>
 Move Resource</h2>
-<div class="fragment"><div class="line"><span class="keyword">auto</span> resource = pool.borrow_from_pool();</div>
+<div class="fragment"><div class="line"><span class="keyword">auto</span> resource = pool.try_borrow();</div>
 <div class="line"><span class="keywordflow">if</span> (resource) {</div>
 <div class="line">    <span class="comment">// Extract resource</span></div>
 <div class="line">    <span class="keyword">auto</span> extracted = std::move(*resource);</div>
@@ -206,14 +198,14 @@ Seeding Resources</h1>
 <h2 class="doxsection"><a class="anchor" id="seed_move"></a>
 Seed via Move</h2>
 <div class="fragment"><div class="line">MyResource res(<span class="stringliteral">&quot;config&quot;</span>);</div>
-<div class="line"><span class="keyword">auto</span> result = pool.<a class="code hl_function" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html#aa797df26b5117f7bb399ad1731ff2c98">seed_to_pool</a>(std::move(res));</div>
+<div class="line"><span class="keyword">auto</span> result = pool.<a class="code hl_function" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html#a0d69dc395c0ed814587f61d3a47d3c63">seed</a>(std::move(res));</div>
 <div class="line"><span class="keywordflow">if</span> (result) {</div>
 <div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Resource added\n&quot;</span>;</div>
 <div class="line">}</div>
-<div class="ttc" id="aclasssiddiqsoft_1_1arrp_1_1resource__pool_html_aa797df26b5117f7bb399ad1731ff2c98"><div class="ttname"><a href="classsiddiqsoft_1_1arrp_1_1resource__pool.html#aa797df26b5117f7bb399ad1731ff2c98">siddiqsoft::arrp::resource_pool::seed_to_pool</a></div><div class="ttdeci">auto seed_to_pool(Args &amp;&amp;... args) -&gt; pool_error</div><div class="ttdoc">Adds a resource to the pool by constructing it in-place.</div><div class="ttdef"><b>Definition</b> <a href="resource__pool_8hpp_source.html#l00482">resource_pool.hpp:482</a></div></div>
+<div class="ttc" id="aclasssiddiqsoft_1_1arrp_1_1resource__pool_html_a0d69dc395c0ed814587f61d3a47d3c63"><div class="ttname"><a href="classsiddiqsoft_1_1arrp_1_1resource__pool.html#a0d69dc395c0ed814587f61d3a47d3c63">siddiqsoft::arrp::resource_pool::seed</a></div><div class="ttdeci">auto seed(Args &amp;&amp;... args) -&gt; pool_error</div><div class="ttdoc">Adds a resource to the pool by constructing it in-place.</div><div class="ttdef"><b>Definition</b> <a href="resource__pool_8hpp_source.html#l00487">resource_pool.hpp:487</a></div></div>
 </div><!-- fragment --><h2 class="doxsection"><a class="anchor" id="seed_inplace"></a>
 Seed via In-Place Construction</h2>
-<div class="fragment"><div class="line"><span class="keyword">auto</span> result = pool.<a class="code hl_function" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html#aa797df26b5117f7bb399ad1731ff2c98">seed_to_pool</a>(<span class="stringliteral">&quot;arg1&quot;</span>, <span class="stringliteral">&quot;arg2&quot;</span>, <span class="stringliteral">&quot;arg3&quot;</span>);</div>
+<div class="fragment"><div class="line"><span class="keyword">auto</span> result = pool.<a class="code hl_function" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html#a0d69dc395c0ed814587f61d3a47d3c63">seed</a>(<span class="stringliteral">&quot;arg1&quot;</span>, <span class="stringliteral">&quot;arg2&quot;</span>, <span class="stringliteral">&quot;arg3&quot;</span>);</div>
 <div class="line"><span class="keywordflow">if</span> (result) {</div>
 <div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Resource created and added\n&quot;</span>;</div>
 <div class="line">}</div>
@@ -222,7 +214,7 @@ Seed via In-Place Construction</h2>
 Resource Invalidation</h1>
 <h2 class="doxsection"><a class="anchor" id="invalidate_example"></a>
 Invalidate Resource</h2>
-<div class="fragment"><div class="line"><span class="keyword">auto</span> resource = pool.borrow_from_pool();</div>
+<div class="fragment"><div class="line"><span class="keyword">auto</span> resource = pool.try_borrow();</div>
 <div class="line"><span class="keywordflow">if</span> (resource) {</div>
 <div class="line">    <span class="keywordflow">if</span> (resource-&gt;isCorrupted()) {</div>
 <div class="line">        resource.invalidate();  <span class="comment">// Don&#39;t return to pool</span></div>
@@ -231,7 +223,7 @@ Invalidate Resource</h2>
 <div class="line">}</div>
 </div><!-- fragment --><h2 class="doxsection"><a class="anchor" id="check_validity"></a>
 Check Validity</h2>
-<div class="fragment"><div class="line"><span class="keyword">auto</span> resource = pool.borrow_from_pool();</div>
+<div class="fragment"><div class="line"><span class="keyword">auto</span> resource = pool.try_borrow();</div>
 <div class="line"><span class="keywordflow">if</span> (resource &amp;&amp; resource.is_valid()) {</div>
 <div class="line">    <span class="comment">// Resource is valid</span></div>
 <div class="line">}</div>
@@ -267,12 +259,12 @@ Threading</h1>
 Thread-Safe Operations</h2>
 <p>All pool operations are thread-safe:</p>
 <div class="fragment"><div class="line">std::thread t1([&amp;pool]() {</div>
-<div class="line">    <span class="keyword">auto</span> res = pool.borrow_from_pool();</div>
+<div class="line">    <span class="keyword">auto</span> res = pool.try_borrow();</div>
 <div class="line">    <span class="comment">// Use resource</span></div>
 <div class="line">});</div>
 <div class="line"> </div>
 <div class="line">std::thread t2([&amp;pool]() {</div>
-<div class="line">    <span class="keyword">auto</span> res = pool.borrow_from_pool();</div>
+<div class="line">    <span class="keyword">auto</span> res = pool.try_borrow();</div>
 <div class="line">    <span class="comment">// Use resource</span></div>
 <div class="line">});</div>
 <div class="line"> </div>
@@ -280,8 +272,8 @@ Thread-Safe Operations</h2>
 <div class="line">t2.join();</div>
 </div><!-- fragment --><h2 class="doxsection"><a class="anchor" id="thread_unsafe"></a>
 NOT Thread-Safe</h2>
-<p>Individual <span class="tt">scoped_resource</span> instances are NOT thread-safe:</p>
-<div class="fragment"><div class="line"><span class="keyword">auto</span> resource = pool.borrow_from_pool();</div>
+<p>Individual <span class="tt">resource_guard</span> instances are NOT thread-safe:</p>
+<div class="fragment"><div class="line"><span class="keyword">auto</span> resource = pool.try_borrow();</div>
 <div class="line"> </div>
 <div class="line"><span class="comment">// WRONG: Don&#39;t share across threads</span></div>
 <div class="line">std::thread t([&amp;resource]() {</div>
@@ -293,7 +285,7 @@ Correct Threading</h2>
 <div class="line">std::vector&lt;std::thread&gt; threads;</div>
 <div class="line"><span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; 4; ++i) {</div>
 <div class="line">    threads.emplace_back([&amp;pool]() {</div>
-<div class="line">        <span class="keyword">auto</span> resource = pool.borrow_from_pool();</div>
+<div class="line">        <span class="keyword">auto</span> resource = pool.try_borrow();</div>
 <div class="line">        <span class="keywordflow">if</span> (resource) {</div>
 <div class="line">            resource-&gt;doWork();</div>
 <div class="line">        }</div>
@@ -306,33 +298,33 @@ Correct Threading</h2>
 </div><!-- fragment --><hr  />
 <h1 class="doxsection"><a class="anchor" id="advanced"></a>
 Advanced Usage</h1>
-<h2 class="doxsection"><a class="anchor" id="custom_scoped_resource"></a>
+<h2 class="doxsection"><a class="anchor" id="custom_resource_guard"></a>
 Custom Scoped Resource</h2>
-<div class="fragment"><div class="line"><span class="keyword">class </span>MyCustomScoped : <span class="keyword">public</span> <a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html">siddiqsoft::arrp::scoped_resource</a>&lt;MyResource&gt; {</div>
+<div class="fragment"><div class="line"><span class="keyword">class </span>MyCustomScoped : <span class="keyword">public</span> <a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1resource__guard.html">siddiqsoft::arrp::resource_guard</a>&lt;MyResource&gt; {</div>
 <div class="line"><span class="keyword">public</span>:</div>
-<div class="line">    <span class="keyword">using </span>scoped_resource::scoped_resource;</div>
+<div class="line">    <span class="keyword">using </span>resource_guard::resource_guard;</div>
 <div class="line">    </div>
 <div class="line">    <span class="keywordtype">void</span> invalidate()<span class="keyword"> override </span>{</div>
 <div class="line">        std::cout &lt;&lt; <span class="stringliteral">&quot;Custom invalidate\n&quot;</span>;</div>
-<div class="line">        scoped_resource::invalidate();</div>
+<div class="line">        resource_guard::invalidate();</div>
 <div class="line">    }</div>
 <div class="line">};</div>
 <div class="line"> </div>
 <div class="line"><a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool&lt;MyResource, MyCustomScoped&gt;</a> pool(10);</div>
+<div class="ttc" id="aclasssiddiqsoft_1_1arrp_1_1resource__guard_html"><div class="ttname"><a href="classsiddiqsoft_1_1arrp_1_1resource__guard.html">siddiqsoft::arrp::resource_guard</a></div><div class="ttdef"><b>Definition</b> <a href="resource__guard_8hpp_source.html#l00117">resource_guard.hpp:118</a></div></div>
 </div><!-- fragment --><h2 class="doxsection"><a class="anchor" id="pool_clear"></a>
 Clear Pool</h2>
 <div class="fragment"><div class="line"><span class="keyword">auto</span> result = pool.<a class="code hl_function" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html#ae93636e0036afd37ba0e0afa599e4225">clear</a>();</div>
 <div class="line"><span class="keywordflow">if</span> (result) {</div>
 <div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Pool cleared\n&quot;</span>;</div>
 <div class="line">}</div>
-<div class="ttc" id="aclasssiddiqsoft_1_1arrp_1_1resource__pool_html_ae93636e0036afd37ba0e0afa599e4225"><div class="ttname"><a href="classsiddiqsoft_1_1arrp_1_1resource__pool.html#ae93636e0036afd37ba0e0afa599e4225">siddiqsoft::arrp::resource_pool::clear</a></div><div class="ttdeci">auto clear() -&gt; pool_error</div><div class="ttdoc">Clears all resources from the pool.</div><div class="ttdef"><b>Definition</b> <a href="resource__pool_8hpp_source.html#l00339">resource_pool.hpp:339</a></div></div>
 </div><!-- fragment --><h2 class="doxsection"><a class="anchor" id="pool_size"></a>
 Get Pool Size</h2>
 <div class="fragment"><div class="line"><span class="keyword">auto</span> size = pool.<a class="code hl_function" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html#ad275913e4d61ea92561a317cdca99d29">size</a>();</div>
 <div class="line"><span class="keywordflow">if</span> (size) {</div>
 <div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Available resources: &quot;</span> &lt;&lt; size.value() &lt;&lt; <span class="stringliteral">&quot;\n&quot;</span>;</div>
 <div class="line">}</div>
-<div class="ttc" id="aclasssiddiqsoft_1_1arrp_1_1resource__pool_html_ad275913e4d61ea92561a317cdca99d29"><div class="ttname"><a href="classsiddiqsoft_1_1arrp_1_1resource__pool.html#ad275913e4d61ea92561a317cdca99d29">siddiqsoft::arrp::resource_pool::size</a></div><div class="ttdeci">auto size() const</div><div class="ttdoc">Gets the current size of the pool.</div><div class="ttdef"><b>Definition</b> <a href="resource__pool_8hpp_source.html#l00372">resource_pool.hpp:372</a></div></div>
+<div class="ttc" id="aclasssiddiqsoft_1_1arrp_1_1resource__pool_html_ad275913e4d61ea92561a317cdca99d29"><div class="ttname"><a href="classsiddiqsoft_1_1arrp_1_1resource__pool.html#ad275913e4d61ea92561a317cdca99d29">siddiqsoft::arrp::resource_pool::size</a></div><div class="ttdeci">auto size() const</div><div class="ttdoc">Gets the current size of the pool.</div><div class="ttdef"><b>Definition</b> <a href="resource__pool_8hpp_source.html#l00373">resource_pool.hpp:373</a></div></div>
 </div><!-- fragment --><hr  />
 <h1 class="doxsection"><a class="anchor" id="best_practices"></a>
 Best Practices</h1>
@@ -346,41 +338,41 @@ Choose Appropriate Capacity</h2>
 </div><!-- fragment --><h2 class="doxsection"><a class="anchor" id="bp_callbacks"></a>
 Keep Callbacks Fast</h2>
 <div class="fragment"><div class="line"><span class="comment">// Good: Quick factory</span></div>
-<div class="line">[](<span class="keyword">auto</span>&amp; pool) {</div>
-<div class="line">    <span class="keywordflow">return</span> pool.create_resource();</div>
+<div class="line">[]() {</div>
+<div class="line">    <span class="keywordflow">return</span> MyResource();</div>
 <div class="line">}</div>
 <div class="line"> </div>
 <div class="line"><span class="comment">// Bad: Slow factory</span></div>
-<div class="line">[](<span class="keyword">auto</span>&amp; pool) {</div>
+<div class="line">[]() {</div>
 <div class="line">    std::this_thread::sleep_for(std::chrono::seconds(1));</div>
-<div class="line">    <span class="keywordflow">return</span> pool.create_resource();</div>
+<div class="line">    <span class="keywordflow">return</span> MyResource();</div>
 <div class="line">}</div>
 </div><!-- fragment --><h2 class="doxsection"><a class="anchor" id="bp_no_deadlock"></a>
 Don't Call Pool Methods in Callbacks</h2>
 <div class="fragment"><div class="line"><span class="comment">// WRONG: Deadlock risk</span></div>
-<div class="line">[](<span class="keyword">auto</span>&amp; pool) {</div>
+<div class="line">[]() {</div>
 <div class="line">    <span class="keyword">auto</span> size = pool.<a class="code hl_function" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html#ad275913e4d61ea92561a317cdca99d29">size</a>();  <span class="comment">// DEADLOCK!</span></div>
-<div class="line">    <span class="keywordflow">return</span> pool.create_resource();</div>
+<div class="line">    <span class="keywordflow">return</span> MyResource();</div>
 <div class="line">}</div>
 <div class="line"> </div>
 <div class="line"><span class="comment">// Correct: Only create resource</span></div>
-<div class="line">[](<span class="keyword">auto</span>&amp; pool) {</div>
-<div class="line">    <span class="keywordflow">return</span> pool.create_resource();</div>
+<div class="line">[]() {</div>
+<div class="line">    <span class="keywordflow">return</span> MyResource();</div>
 <div class="line">}</div>
 </div><!-- fragment --><h2 class="doxsection"><a class="anchor" id="bp_error_handling"></a>
 Always Check Results</h2>
 <div class="fragment"><div class="line"><span class="comment">// Good</span></div>
-<div class="line"><span class="keyword">auto</span> resource = pool.borrow_from_pool();</div>
+<div class="line"><span class="keyword">auto</span> resource = pool.try_borrow();</div>
 <div class="line"><span class="keywordflow">if</span> (resource) {</div>
 <div class="line">    <span class="comment">// Use resource</span></div>
 <div class="line">}</div>
 <div class="line"> </div>
 <div class="line"><span class="comment">// Bad: Ignoring errors</span></div>
-<div class="line"><span class="keyword">auto</span> resource = pool.borrow_from_pool();</div>
+<div class="line"><span class="keyword">auto</span> resource = pool.try_borrow();</div>
 <div class="line">resource-&gt;doWork();  <span class="comment">// Undefined behavior if error</span></div>
 </div><!-- fragment --><h2 class="doxsection"><a class="anchor" id="bp_invalidate"></a>
 Invalidate Corrupted Resources</h2>
-<div class="fragment"><div class="line"><span class="keyword">auto</span> resource = pool.borrow_from_pool();</div>
+<div class="fragment"><div class="line"><span class="keyword">auto</span> resource = pool.try_borrow();</div>
 <div class="line"><span class="keywordflow">if</span> (resource) {</div>
 <div class="line">    <span class="keywordflow">if</span> (!resource-&gt;isHealthy()) {</div>
 <div class="line">        resource.invalidate();  <span class="comment">// Don&#39;t return corrupted resource</span></div>
@@ -391,11 +383,10 @@ Invalidate Corrupted Resources</h2>
 Troubleshooting</h1>
 <h2 class="doxsection"><a class="anchor" id="ts_pool_exhausted"></a>
 Pool Exhausted</h2>
-<p><b>Problem</b>: <span class="tt">borrow_from_pool()</span> returns <span class="tt">NoMoreResources</span></p>
+<p><b>Problem</b>: <span class="tt">try_borrow()</span> returns <span class="tt">NoMoreResources</span></p>
 <p><b>Solutions</b>:</p><ol type="1">
 <li>Increase capacity: <span class="tt">resource_pool&lt;T&gt;(20)</span> instead of <span class="tt">resource_pool&lt;T&gt;(10)</span></li>
-<li>Enable auto-grow: <span class="tt">auto_add_policy::AutoGrow</span></li>
-<li>Provide factory callback for on-demand creation</li>
+<li>Provide a factory callback for on-demand creation</li>
 <li>Ensure resources are being returned (check <span class="tt">loans</span> in statistics)</li>
 </ol>
 <h2 class="doxsection"><a class="anchor" id="ts_deadlock"></a>
@@ -403,12 +394,12 @@ Deadlock</h2>
 <p><b>Problem</b>: Application hangs</p>
 <p><b>Causes</b>:</p><ol type="1">
 <li>Calling pool methods from callbacks</li>
-<li>Holding scoped_resource across thread boundaries</li>
+<li>Holding resource_guard across thread boundaries</li>
 <li>Recursive mutex not enabled</li>
 </ol>
 <p><b>Solutions</b>:</p><ol type="1">
 <li>Don't call pool methods in callbacks</li>
-<li>Each thread gets its own scoped_resource</li>
+<li>Each thread gets its own resource_guard</li>
 <li>Enable recursive mutex if needed: <span class="tt">#define ARRP_USE_RECURSIVE_MUTEX</span></li>
 </ol>
 <h2 class="doxsection"><a class="anchor" id="ts_memory_leak"></a>
@@ -419,7 +410,7 @@ Memory Leak</h2>
 <li>Cleanup callback not implemented</li>
 </ol>
 <p><b>Solutions</b>:</p><ol type="1">
-<li>Ensure scoped_resource goes out of scope</li>
+<li>Ensure resource_guard goes out of scope</li>
 <li>Implement cleanup callback if needed</li>
 <li>Check statistics: <span class="tt">pool.to_json()</span></li>
 </ol>

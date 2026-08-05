@@ -12,7 +12,7 @@ resource management and preventing leaks.
 - **Thread-Safe**: All operations protected by mutex (std::mutex or std::recursive_mutex)
 - **RAII Pattern**: Resources automatically returned on destruction
 - **Move-Only Semantics**: Prevents resource ownership ambiguity
-- **Flexible Policies**: Support for fixed-size and auto-growing pools
+- **Flexible Policies**: Support for fixed-size pools and factory callbacks
 - **Callback-Based**: Factory and cleanup callbacks for custom resource management
 - **Statistics**: Built-in counters for monitoring pool usage
 - **JSON Serialization**: Export pool statistics to JSON (with nlohmann/json)
@@ -24,34 +24,24 @@ resource management and preventing leaks.
 ```cpp
 #include "siddiqsoft/resource_pool.hpp"
 
-// Create a pool with auto-grow policy
-siddiqsoft::arrp::resource_pool<MyResource> pool(
-    10,  // capacity
-    siddiqsoft::arrp::auto_add_policy::AutoGrow
-);
+siddiqsoft::arrp::resource_pool<MyResource> pool(10);
 
-// Borrow a resource
-auto resource = pool.borrow_from_pool();
+auto resource = pool.try_borrow();
 if (resource) {
     resource->doSomething();
 }
-// Resource automatically returned when scoped_resource is destroyed
+// Resource automatically returned when resource_guard is destroyed
 ```
 
 @subsection custom_factory Custom Factory
 
 ```cpp
-siddiqsoft::arrp::resource_pool<MyResource> pool(
-    10,
-    [](auto& pool) -> std::expected<siddiqsoft::arrp::scoped_resource<MyResource>, 
-                                     siddiqsoft::arrp::pool_error> {
-        return pool.create_resource(/* constructor args */);
-    },
-    [](MyResource&& res) {
-        // Optional cleanup callback
-        res.cleanup();
-    }
-);
+siddiqsoft::arrp::resource_pool<MyResource> pool(10);
+pool.set_factory_callback([] {
+    return MyResource();
+});
+
+auto resource = pool.try_borrow_create();
 ```
 
 @section architecture Architecture
@@ -63,32 +53,30 @@ The library consists of three main components:
    - Handles borrowing and returning
    - Tracks statistics
 
-2. **scoped_resource<T>**: RAII wrapper
+2. **resource_guard<T>**: RAII wrapper
    - Wraps individual resources
    - Automatically returns on destruction
    - Supports move semantics
 
 3. **Common Types**: Enums and limits
-   - auto_add_policy: Growth behavior
    - pool_error: Error codes
    - resource_pool_limits: Capacity constraints
 
 @section thread_safety Thread Safety
 
 - **resource_pool**: Fully thread-safe (mutex-protected)
-- **scoped_resource**: NOT thread-safe (single-threaded access)
-- Each scoped_resource should be accessed by only one thread
+- **resource_guard**: NOT thread-safe (single-threaded access)
+- Each resource_guard should be accessed by only one thread
 
 @section error_handling Error Handling
 
-The library uses `std::expected<T, pool_error>` for error handling:
+Borrowed resources are represented by `resource_guard<T>` wrappers. Check validity before use and inspect `error()` when invalid:
 
 ```cpp
-auto resource = pool.borrow_from_pool();
-if (resource) {
+auto resource = pool.try_borrow();
+if (resource && resource.is_valid()) {
     // Use resource
 } else {
-    // Handle error
     switch (resource.error()) {
         case siddiqsoft::arrp::pool_error::NoMoreResources:
             // Pool exhausted
@@ -96,7 +84,8 @@ if (resource) {
         case siddiqsoft::arrp::pool_error::ShutdownInitiated:
             // Pool is shutting down
             break;
-        // ...
+        default:
+            break;
     }
 }
 ```
@@ -147,17 +136,12 @@ private:
     FILE* m_file;
 };
 
-siddiqsoft::arrp::resource_pool<FileHandle> file_pool(
-    5,
-    [](auto& pool) {
-        return pool.create_resource("data.txt");
-    },
-    [](FileHandle&& fh) {
-        // Cleanup handled by FileHandle destructor
-    }
-);
+siddiqsoft::arrp::resource_pool<FileHandle> file_pool(5);
+file_pool.set_factory_callback([]() {
+    return FileHandle("data.txt");
+});
 
-auto file = file_pool.borrow_from_pool();
+auto file = file_pool.try_borrow_create();
 if (file) {
     // Use file
 }
@@ -169,7 +153,6 @@ if (file) {
 All types are in `siddiqsoft::arrp` namespace.
 
 @see resource_pool
-@see scoped_resource
-@see auto_add_policy
+@see resource_guard
 @see pool_error
 */

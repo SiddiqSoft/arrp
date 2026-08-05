@@ -35,14 +35,13 @@ var NAVTREE =
         [ "Callbacks", "api_reference.html#rp_callbacks", null ],
         [ "Statistics", "api_reference.html#rp_statistics", null ]
       ] ],
-      [ "scoped_resource&lt;T&gt;", "api_reference.html#scoped_resource_class", [
+      [ "resource_guard&lt;T&gt;", "api_reference.html#resource_guard_class", [
         [ "Template Parameters", "api_reference.html#sr_template", null ],
         [ "Operators", "api_reference.html#sr_operators", null ],
         [ "Methods", "api_reference.html#sr_methods", null ],
         [ "Move Semantics", "api_reference.html#sr_semantics", null ]
       ] ],
       [ "Enumerations", "api_reference.html#enums", [
-        [ "auto_add_policy", "api_reference.html#auto_add_policy", null ],
         [ "pool_error", "api_reference.html#pool_error", null ],
         [ "resource_pool_limits", "api_reference.html#resource_pool_limits", null ]
       ] ],
@@ -51,9 +50,7 @@ var NAVTREE =
       ] ],
       [ "Usage Patterns", "api_reference.html#usage_patterns", [
         [ "Fixed-Size Pool", "api_reference.html#pattern_fixed_pool", null ],
-        [ "Auto-Growing Pool", "api_reference.html#pattern_autogrow", null ],
-        [ "Custom Factory", "api_reference.html#pattern_custom_factory", null ],
-        [ "Cleanup Callback", "api_reference.html#pattern_cleanup_callback", null ],
+        [ "Factory Callback", "api_reference.html#pattern_factory_callback", null ],
         [ "Invalidate Resource", "api_reference.html#pattern_invalidate", null ]
       ] ],
       [ "Thread Safety Details", "api_reference.html#thread_safety_details", null ],
@@ -93,7 +90,7 @@ var NAVTREE =
         [ "Correct Threading", "usage_guide.html#thread_correct", null ]
       ] ],
       [ "Advanced Usage", "usage_guide.html#advanced", [
-        [ "Custom Scoped Resource", "usage_guide.html#custom_scoped_resource", null ],
+        [ "Custom Scoped Resource", "usage_guide.html#custom_resource_guard", null ],
         [ "Clear Pool", "usage_guide.html#pool_clear", null ],
         [ "Get Pool Size", "usage_guide.html#pool_size", null ]
       ] ],

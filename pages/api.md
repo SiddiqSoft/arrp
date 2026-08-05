@@ -7,41 +7,41 @@ Thread-safe auto-returning resource pool.
 
 @subsection rp_template Template Parameters
 - `T`: Resource type (must satisfy NonNumericMoveConstructible)
-- `SRT`: Scoped resource type (defaults to scoped_resource<T>)
+- `SRT`: Scoped resource type (defaults to resource_guard<T>)
 
 @subsection rp_constructors Constructors
 
 | Constructor | Description |
 |---|---|
-| `resource_pool(uint8_t capacity, auto_add_policy policy)` | Create pool with capacity and growth policy |
-| `resource_pool(uint8_t capacity, factory_callback, cleanup_callback)` | Create pool with custom factory and cleanup |
-| `resource_pool(cleanup_callback)` | Create pool with only cleanup callback |
+| `resource_pool(uint8_t capacity = resource_pool_limits::DefaultCapacity, std::function<void(T&)>&& on_shutdown_callback = {})` | Create a pool with fixed capacity and optional cleanup callback |
+| `resource_pool(std::function<void(T&)>&& on_shutdown_callback)` | Create a pool with default capacity and cleanup callback |
 
 @subsection rp_methods Methods
 
 | Method | Returns | Description |
 |---|---|---|
-| `borrow_from_pool()` | `SRT` | Borrow resource from pool |
-| `seed_to_pool(Args...)` | `std::expected<void, pool_error>` | Add resource via in-place construction |
-| `seed_to_pool(T&&)` | `std::expected<void, pool_error>` | Add resource via move |
-| `size()` | `std::expected<size_t, pool_error>` | Get available resources count |
-| `clear()` | `std::expected<void, pool_error>` | Clear all resources |
-| `create_resource(Args...)` | `SRT` | Create scoped resource (for custom use) |
-| `to_json()` | `std::expected<json_ref, pool_error>` | Get statistics as JSON |
+| `try_borrow()` | `SRT` | Borrow a resource from the pool. Returns an invalid scoped resource when unavailable. |
+| `try_borrow_create(std::chrono::nanoseconds timeout = {})` | `SRT` | Borrow a resource or create one on demand using the registered factory callback. |
+| `seed(Args&&...)` | `pool_error` | Add a resource to the pool by constructing it in place. |
+| `seed(T&&)` | `pool_error` | Add a moved resource to the pool. |
+| `size()` | `size_t` | Get the number of available resources in the pool. |
+| `clear()` | `pool_error` | Remove all resources from the pool. |
+| `set_factory_callback(F&&)` | `void` | Register a callback to create resources when the pool is empty. |
+| `to_json()` | `nlohmann::json` | Export pool statistics to JSON when nlohmann/json support is enabled. |
 
 @subsection rp_callbacks Callbacks
 
 **Factory Callback**
 ```cpp
-std::function<SRT(resource_pool&)>
+std::function<SRT()>
 ```
-Called when pool needs a resource. Must NOT call pool methods.
+Called when the pool is empty and a resource must be created on demand. The callback may return either `T` or `SRT`.
 
 **Cleanup Callback**
 ```cpp
-std::function<void(T&&)>
+std::function<void(T&)>
 ```
-Called for each resource during destruction. Must NOT call pool methods.
+Called for each pooled resource during cleanup. Must NOT call pool methods.
 
 @subsection rp_statistics Statistics
 
@@ -54,12 +54,12 @@ Access via `to_json()`:
 - `returns`: Total returned
 - `loans`: Currently borrowed
 - `abandons`: Invalidated resources
-- `seeds`: Added via seed_to_pool()
-- `autoadds`: Created on-demand
+- `seeds`: Added via seed()
+- `autoadds`: Created on demand
 
 ---
 
-@section scoped_resource_class scoped_resource<T>
+@section resource_guard_class resource_guard<T>
 
 RAII wrapper for managing resource lifecycle.
 
@@ -72,8 +72,8 @@ RAII wrapper for managing resource lifecycle.
 |---|---|---|
 | `operator*()` | `T&` | Dereference to resource |
 | `operator->()` | `T*` | Pointer access (nullptr if invalid) |
-| `operator=(T&&)` | `scoped_resource&` | Assign new resource |
-| `operator=(scoped_resource&&)` | `scoped_resource&` | Move assignment |
+| `operator=(T&&)` | `resource_guard&` | Assign new resource |
+| `operator=(resource_guard&&)` | `resource_guard&` | Move assignment |
 
 @subsection sr_methods Methods
 
@@ -81,7 +81,8 @@ RAII wrapper for managing resource lifecycle.
 |---|---|---|
 | `invalidate()` | `void` | Mark resource as invalid (abandoned) |
 | `is_valid()` | `bool` | Check if resource is valid |
-| `to_json()` | `nlohmann::json` | Serialize to JSON |
+| `has_value()` | `bool` | Check if the wrapper contains a valid resource |
+| `error()` | `pool_error` | Retrieve the failure code when the wrapper is invalid |
 
 @subsection sr_semantics Move Semantics
 
@@ -93,18 +94,13 @@ RAII wrapper for managing resource lifecycle.
 
 @section enums Enumerations
 
-@subsection auto_add_policy auto_add_policy
-
-Controls auto-grow behavior:
-- `NoGrow`: Pool returns error when exhausted
-- `AutoGrow`: Pool creates resources on-demand
-
 @subsection pool_error pool_error
 
 Error codes:
-- `NoMoreResources`: Pool exhausted, no factory available
-- `UnderCapacityNoAutoGrow`: Under capacity but auto-grow disabled
+- `Ok`: Operation succeeded
+- `NoMoreResources`: Pool exhausted and no factory callback available
 - `ShutdownInitiated`: Pool is shutting down
+- `Timeout`: Resource was not available within the specified timeout
 - `Unknown`: Unknown error
 
 @subsection resource_pool_limits resource_pool_limits
@@ -135,53 +131,27 @@ Prevents wrapping primitive types.
 
 ```cpp
 siddiqsoft::arrp::resource_pool<Resource> pool(10);
-pool.seed_to_pool(Resource());
-pool.seed_to_pool(Resource());
-// ...
-auto res = pool.borrow_from_pool();
+pool.seed(Resource());
 ```
 
-@subsection pattern_autogrow Auto-Growing Pool
+@subsection pattern_factory_callback Factory Callback
 
 ```cpp
-siddiqsoft::arrp::resource_pool<Resource> pool(
-    10,
-    siddiqsoft::arrp::auto_add_policy::AutoGrow
-);
-// Resources created on-demand up to capacity
-```
+siddiqsoft::arrp::resource_pool<Resource> pool(10);
+pool.set_factory_callback([] {
+    return Resource();
+});
 
-@subsection pattern_custom_factory Custom Factory
-
-```cpp
-siddiqsoft::arrp::resource_pool<Resource> pool(
-    10,
-    [](auto& pool) {
-        return pool.create_resource(/* args */);
-    }
-);
-```
-
-@subsection pattern_cleanup_callback Cleanup Callback
-
-```cpp
-siddiqsoft::arrp::resource_pool<Resource> pool(
-    10,
-    [](auto& pool) { return pool.create_resource(); },
-    [](Resource&& res) {
-        res.cleanup();
-    }
-);
+auto res = pool.try_borrow_create();
 ```
 
 @subsection pattern_invalidate Invalidate Resource
 
 ```cpp
-auto res = pool.borrow_from_pool();
+auto res = pool.try_borrow();
 if (res) {
     auto extracted = std::move(*res);
-    res.invalidate();  // Don't return to pool
-    // Use extracted elsewhere
+    res.invalidate();
 }
 ```
 
@@ -190,17 +160,19 @@ if (res) {
 @section thread_safety_details Thread Safety Details
 
 **Thread-Safe Operations**
-- `borrow_from_pool()`
-- `seed_to_pool()`
+- `try_borrow()`
+- `try_borrow_create()`
+- `seed()`
 - `size()`
 - `clear()`
+- `set_factory_callback()`
 - `to_json()`
 
 **NOT Thread-Safe**
-- Individual `scoped_resource` instances
+- Individual `resource_guard` instances
 - Resource access via `operator*()` or `operator->()`
 
-**Recommendation**: Each thread should have its own `scoped_resource` instance.
+**Recommendation**: Each thread should have its own `resource_guard` instance.
 
 ---
 
@@ -217,7 +189,7 @@ if (res) {
 
 - Capacity limited to 255 resources
 - Callbacks must not call pool methods (deadlock risk)
-- `scoped_resource` not thread-safe
+- `resource_guard` not thread-safe
 - No support for arithmetic types (int, float, etc.)
 
 */

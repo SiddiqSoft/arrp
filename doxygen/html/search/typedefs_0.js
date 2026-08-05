@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['putbackcallbackfunc_0',['PutbackCallbackFunc',['../classsiddiqsoft_1_1arrp_1_1scoped__resource.html#a87f4d2c272e90654ee37e395b05ba218',1,'siddiqsoft::arrp::scoped_resource']]]
+  ['putbackcallbackfunc_0',['PutbackCallbackFunc',['../classsiddiqsoft_1_1arrp_1_1resource__guard.html#a764da98af690ef5faf0ca546f772e243',1,'siddiqsoft::arrp::resource_guard']]]
 ];

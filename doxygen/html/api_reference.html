@@ -28,7 +28,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="Siddiq-Software-Avatar.png"/></td>
   <td id="projectalign">
-   <div id="projectname">arrp<span id="projectnumber">&#160;0.0.19</span>
+   <div id="projectname">arrp<span id="projectnumber">&#160;0.1.0</span>
    </div>
    <div id="projectbrief">Auto returning resource pool for modern C++</div>
   </td>
@@ -101,7 +101,7 @@ resource_pool&lt;T, SRT&gt;</h1>
 Template Parameters</h2>
 <ul>
 <li><span class="tt">T</span>: Resource type (must satisfy NonNumericMoveConstructible)</li>
-<li><span class="tt">SRT</span>: Scoped resource type (defaults to scoped_resource&lt;T&gt;)</li>
+<li><span class="tt">SRT</span>: Scoped resource type (defaults to resource_guard&lt;T&gt;)</li>
 </ul>
 <h2 class="doxsection"><a class="anchor" id="rp_constructors"></a>
 Constructors</h2>
@@ -109,11 +109,9 @@ Constructors</h2>
 <tr class="markdownTableHead">
 <th class="markdownTableHeadNone">Constructor  </th><th class="markdownTableHeadNone">Description  </th></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone"><span class="tt">resource_pool(uint8_t capacity, auto_add_policy policy)</span>  </td><td class="markdownTableBodyNone">Create pool with capacity and growth policy  </td></tr>
+<td class="markdownTableBodyNone"><span class="tt">resource_pool(uint8_t capacity = resource_pool_limits::DefaultCapacity, std::function&lt;void(T&amp;)&gt;&amp;&amp; on_shutdown_callback = {})</span>  </td><td class="markdownTableBodyNone">Create a pool with fixed capacity and optional cleanup callback  </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone"><span class="tt">resource_pool(uint8_t capacity, factory_callback, cleanup_callback)</span>  </td><td class="markdownTableBodyNone">Create pool with custom factory and cleanup  </td></tr>
-<tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone"><span class="tt">resource_pool(cleanup_callback)</span>  </td><td class="markdownTableBodyNone">Create pool with only cleanup callback  </td></tr>
+<td class="markdownTableBodyNone"><span class="tt">resource_pool(std::function&lt;void(T&amp;)&gt;&amp;&amp; on_shutdown_callback)</span>  </td><td class="markdownTableBodyNone">Create a pool with default capacity and cleanup callback  </td></tr>
 </table>
 <h2 class="doxsection"><a class="anchor" id="rp_methods"></a>
 Methods</h2>
@@ -121,26 +119,28 @@ Methods</h2>
 <tr class="markdownTableHead">
 <th class="markdownTableHeadNone">Method  </th><th class="markdownTableHeadNone">Returns  </th><th class="markdownTableHeadNone">Description  </th></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone"><span class="tt">borrow_from_pool()</span>  </td><td class="markdownTableBodyNone"><span class="tt">SRT</span>  </td><td class="markdownTableBodyNone">Borrow resource from pool  </td></tr>
+<td class="markdownTableBodyNone"><span class="tt">try_borrow()</span>  </td><td class="markdownTableBodyNone"><span class="tt">SRT</span>  </td><td class="markdownTableBodyNone">Borrow a resource from the pool. Returns an invalid scoped resource when unavailable.  </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone"><span class="tt">seed_to_pool(Args...)</span>  </td><td class="markdownTableBodyNone"><span class="tt">std::expected&lt;void, pool_error&gt;</span>  </td><td class="markdownTableBodyNone">Add resource via in-place construction  </td></tr>
+<td class="markdownTableBodyNone"><span class="tt">try_borrow_create(std::chrono::nanoseconds timeout = {})</span>  </td><td class="markdownTableBodyNone"><span class="tt">SRT</span>  </td><td class="markdownTableBodyNone">Borrow a resource or create one on demand using the registered factory callback.  </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone"><span class="tt">seed_to_pool(T&amp;&amp;)</span>  </td><td class="markdownTableBodyNone"><span class="tt">std::expected&lt;void, pool_error&gt;</span>  </td><td class="markdownTableBodyNone">Add resource via move  </td></tr>
+<td class="markdownTableBodyNone"><span class="tt">seed(Args&amp;&amp;...)</span>  </td><td class="markdownTableBodyNone"><span class="tt">pool_error</span>  </td><td class="markdownTableBodyNone">Add a resource to the pool by constructing it in place.  </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone"><span class="tt">size()</span>  </td><td class="markdownTableBodyNone"><span class="tt">std::expected&lt;size_t, pool_error&gt;</span>  </td><td class="markdownTableBodyNone">Get available resources count  </td></tr>
+<td class="markdownTableBodyNone"><span class="tt">seed(T&amp;&amp;)</span>  </td><td class="markdownTableBodyNone"><span class="tt">pool_error</span>  </td><td class="markdownTableBodyNone">Add a moved resource to the pool.  </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone"><span class="tt">clear()</span>  </td><td class="markdownTableBodyNone"><span class="tt">std::expected&lt;void, pool_error&gt;</span>  </td><td class="markdownTableBodyNone">Clear all resources  </td></tr>
+<td class="markdownTableBodyNone"><span class="tt">size()</span>  </td><td class="markdownTableBodyNone"><span class="tt">size_t</span>  </td><td class="markdownTableBodyNone">Get the number of available resources in the pool.  </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone"><span class="tt">create_resource(Args...)</span>  </td><td class="markdownTableBodyNone"><span class="tt">SRT</span>  </td><td class="markdownTableBodyNone">Create scoped resource (for custom use)  </td></tr>
+<td class="markdownTableBodyNone"><span class="tt">clear()</span>  </td><td class="markdownTableBodyNone"><span class="tt">pool_error</span>  </td><td class="markdownTableBodyNone">Remove all resources from the pool.  </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone"><span class="tt">to_json()</span>  </td><td class="markdownTableBodyNone"><span class="tt">std::expected&lt;json_ref, pool_error&gt;</span>  </td><td class="markdownTableBodyNone">Get statistics as JSON  </td></tr>
+<td class="markdownTableBodyNone"><span class="tt">set_factory_callback(F&amp;&amp;)</span>  </td><td class="markdownTableBodyNone"><span class="tt">void</span>  </td><td class="markdownTableBodyNone">Register a callback to create resources when the pool is empty.  </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><span class="tt">to_json()</span>  </td><td class="markdownTableBodyNone"><span class="tt">nlohmann::json</span>  </td><td class="markdownTableBodyNone">Export pool statistics to JSON when nlohmann/json support is enabled.  </td></tr>
 </table>
 <h2 class="doxsection"><a class="anchor" id="rp_callbacks"></a>
 Callbacks</h2>
-<p><b>Factory Callback</b> </p><div class="fragment"><div class="line">std::function&lt;SRT(resource_pool&amp;)&gt;</div>
-</div><!-- fragment --><p> Called when pool needs a resource. Must NOT call pool methods.</p>
-<p><b>Cleanup Callback</b> </p><div class="fragment"><div class="line">std::function&lt;void(T&amp;&amp;)&gt;</div>
-</div><!-- fragment --><p> Called for each resource during destruction. Must NOT call pool methods.</p>
+<p><b>Factory Callback</b> </p><div class="fragment"><div class="line">std::function&lt;SRT()&gt;</div>
+</div><!-- fragment --><p> Called when the pool is empty and a resource must be created on demand. The callback may return either <span class="tt">T</span> or <span class="tt">SRT</span>.</p>
+<p><b>Cleanup Callback</b> </p><div class="fragment"><div class="line">std::function&lt;void(T&amp;)&gt;</div>
+</div><!-- fragment --><p> Called for each pooled resource during cleanup. Must NOT call pool methods.</p>
 <h2 class="doxsection"><a class="anchor" id="rp_statistics"></a>
 Statistics</h2>
 <p>Access via <span class="tt">to_json()</span>:</p><ul>
@@ -152,12 +152,12 @@ Statistics</h2>
 <li><span class="tt">returns</span>: Total returned</li>
 <li><span class="tt">loans</span>: Currently borrowed</li>
 <li><span class="tt">abandons</span>: Invalidated resources</li>
-<li><span class="tt">seeds</span>: Added via seed_to_pool()</li>
-<li><span class="tt">autoadds</span>: Created on-demand</li>
+<li><span class="tt">seeds</span>: Added via seed()</li>
+<li><span class="tt">autoadds</span>: Created on demand</li>
 </ul>
 <hr  />
-<h1 class="doxsection"><a class="anchor" id="scoped_resource_class"></a>
-scoped_resource&lt;T&gt;</h1>
+<h1 class="doxsection"><a class="anchor" id="resource_guard_class"></a>
+resource_guard&lt;T&gt;</h1>
 <p>RAII wrapper for managing resource lifecycle.</p>
 <h2 class="doxsection"><a class="anchor" id="sr_template"></a>
 Template Parameters</h2>
@@ -174,9 +174,9 @@ Operators</h2>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone"><span class="tt">operator-&gt;()</span>  </td><td class="markdownTableBodyNone"><span class="tt">T*</span>  </td><td class="markdownTableBodyNone">Pointer access (nullptr if invalid)  </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone"><span class="tt">operator=(T&amp;&amp;)</span>  </td><td class="markdownTableBodyNone"><span class="tt">scoped_resource&amp;</span>  </td><td class="markdownTableBodyNone">Assign new resource  </td></tr>
+<td class="markdownTableBodyNone"><span class="tt">operator=(T&amp;&amp;)</span>  </td><td class="markdownTableBodyNone"><span class="tt">resource_guard&amp;</span>  </td><td class="markdownTableBodyNone">Assign new resource  </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone"><span class="tt">operator=(scoped_resource&amp;&amp;)</span>  </td><td class="markdownTableBodyNone"><span class="tt">scoped_resource&amp;</span>  </td><td class="markdownTableBodyNone">Move assignment  </td></tr>
+<td class="markdownTableBodyNone"><span class="tt">operator=(resource_guard&amp;&amp;)</span>  </td><td class="markdownTableBodyNone"><span class="tt">resource_guard&amp;</span>  </td><td class="markdownTableBodyNone">Move assignment  </td></tr>
 </table>
 <h2 class="doxsection"><a class="anchor" id="sr_methods"></a>
 Methods</h2>
@@ -188,7 +188,9 @@ Methods</h2>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone"><span class="tt">is_valid()</span>  </td><td class="markdownTableBodyNone"><span class="tt">bool</span>  </td><td class="markdownTableBodyNone">Check if resource is valid  </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone"><span class="tt">to_json()</span>  </td><td class="markdownTableBodyNone"><span class="tt">nlohmann::json</span>  </td><td class="markdownTableBodyNone">Serialize to JSON  </td></tr>
+<td class="markdownTableBodyNone"><span class="tt">has_value()</span>  </td><td class="markdownTableBodyNone"><span class="tt">bool</span>  </td><td class="markdownTableBodyNone">Check if the wrapper contains a valid resource  </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><span class="tt">error()</span>  </td><td class="markdownTableBodyNone"><span class="tt">pool_error</span>  </td><td class="markdownTableBodyNone">Retrieve the failure code when the wrapper is invalid  </td></tr>
 </table>
 <h2 class="doxsection"><a class="anchor" id="sr_semantics"></a>
 Move Semantics</h2>
@@ -200,18 +202,13 @@ Move Semantics</h2>
 <hr  />
 <h1 class="doxsection"><a class="anchor" id="enums"></a>
 Enumerations</h1>
-<h2 class="doxsection"><a class="anchor" id="auto_add_policy"></a>
-auto_add_policy</h2>
-<p>Controls auto-grow behavior:</p><ul>
-<li><span class="tt">NoGrow</span>: Pool returns error when exhausted</li>
-<li><span class="tt">AutoGrow</span>: Pool creates resources on-demand</li>
-</ul>
 <h2 class="doxsection"><a class="anchor" id="pool_error"></a>
 pool_error</h2>
 <p>Error codes:</p><ul>
-<li><span class="tt">NoMoreResources</span>: Pool exhausted, no factory available</li>
-<li><span class="tt">UnderCapacityNoAutoGrow</span>: Under capacity but auto-grow disabled</li>
+<li><span class="tt">Ok</span>: Operation succeeded</li>
+<li><span class="tt">NoMoreResources</span>: Pool exhausted and no factory callback available</li>
 <li><span class="tt">ShutdownInitiated</span>: Pool is shutting down</li>
+<li><span class="tt">Timeout</span>: Resource was not available within the specified timeout</li>
 <li><span class="tt">Unknown</span>: Unknown error</li>
 </ul>
 <h2 class="doxsection"><a class="anchor" id="resource_pool_limits"></a>
@@ -238,58 +235,40 @@ Usage Patterns</h1>
 <h2 class="doxsection"><a class="anchor" id="pattern_fixed_pool"></a>
 Fixed-Size Pool</h2>
 <div class="fragment"><div class="line"><a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool&lt;Resource&gt;</a> pool(10);</div>
-<div class="line">pool.seed_to_pool(Resource());</div>
-<div class="line">pool.seed_to_pool(Resource());</div>
-<div class="line"><span class="comment">// ...</span></div>
-<div class="line"><span class="keyword">auto</span> res = pool.borrow_from_pool();</div>
+<div class="line">pool.seed(Resource());</div>
 <div class="ttc" id="aclasssiddiqsoft_1_1arrp_1_1resource__pool_html"><div class="ttname"><a href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool</a></div><div class="ttdef"><b>Definition</b> <a href="resource__pool_8hpp_source.html#l00090">resource_pool.hpp:91</a></div></div>
-</div><!-- fragment --><h2 class="doxsection"><a class="anchor" id="pattern_autogrow"></a>
-Auto-Growing Pool</h2>
-<div class="fragment"><div class="line"><a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool&lt;Resource&gt;</a> pool(</div>
-<div class="line">    10,</div>
-<div class="line">    siddiqsoft::arrp::auto_add_policy::AutoGrow</div>
-<div class="line">);</div>
-<div class="line"><span class="comment">// Resources created on-demand up to capacity</span></div>
-</div><!-- fragment --><h2 class="doxsection"><a class="anchor" id="pattern_custom_factory"></a>
-Custom Factory</h2>
-<div class="fragment"><div class="line"><a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool&lt;Resource&gt;</a> pool(</div>
-<div class="line">    10,</div>
-<div class="line">    [](<span class="keyword">auto</span>&amp; pool) {</div>
-<div class="line">        <span class="keywordflow">return</span> pool.create_resource(<span class="comment">/* args */</span>);</div>
-<div class="line">    }</div>
-<div class="line">);</div>
-</div><!-- fragment --><h2 class="doxsection"><a class="anchor" id="pattern_cleanup_callback"></a>
-Cleanup Callback</h2>
-<div class="fragment"><div class="line"><a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool&lt;Resource&gt;</a> pool(</div>
-<div class="line">    10,</div>
-<div class="line">    [](<span class="keyword">auto</span>&amp; pool) { <span class="keywordflow">return</span> pool.create_resource(); },</div>
-<div class="line">    [](Resource&amp;&amp; res) {</div>
-<div class="line">        res.cleanup();</div>
-<div class="line">    }</div>
-<div class="line">);</div>
+</div><!-- fragment --><h2 class="doxsection"><a class="anchor" id="pattern_factory_callback"></a>
+Factory Callback</h2>
+<div class="fragment"><div class="line"><a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool&lt;Resource&gt;</a> pool(10);</div>
+<div class="line">pool.set_factory_callback([] {</div>
+<div class="line">    <span class="keywordflow">return</span> Resource();</div>
+<div class="line">});</div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">auto</span> res = pool.try_borrow_create();</div>
 </div><!-- fragment --><h2 class="doxsection"><a class="anchor" id="pattern_invalidate"></a>
 Invalidate Resource</h2>
-<div class="fragment"><div class="line"><span class="keyword">auto</span> res = pool.borrow_from_pool();</div>
+<div class="fragment"><div class="line"><span class="keyword">auto</span> res = pool.try_borrow();</div>
 <div class="line"><span class="keywordflow">if</span> (res) {</div>
 <div class="line">    <span class="keyword">auto</span> extracted = std::move(*res);</div>
-<div class="line">    res.invalidate();  <span class="comment">// Don&#39;t return to pool</span></div>
-<div class="line">    <span class="comment">// Use extracted elsewhere</span></div>
+<div class="line">    res.invalidate();</div>
 <div class="line">}</div>
 </div><!-- fragment --><hr  />
 <h1 class="doxsection"><a class="anchor" id="thread_safety_details"></a>
 Thread Safety Details</h1>
 <p><b>Thread-Safe Operations</b></p><ul>
-<li><span class="tt">borrow_from_pool()</span></li>
-<li><span class="tt">seed_to_pool()</span></li>
+<li><span class="tt">try_borrow()</span></li>
+<li><span class="tt">try_borrow_create()</span></li>
+<li><span class="tt">seed()</span></li>
 <li><span class="tt">size()</span></li>
 <li><span class="tt">clear()</span></li>
+<li><span class="tt">set_factory_callback()</span></li>
 <li><span class="tt">to_json()</span></li>
 </ul>
 <p><b>NOT Thread-Safe</b></p><ul>
-<li>Individual <span class="tt">scoped_resource</span> instances</li>
+<li>Individual <span class="tt">resource_guard</span> instances</li>
 <li>Resource access via <span class="tt">operator*()</span> or <span class="tt">operator-&gt;()</span></li>
 </ul>
-<p><b>Recommendation</b>: Each thread should have its own <span class="tt">scoped_resource</span> instance.</p>
+<p><b>Recommendation</b>: Each thread should have its own <span class="tt">resource_guard</span> instance.</p>
 <hr  />
 <h1 class="doxsection"><a class="anchor" id="performance"></a>
 Performance Considerations</h1>
@@ -305,7 +284,7 @@ Limitations</h1>
 <ul>
 <li>Capacity limited to 255 resources</li>
 <li>Callbacks must not call pool methods (deadlock risk)</li>
-<li><span class="tt">scoped_resource</span> not thread-safe</li>
+<li><span class="tt">resource_guard</span> not thread-safe</li>
 <li>No support for arithmetic types (int, float, etc.)</li>
 </ul>
 <p>*/ </p>
