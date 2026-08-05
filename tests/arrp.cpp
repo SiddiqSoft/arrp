@@ -57,7 +57,7 @@ TEST(scoped_resource, T_string)
     siddiqsoft::arrp::resource_pool<std::string> rp {};
 
     EXPECT_NO_THROW({
-        auto sr = rp.create_resource("ﷵ");
+        auto sr = rp.wrap_as_scoped_resource("ﷵ");
         std::print(std::cerr, "stat: {}\n", sr.to_json().dump());
         passTest = true;
     });
@@ -78,7 +78,7 @@ TEST(scoped_resource, T_struct)
 
     siddiqsoft::arrp::resource_pool<custom1> rp;
     EXPECT_NO_THROW({
-        auto sr = rp.create_resource(custom1 {99, "ﷵ", true, {1, 2, 3}});
+        auto sr = rp.wrap_as_scoped_resource(custom1 {99, "ﷵ", true, {1, 2, 3}});
         std::print(std::cerr, "stat: {}\n", sr.to_json().dump());
         sr.invalidate();
         passTest = true;
@@ -112,7 +112,7 @@ TEST(scoped_resource, T_class1)
     siddiqsoft::arrp::resource_pool<custom2> rp;
 
     EXPECT_NO_THROW({
-        auto sr = rp.create_resource(99, std::string("ﷵ"), true, std::vector<int> {1, 1, 2, 3});
+        auto sr = rp.wrap_as_scoped_resource(99, std::string("ﷵ"), true, std::vector<int> {1, 1, 2, 3});
         std::print(std::cerr, "stat: {}\n", sr.to_json().dump());
         sr.invalidate();
         passTest = true;
@@ -145,7 +145,7 @@ TEST(scoped_resource, T_class2)
     siddiqsoft::arrp::resource_pool<custom2> rp;
 
     EXPECT_NO_THROW({
-        auto sr = rp.create_resource(custom2 {99, "ﷵ", true, {1, 1, 2, 3}}); // this approach allows the compiler to deduce the
+        auto sr = rp.wrap_as_scoped_resource(custom2 {99, "ﷵ", true, {1, 1, 2, 3}}); // this approach allows the compiler to deduce the
                                                                              // proper arguments and perform copy/move elision
         std::print(std::cerr, "stat: {}\n", sr.to_json().dump());
         sr.invalidate();
@@ -163,7 +163,7 @@ TEST(scoped_resource, T_pair)
     siddiqsoft::arrp::resource_pool<custom2> rp;
 
     EXPECT_NO_THROW({
-        auto sr = rp.create_resource(custom2 {99, "ﷵ"});
+        auto sr = rp.wrap_as_scoped_resource(custom2 {99, "ﷵ"});
         // sr.invalidate();
         std::print(std::cerr, "stat: {}\n", sr.to_json().dump());
         passTest = true;

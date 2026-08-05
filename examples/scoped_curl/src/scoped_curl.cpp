@@ -7,6 +7,7 @@
 #include <cstring>
 #include <iostream>
 #include <future>
+#include <thread>
 
 #include "curl/curl.h"
 
@@ -17,6 +18,7 @@
 
 #include "nlohmann/json.hpp"
 #include "../../../include/siddiqsoft/arrp.hpp"
+#include "siddiqsoft/timethis.hpp"
 
 /// @brief A simple RAII wrapper for managing file resources
 /// @details This class encapsulates a file handle (FILE*) and ensures that the file is properly closed
@@ -85,12 +87,13 @@ public:
 
 std::atomic_int g_request_count {0};
 
-void            do_request(siddiqsoft::arrp::resource_pool<ScopedCurl>& pool, const char* url)
+void            do_request(siddiqsoft::arrp::resource_pool<ScopedCurl>& pool, const char* url, std::chrono::milliseconds pause)
 {
-    auto sc = pool.borrow_from_pool(std::chrono::milliseconds(2000));
+    std::this_thread::sleep_for(pause);
+    // Wait for 2s.. and if still not available, create one using the registered callback.
+    auto sc = pool.borrow_from_pool(std::chrono::milliseconds(500), true);
     if (sc.has_value()) {
-        std::println(std::cerr, "{} - Successfully borrowed resource from pool.", __func__);
-        auto ct = std::chrono::system_clock::now();
+        siddiqsoft::timethis ttx;
 
         // Setup the curl options for the request
         if (auto rc = curl_easy_setopt(sc, CURLOPT_URL, url); rc != CURLE_OK) {
@@ -102,12 +105,15 @@ void            do_request(siddiqsoft::arrp::resource_pool<ScopedCurl>& pool, co
             std::println(std::cerr, "{} - Failed to perform curl request: {}", __func__, curl_easy_strerror(rc));
         }
         else {
-            std::println(std::cerr, "{} - Successfully performed curl request.", __func__);
+            std::println(std::cerr,
+                         "\n{} - Successfully performed curl request...ttx: {}\n\n---=---=---=---=---=---=---=---=---=---=---=---=---=---=---=---=---=---=---=---=---=---=---=---\n\n",
+                         __func__,
+                         duration_cast<std::chrono::milliseconds>(ttx.elapsed()).count());
             g_request_count++;
         }
     }
     else {
-        std::println(std::cerr, "{} - Failed to borrow resource from pool.", __func__);
+        std::println(std::cerr, "{} - Failed to borrow resource from pool. sc:{}", __func__, sc.error());
     }
 }
 
@@ -115,23 +121,26 @@ int main(int argc, char** argv)
 {
     if (auto rc = curl_global_init(CURL_GLOBAL_ALL); rc == CURLE_OK) {
         siddiqsoft::arrp::resource_pool<ScopedCurl> pool {};
+        pool.set_factory_callback([&] {
+            std::println("  - About to create new ScopedCurl instance.. stats: {}", pool.to_json().dump());
+            return ScopedCurl {};
+        });
 
         // We're performing one request at a time and therefore the pool will not be exhausted.
-        std::future<void> f1 = std::async(std::launch::async, do_request, std::ref(pool), "https://www.example.com");
-        std::println(std::cerr, "\n{} - Post test stats:{}", __func__, pool.to_json().dump());
+        // We need to introduce a small delay prior to processing to simulate the factory creating
+        // a single resource which is used later.
+        // If we spam (no delay) then a resource is created per request!
+        std::future<void> f1 = std::async(std::launch::async, do_request, std::ref(pool), "https://www.example.com", std::chrono::milliseconds(5));
+        std::future<void> f2 = std::async(std::launch::async, do_request, std::ref(pool), "https://www.duckduckgo.com", std::chrono::milliseconds(500));
 
-        std::future<void> f2 = std::async(std::launch::async, do_request, std::ref(pool), "https://www.google.com");
-        std::println(std::cerr, "\n{} - Post test stats:{}", __func__, pool.to_json().dump());
-
-        // Now, we will seed the pool with a single resource.
-        // We expect both operations to complete!
-        pool.seed_to_pool();
-
-        // The threads will wait here for the tasks to complete.
-        f1.get();
+        // The main thread will wait here for the tasks to complete.
         f2.get();
+        //std::println(std::cerr, "\n{} - Post test stats:{}", __func__, pool.to_json().dump());
+        //std::this_thread::sleep_for(std::chrono::seconds(1));
+        f1.get();
+        //std::println(std::cerr, "\n{} - Post test stats:{}", __func__, pool.to_json().dump());
 
-
+        std::this_thread::sleep_for(std::chrono::seconds(1));
         std::println(std::cerr, "\n\n{} - Final test stats:{}", __func__, pool.to_json().dump());
         return g_request_count.load() == 2 ? EXIT_SUCCESS : EXIT_FAILURE;
     }

@@ -315,13 +315,16 @@ TEST(scoped_resource_validity, valid_resource_returned_2)
     siddiqsoft::arrp::resource_pool<std::string> pool;
 
     // Set the callback that will create the resource for us on demand..
-    pool.set_factory_callback([] { return std::string("42"); });
+    pool.set_factory_callback([] {
+        std::println(" - Invoked the factory callback; creates a `resource`..");
+        return std::string("42");
+    });
 
     // Nothing is created yet..
     EXPECT_EQ(0u, pool.size());
 
     {
-        siddiqsoft::arrp::scoped_resource<std::string> wrap = pool.borrow_or_create();
+        siddiqsoft::arrp::scoped_resource<std::string> wrap = pool.borrow_from_pool({}, true);
         EXPECT_TRUE(wrap.has_value());
         EXPECT_EQ(0u, pool.size());
         // Don't invalidate - resource should be returned

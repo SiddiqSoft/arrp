@@ -155,7 +155,12 @@ namespace siddiqsoft::arrp
     protected:
         /// @brief Default constructor is protected to allow derived classes
         /// construct their own data.
-        scoped_resource() = default;
+        /// @note Marking this as valid is critical otherwise the clients will
+        /// assume the resource is invalid during borrow_or_create().
+        scoped_resource()
+            : m_is_valid(true)
+        {
+        }
 
     private:
         /// @brief Constructs a scoped_resource with a callback and resource
@@ -342,7 +347,7 @@ namespace siddiqsoft::arrp
         /// auto myfile = pool.borrow_from_pool();
         /// ...
         /// fputs("Hello World", myfile);
-        /// 
+        ///
         template <typename InnerType>
             requires std::convertible_to<const T&, InnerType>
         operator InnerType() const

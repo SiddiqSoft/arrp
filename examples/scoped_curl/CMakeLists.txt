@@ -153,6 +153,7 @@ CPMAddPackage("gh:google/googletest#v1.17.0")
 CPMAddPackage("gh:nlohmann/json#v3.12.0")
 #CPMAddPackage("gh:siddiqsoft/arrp#0f45b5ee4c8edc8b268296515fbe8f89adfe26ff")
 cpmaddpackage("gh:siddiqsoft/RunOnEnd#1.4.5")
+cpmaddpackage("gh:siddiqsoft/timethis#main")
 
 target_sources(${PROJECT_NAME}
                 PRIVATE
@@ -164,6 +165,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
         nlohmann_json::nlohmann_json
         $<$<OR:$<CXX_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>>:CURL::libcurl>
         #arrp::arrp
+        timethis::timethis
         RunOnEnd::RunOnEnd
         )
 
