@@ -22,12 +22,13 @@
        scoped_resource<T> - RAII wrapper for resource lifecycle management
        ============================================================================ -->
   <Type Name="siddiqsoft::arrp::scoped_resource&lt;*&gt;">
-    <DisplayString Condition="m_is_valid">scoped_resource&lt;{$T1}&gt; [valid]</DisplayString>
-    <DisplayString Condition="!m_is_valid">scoped_resource&lt;{$T1}&gt; [invalid]</DisplayString>
+    <DisplayString Condition="m_is_valid">scoped_resource&lt;{$T1}&gt; [valid, err:{m_error_code}]</DisplayString>
+    <DisplayString Condition="!m_is_valid">scoped_resource&lt;{$T1}&gt; [invalid, err:{m_error_code}]</DisplayString>
     <Expand>
       <Item Name="[Resource]">m_rsrc</Item>
       <Item Name="[Valid]">m_is_valid</Item>
       <Item Name="[Has Callback]">m_putback_callback != nullptr</Item>
+      <Item Name="[Error]">m_error_code</Item>
     </Expand>
   </Type>
 
@@ -40,26 +41,24 @@
       <Item Name="[Capacity]">m_capacity</Item>
       <Item Name="[Pool Size]">m_pool.size()</Item>
       <Item Name="[Checked Out]">m_resources_checkedout</Item>
-      <Item Name="[Invalidated Resources]">m_abandoned</Item>
+      <Item Name="[Shutdown]">m_is_shutdown</Item>
+      <Item Name="[Invalidated Resources]">m_counter_abandons</Item>
+      <Item Name="[Peak Size]">m_peak_poolsize</Item>
       <Item Name="[Load]">m_pool.size() + m_resources_checkedout</Item>
       <Item Name="[Utilization %]">(m_pool.size() + m_resources_checkedout) * 100 / m_capacity</Item>
-      <ArrayItems>
-        <Size>m_pool.size()</Size>
-        <ValuePointer>m_pool._Myfirst</ValuePointer>
-      </ArrayItems>
       <Item Name="[Counters]">
         <Expand>
-          <Item Name="Borrow Operations">m_counter_checkout</Item>
-          <Item Name="Return Operations">m_counter_checkin</Item>
-          <Item Name="Valid Returns">m_counter_valid_returns</Item>
-          <Item Name="Invalid Returns">m_counter_invalid_returns</Item>
+          <Item Name="Borrows">m_counter_borrows</Item>
+          <Item Name="Returns">m_counter_returns</Item>
+          <Item Name="Seeds">m_counter_seeds</Item>
           <Item Name="On-Demand Adds">m_counter_ondemand_adds</Item>
-          <Item Name="Auto-Returned">m_capacity_poolsize</Item>
+          <Item Name="Abandons">m_counter_abandons</Item>
+          <Item Name="Loans">loan_size()</Item>
         </Expand>
       </Item>
       <Item Name="[Callbacks]">
         <Expand>
-          <Item Name="Has Factory Callback">m_callback_to_add_new_raw_resource_to_pool != nullptr</Item>
+          <Item Name="Has Factory Callback">m_factory_callback != nullptr</Item>
           <Item Name="Has Cleanup Callback">m_callback_on_resource_cleanup != nullptr</Item>
         </Expand>
       </Item>
@@ -75,26 +74,24 @@
       <Item Name="[Capacity]">m_capacity</Item>
       <Item Name="[Pool Size]">m_pool.size()</Item>
       <Item Name="[Checked Out]">m_resources_checkedout</Item>
-      <Item Name="[Invalidated Resources]">m_abandoned</Item>
+      <Item Name="[Shutdown]">m_is_shutdown</Item>
+      <Item Name="[Invalidated Resources]">m_counter_abandons</Item>
+      <Item Name="[Peak Size]">m_peak_poolsize</Item>
       <Item Name="[Load]">m_pool.size() + m_resources_checkedout</Item>
       <Item Name="[Utilization %]">(m_pool.size() + m_resources_checkedout) * 100 / m_capacity</Item>
-      <ArrayItems>
-        <Size>m_pool.size()</Size>
-        <ValuePointer>m_pool._Myfirst</ValuePointer>
-      </ArrayItems>
       <Item Name="[Counters]">
         <Expand>
-          <Item Name="Borrow Operations">m_counter_checkout</Item>
-          <Item Name="Return Operations">m_counter_checkin</Item>
-          <Item Name="Valid Returns">m_counter_valid_returns</Item>
-          <Item Name="Invalid Returns">m_counter_invalid_returns</Item>
+          <Item Name="Borrows">m_counter_borrows</Item>
+          <Item Name="Returns">m_counter_returns</Item>
+          <Item Name="Seeds">m_counter_seeds</Item>
           <Item Name="On-Demand Adds">m_counter_ondemand_adds</Item>
-          <Item Name="Auto-Returned">m_capacity_poolsize</Item>
+          <Item Name="Abandons">m_counter_abandons</Item>
+          <Item Name="Loans">loan_size()</Item>
         </Expand>
       </Item>
       <Item Name="[Callbacks]">
         <Expand>
-          <Item Name="Has Factory Callback">m_callback_to_add_new_raw_resource_to_pool != nullptr</Item>
+          <Item Name="Has Factory Callback">m_factory_callback != nullptr</Item>
           <Item Name="Has Cleanup Callback">m_callback_on_resource_cleanup != nullptr</Item>
         </Expand>
       </Item>
