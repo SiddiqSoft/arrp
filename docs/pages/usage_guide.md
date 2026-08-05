@@ -328,14 +328,14 @@ siddiqsoft::arrp::resource_pool<Resource> pool(255);
 
 ```cpp
 // WRONG: Deadlock risk
-[](auto& pool) {
+[]() {
     auto size = pool.size();  // DEADLOCK!
-    return pool.create_resource();
+    return MyResource();
 }
 
 // Correct: Only create resource
-[](auto& pool) {
-    return pool.create_resource();
+[]() {
+    return MyResource();
 }
 ```
 

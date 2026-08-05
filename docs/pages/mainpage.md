@@ -59,7 +59,6 @@ The library consists of three main components:
    - Supports move semantics
 
 3. **Common Types**: Enums and limits
-   - auto_add_policy: Growth behavior
    - pool_error: Error codes
    - resource_pool_limits: Capacity constraints
 
