@@ -87,7 +87,7 @@ namespace siddiqsoft::arrp
     /// @endcode
     template <typename T, typename SRT = scoped_resource<T>>
         requires NonNumericMoveConstructible<T> && std::derived_from<SRT, scoped_resource<T>>
-    class resource_pool
+    class resource_pool final
     {
     private:
         /// @brief Maximum number of resources that can be in the pool
