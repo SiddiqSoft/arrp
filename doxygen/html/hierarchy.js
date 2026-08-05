@@ -1,7 +1,6 @@
 var hierarchy =
 [
     [ "std::formatter", null, [
-      [ "std::formatter< siddiqsoft::arrp::auto_add_policy >", "structstd_1_1formatter_3_01siddiqsoft_1_1arrp_1_1auto__add__policy_01_4.html", null ],
       [ "std::formatter< siddiqsoft::arrp::pool_error >", "structstd_1_1formatter_3_01siddiqsoft_1_1arrp_1_1pool__error_01_4.html", null ],
       [ "std::formatter< siddiqsoft::arrp::release_reason >", "structstd_1_1formatter_3_01siddiqsoft_1_1arrp_1_1release__reason_01_4.html", null ],
       [ "std::formatter< siddiqsoft::arrp::resource_pool< T, SRT > >", "structstd_1_1formatter_3_01siddiqsoft_1_1arrp_1_1resource__pool_3_01T_00_01SRT_01_4_01_4.html", null ],

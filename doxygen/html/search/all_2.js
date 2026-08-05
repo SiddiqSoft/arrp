@@ -18,8 +18,7 @@ var searchData=
   ['constructors_15',['Constructors',['../api_reference.html#rp_constructors',1,'']]],
   ['correct_20threading_16',['Correct Threading',['../usage_guide.html#thread_correct',1,'']]],
   ['corrupted_20resources_17',['Invalidate Corrupted Resources',['../usage_guide.html#bp_invalidate',1,'']]],
-  ['create_5fresource_18',['create_resource',['../classsiddiqsoft_1_1arrp_1_1resource__pool.html#a5f40102b6bbae243b9866e894780b411',1,'siddiqsoft::arrp::resource_pool']]],
-  ['creation_19',['Pool Creation',['../usage_guide.html#pool_creation',1,'']]],
-  ['custom_20factory_20',['Custom Factory',['../api_reference.html#pattern_custom_factory',1,'Custom Factory'],['../index.html#custom_factory',1,'Custom Factory']]],
-  ['custom_20scoped_20resource_21',['Custom Scoped Resource',['../usage_guide.html#custom_scoped_resource',1,'']]]
+  ['creation_18',['Pool Creation',['../usage_guide.html#pool_creation',1,'']]],
+  ['custom_20factory_19',['Custom Factory',['../api_reference.html#pattern_custom_factory',1,'Custom Factory'],['../index.html#custom_factory',1,'Custom Factory']]],
+  ['custom_20scoped_20resource_20',['Custom Scoped Resource',['../usage_guide.html#custom_scoped_resource',1,'']]]
 ];
