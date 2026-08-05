@@ -146,7 +146,7 @@ namespace siddiqsoft::arrp
         /// resource in the internal deque.
         /// This approach allows the client to perform any final cleanup for the given resource.
         /// @warning MUST NOT call any pool methods to avoid deadlock. Only perform cleanup operations.
-        std::function<void(T&&)> m_callback_on_resource_cleanup {};
+        std::function<void(T&)> m_callback_on_resource_cleanup {};
 
         /// @brief Optional factory callback used to create resources on-demand
         /// @details Stored as a zero-argument callable that returns `SRT`.
@@ -235,7 +235,7 @@ namespace siddiqsoft::arrp
         /// @note The cleanup callback is optional and invoked for each resource during destruction
         /// @note Capacity is clamped to valid range [MinimumCapacity, MaxCapacity]
         resource_pool(uint8_t                    init_capacity        = resource_pool_limits::DefaultCapacity,
-                      std::function<void(T&&)>&& on_shutdown_callback = {})
+                      std::function<void(T&)>&& on_shutdown_callback = {})
             : m_callback_on_resource_cleanup(std::move(on_shutdown_callback))
         {
             set_capacity(init_capacity);
@@ -247,7 +247,7 @@ namespace siddiqsoft::arrp
         ///
         /// @note Uses default capacity and no auto-grow policy
         /// @note The cleanup callback is optional and invoked for each resource during destruction
-        resource_pool(std::function<void(T&&)>&& on_shutdown_callback)
+        resource_pool(std::function<void(T&)>&& on_shutdown_callback)
             : m_callback_on_resource_cleanup(std::move(on_shutdown_callback))
         {
             set_capacity(resource_pool_limits::DefaultCapacity);
@@ -348,7 +348,7 @@ namespace siddiqsoft::arrp
                         m_pool.pop_front();
                         // delegate to the cleanup.
                         // the delegate must not invoke any pool member to avoid deadlocks.
-                        m_callback_on_resource_cleanup(std::move(item));
+                        m_callback_on_resource_cleanup(item);
                     }
                 }
             }

@@ -101,7 +101,7 @@ TEST(custom_scoped_resource, basic_file_pool_creation)
     std::print(std::cerr, "{} - using temp_file:{}\n", __func__, temp_file);
 
     try {
-        siddiqsoft::arrp::resource_pool<FILE*> pool {[temp_file](FILE*&& fh) {
+        siddiqsoft::arrp::resource_pool<FILE*> pool {[temp_file](FILE*& fh) {
             std::print(std::cerr, "{} - invoked for filehandle:{:p}\n", __func__, (void*)fh);
             if (fh != nullptr) {
                 std::print(std::cerr, "{} - closing `{}` filehandle:{:p}\n", __func__, temp_file, (void*)fh);
@@ -143,7 +143,7 @@ TEST(custom_scoped_resource, write_to_file)
     std::string temp_file = create_temp_file();
 
     try {
-        siddiqsoft::arrp::resource_pool<FILE*> pool {[temp_file](FILE*&& fh) {
+        siddiqsoft::arrp::resource_pool<FILE*> pool {[temp_file](FILE*& fh) {
             if (fh != nullptr) {
                 std::print(std::cerr, "{} - closing `{}` filehandle:{:p}\n", __func__, temp_file, (void*)fh);
                 fclose(fh);
@@ -192,7 +192,7 @@ TEST(custom_scoped_resource, multiple_file_resources)
     std::string temp_file3 = create_temp_file();
 
     try {
-        siddiqsoft::arrp::resource_pool<FILE*> pool {[](FILE*&& fh) {
+        siddiqsoft::arrp::resource_pool<FILE*> pool {[](FILE*& fh) {
             if (fh != nullptr) {
                 std::print(std::cerr, "{} - closing filehandle:{:p}\n", __func__, (void*)fh);
                 fclose(fh);
@@ -245,7 +245,7 @@ TEST(custom_scoped_resource, file_persistence_across_cycles)
     std::string temp_file = create_temp_file();
 
     try {
-        siddiqsoft::arrp::resource_pool<FILE*> pool {[temp_file](FILE*&& fh) {
+        siddiqsoft::arrp::resource_pool<FILE*> pool {[temp_file](FILE*& fh) {
             if (fh != nullptr) {
                 std::print(std::cerr, "{} - closing `{}` filehandle:{:p}\n", __func__, temp_file, (void*)fh);
                 fclose(fh);
@@ -310,7 +310,7 @@ TEST(custom_scoped_resource, concurrent_file_writes)
     std::string temp_file = create_temp_file();
 
     try {
-        siddiqsoft::arrp::resource_pool<FILE*> pool {[temp_file](FILE*&& fh) {
+        siddiqsoft::arrp::resource_pool<FILE*> pool {[temp_file](FILE*& fh) {
             if (fh != nullptr) {
                 std::print(std::cerr, "{} - closing `{}` filehandle:{:p}\n", __func__, temp_file, (void*)fh);
                 fclose(fh);
@@ -365,7 +365,7 @@ TEST(custom_scoped_resource, file_resource_invalidation)
     std::string temp_file = create_temp_file();
 
     try {
-        siddiqsoft::arrp::resource_pool<FILE*> pool {[temp_file](FILE*&& fh) {
+        siddiqsoft::arrp::resource_pool<FILE*> pool {[temp_file](FILE*& fh) {
             if (fh != nullptr) {
                 std::print(std::cerr, "{} - closing `{}` filehandle:{:p}\n", __func__, temp_file, (void*)fh);
                 fclose(fh);
@@ -405,7 +405,7 @@ TEST(custom_scoped_resource, file_resource_move_semantics)
     std::string temp_file = create_temp_file();
 
     try {
-        siddiqsoft::arrp::resource_pool<FILE*> pool {[temp_file](FILE*&& fh) {
+        siddiqsoft::arrp::resource_pool<FILE*> pool {[temp_file](FILE*& fh) {
             if (fh != nullptr) {
                 std::print(std::cerr, "{} - closing `{}` filehandle:{:p}\n", __func__, temp_file, (void*)fh);
                 fclose(fh);
@@ -442,7 +442,7 @@ TEST(custom_scoped_resource, json_serialization)
     std::string temp_file = create_temp_file();
 
     try {
-        siddiqsoft::arrp::resource_pool<FILE*> pool {[temp_file](FILE*&& fh) {
+        siddiqsoft::arrp::resource_pool<FILE*> pool {[temp_file](FILE*& fh) {
             if (fh != nullptr) {
                 std::print(std::cerr, "{} - closing `{}` filehandle:{:p}\n", __func__, temp_file, (void*)fh);
                 fclose(fh);
@@ -490,7 +490,7 @@ TEST(custom_scoped_resource, high_throughput_file_ops)
     std::string temp_file = create_temp_file();
 
     try {
-        siddiqsoft::arrp::resource_pool<FILE*> pool {[temp_file](FILE*&& fh) {
+        siddiqsoft::arrp::resource_pool<FILE*> pool {[temp_file](FILE*& fh) {
             if (fh != nullptr) {
                 std::print(std::cerr, "{} - closing `{}` filehandle:{:p}\n", __func__, temp_file, (void*)fh);
                 fclose(fh);
@@ -543,7 +543,7 @@ TEST(custom_scoped_resource, exception_safety)
     std::string temp_file = create_temp_file();
 
     try {
-        siddiqsoft::arrp::resource_pool<FILE*> pool {[temp_file](FILE*&& fh) {
+        siddiqsoft::arrp::resource_pool<FILE*> pool {[temp_file](FILE*& fh) {
             if (fh != nullptr) {
                 std::print(std::cerr, "{} - closing `{}` filehandle:{:p}\n", __func__, temp_file, (void*)fh);
                 fclose(fh);
@@ -584,7 +584,7 @@ TEST(custom_scoped_resource, capacity_limits)
 
     try {
         siddiqsoft::arrp::resource_pool<FILE*> pool {
-                2, [temp_file](FILE*&& fh) {
+                2, [temp_file](FILE*& fh) {
                     if (fh != nullptr) {
                         std::print(std::cerr, "{} - closing `{}` filehandle:{:p}\n", __func__, temp_file, (void*)fh);
                         fclose(fh);
@@ -622,7 +622,7 @@ TEST(custom_scoped_resource, rapid_file_cycles)
     std::string temp_file = create_temp_file();
 
     try {
-        siddiqsoft::arrp::resource_pool<FILE*> pool {[temp_file](FILE*&& fh) {
+        siddiqsoft::arrp::resource_pool<FILE*> pool {[temp_file](FILE*& fh) {
             if (fh != nullptr) {
                 std::print(std::cerr, "{} - closing `{}` filehandle:{:p}\n", __func__, temp_file, (void*)fh);
                 fclose(fh);
@@ -661,7 +661,7 @@ TEST(custom_scoped_resource, clear_operation)
     std::string temp_file = create_temp_file();
 
     try {
-        siddiqsoft::arrp::resource_pool<FILE*> pool {[temp_file](FILE*&& fh) {
+        siddiqsoft::arrp::resource_pool<FILE*> pool {[temp_file](FILE*& fh) {
             std::print(std::cerr, "{} - invoked  filehandle:{:p}\n", __func__, reinterpret_cast<void*>(fh));
             if (fh != nullptr) {
                 std::print(std::cerr, "{} - closing `{}` filehandle:{:p}\n", __func__, temp_file, reinterpret_cast<void*>(fh));
@@ -701,7 +701,7 @@ TEST(custom_scoped_resource, fifo_ordering)
     std::string temp_file3 = create_temp_file();
 
     try {
-        siddiqsoft::arrp::resource_pool<FILE*> pool {[](FILE*&& fh) {
+        siddiqsoft::arrp::resource_pool<FILE*> pool {[](FILE*& fh) {
             if (fh != nullptr) {
                 std::print(std::cerr, "{} - closing filehandle:{:p}\n", __func__, reinterpret_cast<void*>(fh));
                 fclose(fh);

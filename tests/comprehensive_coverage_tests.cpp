@@ -475,7 +475,7 @@ TEST(resource_pool_clear, with_cleanup_callback)
     std::atomic_int cleanup_count {0};
 
     {
-        siddiqsoft::arrp::resource_pool<std::string> pool {[&cleanup_count](std::string&&) { cleanup_count++; }};
+        siddiqsoft::arrp::resource_pool<std::string> pool {[&cleanup_count](auto&) { cleanup_count++; }};
 
         pool.seed_to_pool(std::string("1"));
         pool.seed_to_pool(std::string("2"));
@@ -672,7 +672,7 @@ TEST(resource_pool_lifecycle, destructor_cleanup)
     std::atomic_int cleanup_count {0};
 
     {
-        siddiqsoft::arrp::resource_pool<std::string> pool {[&cleanup_count](std::string&& item) { cleanup_count++; }};
+        siddiqsoft::arrp::resource_pool<std::string> pool {[&cleanup_count](auto& item) { cleanup_count++; }};
 
         pool.seed_to_pool(std::string("1"));
         pool.seed_to_pool(std::string("2"));
