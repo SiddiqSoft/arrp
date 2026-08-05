@@ -91,7 +91,7 @@ void            do_request(siddiqsoft::arrp::resource_pool<ScopedCurl>& pool, co
 {
     std::this_thread::sleep_for(pause);
     // Wait for 2s.. and if still not available, create one using the registered callback.
-    auto sc = pool.borrow_(std::chrono::milliseconds(500), true);
+    auto sc = pool.try_borrow_create(std::chrono::milliseconds(500));
     if (sc.has_value()) {
         siddiqsoft::timethis ttx;
 
@@ -131,7 +131,7 @@ int main(int argc, char** argv)
         // a single resource which is used later.
         // If we spam (no delay) then a resource is created per request!
         std::future<void> f1 = std::async(std::launch::async, do_request, std::ref(pool), "https://www.example.com", std::chrono::milliseconds(5));
-        std::future<void> f2 = std::async(std::launch::async, do_request, std::ref(pool), "https://www.duckduckgo.com", std::chrono::milliseconds(500));
+        std::future<void> f2 = std::async(std::launch::async, do_request, std::ref(pool), "https://www.duckduckgo.com", std::chrono::milliseconds(900));
 
         // The main thread will wait here for the tasks to complete.
         f2.get();
