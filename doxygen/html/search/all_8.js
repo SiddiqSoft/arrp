@@ -1,14 +1,10 @@
 var searchData=
 [
-  ['in_20place_20constructor_0',['In-Place Constructor',['../api.html#autotoc_md9',1,'']]],
-  ['installation_1',['Installation',['../index.html#installation',1,'']]],
-  ['integration_2',['Manual Integration',['../index.html#autotoc_md22',1,'']]],
-  ['introduction_3',['Introduction',['../index.html#intro',1,'']]],
-  ['invalidate_4',['invalidate()',['../api.html#autotoc_md13',1,'']]],
-  ['invalidating_20consumed_20resources_5',['Invalidating Consumed Resources',['../usage_guide.html#ug_invalidate_consumed',1,'']]],
-  ['invalidating_20moved_20resources_6',['Invalidating Moved Resources',['../usage_guide.html#ug_invalidate_moved',1,'']]],
-  ['invalidation_7',['Resource Invalidation',['../usage_guide.html#ug_invalidation',1,'']]],
-  ['is_20empty_8',['Pool is Empty',['../usage_guide.html#ug_pool_empty',1,'']]],
-  ['is_5fvalid_9',['is_valid',['../classsiddiqsoft_1_1arrp_1_1scoped__resource.html#ae9e161fbafe8f3cf1cbd44615ded6bcc',1,'siddiqsoft::arrp::scoped_resource::is_valid()'],['../api.html#autotoc_md14',1,'is_valid()']]],
-  ['issues_10',['Performance Issues',['../usage_guide.html#ug_performance',1,'']]]
+  ['in_20callbacks_0',['Don&apos;t Call Pool Methods in Callbacks',['../usage_guide.html#bp_no_deadlock',1,'']]],
+  ['in_20place_20construction_1',['Seed via In-Place Construction',['../usage_guide.html#seed_inplace',1,'']]],
+  ['include_20header_2',['Include Header',['../usage_guide.html#include_header',1,'']]],
+  ['invalidate_20corrupted_20resources_3',['Invalidate Corrupted Resources',['../usage_guide.html#bp_invalidate',1,'']]],
+  ['invalidate_20resource_4',['Invalidate Resource',['../api_reference.html#pattern_invalidate',1,'Invalidate Resource'],['../usage_guide.html#invalidate_example',1,'Invalidate Resource']]],
+  ['invalidation_5',['Resource Invalidation',['../usage_guide.html#resource_invalidation',1,'']]],
+  ['is_5fvalid_6',['is_valid',['../classsiddiqsoft_1_1arrp_1_1scoped__resource.html#ae9e161fbafe8f3cf1cbd44615ded6bcc',1,'siddiqsoft::arrp::scoped_resource']]]
 ];

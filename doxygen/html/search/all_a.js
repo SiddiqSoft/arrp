@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['license_0',['License',['../index.html#license',1,'']]],
-  ['links_1',['Links',['../index.html#links',1,'Links'],['../api.html#api_quick_links',1,'Quick Links']]]
+  ['leak_0',['Memory Leak',['../usage_guide.html#ts_memory_leak',1,'']]],
+  ['limitations_1',['Limitations',['../api_reference.html#limitations',1,'']]]
 ];

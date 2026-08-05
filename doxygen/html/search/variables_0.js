@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['callbackdonotautoaddresource_0',['CallbackDoNotAutoAddResource',['../classsiddiqsoft_1_1arrp_1_1resource__pool.html#a9ac123401a7ca8e408edfbb68e732826',1,'siddiqsoft::arrp::resource_pool']]]
+  ['m_5frsrc_0',['m_rsrc',['../classsiddiqsoft_1_1arrp_1_1scoped__resource.html#a7a206dc66fef807bc0720c7b942be24c',1,'siddiqsoft::arrp::scoped_resource']]]
 ];

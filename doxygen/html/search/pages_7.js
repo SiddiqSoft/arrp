@@ -1,5 +1,6 @@
 var searchData=
 [
-  ['handling_0',['Handling',['../api.html#api_exceptions',1,'Error Handling'],['../index.html#autotoc_md25',1,'Error Handling'],['../usage_guide.html#ug_error_handling',1,'Error Handling']]],
-  ['handling_20pool_20exhaustion_1',['Handling Pool Exhaustion',['../usage_guide.html#ug_pool_exhaustion',1,'']]]
+  ['handle_20pool_0',['File Handle Pool',['../index.html#example_file_pool',1,'']]],
+  ['handling_1',['Handling',['../index.html#error_handling',1,'Error Handling'],['../usage_guide.html#borrow_error',1,'Error Handling']]],
+  ['header_2',['Include Header',['../usage_guide.html#include_header',1,'']]]
 ];

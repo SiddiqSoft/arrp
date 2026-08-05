@@ -97,50 +97,49 @@ $(function(){initNavTree('classsiddiqsoft_1_1arrp_1_1resource__pool.html','','cl
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a3e67c51f95d8fc48dfb89e0c20470a74" id="r_a3e67c51f95d8fc48dfb89e0c20470a74"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a3e67c51f95d8fc48dfb89e0c20470a74">resource_pool</a> (uint8_t init_capacity, std::function&lt; std::expected&lt; SRT, pool_error &gt;(resource_pool &amp;)&gt; &amp;&amp;new_resource_callback, std::function&lt; void(T &amp;&amp;)&gt; &amp;&amp;on_shutdown_callback={})</td></tr>
-<tr class="memdesc:a3e67c51f95d8fc48dfb89e0c20470a74"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructs a resource pool with factory and cleanup callbacks.  <br /></td></tr>
-<tr class="memitem:a1071db7c8884fdb74dee2edd166f63c0" id="r_a1071db7c8884fdb74dee2edd166f63c0"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a1071db7c8884fdb74dee2edd166f63c0">resource_pool</a> (std::function&lt; void(T &amp;&amp;)&gt; &amp;&amp;on_shutdown_callback)</td></tr>
-<tr class="memdesc:a1071db7c8884fdb74dee2edd166f63c0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructs a resource pool with only cleanup callback.  <br /></td></tr>
-<tr class="memitem:a36a6d5d888154929e93667e566a3893a" id="r_a36a6d5d888154929e93667e566a3893a"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a36a6d5d888154929e93667e566a3893a">resource_pool</a> (uint8_t init_capacity=resource_pool_limits::DefaultCapacity, auto_add_policy add_policy=auto_add_policy::NoGrow)</td></tr>
-<tr class="memdesc:a36a6d5d888154929e93667e566a3893a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructs a resource pool with capacity and auto-grow policy.  <br /></td></tr>
 <tr class="memitem:a39921925c1e41b9f3eb86819dc227f25" id="r_a39921925c1e41b9f3eb86819dc227f25"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a39921925c1e41b9f3eb86819dc227f25">resource_pool</a> (resource_pool &amp;)=delete</td></tr>
 <tr class="memdesc:a39921925c1e41b9f3eb86819dc227f25"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy constructor is deleted.  <br /></td></tr>
 <tr class="memitem:acc0573f06bfc6fe03ad0ad82699b350b" id="r_acc0573f06bfc6fe03ad0ad82699b350b"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#acc0573f06bfc6fe03ad0ad82699b350b">resource_pool</a> (resource_pool &amp;&amp;src)=delete</td></tr>
 <tr class="memdesc:acc0573f06bfc6fe03ad0ad82699b350b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Move constructor is deleted.  <br /></td></tr>
-<tr class="memitem:a92894077c3201d3249b6e4794eccb9f2" id="r_a92894077c3201d3249b6e4794eccb9f2"><td class="memItemLeft"><a class="el" href="#a3e67c51f95d8fc48dfb89e0c20470a74">resource_pool</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a92894077c3201d3249b6e4794eccb9f2">operator=</a> (<a class="el" href="#a3e67c51f95d8fc48dfb89e0c20470a74">resource_pool</a> &amp;)=delete</td></tr>
+<tr class="memitem:a92894077c3201d3249b6e4794eccb9f2" id="r_a92894077c3201d3249b6e4794eccb9f2"><td class="memItemLeft"><a class="el" href="#a39921925c1e41b9f3eb86819dc227f25">resource_pool</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a92894077c3201d3249b6e4794eccb9f2">operator=</a> (<a class="el" href="#a39921925c1e41b9f3eb86819dc227f25">resource_pool</a> &amp;)=delete</td></tr>
 <tr class="memdesc:a92894077c3201d3249b6e4794eccb9f2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy assignment operator is deleted.  <br /></td></tr>
-<tr class="memitem:a677f09ac75e9fb183037cc22beed0e4a" id="r_a677f09ac75e9fb183037cc22beed0e4a"><td class="memItemLeft"><a class="el" href="#a3e67c51f95d8fc48dfb89e0c20470a74">resource_pool</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a677f09ac75e9fb183037cc22beed0e4a">operator=</a> (<a class="el" href="#a3e67c51f95d8fc48dfb89e0c20470a74">resource_pool</a> &amp;&amp;src)=delete</td></tr>
+<tr class="memitem:a677f09ac75e9fb183037cc22beed0e4a" id="r_a677f09ac75e9fb183037cc22beed0e4a"><td class="memItemLeft"><a class="el" href="#a39921925c1e41b9f3eb86819dc227f25">resource_pool</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a677f09ac75e9fb183037cc22beed0e4a">operator=</a> (<a class="el" href="#a39921925c1e41b9f3eb86819dc227f25">resource_pool</a> &amp;&amp;src)=delete</td></tr>
 <tr class="memdesc:a677f09ac75e9fb183037cc22beed0e4a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Move assignment operator is deleted.  <br /></td></tr>
+<tr class="memitem:a501c92c79d8e8b83ae023a7288dd39b4" id="r_a501c92c79d8e8b83ae023a7288dd39b4"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a501c92c79d8e8b83ae023a7288dd39b4">resource_pool</a> (uint8_t init_capacity=resource_pool_limits::DefaultCapacity, std::function&lt; void(T &amp;&amp;)&gt; &amp;&amp;on_shutdown_callback={})</td></tr>
+<tr class="memdesc:a501c92c79d8e8b83ae023a7288dd39b4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructs a resource pool with factory and cleanup callbacks.  <br /></td></tr>
+<tr class="memitem:a1071db7c8884fdb74dee2edd166f63c0" id="r_a1071db7c8884fdb74dee2edd166f63c0"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a1071db7c8884fdb74dee2edd166f63c0">resource_pool</a> (std::function&lt; void(T &amp;&amp;)&gt; &amp;&amp;on_shutdown_callback)</td></tr>
+<tr class="memdesc:a1071db7c8884fdb74dee2edd166f63c0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructs a resource pool with only cleanup callback.  <br /></td></tr>
 <tr class="memitem:a4c5adeffece26472c1f3c11e333c99c9" id="r_a4c5adeffece26472c1f3c11e333c99c9"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a4c5adeffece26472c1f3c11e333c99c9">~resource_pool</a> ()</td></tr>
 <tr class="memdesc:a4c5adeffece26472c1f3c11e333c99c9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Destructor - cleans up all resources in the pool.  <br /></td></tr>
-<tr class="memitem:a00c3ddf451f0f8fa0f93ba8da8bee148" id="r_a00c3ddf451f0f8fa0f93ba8da8bee148"><td class="memItemLeft">auto&#160;</td><td class="memItemRight"><a class="el" href="#a00c3ddf451f0f8fa0f93ba8da8bee148">clear</a> () -&gt; std::expected&lt; void, pool_error &gt;</td></tr>
-<tr class="memdesc:a00c3ddf451f0f8fa0f93ba8da8bee148"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clears all resources from the pool.  <br /></td></tr>
-<tr class="memitem:ad02d55907e39464721adf565cefd5db2" id="r_ad02d55907e39464721adf565cefd5db2"><td class="memItemLeft">auto&#160;</td><td class="memItemRight"><a class="el" href="#ad02d55907e39464721adf565cefd5db2">size</a> () const -&gt; std::expected&lt; size_t, pool_error &gt;</td></tr>
-<tr class="memdesc:ad02d55907e39464721adf565cefd5db2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the current size of the pool.  <br /></td></tr>
-<tr class="memitem:a0679b404ace11544df19ecf7741dbfd3" id="r_a0679b404ace11544df19ecf7741dbfd3"><td class="memItemLeft">auto&#160;</td><td class="memItemRight"><a class="el" href="#a0679b404ace11544df19ecf7741dbfd3">borrow_from_pool</a> () -&gt; std::expected&lt; SRT, pool_error &gt;</td></tr>
-<tr class="memitem:aaeb8a2b1050aa45ec0f6fddcb4bdc733" id="r_aaeb8a2b1050aa45ec0f6fddcb4bdc733"><td class="memTemplParams" colspan="2">template&lt;typename... Args&gt; </td></tr>
-<tr class="memitem:aaeb8a2b1050aa45ec0f6fddcb4bdc733 template"><td class="memItemLeft">auto&#160;</td><td class="memItemRight"><a class="el" href="#aaeb8a2b1050aa45ec0f6fddcb4bdc733">seed_to_pool</a> (Args &amp;&amp;... args) -&gt; std::expected&lt; void, pool_error &gt;</td></tr>
-<tr class="memdesc:aaeb8a2b1050aa45ec0f6fddcb4bdc733"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds a resource to the pool by constructing it in-place.  <br /></td></tr>
-<tr class="memitem:a2cf41b9a148a7f39db22c3fcc25eb96b" id="r_a2cf41b9a148a7f39db22c3fcc25eb96b"><td class="memItemLeft">auto&#160;</td><td class="memItemRight"><a class="el" href="#a2cf41b9a148a7f39db22c3fcc25eb96b">seed_to_pool</a> (T &amp;&amp;item) -&gt; std::expected&lt; void, pool_error &gt;</td></tr>
-<tr class="memdesc:a2cf41b9a148a7f39db22c3fcc25eb96b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds a resource to the pool by moving it.  <br /></td></tr>
+<tr class="memitem:a5f40102b6bbae243b9866e894780b411" id="r_a5f40102b6bbae243b9866e894780b411"><td class="memTemplParams" colspan="2">template&lt;typename... Args&gt; </td></tr>
+<tr class="memitem:a5f40102b6bbae243b9866e894780b411 template"><td class="memItemLeft">auto&#160;</td><td class="memItemRight"><a class="el" href="#a5f40102b6bbae243b9866e894780b411">create_resource</a> (Args &amp;&amp;... args) -&gt; SRT</td></tr>
+<tr class="memdesc:a5f40102b6bbae243b9866e894780b411"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a resource that is wired to invoke the return_to_pool in the destructor of the SRT class.  <br /></td></tr>
+<tr class="memitem:ae93636e0036afd37ba0e0afa599e4225" id="r_ae93636e0036afd37ba0e0afa599e4225"><td class="memItemLeft">auto&#160;</td><td class="memItemRight"><a class="el" href="#ae93636e0036afd37ba0e0afa599e4225">clear</a> () -&gt; pool_error</td></tr>
+<tr class="memdesc:ae93636e0036afd37ba0e0afa599e4225"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clears all resources from the pool.  <br /></td></tr>
+<tr class="memitem:ad275913e4d61ea92561a317cdca99d29" id="r_ad275913e4d61ea92561a317cdca99d29"><td class="memItemLeft">auto&#160;</td><td class="memItemRight"><a class="el" href="#ad275913e4d61ea92561a317cdca99d29">size</a> () const</td></tr>
+<tr class="memdesc:ad275913e4d61ea92561a317cdca99d29"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the current size of the pool.  <br /></td></tr>
+<tr class="memitem:a813a3063a2479a62c553475acfc15bf8" id="r_a813a3063a2479a62c553475acfc15bf8"><td class="memItemLeft">auto&#160;</td><td class="memItemRight"><a class="el" href="#a813a3063a2479a62c553475acfc15bf8">borrow_from_pool</a> (std::chrono::nanoseconds timeout={}) -&gt; SRT</td></tr>
+<tr class="memitem:aa797df26b5117f7bb399ad1731ff2c98" id="r_aa797df26b5117f7bb399ad1731ff2c98"><td class="memTemplParams" colspan="2">template&lt;typename... Args&gt; </td></tr>
+<tr class="memitem:aa797df26b5117f7bb399ad1731ff2c98 template"><td class="memItemLeft">auto&#160;</td><td class="memItemRight"><a class="el" href="#aa797df26b5117f7bb399ad1731ff2c98">seed_to_pool</a> (Args &amp;&amp;... args) -&gt; pool_error</td></tr>
+<tr class="memdesc:aa797df26b5117f7bb399ad1731ff2c98"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds a resource to the pool by constructing it in-place.  <br /></td></tr>
+<tr class="memitem:a537b9c36f8ab8c027a6f82afd0c14f7f" id="r_a537b9c36f8ab8c027a6f82afd0c14f7f"><td class="memItemLeft">auto&#160;</td><td class="memItemRight"><a class="el" href="#a537b9c36f8ab8c027a6f82afd0c14f7f">seed_to_pool</a> (T &amp;&amp;item) -&gt; pool_error</td></tr>
+<tr class="memdesc:a537b9c36f8ab8c027a6f82afd0c14f7f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds a resource to the pool by moving it.  <br /></td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pro-methods" class="groupheader"><a id="pro-methods" name="pro-methods"></a>
+Protected Member Functions</h2></td></tr>
 <tr class="memitem:a2e72588a69698f35fad372a36bede8c6" id="r_a2e72588a69698f35fad372a36bede8c6"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a2e72588a69698f35fad372a36bede8c6">return_to_pool</a> (T &amp;&amp;item, bool isvalid)</td></tr>
 <tr class="memdesc:a2e72588a69698f35fad372a36bede8c6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns a resource to the pool.  <br /></td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 id="header-pub-static-attribs" class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
-Static Public Attributes</h2></td></tr>
-<tr class="memitem:a9ac123401a7ca8e408edfbb68e732826" id="r_a9ac123401a7ca8e408edfbb68e732826"><td class="memItemLeft">static std::function&lt; std::expected&lt; SRT, pool_error &gt;(<a class="el" href="#a3e67c51f95d8fc48dfb89e0c20470a74">resource_pool</a> &amp;)&gt;&#160;</td><td class="memItemRight"><a class="el" href="#a9ac123401a7ca8e408edfbb68e732826">CallbackDoNotAutoAddResource</a></td></tr>
-<tr class="memdesc:a9ac123401a7ca8e408edfbb68e732826"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default callback that does not auto-grow the resource pool.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><div class="compoundTemplParams">template&lt;typename T, typename SRT = scoped_resource&lt;T&gt;&gt;<br />
 requires NonNumericMoveConstructible&lt;T&gt; &amp;&amp; std::derived_from&lt;SRT, <a class="el" href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html">scoped_resource</a>&lt;T&gt;&gt;<br />
-class siddiqsoft::arrp::resource_pool&lt; T, SRT &gt;</div><dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_222_2s_2include_2siddiqsoft_2resource_pool_8hpp-example.html#_a0">/opt/azure-agent/_work/22/s/include/siddiqsoft/resource_pool.hpp</a>.</dd>
+class siddiqsoft::arrp::resource_pool&lt; T, SRT &gt;</div><dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2resource_pool_8hpp-example.html#_a0">/opt/azure-agent/_work/1/s/include/siddiqsoft/private/resource_pool.hpp</a>.</dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00089">89</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00091">91</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
 </div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a3e67c51f95d8fc48dfb89e0c20470a74" name="a3e67c51f95d8fc48dfb89e0c20470a74"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3e67c51f95d8fc48dfb89e0c20470a74">&#9670;&#160;</a></span>resource_pool() <span class="overload">[1/5]</span></h2>
+<a id="a39921925c1e41b9f3eb86819dc227f25" name="a39921925c1e41b9f3eb86819dc227f25"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a39921925c1e41b9f3eb86819dc227f25">&#9670;&#160;</a></span>resource_pool() <span class="overload">[1/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -153,12 +152,75 @@ template&lt;typename T, typename SRT = scoped_resource&lt;T&gt;&gt; </div>
         <tr>
           <td class="memname"><a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool</a>&lt; T, SRT &gt;::resource_pool </td>
           <td>(</td>
-          <td class="paramtype">uint8_t</td>          <td class="paramname"><span class="paramname"><em>init_capacity</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
+          <td class="paramtype">resource_pool&lt; T, SRT &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
           <td></td>
-          <td class="paramtype">std::function&lt; std::expected&lt; SRT, pool_error &gt;(resource_pool&lt; T, SRT &gt; &amp;)&gt; &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em>new_resource_callback</em></span>, </td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel delete">delete</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Copy constructor is deleted. </p>
+<p><a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">resource_pool</a> is not copyable to prevent resource duplication </p>
+<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2resource_pool_8hpp-example.html#a1">/opt/azure-agent/_work/1/s/include/siddiqsoft/private/resource_pool.hpp</a>.</dd>
+</dl>
+
+<p class="reference">References <a class="el" href="#a39921925c1e41b9f3eb86819dc227f25">resource_pool()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="#a677f09ac75e9fb183037cc22beed0e4a">operator=()</a>, <a class="el" href="#a92894077c3201d3249b6e4794eccb9f2">operator=()</a>, <a class="el" href="#acc0573f06bfc6fe03ad0ad82699b350b">resource_pool()</a>, and <a class="el" href="#a39921925c1e41b9f3eb86819dc227f25">resource_pool()</a>.</p>
+
+</div>
+</div>
+<a id="acc0573f06bfc6fe03ad0ad82699b350b" name="acc0573f06bfc6fe03ad0ad82699b350b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acc0573f06bfc6fe03ad0ad82699b350b">&#9670;&#160;</a></span>resource_pool() <span class="overload">[2/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T, typename SRT = scoped_resource&lt;T&gt;&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool</a>&lt; T, SRT &gt;::resource_pool </td>
+          <td>(</td>
+          <td class="paramtype">resource_pool&lt; T, SRT &gt; &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em>src</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel delete">delete</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Move constructor is deleted. </p>
+<p><a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">resource_pool</a> is not movable to maintain resource ownership </p>
+
+<p class="reference">References <a class="el" href="#a39921925c1e41b9f3eb86819dc227f25">resource_pool()</a>.</p>
+
+</div>
+</div>
+<a id="a501c92c79d8e8b83ae023a7288dd39b4" name="a501c92c79d8e8b83ae023a7288dd39b4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a501c92c79d8e8b83ae023a7288dd39b4">&#9670;&#160;</a></span>resource_pool() <span class="overload">[3/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T, typename SRT = scoped_resource&lt;T&gt;&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool</a>&lt; T, SRT &gt;::resource_pool </td>
+          <td>(</td>
+          <td class="paramtype">uint8_t</td>          <td class="paramname"><span class="paramname"><em>init_capacity</em></span><span class="paramdefsep"> = </span><span class="paramdefval">resource_pool_limits::DefaultCapacity</span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -182,24 +244,18 @@ template&lt;typename T, typename SRT = scoped_resource&lt;T&gt;&gt; </div>
   </table>
   </dd>
 </dl>
-<dl class="section note"><dt>Note</dt><dd>The factory callback is required and must return std::expected&lt;SRT, pool_error&gt; </dd>
+<dl class="section note"><dt>Note</dt><dd>The factory callback is required and must return SRT. It must NOT call pool methods. </dd>
 <dd>
 The cleanup callback is optional and invoked for each resource during destruction </dd>
 <dd>
 Capacity is clamped to valid range [MinimumCapacity, MaxCapacity] </dd></dl>
-<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_222_2s_2include_2siddiqsoft_2resource_pool_8hpp-example.html#a1">/opt/azure-agent/_work/22/s/include/siddiqsoft/resource_pool.hpp</a>.</dd>
-</dl>
 
-<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00225">225</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
-
-<p class="reference">References <a class="el" href="resource__pool_8hpp_source.html#l00225">resource_pool()</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="#a677f09ac75e9fb183037cc22beed0e4a">operator=()</a>, <a class="el" href="#a92894077c3201d3249b6e4794eccb9f2">operator=()</a>, <a class="el" href="#acc0573f06bfc6fe03ad0ad82699b350b">resource_pool()</a>, <a class="el" href="#a39921925c1e41b9f3eb86819dc227f25">resource_pool()</a>, <a class="el" href="resource__pool_8hpp_source.html#l00225">resource_pool()</a>, and <a class="el" href="resource__pool_8hpp_source.html#l00265">resource_pool()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00236">236</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
 
 </div>
 </div>
 <a id="a1071db7c8884fdb74dee2edd166f63c0" name="a1071db7c8884fdb74dee2edd166f63c0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1071db7c8884fdb74dee2edd166f63c0">&#9670;&#160;</a></span>resource_pool() <span class="overload">[2/5]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a1071db7c8884fdb74dee2edd166f63c0">&#9670;&#160;</a></span>resource_pool() <span class="overload">[4/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -234,122 +290,7 @@ template&lt;typename T, typename SRT = scoped_resource&lt;T&gt;&gt; </div>
 <dd>
 The cleanup callback is optional and invoked for each resource during destruction </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00247">247</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
-
-<p class="reference">References <a class="el" href="resource__pool_8hpp_source.html#l00211">CallbackDoNotAutoAddResource</a>.</p>
-
-</div>
-</div>
-<a id="a36a6d5d888154929e93667e566a3893a" name="a36a6d5d888154929e93667e566a3893a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a36a6d5d888154929e93667e566a3893a">&#9670;&#160;</a></span>resource_pool() <span class="overload">[3/5]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename T, typename SRT = scoped_resource&lt;T&gt;&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool</a>&lt; T, SRT &gt;::resource_pool </td>
-          <td>(</td>
-          <td class="paramtype">uint8_t</td>          <td class="paramname"><span class="paramname"><em>init_capacity</em></span><span class="paramdefsep"> = </span><span class="paramdefval">resource_pool_limits::DefaultCapacity</span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">auto_add_policy</td>          <td class="paramname"><span class="paramname"><em>add_policy</em></span><span class="paramdefsep"> = </span><span class="paramdefval">auto_add_policy::NoGrow</span>&#160;)</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Constructs a resource pool with capacity and auto-grow policy. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">init_capacity</td><td>Initial capacity of the pool (defaults to DefaultCapacity) </td></tr>
-    <tr><td class="paramname">add_policy</td><td>Auto-grow policy (defaults to NoGrow)</td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section note"><dt>Note</dt><dd>Capacity is clamped to valid range [MinimumCapacity, MaxCapacity] </dd>
-<dd>
-If add_policy is AutoGrow, resources are created on-demand </dd>
-<dd>
-If add_policy is NoGrow, pool returns error when exhausted </dd></dl>
-
-<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00265">265</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
-
-<p class="reference">References <a class="el" href="resource__pool_8hpp_source.html#l00211">CallbackDoNotAutoAddResource</a>, <a class="el" href="resource__pool_8hpp_source.html#l00225">resource_pool()</a>, and <a class="el" href="resource__pool_8hpp_source.html#l00560">return_to_pool()</a>.</p>
-
-</div>
-</div>
-<a id="a39921925c1e41b9f3eb86819dc227f25" name="a39921925c1e41b9f3eb86819dc227f25"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a39921925c1e41b9f3eb86819dc227f25">&#9670;&#160;</a></span>resource_pool() <span class="overload">[4/5]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename T, typename SRT = scoped_resource&lt;T&gt;&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool</a>&lt; T, SRT &gt;::resource_pool </td>
-          <td>(</td>
-          <td class="paramtype">resource_pool&lt; T, SRT &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel delete">delete</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Copy constructor is deleted. </p>
-<p><a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">resource_pool</a> is not copyable to prevent resource duplication </p>
-
-<p class="reference">References <a class="el" href="resource__pool_8hpp_source.html#l00225">resource_pool()</a>.</p>
-
-</div>
-</div>
-<a id="acc0573f06bfc6fe03ad0ad82699b350b" name="acc0573f06bfc6fe03ad0ad82699b350b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acc0573f06bfc6fe03ad0ad82699b350b">&#9670;&#160;</a></span>resource_pool() <span class="overload">[5/5]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename T, typename SRT = scoped_resource&lt;T&gt;&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool</a>&lt; T, SRT &gt;::resource_pool </td>
-          <td>(</td>
-          <td class="paramtype">resource_pool&lt; T, SRT &gt; &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em>src</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel delete">delete</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Move constructor is deleted. </p>
-<p><a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">resource_pool</a> is not movable to maintain resource ownership </p>
-
-<p class="reference">References <a class="el" href="resource__pool_8hpp_source.html#l00225">resource_pool()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00249">249</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
 
 </div>
 </div>
@@ -365,7 +306,7 @@ template&lt;typename T, typename SRT = scoped_resource&lt;T&gt;&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool</a>&lt; T, SRT &gt;::~<a class="el" href="#a3e67c51f95d8fc48dfb89e0c20470a74">resource_pool</a> </td>
+          <td class="memname"><a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool</a>&lt; T, SRT &gt;::~<a class="el" href="#a39921925c1e41b9f3eb86819dc227f25">resource_pool</a> </td>
           <td>(</td>
           <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
           <td></td>
@@ -379,22 +320,22 @@ template&lt;typename T, typename SRT = scoped_resource&lt;T&gt;&gt; </div>
 </div><div class="memdoc">
 
 <p>Destructor - cleans up all resources in the pool. </p>
-<p>Sets the shutdown flag and delegates to <a class="el" href="#a00c3ddf451f0f8fa0f93ba8da8bee148" title="Clears all resources from the pool.">clear()</a> to clean up resources. The cleanup callback is invoked for each resource if provided.</p>
+<p>Sets the shutdown flag and delegates to <a class="el" href="#ae93636e0036afd37ba0e0afa599e4225" title="Clears all resources from the pool.">clear()</a> to clean up resources. The cleanup callback (if provided) is invoked for each resource during cleanup.</p>
 <dl class="section note"><dt>Note</dt><dd>Noexcept: Exceptions during cleanup are caught and logged </dd>
 <dd>
 All resources are cleaned up before destruction completes </dd></dl>
-<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_222_2s_2include_2siddiqsoft_2resource_pool_8hpp-example.html#a5">/opt/azure-agent/_work/22/s/include/siddiqsoft/resource_pool.hpp</a>.</dd>
+<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2resource_pool_8hpp-example.html#a3">/opt/azure-agent/_work/1/s/include/siddiqsoft/private/resource_pool.hpp</a>.</dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00320">320</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00263">263</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
 
-<p class="reference">References <a class="el" href="resource__pool_8hpp_source.html#l00344">clear()</a>.</p>
+<p class="reference">References <a class="el" href="resource__pool_8hpp_source.html#l00305">clear()</a>.</p>
 
 </div>
 </div>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
-<a id="a0679b404ace11544df19ecf7741dbfd3" name="a0679b404ace11544df19ecf7741dbfd3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0679b404ace11544df19ecf7741dbfd3">&#9670;&#160;</a></span>borrow_from_pool()</h2>
+<a id="a813a3063a2479a62c553475acfc15bf8" name="a813a3063a2479a62c553475acfc15bf8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a813a3063a2479a62c553475acfc15bf8">&#9670;&#160;</a></span>borrow_from_pool()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -407,8 +348,8 @@ template&lt;typename T, typename SRT = scoped_resource&lt;T&gt;&gt; </div>
         <tr>
           <td class="memname">auto <a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool</a>&lt; T, SRT &gt;::borrow_from_pool </td>
           <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td> -&gt; std::expected&lt; SRT, pool_error &gt;</td>
+          <td class="paramtype">std::chrono::nanoseconds</td>          <td class="paramname"><span class="paramname"><em>timeout</em></span><span class="paramdefsep"> = </span><span class="paramdefval">{}</span></td><td>)</td>
+          <td> -&gt; SRT</td>
         </tr>
       </table>
   </td>
@@ -418,12 +359,12 @@ template&lt;typename T, typename SRT = scoped_resource&lt;T&gt;&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00409">409</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00370">370</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
 
 </div>
 </div>
-<a id="a00c3ddf451f0f8fa0f93ba8da8bee148" name="a00c3ddf451f0f8fa0f93ba8da8bee148"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a00c3ddf451f0f8fa0f93ba8da8bee148">&#9670;&#160;</a></span>clear()</h2>
+<a id="ae93636e0036afd37ba0e0afa599e4225" name="ae93636e0036afd37ba0e0afa599e4225"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae93636e0036afd37ba0e0afa599e4225">&#9670;&#160;</a></span>clear()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -437,7 +378,7 @@ template&lt;typename T, typename SRT = scoped_resource&lt;T&gt;&gt; </div>
           <td class="memname">auto <a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool</a>&lt; T, SRT &gt;::clear </td>
           <td>(</td>
           <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td> -&gt; std::expected&lt; void, pool_error &gt;</td>
+          <td> -&gt; pool_error</td>
         </tr>
       </table>
   </td>
@@ -448,19 +389,57 @@ template&lt;typename T, typename SRT = scoped_resource&lt;T&gt;&gt; </div>
 </div><div class="memdoc">
 
 <p>Clears all resources from the pool. </p>
-<p>Removes all resources from the pool and invokes the cleanup callback for each. This is called automatically during destruction.</p>
+<p>Removes all resources from the pool and invokes the cleanup callback for each. This is called automatically during destruction. Can also be called manually.</p>
 <dl class="section return"><dt>Returns</dt><dd>std::expected&lt;void, pool_error&gt; indicating success or error</dd></dl>
 <dl class="section note"><dt>Note</dt><dd>Thread-safe: Uses exclusive lock </dd>
 <dd>
 Cleanup callback is invoked for each resource if provided </dd>
 <dd>
 Exceptions from cleanup callback are caught and logged </dd></dl>
-<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_222_2s_2include_2siddiqsoft_2resource_pool_8hpp-example.html#a6">/opt/azure-agent/_work/22/s/include/siddiqsoft/resource_pool.hpp</a>.</dd>
+<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2resource_pool_8hpp-example.html#a4">/opt/azure-agent/_work/1/s/include/siddiqsoft/private/resource_pool.hpp</a>.</dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00344">344</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00305">305</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="resource__pool_8hpp_source.html#l00320">~resource_pool()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="resource__pool_8hpp_source.html#l00263">~resource_pool()</a>.</p>
+
+</div>
+</div>
+<a id="a5f40102b6bbae243b9866e894780b411" name="a5f40102b6bbae243b9866e894780b411"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5f40102b6bbae243b9866e894780b411">&#9670;&#160;</a></span>create_resource()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T, typename SRT = scoped_resource&lt;T&gt;&gt; </div>
+<div class="memtemplate">
+template&lt;typename... Args&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto <a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool</a>&lt; T, SRT &gt;::create_resource </td>
+          <td>(</td>
+          <td class="paramtype">Args &amp;&amp;...</td>          <td class="paramname"><span class="paramname"><em>args</em></span></td><td>)</td>
+          <td> -&gt; SRT</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Create a resource that is wired to invoke the return_to_pool in the destructor of the SRT class. </p>
+<dl class="section note"><dt>Note</dt><dd>The <a class="el" href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html">scoped_resource&lt;T&gt;</a> cannot be directly instantiated and thus this method is the only means to create a custom resource. This approach also solves the issue where we hide the <a class="el" href="#a2e72588a69698f35fad372a36bede8c6" title="Returns a resource to the pool.">return_to_pool()</a> as protected and making the <a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">resource_pool</a> and <a class="el" href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html">scoped_resource</a> friends. </dd></dl>
+<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2resource_pool_8hpp-example.html#a5">/opt/azure-agent/_work/1/s/include/siddiqsoft/private/resource_pool.hpp</a>.</dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00284">284</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
+
+<p class="reference">References <a class="el" href="resource__pool_8hpp_source.html#l00509">return_to_pool()</a>.</p>
 
 </div>
 </div>
@@ -476,9 +455,9 @@ template&lt;typename T, typename SRT = scoped_resource&lt;T&gt;&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="#a3e67c51f95d8fc48dfb89e0c20470a74">resource_pool</a> &amp; <a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool</a>&lt; T, SRT &gt;::operator= </td>
+          <td class="memname"><a class="el" href="#a39921925c1e41b9f3eb86819dc227f25">resource_pool</a> &amp; <a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool</a>&lt; T, SRT &gt;::operator= </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="#a3e67c51f95d8fc48dfb89e0c20470a74">resource_pool</a>&lt; T, SRT &gt; &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em>src</em></span></td><td>)</td>
+          <td class="paramtype"><a class="el" href="#a39921925c1e41b9f3eb86819dc227f25">resource_pool</a>&lt; T, SRT &gt; &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em>src</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -492,7 +471,7 @@ template&lt;typename T, typename SRT = scoped_resource&lt;T&gt;&gt; </div>
 <p>Move assignment operator is deleted. </p>
 <p><a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">resource_pool</a> is not movable to maintain resource ownership </p>
 
-<p class="reference">References <a class="el" href="resource__pool_8hpp_source.html#l00225">resource_pool()</a>.</p>
+<p class="reference">References <a class="el" href="#a39921925c1e41b9f3eb86819dc227f25">resource_pool()</a>.</p>
 
 </div>
 </div>
@@ -508,9 +487,9 @@ template&lt;typename T, typename SRT = scoped_resource&lt;T&gt;&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="#a3e67c51f95d8fc48dfb89e0c20470a74">resource_pool</a> &amp; <a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool</a>&lt; T, SRT &gt;::operator= </td>
+          <td class="memname"><a class="el" href="#a39921925c1e41b9f3eb86819dc227f25">resource_pool</a> &amp; <a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool</a>&lt; T, SRT &gt;::operator= </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="#a3e67c51f95d8fc48dfb89e0c20470a74">resource_pool</a>&lt; T, SRT &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td class="paramtype"><a class="el" href="#a39921925c1e41b9f3eb86819dc227f25">resource_pool</a>&lt; T, SRT &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -523,10 +502,10 @@ template&lt;typename T, typename SRT = scoped_resource&lt;T&gt;&gt; </div>
 
 <p>Copy assignment operator is deleted. </p>
 <p><a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">resource_pool</a> is not copyable to prevent resource duplication </p>
-<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_222_2s_2include_2siddiqsoft_2resource_pool_8hpp-example.html#a4">/opt/azure-agent/_work/22/s/include/siddiqsoft/resource_pool.hpp</a>.</dd>
+<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2resource_pool_8hpp-example.html#a2">/opt/azure-agent/_work/1/s/include/siddiqsoft/private/resource_pool.hpp</a>.</dd>
 </dl>
 
-<p class="reference">References <a class="el" href="resource__pool_8hpp_source.html#l00225">resource_pool()</a>.</p>
+<p class="reference">References <a class="el" href="#a39921925c1e41b9f3eb86819dc227f25">resource_pool()</a>.</p>
 
 </div>
 </div>
@@ -554,7 +533,7 @@ template&lt;typename T, typename SRT = scoped_resource&lt;T&gt;&gt; </div>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel protected">protected</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
@@ -578,17 +557,17 @@ Decrements checkout counter </dd>
 Returns if pool is shutting down </dd>
 <dd>
 This method MUST be invoked to "return" the resource back to pool otherwise the accounting and resource management will not work properly! </dd></dl>
-<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_222_2s_2include_2siddiqsoft_2resource_pool_8hpp-example.html#a3">/opt/azure-agent/_work/22/s/include/siddiqsoft/resource_pool.hpp</a>.</dd>
+<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2resource_pool_8hpp-example.html#a6">/opt/azure-agent/_work/1/s/include/siddiqsoft/private/resource_pool.hpp</a>.</dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00560">560</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00509">509</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="resource__pool_8hpp_source.html#l00265">resource_pool()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="resource__pool_8hpp_source.html#l00284">create_resource()</a>.</p>
 
 </div>
 </div>
-<a id="aaeb8a2b1050aa45ec0f6fddcb4bdc733" name="aaeb8a2b1050aa45ec0f6fddcb4bdc733"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aaeb8a2b1050aa45ec0f6fddcb4bdc733">&#9670;&#160;</a></span>seed_to_pool() <span class="overload">[1/2]</span></h2>
+<a id="aa797df26b5117f7bb399ad1731ff2c98" name="aa797df26b5117f7bb399ad1731ff2c98"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa797df26b5117f7bb399ad1731ff2c98">&#9670;&#160;</a></span>seed_to_pool() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -604,7 +583,7 @@ template&lt;typename... Args&gt; </div>
           <td class="memname">auto <a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool</a>&lt; T, SRT &gt;::seed_to_pool </td>
           <td>(</td>
           <td class="paramtype">Args &amp;&amp;...</td>          <td class="paramname"><span class="paramname"><em>args</em></span></td><td>)</td>
-          <td> -&gt; std::expected&lt; void, pool_error &gt;</td>
+          <td> -&gt; pool_error</td>
         </tr>
       </table>
   </td>
@@ -623,7 +602,7 @@ template&lt;typename... Args&gt; </div>
 </dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">args</td><td>Arguments to forward to T's constructor </td></tr>
+    <tr><td class="paramname">args</td><td>Arguments to forward to T's constructor for in-place construction </td></tr>
   </table>
   </dd>
 </dl>
@@ -632,20 +611,18 @@ template&lt;typename... Args&gt; </div>
 <dd>
 Resource is constructed in-place </dd>
 <dd>
-Decrements checkout counter </dd>
-<dd>
 Returns error if pool is shutting down </dd>
 <dd>
 This method MUST NOT be invoked to "return"; use the <a class="el" href="#a2e72588a69698f35fad372a36bede8c6" title="Returns a resource to the pool.">return_to_pool()</a> method otherwise the accounting and resource management will not work properly! </dd></dl>
-<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_222_2s_2include_2siddiqsoft_2resource_pool_8hpp-example.html#a8">/opt/azure-agent/_work/22/s/include/siddiqsoft/resource_pool.hpp</a>.</dd>
+<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2resource_pool_8hpp-example.html#a8">/opt/azure-agent/_work/1/s/include/siddiqsoft/private/resource_pool.hpp</a>.</dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00494">494</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00433">433</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
 
 </div>
 </div>
-<a id="a2cf41b9a148a7f39db22c3fcc25eb96b" name="a2cf41b9a148a7f39db22c3fcc25eb96b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2cf41b9a148a7f39db22c3fcc25eb96b">&#9670;&#160;</a></span>seed_to_pool() <span class="overload">[2/2]</span></h2>
+<a id="a537b9c36f8ab8c027a6f82afd0c14f7f" name="a537b9c36f8ab8c027a6f82afd0c14f7f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a537b9c36f8ab8c027a6f82afd0c14f7f">&#9670;&#160;</a></span>seed_to_pool() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -659,7 +636,7 @@ template&lt;typename T, typename SRT = scoped_resource&lt;T&gt;&gt; </div>
           <td class="memname">auto <a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool</a>&lt; T, SRT &gt;::seed_to_pool </td>
           <td>(</td>
           <td class="paramtype">T &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em>item</em></span></td><td>)</td>
-          <td> -&gt; std::expected&lt; void, pool_error &gt;</td>
+          <td> -&gt; pool_error</td>
         </tr>
       </table>
   </td>
@@ -676,23 +653,21 @@ template&lt;typename T, typename SRT = scoped_resource&lt;T&gt;&gt; </div>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>std::expected&lt;void, pool_error&gt; indicating success or error</dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>std::expected&lt;void, pool_error&gt; indicating success or error. Returns error if pool is shutting down.</dd></dl>
 <dl class="section note"><dt>Note</dt><dd>Thread-safe: Uses exclusive lock </dd>
 <dd>
 Resource is moved into the pool </dd>
-<dd>
-Decrements checkout counter </dd>
 <dd>
 Returns error if pool is shutting down </dd>
 <dd>
 This method MUST NOT be invoked to "return"; use the <a class="el" href="#a2e72588a69698f35fad372a36bede8c6" title="Returns a resource to the pool.">return_to_pool()</a> method otherwise the accounting and resource management will not work properly! </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00524">524</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00467">467</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
 
 </div>
 </div>
-<a id="ad02d55907e39464721adf565cefd5db2" name="ad02d55907e39464721adf565cefd5db2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad02d55907e39464721adf565cefd5db2">&#9670;&#160;</a></span>size()</h2>
+<a id="ad275913e4d61ea92561a317cdca99d29" name="ad275913e4d61ea92561a317cdca99d29"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad275913e4d61ea92561a317cdca99d29">&#9670;&#160;</a></span>size()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -706,7 +681,7 @@ template&lt;typename T, typename SRT = scoped_resource&lt;T&gt;&gt; </div>
           <td class="memname">auto <a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool</a>&lt; T, SRT &gt;::size </td>
           <td>(</td>
           <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td> const -&gt; std::expected&lt; size_t, pool_error &gt;</td>
+          <td> const</td>
         </tr>
       </table>
   </td>
@@ -717,53 +692,16 @@ template&lt;typename T, typename SRT = scoped_resource&lt;T&gt;&gt; </div>
 </div><div class="memdoc">
 
 <p>Gets the current size of the pool. </p>
-<dl class="section return"><dt>Returns</dt><dd>std::expected&lt;size_t, pool_error&gt; containing the pool size or error</dd></dl>
-<dl class="section note"><dt>Note</dt><dd>Thread-safe: Uses shared read lock </dd>
+<dl class="section return"><dt>Returns</dt><dd>std::expected&lt;size_t, pool_error&gt; containing the number of available resources or error</dd></dl>
+<dl class="section note"><dt>Note</dt><dd>Thread-safe: Uses exclusive lock </dd>
 <dd>
-Returns error if pool is shutting down </dd></dl>
-<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_222_2s_2include_2siddiqsoft_2resource_pool_8hpp-example.html#a7">/opt/azure-agent/_work/22/s/include/siddiqsoft/resource_pool.hpp</a>.</dd>
+Returns error if pool is shutting down </dd>
+<dd>
+Does not include checked-out resources </dd></dl>
+<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2resource_pool_8hpp-example.html#a7">/opt/azure-agent/_work/1/s/include/siddiqsoft/private/resource_pool.hpp</a>.</dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00377">377</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
-
-</div>
-</div>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
-<a id="a9ac123401a7ca8e408edfbb68e732826" name="a9ac123401a7ca8e408edfbb68e732826"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9ac123401a7ca8e408edfbb68e732826">&#9670;&#160;</a></span>CallbackDoNotAutoAddResource</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename T, typename SRT = scoped_resource&lt;T&gt;&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::function&lt;std::expected&lt;SRT, pool_error&gt;(<a class="el" href="#a3e67c51f95d8fc48dfb89e0c20470a74">resource_pool</a>&amp;)&gt; <a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool</a>&lt; T, SRT &gt;::CallbackDoNotAutoAddResource</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel static">static</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">                                                           =</div>
-<div class="line">        [](<a class="code hl_function" href="#a3e67c51f95d8fc48dfb89e0c20470a74">resource_pool</a>&amp;) -&gt; std::expected&lt;SRT, pool_error&gt; {</div>
-<div class="line">    <span class="keywordflow">return</span> std::unexpected(pool_error::NoMoreResources);</div>
-<div class="line">}</div>
-<div class="ttc" id="aclasssiddiqsoft_1_1arrp_1_1resource__pool_html_a3e67c51f95d8fc48dfb89e0c20470a74"><div class="ttname"><a href="#a3e67c51f95d8fc48dfb89e0c20470a74">siddiqsoft::arrp::resource_pool::resource_pool</a></div><div class="ttdeci">resource_pool(uint8_t init_capacity, std::function&lt; std::expected&lt; SRT, pool_error &gt;(resource_pool &amp;)&gt; &amp;&amp;new_resource_callback, std::function&lt; void(T &amp;&amp;)&gt; &amp;&amp;on_shutdown_callback={})</div><div class="ttdoc">Constructs a resource pool with factory and cleanup callbacks.</div><div class="ttdef"><b>Definition</b> <a href="resource__pool_8hpp_source.html#l00225">resource_pool.hpp:225</a></div></div>
-</div><!-- fragment -->
-<p>Default callback that does not auto-grow the resource pool. </p>
-<p>Returns an error indicating no more resources are available </p>
-<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_222_2s_2include_2siddiqsoft_2resource_pool_8hpp-example.html#a2">/opt/azure-agent/_work/22/s/include/siddiqsoft/resource_pool.hpp</a>.</dd>
-</dl>
-
-<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00211">211</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="resource__pool_8hpp_source.html#l00247">resource_pool()</a>, and <a class="el" href="resource__pool_8hpp_source.html#l00265">resource_pool()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00339">339</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
 
 </div>
 </div>

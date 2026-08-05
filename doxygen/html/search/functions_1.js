@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['format_0',['format',['../structstd_1_1formatter_3_01siddiqsoft_1_1arrp_1_1release__reason_00_01ct_01_4.html#ac11970051aa1dfa7174448ae624cc878',1,'std::formatter&lt; siddiqsoft::arrp::release_reason, ct &gt;::format()'],['../structstd_1_1formatter_3_01siddiqsoft_1_1arrp_1_1auto__add__policy_00_01ct_01_4.html#ae06afc113832eeaa512008c0034c5e78',1,'std::formatter&lt; siddiqsoft::arrp::auto_add_policy, ct &gt;::format()'],['../structstd_1_1formatter_3_01siddiqsoft_1_1arrp_1_1scoped__resource_3_01T_01_4_01_4.html#abac371586315d2afbfb5ccd2610d8127',1,'std::formatter&lt; siddiqsoft::arrp::scoped_resource&lt; T &gt; &gt;::format()'],['../structstd_1_1formatter_3_01siddiqsoft_1_1arrp_1_1resource__pool_3_01T_00_01SRT_01_4_01_4.html#af8662e6043345893126a1fb09e32cc6c',1,'std::formatter&lt; siddiqsoft::arrp::resource_pool&lt; T, SRT &gt; &gt;::format()']]]
+  ['format_0',['format',['../structstd_1_1formatter_3_01siddiqsoft_1_1arrp_1_1scoped__resource_3_01T_01_4_01_4.html#abc5dcbfeed6ff0733442ecf6404ce3e8',1,'std::formatter&lt; siddiqsoft::arrp::scoped_resource&lt; T &gt; &gt;']]]
 ];

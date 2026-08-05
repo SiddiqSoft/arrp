@@ -95,45 +95,52 @@ $(function(){initNavTree('classsiddiqsoft_1_1arrp_1_1scoped__resource.html','','
 </div><!--header-->
 <div class="contents">
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pub-types" class="groupheader"><a id="pub-types" name="pub-types"></a>
+Public Types</h2></td></tr>
+<tr class="memitem:a87f4d2c272e90654ee37e395b05ba218" id="r_a87f4d2c272e90654ee37e395b05ba218"><td class="memItemLeft">using&#160;</td><td class="memItemRight"><a class="el" href="#a87f4d2c272e90654ee37e395b05ba218">PutbackCallbackFunc</a> = std::function&lt;void(T&amp;&amp;, bool)&gt;</td></tr>
+<tr class="memdesc:a87f4d2c272e90654ee37e395b05ba218"><td class="mdescLeft">&#160;</td><td class="mdescRight">Callback function type for returning resource to pool.  <br /></td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a00c6980fe93ed276f6700d6e1853d3eb" id="r_a00c6980fe93ed276f6700d6e1853d3eb"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a00c6980fe93ed276f6700d6e1853d3eb">scoped_resource</a> ()=delete</td></tr>
-<tr class="memdesc:a00c6980fe93ed276f6700d6e1853d3eb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default constructor is deleted.  <br /></td></tr>
-<tr class="memitem:a65fa62b079694a829ced128cf0bb99da" id="r_a65fa62b079694a829ced128cf0bb99da"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a65fa62b079694a829ced128cf0bb99da">scoped_resource</a> (PutbackCallbackFunc &amp;&amp;f, T &amp;&amp;src)</td></tr>
-<tr class="memdesc:a65fa62b079694a829ced128cf0bb99da"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructs a <a class="el" href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html">scoped_resource</a> with a callback and resource.  <br /></td></tr>
 <tr class="memitem:aa0b274f25119c124682b8efd5f40a75d" id="r_aa0b274f25119c124682b8efd5f40a75d"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#aa0b274f25119c124682b8efd5f40a75d">scoped_resource</a> (const T &amp;)=delete</td></tr>
 <tr class="memdesc:aa0b274f25119c124682b8efd5f40a75d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy constructor is deleted.  <br /></td></tr>
+<tr class="memitem:af73519a38852dfc79699ff99eca0becd" id="r_af73519a38852dfc79699ff99eca0becd"><td class="memItemLeft"><a class="el" href="#ad83d1fe04353a821552023b4ae6a10df">scoped_resource</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#af73519a38852dfc79699ff99eca0becd">operator=</a> (const <a class="el" href="#ad83d1fe04353a821552023b4ae6a10df">scoped_resource</a> &amp;)=delete</td></tr>
+<tr class="memdesc:af73519a38852dfc79699ff99eca0becd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy assignment operator is deleted.  <br /></td></tr>
+<tr class="memitem:af46ec562786f7728c3ae30ea160d722f" id="r_af46ec562786f7728c3ae30ea160d722f"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#af46ec562786f7728c3ae30ea160d722f">scoped_resource</a> (const pool_error &amp;err)</td></tr>
+<tr class="memdesc:af46ec562786f7728c3ae30ea160d722f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructs a <a class="el" href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html">scoped_resource</a> in an error state.  <br /></td></tr>
 <tr class="memitem:a45b3ab8778376f5b6c21dfcc652cd0e4" id="r_a45b3ab8778376f5b6c21dfcc652cd0e4"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a45b3ab8778376f5b6c21dfcc652cd0e4">scoped_resource</a> (scoped_resource &amp;&amp;src) noexcept</td></tr>
 <tr class="memdesc:a45b3ab8778376f5b6c21dfcc652cd0e4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Move constructor.  <br /></td></tr>
-<tr class="memitem:a471e843872dcd72af9cae100ab2b756b" id="r_a471e843872dcd72af9cae100ab2b756b"><td class="memTemplParams" colspan="2">template&lt;typename... Args&gt; </td></tr>
-<tr class="memitem:a471e843872dcd72af9cae100ab2b756b template"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a471e843872dcd72af9cae100ab2b756b">scoped_resource</a> (PutbackCallbackFunc &amp;&amp;f, Args &amp;&amp;... args)</td></tr>
-<tr class="memdesc:a471e843872dcd72af9cae100ab2b756b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructs a <a class="el" href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html">scoped_resource</a> with a callback and in-place constructed resource.  <br /></td></tr>
-<tr class="memitem:ad4a42ea91393718dbad1bf94e1650d25" id="r_ad4a42ea91393718dbad1bf94e1650d25"><td class="memItemLeft"><a class="el" href="#a00c6980fe93ed276f6700d6e1853d3eb">scoped_resource</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#ad4a42ea91393718dbad1bf94e1650d25">operator=</a> (<a class="el" href="#a00c6980fe93ed276f6700d6e1853d3eb">scoped_resource</a> &amp;&amp;src)</td></tr>
+<tr class="memitem:ad4a42ea91393718dbad1bf94e1650d25" id="r_ad4a42ea91393718dbad1bf94e1650d25"><td class="memItemLeft"><a class="el" href="#ad83d1fe04353a821552023b4ae6a10df">scoped_resource</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#ad4a42ea91393718dbad1bf94e1650d25">operator=</a> (<a class="el" href="#ad83d1fe04353a821552023b4ae6a10df">scoped_resource</a> &amp;&amp;src)</td></tr>
 <tr class="memdesc:ad4a42ea91393718dbad1bf94e1650d25"><td class="mdescLeft">&#160;</td><td class="mdescRight">Move assignment operator.  <br /></td></tr>
-<tr class="memitem:aa1844f12d2c0cc9798a447cca590b3d1" id="r_aa1844f12d2c0cc9798a447cca590b3d1"><td class="memItemLeft"><a class="el" href="#a00c6980fe93ed276f6700d6e1853d3eb">scoped_resource</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#aa1844f12d2c0cc9798a447cca590b3d1">operator=</a> (T &amp;&amp;src)</td></tr>
-<tr class="memdesc:aa1844f12d2c0cc9798a447cca590b3d1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Assignment operator for resource value.  <br /></td></tr>
-<tr class="memitem:af73519a38852dfc79699ff99eca0becd" id="r_af73519a38852dfc79699ff99eca0becd"><td class="memItemLeft"><a class="el" href="#a00c6980fe93ed276f6700d6e1853d3eb">scoped_resource</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#af73519a38852dfc79699ff99eca0becd">operator=</a> (const <a class="el" href="#a00c6980fe93ed276f6700d6e1853d3eb">scoped_resource</a> &amp;)=delete</td></tr>
-<tr class="memdesc:af73519a38852dfc79699ff99eca0becd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy assignment operator is deleted.  <br /></td></tr>
-<tr class="memitem:a7958cfc4082b6db9c42715f2ecdcc4af" id="r_a7958cfc4082b6db9c42715f2ecdcc4af"><td class="memItemLeft">auto&#160;</td><td class="memItemRight"><a class="el" href="#a7958cfc4082b6db9c42715f2ecdcc4af">operator*</a> () -&gt; T &amp;</td></tr>
-<tr class="memdesc:a7958cfc4082b6db9c42715f2ecdcc4af"><td class="mdescLeft">&#160;</td><td class="mdescRight">Dereference operator to access the wrapped resource.  <br /></td></tr>
-<tr class="memitem:af2dbe793f5bf4e1cce244f1ae0529f5b" id="r_af2dbe793f5bf4e1cce244f1ae0529f5b"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#af2dbe793f5bf4e1cce244f1ae0529f5b">operator T&amp;</a> ()</td></tr>
-<tr class="memdesc:af2dbe793f5bf4e1cce244f1ae0529f5b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Explicit conversion to resource reference.  <br /></td></tr>
-<tr class="memitem:a40190a2fe75e7fc14b3b265319a58d04" id="r_a40190a2fe75e7fc14b3b265319a58d04"><td class="memItemLeft">auto&#160;</td><td class="memItemRight"><a class="el" href="#a40190a2fe75e7fc14b3b265319a58d04">operator-&gt;</a> () -&gt; T *</td></tr>
-<tr class="memdesc:a40190a2fe75e7fc14b3b265319a58d04"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pointer-like access to the wrapped resource.  <br /></td></tr>
 <tr class="memitem:ae1ccd4c38fdb92eea65410f488d44b0a" id="r_ae1ccd4c38fdb92eea65410f488d44b0a"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#ae1ccd4c38fdb92eea65410f488d44b0a">~scoped_resource</a> () noexcept</td></tr>
 <tr class="memdesc:ae1ccd4c38fdb92eea65410f488d44b0a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Destructor - invokes callback to handle resource return or abandonment.  <br /></td></tr>
+<tr class="memitem:a7958cfc4082b6db9c42715f2ecdcc4af" id="r_a7958cfc4082b6db9c42715f2ecdcc4af"><td class="memItemLeft">auto&#160;</td><td class="memItemRight"><a class="el" href="#a7958cfc4082b6db9c42715f2ecdcc4af">operator*</a> () -&gt; T &amp;</td></tr>
+<tr class="memdesc:a7958cfc4082b6db9c42715f2ecdcc4af"><td class="mdescLeft">&#160;</td><td class="mdescRight">Dereference operator to access the wrapped resource.  <br /></td></tr>
+<tr class="memitem:a40190a2fe75e7fc14b3b265319a58d04" id="r_a40190a2fe75e7fc14b3b265319a58d04"><td class="memItemLeft">auto&#160;</td><td class="memItemRight"><a class="el" href="#a40190a2fe75e7fc14b3b265319a58d04">operator-&gt;</a> () -&gt; T *</td></tr>
+<tr class="memdesc:a40190a2fe75e7fc14b3b265319a58d04"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pointer-like access to the wrapped resource.  <br /></td></tr>
+<tr class="memitem:a185596557530146722ac37cba93b6e21" id="r_a185596557530146722ac37cba93b6e21"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a185596557530146722ac37cba93b6e21">operator T</a> ()</td></tr>
+<tr class="memdesc:a185596557530146722ac37cba93b6e21"><td class="mdescLeft">&#160;</td><td class="mdescRight">Explicit conversion to resource reference.  <br /></td></tr>
+<tr class="memitem:a6886f3d4f1c9076d635d08d521488c3f" id="r_a6886f3d4f1c9076d635d08d521488c3f"><td class="memTemplParams" colspan="2">template&lt;typename InnerType&gt; </td></tr>
+<tr class="memitem:a6886f3d4f1c9076d635d08d521488c3f template"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a6886f3d4f1c9076d635d08d521488c3f">operator InnerType</a> () const</td></tr>
+<tr class="memitem:aa1844f12d2c0cc9798a447cca590b3d1" id="r_aa1844f12d2c0cc9798a447cca590b3d1"><td class="memItemLeft"><a class="el" href="#ad83d1fe04353a821552023b4ae6a10df">scoped_resource</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#aa1844f12d2c0cc9798a447cca590b3d1">operator=</a> (T &amp;&amp;src)</td></tr>
+<tr class="memdesc:aa1844f12d2c0cc9798a447cca590b3d1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Assignment operator for resource value.  <br /></td></tr>
 <tr class="memitem:a36ff97075f9fab50945f0ab4d4f69165" id="r_a36ff97075f9fab50945f0ab4d4f69165"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#a36ff97075f9fab50945f0ab4d4f69165">invalidate</a> ()</td></tr>
 <tr class="memitem:ae9e161fbafe8f3cf1cbd44615ded6bcc" id="r_ae9e161fbafe8f3cf1cbd44615ded6bcc"><td class="memItemLeft">virtual bool&#160;</td><td class="memItemRight"><a class="el" href="#ae9e161fbafe8f3cf1cbd44615ded6bcc">is_valid</a> () const</td></tr>
 <tr class="memdesc:ae9e161fbafe8f3cf1cbd44615ded6bcc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks if the resource is valid.  <br /></td></tr>
+<tr class="memitem:ae9198109f48c2960ec913fdf1a646a91" id="r_ae9198109f48c2960ec913fdf1a646a91"><td class="memItemLeft">auto &amp;&#160;</td><td class="memItemRight"><a class="el" href="#ae9198109f48c2960ec913fdf1a646a91">set_error</a> (pool_error err)</td></tr>
+<tr class="memitem:a22f67b876d6097da153ee007db127c78" id="r_a22f67b876d6097da153ee007db127c78"><td class="memItemLeft">pool_error&#160;</td><td class="memItemRight"><a class="el" href="#a22f67b876d6097da153ee007db127c78">error</a> () const</td></tr>
+<tr class="memitem:a99c4a28c5d12cb01097d175871a0d97b" id="r_a99c4a28c5d12cb01097d175871a0d97b"><td class="memItemLeft">virtual bool&#160;</td><td class="memItemRight"><a class="el" href="#a99c4a28c5d12cb01097d175871a0d97b">has_value</a> () const</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pro-methods" class="groupheader"><a id="pro-methods" name="pro-methods"></a>
+Protected Member Functions</h2></td></tr>
+<tr class="memitem:ad83d1fe04353a821552023b4ae6a10df" id="r_ad83d1fe04353a821552023b4ae6a10df"><td class="memItemLeft"><a id="ad83d1fe04353a821552023b4ae6a10df" name="ad83d1fe04353a821552023b4ae6a10df"></a>
+&#160;</td><td class="memItemRight"><b>scoped_resource</b> ()=default</td></tr>
+<tr class="memdesc:ad83d1fe04353a821552023b4ae6a10df"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default constructor is protected to allow derived classes construct their own data. <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pro-attribs" class="groupheader"><a id="pro-attribs" name="pro-attribs"></a>
 Protected Attributes</h2></td></tr>
-<tr class="memitem:a7a206dc66fef807bc0720c7b942be24c" id="r_a7a206dc66fef807bc0720c7b942be24c"><td class="memItemLeft">T&#160;</td><td class="memItemRight"><a class="el" href="#a7a206dc66fef807bc0720c7b942be24c">m_rsrc</a> {}</td></tr>
+<tr class="memitem:a7a206dc66fef807bc0720c7b942be24c" id="r_a7a206dc66fef807bc0720c7b942be24c"><td class="memItemLeft">T&#160;</td><td class="memItemRight"><a class="el" href="#a7a206dc66fef807bc0720c7b942be24c">m_rsrc</a></td></tr>
 <tr class="memdesc:a7a206dc66fef807bc0720c7b942be24c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The actual resource being wrapped.  <br /></td></tr>
-<tr class="memitem:a0761ce385eacea4206d8371f3b04e269" id="r_a0761ce385eacea4206d8371f3b04e269"><td class="memItemLeft">PutbackCallbackFunc&#160;</td><td class="memItemRight"><a class="el" href="#a0761ce385eacea4206d8371f3b04e269">m_putback_callback</a> {}</td></tr>
-<tr class="memdesc:a0761ce385eacea4206d8371f3b04e269"><td class="mdescLeft">&#160;</td><td class="mdescRight">Callback function to return the resource to the pool.  <br /></td></tr>
-<tr class="memitem:a231bcb2ca5e2816bc814684889081383" id="r_a231bcb2ca5e2816bc814684889081383"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a231bcb2ca5e2816bc814684889081383">m_is_valid</a> {false}</td></tr>
-<tr class="memdesc:a231bcb2ca5e2816bc814684889081383"><td class="mdescLeft">&#160;</td><td class="mdescRight">Tracks whether the resource is valid and should be returned to pool.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-friends" class="groupheader"><a id="friends" name="friends"></a>
 Friends</h2></td></tr>
@@ -143,94 +150,44 @@ Friends</h2></td></tr>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><div class="compoundTemplParams">template&lt;typename T&gt;<br />
 requires NonNumericMoveConstructible&lt;T&gt;<br />
-class siddiqsoft::arrp::scoped_resource&lt; T &gt;</div>
-<p class="definition">Definition at line <a class="el" href="scoped__resource_8hpp_source.html#l00116">116</a> of file <a class="el" href="scoped__resource_8hpp_source.html">scoped_resource.hpp</a>.</p>
-</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a00c6980fe93ed276f6700d6e1853d3eb" name="a00c6980fe93ed276f6700d6e1853d3eb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a00c6980fe93ed276f6700d6e1853d3eb">&#9670;&#160;</a></span>scoped_resource() <span class="overload">[1/5]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename T&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html">siddiqsoft::arrp::scoped_resource</a>&lt; T &gt;::scoped_resource </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel delete">delete</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Default constructor is deleted. </p>
-<p><a class="el" href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html">scoped_resource</a> must be constructed with a callback and resource </p>
-<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_222_2s_2include_2siddiqsoft_2private_2scoped_resource_8hpp-example.html#a3">/opt/azure-agent/_work/22/s/include/siddiqsoft/private/scoped_resource.hpp</a>.</dd>
+class siddiqsoft::arrp::scoped_resource&lt; T &gt;</div><dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2scoped_resource_8hpp-example.html#_a8">/opt/azure-agent/_work/1/s/include/siddiqsoft/private/scoped_resource.hpp</a>.</dd>
 </dl>
 
-<p class="reference">Referenced by <a class="el" href="#af73519a38852dfc79699ff99eca0becd">operator=()</a>, <a class="el" href="scoped__resource_8hpp_source.html#l00229">operator=()</a>, <a class="el" href="scoped__resource_8hpp_source.html#l00271">operator=()</a>, and <a class="el" href="scoped__resource_8hpp_source.html#l00186">scoped_resource()</a>.</p>
-
-</div>
-</div>
-<a id="a65fa62b079694a829ced128cf0bb99da" name="a65fa62b079694a829ced128cf0bb99da"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a65fa62b079694a829ced128cf0bb99da">&#9670;&#160;</a></span>scoped_resource() <span class="overload">[2/5]</span></h2>
+<p class="definition">Definition at line <a class="el" href="scoped__resource_8hpp_source.html#l00117">117</a> of file <a class="el" href="scoped__resource_8hpp_source.html">scoped_resource.hpp</a>.</p>
+</div><a name="doc-typedef-members" id="doc-typedef-members"></a><h2 id="header-doc-typedef-members" class="groupheader">Member Typedef Documentation</h2>
+<a id="a87f4d2c272e90654ee37e395b05ba218" name="a87f4d2c272e90654ee37e395b05ba218"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a87f4d2c272e90654ee37e395b05ba218">&#9670;&#160;</a></span>PutbackCallbackFunc</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
 template&lt;typename T&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html">siddiqsoft::arrp::scoped_resource</a>&lt; T &gt;::scoped_resource </td>
-          <td>(</td>
-          <td class="paramtype">PutbackCallbackFunc &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em>f</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">T &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em>src</em></span>&#160;)</td>
+          <td class="memname">using <a class="el" href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html">siddiqsoft::arrp::scoped_resource</a>&lt; T &gt;::PutbackCallbackFunc = std::function&lt;void(T&amp;&amp;, bool)&gt;</td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel explicit">explicit</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
-<p>Constructs a <a class="el" href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html">scoped_resource</a> with a callback and resource. </p>
+<p>Callback function type for returning resource to pool. </p>
+<p>This callback allows the implementor that is asking for the <a class="el" href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html">scoped_resource</a> the ability to recall it back or perform any additional tasks. The callback must not throw and must not invoke any other method in the pool that requires lock manipulation.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">f</td><td>The callback function to invoke on destruction </td></tr>
-    <tr><td class="paramname">src</td><td>The resource to manage (moved)</td></tr>
+    <tr><td class="paramname">resource</td><td>The resource being returned (moved) </td></tr>
+    <tr><td class="paramname"><a class="el" href="#ae9e161fbafe8f3cf1cbd44615ded6bcc" title="Checks if the resource is valid.">is_valid</a></td><td>Whether the resource is valid and should be reused </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section note"><dt>Note</dt><dd>The callback is stored and invoked during destruction </dd>
-<dd>
-The resource is moved into the wrapper </dd>
-<dd>
-The resource is marked as valid </dd></dl>
+<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2scoped_resource_8hpp-example.html#a0">/opt/azure-agent/_work/1/s/include/siddiqsoft/private/scoped_resource.hpp</a>.</dd>
+</dl>
 
-<p class="definition">Definition at line <a class="el" href="scoped__resource_8hpp_source.html#l00165">165</a> of file <a class="el" href="scoped__resource_8hpp_source.html">scoped_resource.hpp</a>.</p>
-
-<p class="reference">References <a class="el" href="scoped__resource_8hpp_source.html#l00150">m_is_valid</a>, <a class="el" href="scoped__resource_8hpp_source.html#l00144">m_putback_callback</a>, and <a class="el" href="scoped__resource_8hpp_source.html#l00139">m_rsrc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scoped__resource_8hpp_source.html#l00129">129</a> of file <a class="el" href="scoped__resource_8hpp_source.html">scoped_resource.hpp</a>.</p>
 
 </div>
 </div>
+<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="aa0b274f25119c124682b8efd5f40a75d" name="aa0b274f25119c124682b8efd5f40a75d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa0b274f25119c124682b8efd5f40a75d">&#9670;&#160;</a></span>scoped_resource() <span class="overload">[3/5]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#aa0b274f25119c124682b8efd5f40a75d">&#9670;&#160;</a></span>scoped_resource() <span class="overload">[1/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -259,8 +216,39 @@ template&lt;typename T&gt; </div>
 
 </div>
 </div>
+<a id="af46ec562786f7728c3ae30ea160d722f" name="af46ec562786f7728c3ae30ea160d722f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af46ec562786f7728c3ae30ea160d722f">&#9670;&#160;</a></span>scoped_resource() <span class="overload">[2/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html">siddiqsoft::arrp::scoped_resource</a>&lt; T &gt;::scoped_resource </td>
+          <td>(</td>
+          <td class="paramtype">const pool_error &amp;</td>          <td class="paramname"><span class="paramname"><em>err</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Constructs a <a class="el" href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html">scoped_resource</a> in an error state. </p>
+
+<p class="definition">Definition at line <a class="el" href="scoped__resource_8hpp_source.html#l00197">197</a> of file <a class="el" href="scoped__resource_8hpp_source.html">scoped_resource.hpp</a>.</p>
+
+</div>
+</div>
 <a id="a45b3ab8778376f5b6c21dfcc652cd0e4" name="a45b3ab8778376f5b6c21dfcc652cd0e4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a45b3ab8778376f5b6c21dfcc652cd0e4">&#9670;&#160;</a></span>scoped_resource() <span class="overload">[4/5]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a45b3ab8778376f5b6c21dfcc652cd0e4">&#9670;&#160;</a></span>scoped_resource() <span class="overload">[3/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -296,64 +284,9 @@ template&lt;typename T&gt; </div>
 <dd>
 The source is marked as invalid </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="scoped__resource_8hpp_source.html#l00186">186</a> of file <a class="el" href="scoped__resource_8hpp_source.html">scoped_resource.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scoped__resource_8hpp_source.html#l00213">213</a> of file <a class="el" href="scoped__resource_8hpp_source.html">scoped_resource.hpp</a>.</p>
 
-<p class="reference">References <a class="el" href="#a00c6980fe93ed276f6700d6e1853d3eb">scoped_resource()</a>.</p>
-
-</div>
-</div>
-<a id="a471e843872dcd72af9cae100ab2b756b" name="a471e843872dcd72af9cae100ab2b756b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a471e843872dcd72af9cae100ab2b756b">&#9670;&#160;</a></span>scoped_resource() <span class="overload">[5/5]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename T&gt; </div>
-<div class="memtemplate">
-template&lt;typename... Args&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html">siddiqsoft::arrp::scoped_resource</a>&lt; T &gt;::scoped_resource </td>
-          <td>(</td>
-          <td class="paramtype">PutbackCallbackFunc &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em>f</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">Args &amp;&amp;...</td>          <td class="paramname"><span class="paramname"><em>args</em></span>&#160;)</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Constructs a <a class="el" href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html">scoped_resource</a> with a callback and in-place constructed resource. </p>
-<dl class="tparams"><dt>Template Parameters</dt><dd>
-  <table class="tparams">
-    <tr><td class="paramname">Args</td><td>Types of arguments to forward to T's constructor </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">f</td><td>The callback function to invoke on destruction </td></tr>
-    <tr><td class="paramname">args</td><td>Arguments to forward to T's constructor</td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section note"><dt>Note</dt><dd>The resource is constructed in-place </dd>
-<dd>
-The resource is marked as valid </dd></dl>
-
-<p class="definition">Definition at line <a class="el" href="scoped__resource_8hpp_source.html#l00205">205</a> of file <a class="el" href="scoped__resource_8hpp_source.html">scoped_resource.hpp</a>.</p>
-
-<p class="reference">References <a class="el" href="scoped__resource_8hpp_source.html#l00150">m_is_valid</a>, <a class="el" href="scoped__resource_8hpp_source.html#l00144">m_putback_callback</a>, and <a class="el" href="scoped__resource_8hpp_source.html#l00139">m_rsrc</a>.</p>
+<p class="reference">References <a class="el" href="#ad83d1fe04353a821552023b4ae6a10df">scoped_resource()</a>.</p>
 
 </div>
 </div>
@@ -369,7 +302,7 @@ template&lt;typename T&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html">siddiqsoft::arrp::scoped_resource</a>&lt; T &gt;::~<a class="el" href="#a00c6980fe93ed276f6700d6e1853d3eb">scoped_resource</a> </td>
+          <td class="memname"><a class="el" href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html">siddiqsoft::arrp::scoped_resource</a>&lt; T &gt;::~<a class="el" href="#ad83d1fe04353a821552023b4ae6a10df">scoped_resource</a> </td>
           <td>(</td>
           <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
           <td></td>
@@ -393,16 +326,74 @@ The callback receives the validity flag to make the appropriate decision </dd>
 The callback is cleared after invocation </dd>
 <dd>
 The resource is marked as invalid after callback invocation </dd></dl>
-<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_222_2s_2include_2siddiqsoft_2private_2scoped_resource_8hpp-example.html#a7">/opt/azure-agent/_work/22/s/include/siddiqsoft/private/scoped_resource.hpp</a>.</dd>
+<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2scoped_resource_8hpp-example.html#a4">/opt/azure-agent/_work/1/s/include/siddiqsoft/private/scoped_resource.hpp</a>.</dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="scoped__resource_8hpp_source.html#l00311">311</a> of file <a class="el" href="scoped__resource_8hpp_source.html">scoped_resource.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scoped__resource_8hpp_source.html#l00284">284</a> of file <a class="el" href="scoped__resource_8hpp_source.html">scoped_resource.hpp</a>.</p>
 
-<p class="reference">References <a class="el" href="scoped__resource_8hpp_source.html#l00150">m_is_valid</a>, <a class="el" href="scoped__resource_8hpp_source.html#l00144">m_putback_callback</a>, and <a class="el" href="scoped__resource_8hpp_source.html#l00139">m_rsrc</a>.</p>
+<p class="reference">References <a class="el" href="scoped__resource_8hpp_source.html#l00134">m_rsrc</a>.</p>
 
 </div>
 </div>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
+<a id="a22f67b876d6097da153ee007db127c78" name="a22f67b876d6097da153ee007db127c78"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a22f67b876d6097da153ee007db127c78">&#9670;&#160;</a></span>error()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">pool_error <a class="el" href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html">siddiqsoft::arrp::scoped_resource</a>&lt; T &gt;::error </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="scoped__resource_8hpp_source.html#l00392">392</a> of file <a class="el" href="scoped__resource_8hpp_source.html">scoped_resource.hpp</a>.</p>
+
+</div>
+</div>
+<a id="a99c4a28c5d12cb01097d175871a0d97b" name="a99c4a28c5d12cb01097d175871a0d97b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a99c4a28c5d12cb01097d175871a0d97b">&#9670;&#160;</a></span>has_value()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual bool <a class="el" href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html">siddiqsoft::arrp::scoped_resource</a>&lt; T &gt;::has_value </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel virtual">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="scoped__resource_8hpp_source.html#l00393">393</a> of file <a class="el" href="scoped__resource_8hpp_source.html">scoped_resource.hpp</a>.</p>
+
+</div>
+</div>
 <a id="a36ff97075f9fab50945f0ab4d4f69165" name="a36ff97075f9fab50945f0ab4d4f69165"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a36ff97075f9fab50945f0ab4d4f69165">&#9670;&#160;</a></span>invalidate()</h2>
 
@@ -428,7 +419,7 @@ template&lt;typename T&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="scoped__resource_8hpp_source.html#l00349">349</a> of file <a class="el" href="scoped__resource_8hpp_source.html">scoped_resource.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scoped__resource_8hpp_source.html#l00377">377</a> of file <a class="el" href="scoped__resource_8hpp_source.html">scoped_resource.hpp</a>.</p>
 
 </div>
 </div>
@@ -462,19 +453,48 @@ template&lt;typename T&gt; </div>
 <dl class="section note"><dt>Note</dt><dd>Virtual: Can be overridden in derived classes </dd>
 <dd>
 Const: Does not modify the resource </dd></dl>
-<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_222_2s_2include_2siddiqsoft_2private_2scoped_resource_8hpp-example.html#a8">/opt/azure-agent/_work/22/s/include/siddiqsoft/private/scoped_resource.hpp</a>.</dd>
+<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2scoped_resource_8hpp-example.html#a7">/opt/azure-agent/_work/1/s/include/siddiqsoft/private/scoped_resource.hpp</a>.</dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="scoped__resource_8hpp_source.html#l00357">357</a> of file <a class="el" href="scoped__resource_8hpp_source.html">scoped_resource.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scoped__resource_8hpp_source.html#l00385">385</a> of file <a class="el" href="scoped__resource_8hpp_source.html">scoped_resource.hpp</a>.</p>
 
-<p class="reference">References <a class="el" href="scoped__resource_8hpp_source.html#l00150">m_is_valid</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="scoped__resource_8hpp_source.html#l00423">std::formatter&lt; siddiqsoft::arrp::scoped_resource&lt; T &gt; &gt;::format()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="scoped__resource_8hpp_source.html#l00452">std::formatter&lt; siddiqsoft::arrp::scoped_resource&lt; T &gt; &gt;::format()</a>.</p>
 
 </div>
 </div>
-<a id="af2dbe793f5bf4e1cce244f1ae0529f5b" name="af2dbe793f5bf4e1cce244f1ae0529f5b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af2dbe793f5bf4e1cce244f1ae0529f5b">&#9670;&#160;</a></span>operator T&amp;()</h2>
+<a id="a6886f3d4f1c9076d635d08d521488c3f" name="a6886f3d4f1c9076d635d08d521488c3f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6886f3d4f1c9076d635d08d521488c3f">&#9670;&#160;</a></span>operator InnerType()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T&gt; </div>
+<div class="memtemplate">
+template&lt;typename InnerType&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html">siddiqsoft::arrp::scoped_resource</a>&lt; T &gt;::operator InnerType </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="scoped__resource_8hpp_source.html#l00333">333</a> of file <a class="el" href="scoped__resource_8hpp_source.html">scoped_resource.hpp</a>.</p>
+
+</div>
+</div>
+<a id="a185596557530146722ac37cba93b6e21" name="a185596557530146722ac37cba93b6e21"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a185596557530146722ac37cba93b6e21">&#9670;&#160;</a></span>operator T()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -485,7 +505,7 @@ template&lt;typename T&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html">siddiqsoft::arrp::scoped_resource</a>&lt; T &gt;::operator T&amp; </td>
+          <td class="memname"><a class="el" href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html">siddiqsoft::arrp::scoped_resource</a>&lt; T &gt;::operator T </td>
           <td>(</td>
           <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
           <td></td>
@@ -502,9 +522,9 @@ template&lt;typename T&gt; </div>
 <dl class="section return"><dt>Returns</dt><dd>Reference to the wrapped resource </dd></dl>
 <dl class="section warning"><dt>Warning</dt><dd>Behavior is undefined if resource has been invalidated </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="scoped__resource_8hpp_source.html#l00293">293</a> of file <a class="el" href="scoped__resource_8hpp_source.html">scoped_resource.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scoped__resource_8hpp_source.html#l00315">315</a> of file <a class="el" href="scoped__resource_8hpp_source.html">scoped_resource.hpp</a>.</p>
 
-<p class="reference">References <a class="el" href="scoped__resource_8hpp_source.html#l00139">m_rsrc</a>.</p>
+<p class="reference">References <a class="el" href="scoped__resource_8hpp_source.html#l00134">m_rsrc</a>.</p>
 
 </div>
 </div>
@@ -536,12 +556,12 @@ template&lt;typename T&gt; </div>
 <p>Dereference operator to access the wrapped resource. </p>
 <dl class="section return"><dt>Returns</dt><dd>Reference to the wrapped resource </dd></dl>
 <dl class="section warning"><dt>Warning</dt><dd>Behavior is undefined if resource has been invalidated </dd></dl>
-<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_222_2s_2include_2siddiqsoft_2private_2scoped_resource_8hpp-example.html#a5">/opt/azure-agent/_work/22/s/include/siddiqsoft/private/scoped_resource.hpp</a>.</dd>
+<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2scoped_resource_8hpp-example.html#a5">/opt/azure-agent/_work/1/s/include/siddiqsoft/private/scoped_resource.hpp</a>.</dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="scoped__resource_8hpp_source.html#l00288">288</a> of file <a class="el" href="scoped__resource_8hpp_source.html">scoped_resource.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scoped__resource_8hpp_source.html#l00305">305</a> of file <a class="el" href="scoped__resource_8hpp_source.html">scoped_resource.hpp</a>.</p>
 
-<p class="reference">References <a class="el" href="scoped__resource_8hpp_source.html#l00139">m_rsrc</a>.</p>
+<p class="reference">References <a class="el" href="scoped__resource_8hpp_source.html#l00134">m_rsrc</a>.</p>
 
 </div>
 </div>
@@ -573,12 +593,12 @@ template&lt;typename T&gt; </div>
 <p>Pointer-like access to the wrapped resource. </p>
 <dl class="section return"><dt>Returns</dt><dd>Pointer to the wrapped resource, or nullptr if invalid </dd></dl>
 <dl class="section note"><dt>Note</dt><dd>Returns nullptr if resource is invalid </dd></dl>
-<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_222_2s_2include_2siddiqsoft_2private_2scoped_resource_8hpp-example.html#a6">/opt/azure-agent/_work/22/s/include/siddiqsoft/private/scoped_resource.hpp</a>.</dd>
+<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2scoped_resource_8hpp-example.html#a6">/opt/azure-agent/_work/1/s/include/siddiqsoft/private/scoped_resource.hpp</a>.</dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="scoped__resource_8hpp_source.html#l00298">298</a> of file <a class="el" href="scoped__resource_8hpp_source.html">scoped_resource.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scoped__resource_8hpp_source.html#l00310">310</a> of file <a class="el" href="scoped__resource_8hpp_source.html">scoped_resource.hpp</a>.</p>
 
-<p class="reference">References <a class="el" href="scoped__resource_8hpp_source.html#l00150">m_is_valid</a>, and <a class="el" href="scoped__resource_8hpp_source.html#l00139">m_rsrc</a>.</p>
+<p class="reference">References <a class="el" href="scoped__resource_8hpp_source.html#l00134">m_rsrc</a>.</p>
 
 </div>
 </div>
@@ -594,9 +614,9 @@ template&lt;typename T&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="#a00c6980fe93ed276f6700d6e1853d3eb">scoped_resource</a> &amp; <a class="el" href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html">siddiqsoft::arrp::scoped_resource</a>&lt; T &gt;::operator= </td>
+          <td class="memname"><a class="el" href="#ad83d1fe04353a821552023b4ae6a10df">scoped_resource</a> &amp; <a class="el" href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html">siddiqsoft::arrp::scoped_resource</a>&lt; T &gt;::operator= </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="#a00c6980fe93ed276f6700d6e1853d3eb">scoped_resource</a>&lt; T &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td class="paramtype">const <a class="el" href="#ad83d1fe04353a821552023b4ae6a10df">scoped_resource</a>&lt; T &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -609,8 +629,10 @@ template&lt;typename T&gt; </div>
 
 <p>Copy assignment operator is deleted. </p>
 <p>Copy assignment is not allowed to maintain move-only semantics and prevent resource ownership ambiguity. </p>
+<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2scoped_resource_8hpp-example.html#a3">/opt/azure-agent/_work/1/s/include/siddiqsoft/private/scoped_resource.hpp</a>.</dd>
+</dl>
 
-<p class="reference">References <a class="el" href="#a00c6980fe93ed276f6700d6e1853d3eb">scoped_resource()</a>.</p>
+<p class="reference">References <a class="el" href="#ad83d1fe04353a821552023b4ae6a10df">scoped_resource()</a>.</p>
 
 </div>
 </div>
@@ -626,9 +648,9 @@ template&lt;typename T&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="#a00c6980fe93ed276f6700d6e1853d3eb">scoped_resource</a> &amp; <a class="el" href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html">siddiqsoft::arrp::scoped_resource</a>&lt; T &gt;::operator= </td>
+          <td class="memname"><a class="el" href="#ad83d1fe04353a821552023b4ae6a10df">scoped_resource</a> &amp; <a class="el" href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html">siddiqsoft::arrp::scoped_resource</a>&lt; T &gt;::operator= </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="#a00c6980fe93ed276f6700d6e1853d3eb">scoped_resource</a>&lt; T &gt; &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em>src</em></span></td><td>)</td>
+          <td class="paramtype"><a class="el" href="#ad83d1fe04353a821552023b4ae6a10df">scoped_resource</a>&lt; T &gt; &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em>src</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -657,12 +679,10 @@ The source's callback is cleared to prevent double-return </dd>
 The source is marked as invalid after the move </dd>
 <dd>
 NOT noexcept: T's move-assignment may throw; declaring noexcept here would call std::terminate if T::operator=(T&amp;&amp;) throws after the putback callback has already fired (state would be inconsistent). </dd></dl>
-<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_222_2s_2include_2siddiqsoft_2private_2scoped_resource_8hpp-example.html#a4">/opt/azure-agent/_work/22/s/include/siddiqsoft/private/scoped_resource.hpp</a>.</dd>
-</dl>
 
-<p class="definition">Definition at line <a class="el" href="scoped__resource_8hpp_source.html#l00229">229</a> of file <a class="el" href="scoped__resource_8hpp_source.html">scoped_resource.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scoped__resource_8hpp_source.html#l00240">240</a> of file <a class="el" href="scoped__resource_8hpp_source.html">scoped_resource.hpp</a>.</p>
 
-<p class="reference">References <a class="el" href="scoped__resource_8hpp_source.html#l00150">m_is_valid</a>, <a class="el" href="scoped__resource_8hpp_source.html#l00144">m_putback_callback</a>, <a class="el" href="scoped__resource_8hpp_source.html#l00139">m_rsrc</a>, and <a class="el" href="#a00c6980fe93ed276f6700d6e1853d3eb">scoped_resource()</a>.</p>
+<p class="reference">References <a class="el" href="scoped__resource_8hpp_source.html#l00134">m_rsrc</a>, and <a class="el" href="#ad83d1fe04353a821552023b4ae6a10df">scoped_resource()</a>.</p>
 
 </div>
 </div>
@@ -678,7 +698,7 @@ template&lt;typename T&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="#a00c6980fe93ed276f6700d6e1853d3eb">scoped_resource</a> &amp; <a class="el" href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html">siddiqsoft::arrp::scoped_resource</a>&lt; T &gt;::operator= </td>
+          <td class="memname"><a class="el" href="#ad83d1fe04353a821552023b4ae6a10df">scoped_resource</a> &amp; <a class="el" href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html">siddiqsoft::arrp::scoped_resource</a>&lt; T &gt;::operator= </td>
           <td>(</td>
           <td class="paramtype">T &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em>src</em></span></td><td>)</td>
           <td></td>
@@ -704,9 +724,38 @@ template&lt;typename T&gt; </div>
 <dd>
 The resource is marked as valid </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="scoped__resource_8hpp_source.html#l00271">271</a> of file <a class="el" href="scoped__resource_8hpp_source.html">scoped_resource.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scoped__resource_8hpp_source.html#l00348">348</a> of file <a class="el" href="scoped__resource_8hpp_source.html">scoped_resource.hpp</a>.</p>
 
-<p class="reference">References <a class="el" href="scoped__resource_8hpp_source.html#l00150">m_is_valid</a>, <a class="el" href="scoped__resource_8hpp_source.html#l00139">m_rsrc</a>, and <a class="el" href="#a00c6980fe93ed276f6700d6e1853d3eb">scoped_resource()</a>.</p>
+<p class="reference">References <a class="el" href="scoped__resource_8hpp_source.html#l00134">m_rsrc</a>, and <a class="el" href="#ad83d1fe04353a821552023b4ae6a10df">scoped_resource()</a>.</p>
+
+</div>
+</div>
+<a id="ae9198109f48c2960ec913fdf1a646a91" name="ae9198109f48c2960ec913fdf1a646a91"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae9198109f48c2960ec913fdf1a646a91">&#9670;&#160;</a></span>set_error()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto &amp; <a class="el" href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html">siddiqsoft::arrp::scoped_resource</a>&lt; T &gt;::set_error </td>
+          <td>(</td>
+          <td class="paramtype">pool_error</td>          <td class="paramname"><span class="paramname"><em>err</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="scoped__resource_8hpp_source.html#l00387">387</a> of file <a class="el" href="scoped__resource_8hpp_source.html">scoped_resource.hpp</a>.</p>
 
 </div>
 </div>
@@ -735,80 +784,11 @@ template&lt;typename U, typename SRT&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="scoped__resource_8hpp_source.html#l00134">134</a> of file <a class="el" href="scoped__resource_8hpp_source.html">scoped_resource.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scoped__resource_8hpp_source.html#l00140">140</a> of file <a class="el" href="scoped__resource_8hpp_source.html">scoped_resource.hpp</a>.</p>
 
 </div>
 </div>
 <a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
-<a id="a231bcb2ca5e2816bc814684889081383" name="a231bcb2ca5e2816bc814684889081383"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a231bcb2ca5e2816bc814684889081383">&#9670;&#160;</a></span>m_is_valid</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename T&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool <a class="el" href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html">siddiqsoft::arrp::scoped_resource</a>&lt; T &gt;::m_is_valid {false}</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel protected">protected</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Tracks whether the resource is valid and should be returned to pool. </p>
-<p>Prevents returning uninitialized or moved-out resources</p><ul>
-<li>true: resource will be returned to pool on destruction</li>
-<li>false: resource will NOT be returned to pool on destruction </li>
-</ul>
-<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_222_2s_2include_2siddiqsoft_2private_2scoped_resource_8hpp-example.html#a2">/opt/azure-agent/_work/22/s/include/siddiqsoft/private/scoped_resource.hpp</a>.</dd>
-</dl>
-
-<p class="definition">Definition at line <a class="el" href="scoped__resource_8hpp_source.html#l00150">150</a> of file <a class="el" href="scoped__resource_8hpp_source.html">scoped_resource.hpp</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="scoped__resource_8hpp_source.html#l00357">is_valid()</a>, <a class="el" href="scoped__resource_8hpp_source.html#l00298">operator-&gt;()</a>, <a class="el" href="scoped__resource_8hpp_source.html#l00229">operator=()</a>, <a class="el" href="scoped__resource_8hpp_source.html#l00271">operator=()</a>, <a class="el" href="scoped__resource_8hpp_source.html#l00205">scoped_resource()</a>, <a class="el" href="scoped__resource_8hpp_source.html#l00165">scoped_resource()</a>, and <a class="el" href="scoped__resource_8hpp_source.html#l00311">~scoped_resource()</a>.</p>
-
-</div>
-</div>
-<a id="a0761ce385eacea4206d8371f3b04e269" name="a0761ce385eacea4206d8371f3b04e269"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0761ce385eacea4206d8371f3b04e269">&#9670;&#160;</a></span>m_putback_callback</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename T&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">PutbackCallbackFunc <a class="el" href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html">siddiqsoft::arrp::scoped_resource</a>&lt; T &gt;::m_putback_callback {}</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel protected">protected</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Callback function to return the resource to the pool. </p>
-<p>Called by destructor when resource is valid. Typically returns the resource to the <a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">resource_pool</a> for reuse. </p>
-<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_222_2s_2include_2siddiqsoft_2private_2scoped_resource_8hpp-example.html#a1">/opt/azure-agent/_work/22/s/include/siddiqsoft/private/scoped_resource.hpp</a>.</dd>
-</dl>
-
-<p class="definition">Definition at line <a class="el" href="scoped__resource_8hpp_source.html#l00144">144</a> of file <a class="el" href="scoped__resource_8hpp_source.html">scoped_resource.hpp</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="scoped__resource_8hpp_source.html#l00229">operator=()</a>, <a class="el" href="scoped__resource_8hpp_source.html#l00205">scoped_resource()</a>, <a class="el" href="scoped__resource_8hpp_source.html#l00165">scoped_resource()</a>, and <a class="el" href="scoped__resource_8hpp_source.html#l00311">~scoped_resource()</a>.</p>
-
-</div>
-</div>
 <a id="a7a206dc66fef807bc0720c7b942be24c" name="a7a206dc66fef807bc0720c7b942be24c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a7a206dc66fef807bc0720c7b942be24c">&#9670;&#160;</a></span>m_rsrc</h2>
 
@@ -821,7 +801,7 @@ template&lt;typename T&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">T <a class="el" href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html">siddiqsoft::arrp::scoped_resource</a>&lt; T &gt;::m_rsrc {}</td>
+          <td class="memname">T <a class="el" href="classsiddiqsoft_1_1arrp_1_1scoped__resource.html">siddiqsoft::arrp::scoped_resource</a>&lt; T &gt;::m_rsrc</td>
         </tr>
       </table>
   </td>
@@ -833,12 +813,12 @@ template&lt;typename T&gt; </div>
 
 <p>The actual resource being wrapped. </p>
 <p>Stores the resource object that will be managed by this wrapper </p>
-<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_222_2s_2include_2siddiqsoft_2private_2scoped_resource_8hpp-example.html#a0">/opt/azure-agent/_work/22/s/include/siddiqsoft/private/scoped_resource.hpp</a>.</dd>
+<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2scoped_resource_8hpp-example.html#a1">/opt/azure-agent/_work/1/s/include/siddiqsoft/private/scoped_resource.hpp</a>.</dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="scoped__resource_8hpp_source.html#l00139">139</a> of file <a class="el" href="scoped__resource_8hpp_source.html">scoped_resource.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="scoped__resource_8hpp_source.html#l00134">134</a> of file <a class="el" href="scoped__resource_8hpp_source.html">scoped_resource.hpp</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="scoped__resource_8hpp_source.html#l00293">operator T&amp;()</a>, <a class="el" href="scoped__resource_8hpp_source.html#l00288">operator*()</a>, <a class="el" href="scoped__resource_8hpp_source.html#l00298">operator-&gt;()</a>, <a class="el" href="scoped__resource_8hpp_source.html#l00229">operator=()</a>, <a class="el" href="scoped__resource_8hpp_source.html#l00271">operator=()</a>, <a class="el" href="scoped__resource_8hpp_source.html#l00205">scoped_resource()</a>, <a class="el" href="scoped__resource_8hpp_source.html#l00165">scoped_resource()</a>, and <a class="el" href="scoped__resource_8hpp_source.html#l00311">~scoped_resource()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="scoped__resource_8hpp_source.html#l00315">operator T()</a>, <a class="el" href="scoped__resource_8hpp_source.html#l00305">operator*()</a>, <a class="el" href="scoped__resource_8hpp_source.html#l00310">operator-&gt;()</a>, <a class="el" href="scoped__resource_8hpp_source.html#l00240">operator=()</a>, <a class="el" href="scoped__resource_8hpp_source.html#l00348">operator=()</a>, <a class="el" href="#ad83d1fe04353a821552023b4ae6a10df">scoped_resource()</a>, and <a class="el" href="scoped__resource_8hpp_source.html#l00284">~scoped_resource()</a>.</p>
 
 </div>
 </div>
