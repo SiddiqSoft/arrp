@@ -1,158 +1,109 @@
 /**
-@mainpage arrp - Auto Returning Resource Pool
+@mainpage arrp
 
 @section overview Overview
 
-**arrp** is a modern C++ library providing a thread-safe, auto-returning resource pool with RAII semantics.
-Resources are automatically returned to the pool when scoped wrappers are destroyed, eliminating manual
-resource management and preventing leaks.
+**arrp** is a header-only C++23 library for reusing scarce, moveable resources.
+`resource_pool<T>` owns available resources, and a move-only `resource_guard<T>`
+returns a borrowed resource when the guard is destroyed.
 
-@section features Key Features
+All public types live in the `siddiqsoft::arrp` namespace. Include the complete
+public API with:
 
-- **Thread-Safe**: All operations protected by mutex (std::mutex or std::recursive_mutex)
-- **RAII Pattern**: Resources automatically returned on destruction
-- **Move-Only Semantics**: Prevents resource ownership ambiguity
-- **Flexible Policies**: Support for fixed-size pools and factory callbacks
-- **Callback-Based**: Factory and cleanup callbacks for custom resource management
-- **Statistics**: Built-in counters for monitoring pool usage
-- **JSON Serialization**: Export pool statistics to JSON (with nlohmann/json)
+@code{.cpp}
+#include <siddiqsoft/arrp.hpp>
+@endcode
 
-@section quick_start Quick Start
+@section quick_start Quick start
 
-@subsection basic_usage Basic Usage
+Seed a pool before borrowing from it:
 
-```cpp
-#include "siddiqsoft/resource_pool.hpp"
+@code{.cpp}
+#include <siddiqsoft/arrp.hpp>
+#include <string>
 
-siddiqsoft::arrp::resource_pool<MyResource> pool(10);
+int main()
+{
+    siddiqsoft::arrp::resource_pool<std::string> pool {4};
+    pool.seed("connection-1");
 
-auto resource = pool.try_borrow();
-if (resource) {
-    resource->doSomething();
+    if (auto resource = pool.try_borrow(); resource) {
+        resource->append("-in-use");
+    } // The guard returns the string here.
 }
-// Resource automatically returned when resource_guard is destroyed
-```
+@endcode
 
-@subsection custom_factory Custom Factory
+Resources are stored and borrowed in FIFO order. A pool does not create resources
+by itself; either seed resources explicitly or register a factory and use
+`try_borrow_create()`.
 
-```cpp
-siddiqsoft::arrp::resource_pool<MyResource> pool(10);
-pool.set_factory_callback([] {
-    return MyResource();
-});
+@section concepts Core types
 
-auto resource = pool.try_borrow_create();
-```
+- `resource_pool<T, SRT>` owns available resources and synchronizes pool access.
+- `resource_guard<T>` is the move-only RAII handle returned by borrowing.
+- `pool_error` describes an unsuccessful borrow or seed during shutdown.
+- `release_reason` distinguishes valid and abandoned releases.
+- `resource_pool_limits` provides the capacity defaults and bounds.
 
-@section architecture Architecture
+`T` must satisfy `NonNumericMoveConstructible`: it must be move-constructible,
+move-assignable, and not an arithmetic type. Smart pointers, containers, handles,
+and user-defined resource classes are suitable resource types.
 
-The library consists of three main components:
+@section behavior Pool behavior
 
-1. **resource_pool<T>**: Thread-safe pool manager
-   - Manages resource lifecycle
-   - Handles borrowing and returning
-   - Tracks statistics
+Borrowing, seeding, clearing, sizing, and JSON statistics synchronize access to
+the pool. Configure a factory before concurrent borrowing; a `resource_guard` is
+not thread-safe and must have one owning thread at a time.
 
-2. **resource_guard<T>**: RAII wrapper
-   - Wraps individual resources
-   - Automatically returns on destruction
-   - Supports move semantics
+The constructor capacity is clamped to the range 1 through 255 and is exposed in
+statistics. It is not currently enforced as a hard limit on `seed()` or factory
+creation; callers are responsible for keeping the number of resources appropriate
+for their application.
 
-3. **Common Types**: Enums and limits
-   - pool_error: Error codes
-   - resource_pool_limits: Capacity constraints
+Borrowing returns an invalid guard rather than throwing for normal pool conditions:
 
-@section thread_safety Thread Safety
-
-- **resource_pool**: Fully thread-safe (mutex-protected)
-- **resource_guard**: NOT thread-safe (single-threaded access)
-- Each resource_guard should be accessed by only one thread
-
-@section error_handling Error Handling
-
-Borrowed resources are represented by `resource_guard<T>` wrappers. Check validity before use and inspect `error()` when invalid:
-
-```cpp
+@code{.cpp}
 auto resource = pool.try_borrow();
-if (resource && resource.is_valid()) {
-    // Use resource
-} else {
-    switch (resource.error()) {
-        case siddiqsoft::arrp::pool_error::NoMoreResources:
-            // Pool exhausted
-            break;
-        case siddiqsoft::arrp::pool_error::ShutdownInitiated:
-            // Pool is shutting down
-            break;
-        default:
-            break;
+if (!resource) {
+    if (resource.error() == siddiqsoft::arrp::pool_error::NoMoreResources) {
+        // No available resource.
     }
 }
-```
+@endcode
 
-@section statistics Statistics
+@section lifecycle Lifetime rules
 
-Access pool statistics via JSON:
+Destroy every `resource_guard` before its originating `resource_pool`. A guard
+keeps the callback used to return its resource, so allowing it to outlive the pool
+would invoke a callback on a destroyed pool.
 
-```cpp
+Call `invalidate()` when a borrowed resource is corrupted or has been moved out.
+An invalid guard is discarded instead of returned:
+
+@code{.cpp}
+auto resource = pool.try_borrow();
+if (resource) {
+    auto extracted = static_cast<std::string>(std::move(resource));
+    // extracted is no longer owned by the pool.
+}
+@endcode
+
+`clear()` removes only resources that are currently available. Resources already
+borrowed can still return when their guards are destroyed.
+
+@section json JSON statistics
+
+JSON support is available only when `nlohmann/json.hpp` is included before
+`siddiqsoft/arrp.hpp`:
+
+@code{.cpp}
+#include <nlohmann/json.hpp>
+#include <siddiqsoft/arrp.hpp>
+
 auto stats = pool.to_json();
-if (stats) {
-    std::cout << stats.value().get().dump(2) << std::endl;
-}
-```
+std::cout << stats.dump(2) << '\n';
+@endcode
 
-Statistics include:
-- capacity: Maximum resources
-- size: Available resources
-- deficit: Resources needed to reach capacity
-- peaksize: Peak pool size reached
-- borrows: Total resources borrowed
-- returns: Total resources returned
-- loans: Currently borrowed resources
-- abandons: Invalidated resources
-
-@section concepts Concepts
-
-@subsection non_numeric_move_constructible NonNumericMoveConstructible
-
-A type T that satisfies:
-- std::move_constructible<T>
-- std::move_assignable<T>
-- !std::is_arithmetic<T>
-
-This prevents wrapping primitive types which would be inefficient.
-
-@section examples Examples
-
-@subsection example_file_pool File Handle Pool
-
-```cpp
-class FileHandle {
-public:
-    FileHandle(const std::string& path) : m_file(std::fopen(path.c_str(), "r")) {}
-    ~FileHandle() { if (m_file) std::fclose(m_file); }
-    FILE* get() { return m_file; }
-private:
-    FILE* m_file;
-};
-
-siddiqsoft::arrp::resource_pool<FileHandle> file_pool(5);
-file_pool.set_factory_callback([]() {
-    return FileHandle("data.txt");
-});
-
-auto file = file_pool.try_borrow_create();
-if (file) {
-    // Use file
-}
-// File automatically returned to pool
-```
-
-@section namespace Namespace
-
-All types are in `siddiqsoft::arrp` namespace.
-
-@see resource_pool
-@see resource_guard
-@see pool_error
+See @ref api_reference for every public operation and @ref usage_guide for
+complete usage patterns.
 */

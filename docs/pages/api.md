@@ -1,195 +1,135 @@
 /**
-@page api_reference API Reference
+@page api_reference API reference
 
-@section resource_pool_class resource_pool<T, SRT>
+@section api_include Include and requirements
 
-Thread-safe auto-returning resource pool.
+@code{.cpp}
+#include <siddiqsoft/arrp.hpp>
+@endcode
 
-@subsection rp_template Template Parameters
-- `T`: Resource type (must satisfy NonNumericMoveConstructible)
-- `SRT`: Scoped resource type (defaults to resource_guard<T>)
+The library requires C++23. `resource_pool<T>` and `resource_guard<T>` require a
+non-arithmetic `T` that is move-constructible and move-assignable
+(`NonNumericMoveConstructible<T>`).
 
-@subsection rp_constructors Constructors
+To expose JSON members, include nlohmann JSON first:
 
-| Constructor | Description |
+@code{.cpp}
+#include <nlohmann/json.hpp>
+#include <siddiqsoft/arrp.hpp>
+@endcode
+
+@section resource_pool_api resource_pool<T, SRT>
+
+`resource_pool<T, SRT>` is a non-copyable, non-movable, thread-safe pool. `SRT`
+defaults to `resource_guard<T>` and must derive from it.
+
+@subsection pool_constructors Constructors
+
+| Declaration | Behavior |
 |---|---|
-| `resource_pool(uint8_t capacity = resource_pool_limits::DefaultCapacity, std::function<void(T&)>&& on_shutdown_callback = {})` | Create a pool with fixed capacity and optional cleanup callback |
-| `resource_pool(std::function<void(T&)>&& on_shutdown_callback)` | Create a pool with default capacity and cleanup callback |
+| `resource_pool(uint8_t init_capacity = resource_pool_limits::DefaultCapacity, std::function<void(T&)>&& on_shutdown_callback = {})` | Creates a pool. The reported capacity is clamped to 1-255. |
+| `resource_pool(std::function<void(T&)>&& on_shutdown_callback)` | Creates a pool with the default capacity of 8. |
 
-@subsection rp_methods Methods
+The cleanup callback is called for each resource available when `clear()` or the
+destructor removes it. It executes while the pool lock is held and must not call
+pool methods. Exceptions are caught and written to standard error.
 
-| Method | Returns | Description |
-|---|---|---|
-| `try_borrow()` | `SRT` | Borrow a resource from the pool. Returns an invalid scoped resource when unavailable. |
-| `try_borrow_create(std::chrono::nanoseconds timeout = {})` | `SRT` | Borrow a resource or create one on demand using the registered factory callback. |
-| `seed(Args&&...)` | `pool_error` | Add a resource to the pool by constructing it in place. |
-| `seed(T&&)` | `pool_error` | Add a moved resource to the pool. |
-| `size()` | `size_t` | Get the number of available resources in the pool. |
-| `clear()` | `pool_error` | Remove all resources from the pool. |
-| `set_factory_callback(F&&)` | `void` | Register a callback to create resources when the pool is empty. |
-| `to_json()` | `nlohmann::json` | Export pool statistics to JSON when nlohmann/json support is enabled. |
+@subsection pool_methods Methods
 
-@subsection rp_callbacks Callbacks
+| Declaration | Result |
+|---|---|
+| `SRT try_borrow(std::chrono::nanoseconds timeout = {})` | Borrows the next available resource. A zero timeout does not wait; a positive timeout waits for an available resource. |
+| `SRT try_borrow_create(std::chrono::nanoseconds timeout = {})` | Borrows an available resource, or invokes the factory callback when no resource becomes available. |
+| `template<class F> void set_factory_callback(F&& f)` | Registers a no-argument factory returning `T` or `SRT`. |
+| `template<class... Args> pool_error seed(Args&&... args)` | Constructs `T` in place and adds it to the available pool. |
+| `pool_error seed(T&& item)` | Moves an existing resource into the available pool. |
+| `pool_error clear()` | Removes all resources currently available in the pool. |
+| `auto size() const` | Returns the number of currently available resources (`size_t`). |
+| `nlohmann::json to_json() const` | Returns pool statistics when JSON support is enabled. |
 
-**Factory Callback**
-```cpp
-std::function<SRT()>
-```
-Called when the pool is empty and a resource must be created on demand. The callback may return either `T` or `SRT`.
+`seed()` returns `pool_error::Ok` unless destruction has begun, in which case it
+returns `pool_error::ShutdownInitiated`. The configured capacity is statistic and
+guidance only: neither `seed()` nor factory creation currently reject additions
+above it.
 
-**Cleanup Callback**
-```cpp
-std::function<void(T&)>
-```
-Called for each pooled resource during cleanup. Must NOT call pool methods.
+The factory is used only by `try_borrow_create()`, never by `try_borrow()`. It
+must not call pool methods. A factory that returns `T` is the normal form:
 
-@subsection rp_statistics Statistics
-
-Access via `to_json()`:
-- `capacity`: Maximum resources
-- `size`: Available resources
-- `deficit`: Resources needed
-- `peaksize`: Peak size reached
-- `borrows`: Total borrowed
-- `returns`: Total returned
-- `loans`: Currently borrowed
-- `abandons`: Invalidated resources
-- `seeds`: Added via seed()
-- `autoadds`: Created on demand
-
----
-
-@section resource_guard_class resource_guard<T>
-
-RAII wrapper for managing resource lifecycle.
-
-@subsection sr_template Template Parameters
-- `T`: Resource type (must satisfy NonNumericMoveConstructible)
-
-@subsection sr_operators Operators
-
-| Operator | Returns | Description |
-|---|---|---|
-| `operator*()` | `T&` | Dereference to resource |
-| `operator->()` | `T*` | Pointer access (nullptr if invalid) |
-| `operator=(T&&)` | `resource_guard&` | Assign new resource |
-| `operator=(resource_guard&&)` | `resource_guard&` | Move assignment |
-
-@subsection sr_methods Methods
-
-| Method | Returns | Description |
-|---|---|---|
-| `invalidate()` | `void` | Mark resource as invalid (abandoned) |
-| `is_valid()` | `bool` | Check if resource is valid |
-| `has_value()` | `bool` | Check if the wrapper contains a valid resource |
-| `error()` | `pool_error` | Retrieve the failure code when the wrapper is invalid |
-
-@subsection sr_semantics Move Semantics
-
-- **Move Constructor**: Transfers ownership, invalidates source
-- **Move Assignment**: Returns current resource before taking new one
-- **Copy Operations**: Deleted (move-only)
-
----
-
-@section enums Enumerations
-
-@subsection pool_error pool_error
-
-Error codes:
-- `Ok`: Operation succeeded
-- `NoMoreResources`: Pool exhausted and no factory callback available
-- `ShutdownInitiated`: Pool is shutting down
-- `Timeout`: Resource was not available within the specified timeout
-- `Unknown`: Unknown error
-
-@subsection resource_pool_limits resource_pool_limits
-
-Capacity constraints:
-- `MinimumCapacity`: 1
-- `DefaultCapacity`: 8
-- `MaxCapacity`: 255
-
----
-
-@section concepts_section Concepts
-
-@subsection non_numeric_move_constructible NonNumericMoveConstructible<T>
-
-Type T must satisfy:
-- `std::move_constructible<T>`
-- `std::move_assignable<T>`
-- `!std::is_arithmetic<T>`
-
-Prevents wrapping primitive types.
-
----
-
-@section usage_patterns Usage Patterns
-
-@subsection pattern_fixed_pool Fixed-Size Pool
-
-```cpp
-siddiqsoft::arrp::resource_pool<Resource> pool(10);
-pool.seed(Resource());
-```
-
-@subsection pattern_factory_callback Factory Callback
-
-```cpp
-siddiqsoft::arrp::resource_pool<Resource> pool(10);
+@code{.cpp}
 pool.set_factory_callback([] {
-    return Resource();
+    return connection::open();
 });
 
-auto res = pool.try_borrow_create();
-```
+auto connection = pool.try_borrow_create();
+@endcode
 
-@subsection pattern_invalidate Invalidate Resource
+@subsection pool_borrow_errors Borrow errors
 
-```cpp
-auto res = pool.try_borrow();
-if (res) {
-    auto extracted = std::move(*res);
-    res.invalidate();
+Borrow methods return an invalid `SRT` with one of these errors:
+
+| Error | Meaning |
+|---|---|
+| `NoMoreResources` | No resource was available and no applicable factory was used. |
+| `Timeout` | `try_borrow()` waited for the specified positive timeout without a resource. |
+| `ShutdownInitiated` | Pool destruction has begun. |
+| `Unknown` | A factory or borrow implementation exception was caught. |
+
+@subsection pool_statistics Statistics
+
+`to_json()` returns an object with these keys:
+
+| Key | Meaning |
+|---|---|
+| `_typver` | `"siddiqsoft.arrp.resource_pool/0.0.0"` |
+| `capacity` | Constructor capacity after clamping. |
+| `size` | Available resources. |
+| `deficit` | `capacity - (size + checked-out resources)`. |
+| `peaksize` | Highest available-pool size observed. |
+| `seeds` | Calls that successfully added a resource with `seed()`. |
+| `autoadds` | Resources created by the factory. |
+| `borrows` | Successful borrows. |
+| `returns` | Valid resources returned by guards. |
+| `abandons` | Invalidated resources discarded by guards. |
+| `loans` | `borrows - returns - abandons`. |
+| `items` | Available items for `std::string`, arithmetic types, and `nlohmann::json` resources only. |
+
+@section resource_guard_api resource_guard<T>
+
+`resource_guard<T>` is the non-copyable, movable RAII handle returned by a pool.
+Its destructor calls the pool's return callback. Do not let a guard outlive its
+pool, and do not access a single guard concurrently.
+
+| Declaration | Behavior |
+|---|---|
+| `explicit operator bool() const` / `has_value()` | True when the guard holds a valid resource. |
+| `is_valid()` | Reports whether destruction will return the resource. |
+| `pool_error error() const` | Returns the error associated with an invalid borrow result. |
+| `T& operator*()` | Accesses the stored resource. Do not use after invalidation. |
+| `T* operator->()` | Returns the resource address, or `nullptr` after invalidation. |
+| `explicit operator T() &&` | Moves the resource out and invalidates the guard. |
+| `explicit operator T&() &` | Provides a reference to the resource. |
+| `resource_guard& operator=(T&&)` | Returns the current resource, then stores the replacement. |
+| `resource_guard& operator=(resource_guard&&)` | Returns the current resource, then takes ownership from another guard. |
+| `virtual void invalidate()` | Marks the resource abandoned; it will be discarded on destruction. |
+
+When JSON support is enabled, `resource_guard<T>::to_json()` returns:
+
+@code{.json}
+{
+  "_typver": "siddiqsoft.arrp.resource_guard/1.0.0",
+  "valid": true,
+  "value": "..."
 }
-```
+@endcode
 
----
+The value is serialized for `std::string` and types with `std::to_string`; other
+resource types use `"-noserializer-"`.
 
-@section thread_safety_details Thread Safety Details
+@section common_types Common types
 
-**Thread-Safe Operations**
-- `try_borrow()`
-- `try_borrow_create()`
-- `seed()`
-- `size()`
-- `clear()`
-- `set_factory_callback()`
-- `to_json()`
-
-**NOT Thread-Safe**
-- Individual `resource_guard` instances
-- Resource access via `operator*()` or `operator->()`
-
-**Recommendation**: Each thread should have its own `resource_guard` instance.
-
----
-
-@section performance Performance Considerations
-
-- **Mutex Type**: Use `std::mutex` for performance (default)
-- **Capacity**: Keep capacity reasonable (1-255)
-- **Callbacks**: Keep factory/cleanup callbacks fast
-- **Statistics**: `to_json()` acquires lock; use sparingly in hot paths
-
----
-
-@section limitations Limitations
-
-- Capacity limited to 255 resources
-- Callbacks must not call pool methods (deadlock risk)
-- `resource_guard` not thread-safe
-- No support for arithmetic types (int, float, etc.)
-
+| Type | Values or purpose |
+|---|---|
+| `resource_pool_limits` | `MinimumCapacity` (1), `DefaultCapacity` (8), `MaxCapacity` (255). |
+| `pool_error` | `Ok`, `NoMoreResources`, `ShutdownInitiated`, `Timeout`, `Unknown`. |
+| `release_reason` | `Valid`, `Abandoned`, `Unknown`. |
 */
