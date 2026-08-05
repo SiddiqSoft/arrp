@@ -104,8 +104,8 @@ namespace siddiqsoft::arrp
     ///
     /// @example
     /// @code
-    /// // Typically obtained from resource_pool::borrow_from_pool()
-    /// auto resource = pool.borrow_from_pool();
+    /// // Typically obtained from resource_pool::try_borrow()
+    /// auto resource = pool.try_borrow();
     /// if (resource) {
     ///     // Use resource
     ///     resource->doSomething();
@@ -348,7 +348,7 @@ namespace siddiqsoft::arrp
         /// resource_pool<F> pool{};
         /// ...
         /// Allows us to do things such as
-        /// auto myfile = pool.borrow_from_pool();
+        /// auto myfile = pool.try_borrow();
         /// ...
         /// fputs("Hello World", myfile);
         ///
@@ -401,7 +401,7 @@ namespace siddiqsoft::arrp
         ///
         /// @example
         /// @code
-        /// auto resource = pool.borrow_from_pool();
+        /// auto resource = pool.try_borrow();
         /// if (resource) {
         ///     auto extracted = std::move(*resource);
         ///     resource.invalidate();  // Mark as invalid so pool discards it

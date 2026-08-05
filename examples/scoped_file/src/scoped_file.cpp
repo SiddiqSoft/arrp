@@ -92,8 +92,8 @@ int main(int argc, char** argv)
     Pool pool {};
 
 
-    pool.seed_to_pool("/tmp/example_scoped_file.txt", "w+");
-    auto myfile = pool.borrow_from_pool();
+    pool.seed("/tmp/example_scoped_file.txt", "w+");
+    auto myfile = pool.try_borrow();
     if (myfile.has_value()) {
         std::println(std::cerr, "{} - Successfully borrowed resource from pool.", __func__);
         auto ct = std::chrono::system_clock::now();

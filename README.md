@@ -12,16 +12,15 @@ A thread-safe, header-only C++23 resource pool library with automatic lifecycle 
 ## Features
 
 - **Thread-Safe**: All operations protected by mutexes for concurrent access
-- **RAII Pattern**: Automatic resource return via scoped_resource wrapper
+- **RAII Pattern**: Automatic resource return via `scoped_resource`
 - **Capacity Management**: Enforces maximum capacity limits to prevent unbounded growth
 - **FIFO Ordering**: Predictable resource ordering (first-in, first-out)
-- **Customizable Factory**: Support for custom resource creation callbacks
-- **Error Handling**: Uses `std::expected` (C++23) for safe error handling without exceptions
+- **Factory Callback**: Support for on-demand resource creation
+- **Cleanup Callback**: Optional cleanup behavior for pool destruction
 - **Modern C++23**: Uses only standard library features (no external dependencies)
-- **Optional**: JSON serialization for pool state monitoring via nlohmann json
+- **Optional**: JSON serialization for pool state monitoring via nlohmann/json
 - **Type-Safe**: Leverages C++20 concepts for compile-time type checking
 - **Move Semantics**: Efficient resource transfer with perfect forwarding
-- **JSON Diagnostics**: Optional JSON serialization for pool state monitoring
 
 ## Quick Start
 
@@ -29,20 +28,17 @@ A thread-safe, header-only C++23 resource pool library with automatic lifecycle 
 #include "siddiqsoft/resource_pool.hpp"
 #include <memory>
 
-// Create a resource pool with capacity and auto-grow policy
-siddiqsoft::arrp::resource_pool<std::shared_ptr<DatabaseConnection>> pool(
-    10,  // capacity
-    siddiqsoft::arrp::auto_add_policy::AutoGrow
-);
+// Create a resource pool with capacity
+siddiqsoft::arrp::resource_pool<std::shared_ptr<DatabaseConnection>> pool(10);
 
 // Populate the pool
 for (int i = 0; i < 10; ++i) {
-    pool.seed_to_pool(std::make_shared<DatabaseConnection>());
+    pool.seed(std::make_shared<DatabaseConnection>());
 }
 
 // Borrow and use a resource
 {
-    auto conn = pool.borrow_from_pool();
+    auto conn = pool.try_borrow();
     if (conn) {
         conn->query("SELECT * FROM users");
         // Automatically returned to pool when going out of scope
@@ -62,11 +58,11 @@ Complete documentation is available at: **[https://siddiqsoft.github.io/arrp/](h
 
 ## Requirements
 
-- **C++23 Support**: Requires `std::expected` (C++23), plus `std::deque`, `std::mutex`, `std::concepts`, `std::print` (C++23)
-- **Compiler Support** (with C++23 standard library):
-  - **GCC 12+** (with libstdc++ 12+ for `std::expected`)
-  - **MSVC 19.33+** (Visual Studio 2022 17.3+ for `std::expected`)
-  - **Clang 16+** (with libc++ 16+ for `std::expected`)
+- **C++23 Support**: Requires `std::deque`, `std::mutex`, `std::concepts`, `std::print`, and other C++23 features
+- **Compiler Support**:
+  - **GCC 12+**
+  - **MSVC 19.33+**
+  - **Clang 16+**
 - **Platform Support**: Windows, Linux, macOS
 - **Optional**: nlohmann/json for JSON serialization support
 
@@ -101,163 +97,123 @@ Simply include the header files from `include/siddiqsoft/` in your project.
 
 ```cpp
 #include "siddiqsoft/resource_pool.hpp"
+#include <iostream>
 
 int main() {
-    // Create pool with default capacity and NoGrow policy
-    siddiqsoft::arrp::resource_pool<std::string> pool(
-        10,  // capacity
-        siddiqsoft::arrp::auto_add_policy::NoGrow
-    );
-    
-    // Add resources
-    pool.seed_to_pool(std::string("resource-1"));
-    pool.seed_to_pool(std::string("resource-2"));
-    
-    // Borrow and use
+    siddiqsoft::arrp::resource_pool<std::string> pool(10);
+
+    pool.seed(std::string("resource-1"));
+    pool.seed(std::string("resource-2"));
+
     {
-        auto res = pool.borrow_from_pool();
+        auto res = pool.try_borrow();
         if (res) {
             std::cout << *res << std::endl;
         }
     }
-    
+
     return 0;
 }
 ```
 
-### AutoGrow Policy
+### Factory Callback
 
 ```cpp
-// Pool automatically creates resources on demand
-siddiqsoft::arrp::resource_pool<std::string> pool(
-    10,  // capacity
-    siddiqsoft::arrp::auto_add_policy::AutoGrow
-);
+#include "siddiqsoft/resource_pool.hpp"
 
-// Resources are created automatically up to capacity
-for (int i = 0; i < 100; ++i) {
-    auto res = pool.borrow_from_pool();
-    if (res) {
-        // Use resource
-    }
+siddiqsoft::arrp::resource_pool<DatabaseConnection> pool(10);
+
+pool.set_factory_callback([]() {
+    return DatabaseConnection::create();
+});
+
+auto conn = pool.try_borrow_create();
+if (conn) {
+    conn->query("SELECT * FROM users");
 }
-```
-
-### Custom Factory
-
-```cpp
-siddiqsoft::arrp::resource_pool<DatabaseConnection> pool(
-    10,  // capacity
-    [](auto& my_pool) -> std::expected<siddiqsoft::arrp::scoped_resource<DatabaseConnection>, siddiqsoft::arrp::pool_error> {
-        // Create new resource
-        auto conn = DatabaseConnection::create();
-        
-        // Return wrapped with auto-return callback
-        return siddiqsoft::arrp::scoped_resource<DatabaseConnection>{
-            [&my_pool](DatabaseConnection&& res, bool isvalid) {
-                // Note that *only* the "return" code must call the return_to_pool()
-                // and *not* call the seed_to_pool method!
-                return my_pool.return_to_pool(std::move(res), isvalid);
-            },
-            std::move(conn)
-        };
-    }
-);
 ```
 
 ### Multi-threaded Usage
 
 ```cpp
+#include "siddiqsoft/resource_pool.hpp"
 #include <thread>
 #include <vector>
 
-siddiqsoft::arrp::resource_pool<DatabaseConnection> pool(
-    10,  // capacity
-    siddiqsoft::arrp::auto_add_policy::AutoGrow
-);
-
-// Pre-populate pool
+siddiqsoft::arrp::resource_pool<DatabaseConnection> pool(10);
 for (int i = 0; i < 10; ++i) {
-    pool.seed_to_pool(std::make_shared<DatabaseConnection>());
+    pool.seed(std::make_shared<DatabaseConnection>());
 }
 
-// Use from multiple threads
 std::vector<std::jthread> threads;
 for (int t = 0; t < 4; ++t) {
     threads.emplace_back([&pool]() {
         for (int i = 0; i < 100; ++i) {
-            auto conn = pool.borrow_from_pool();
+            auto conn = pool.try_borrow();
             if (conn) {
                 conn->query("SELECT * FROM users");
-                // Automatically returned
             }
         }
     });
 }
-// jthread joins automatically
 ```
 
 ### Monitoring Pool State
 
 ```cpp
-// Get pool statistics
-auto state = pool.to_json();
+#include "nlohmann/json.hpp"
 
-if (state) {
-    auto& json = state.value().get();
-    std::cout << "Capacity: " << json["capacity"] << std::endl;
-    std::cout << "Available: " << json["size"] << std::endl;
-    std::cout << "Deficit: " << json["deficit"] << std::endl;
-    std::cout << "Total borrows: " << json["borrows"] << std::endl;
-    std::cout << "Total returns: " << json["returns"] << std::endl;
-    std::cout << "Peak size: " << json["peaksize"] << std::endl;
-    std::cout << "Currently borrowed: " << json["loans"] << std::endl;
-}
+auto stats = pool.to_json();
+std::cout << stats.dump(2) << std::endl;
 ```
 
 ## API Overview
 
-### [resource_pool](https://siddiqsoft.github.io/arrp/api.html#api_resource_pool) Methods
+### `resource_pool` Methods
 
-| Method | Returns | Description 
-|--------|---------|----------------------
-| `borrow_from_pool()` | `std::expected<scoped_resource<T>, pool_error>` | Borrow a resource from the pool.<br/>Returns error if pool is exhausted and no factory callback available.<br/>If pool is under capacity, factory callback is invoked to create new resource.
-| `seed_to_pool(T&&)` | `std::expected<void, pool_error>` | Add a resource to the pool.<br/>The move-semantics is required as the resource must be returned exclusively to the pool.<br/>If the `scoped_resource` is marked invalid then the resource will not be claimed back.
-| `size()` | `std::expected<size_t, pool_error>` | Get number of available resources in pool
-| `clear()` | `std::expected<void, pool_error>` | Remove all resources from pool
-| `to_json()` | `std::expected<std::reference_wrapper<nlohmann::json>, pool_error>` | Get pool state as JSON (requires nlohmann/json)
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `try_borrow()` | `scoped_resource<T>` | Borrow a resource from the pool. Returns an invalid scoped resource with `error()` set when unavailable.
+| `try_borrow_create()` | `scoped_resource<T>` | Borrow a resource or create one on demand using the registered factory callback.
+| `seed(Args&&...)` | `pool_error` | Add a resource to the pool by constructing it in place.
+| `seed(T&&)` | `pool_error` | Add a moved resource to the pool.
+| `size()` | `size_t` | Get the number of available resources in the pool.
+| `clear()` | `pool_error` | Remove all resources from the pool.
+| `set_factory_callback(F&&)` | `void` | Register a callback to create resources when the pool is empty.
+| `to_json()` | `nlohmann::json` | Export pool statistics to JSON when nlohmann/json is available.
 
-### [scoped_resource](https://siddiqsoft.github.io/arrp/api.html#api_scoped_resource) Methods
+### `scoped_resource` Methods
 
 | Method | Description |
 |--------|-------------|
-| `operator*()` | Dereference wrapped resource |
-| `operator->()` | Pointer-like access to wrapped resource |
-| `invalidate()` | Mark resource as invalid (prevent auto-return) |
-| `is_valid()` | Check if resource is valid |
-
-For complete API documentation, see the [API Reference](https://siddiqsoft.github.io/arrp/api.html).
+| `operator*()` | Dereference the wrapped resource |
+| `operator->()` | Pointer-like access to the wrapped resource |
+| `invalidate()` | Mark resource as invalid so it is discarded on destruction |
+| `is_valid()` | Check whether the resource is valid |
+| `error()` | Retrieve the failure code when the wrapper is invalid |
 
 ## Thread Safety
 
 All public methods of `resource_pool` are thread-safe:
-- Multiple threads can safely call `borrow_from_pool()` and `seed_to_pool()` concurrently
+- Multiple threads can safely call `try_borrow()` and `seed()` concurrently
 - The pool uses internal mutexes to protect shared state
 - No external synchronization is required
-- Atomic counters for lock-free statistics
+- Scoped resource wrappers themselves are not thread-safe
 
 ## Error Handling
 
-The resource_pool uses `std::expected<T, pool_error>` for error handling:
-- **borrow_from_pool()**: Returns error if pool is exhausted and no factory callback available
-- **seed_to_pool()**: Returns error if pool is shutting down
-- **clear()**: Returns error if pool is shutting down
-- **size()**: Returns error if pool is shutting down
-- **to_json()**: Returns error if pool is shutting down
+The library uses `pool_error` for error reporting:
+- `NoMoreResources`: Pool exhausted
+- `ShutdownInitiated`: Pool is shutting down
+- `Timeout`: Wait timed out while borrowing
+- `Unknown`: Unknown error
 
-Error types are defined in `pool_error` enum:
-- `NoMoreResources`: Pool is exhausted
-- `UnderCapacityNoAutoGrow`: Pool is under capacity but no auto-grow policy
+Usage notes:
+- `try_borrow()` and `try_borrow_create()` return a `scoped_resource<T>` that may be invalid
+- `seed()` and `clear()` return `pool_error`
+- `size()` returns `size_t`
+- `to_json()` returns `nlohmann::json` when JSON support is enabled
+
 - `ShutdownInitiated`: Pool is shutting down
 - `Unknown`: Unknown error
 
@@ -265,7 +221,7 @@ Error types are defined in `pool_error` enum:
 
 1. **Always use RAII**: Let `scoped_resource` handle resource return. You can use derived classes that--for example--specialize the handling of `CURL*`.
 2. **Pre-populate pools**: Add resources before concurrent access
-3. **Handle errors**: Check `std::expected` return values from `borrow_from_pool()`
+3. **Handle errors**: Check `std::expected` return values from `try_borrow()`
 4. **Keep factories simple**: Factory callbacks should only create resources
 5. **Monitor utilization**: Use `to_json()` to track pool health
 6. **Use appropriate types**: Prefer `shared_ptr` or `unique_ptr` over raw pointers

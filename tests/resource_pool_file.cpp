@@ -87,14 +87,14 @@ TEST(resource_pool_file, basic_file_pool)
     {
         auto fp = std::fopen(temp_file.c_str(), "w+");
         ASSERT_NE(nullptr, fp);
-        file_pool.seed_to_pool(std::move(fp));
+        file_pool.seed(std::move(fp));
     }
 
     EXPECT_EQ(1u, file_pool.size());
 
     // Borrow the file
     {
-        siddiqsoft::arrp::scoped_resource<FILE*> file_result = file_pool.borrow_from_pool();
+        siddiqsoft::arrp::scoped_resource<FILE*> file_result = file_pool.try_borrow();
         EXPECT_TRUE(file_result.has_value());
         auto file_wrapper = std::move(file_result);
         EXPECT_EQ(0u, file_pool.size());
@@ -108,7 +108,7 @@ TEST(resource_pool_file, basic_file_pool)
 
     // Borrow again and verify content
     {
-        auto file_result = file_pool.borrow_from_pool();
+        auto file_result = file_pool.try_borrow();
         EXPECT_TRUE(file_result.has_value());
         auto file_wrapper = std::move(file_result);
         std::rewind(*file_wrapper);
@@ -136,7 +136,7 @@ TEST(resource_pool_file, concurrent_file_access)
     FILE* fp = std::fopen(temp_file.c_str(), "w+");
     ASSERT_NE(nullptr, fp);
     std::print(std::cerr, "About to add..{:p}\n", static_cast<void*>(fp));
-    file_pool.seed_to_pool(std::move(fp));
+    file_pool.seed(std::move(fp));
     EXPECT_EQ(1u, file_pool.size());
 
     std::atomic<int>         write_count {0};
@@ -146,7 +146,7 @@ TEST(resource_pool_file, concurrent_file_access)
     // Create multiple threads that write to the file
     for (int i = 0; i < 3; ++i) {
         threads.emplace_back([&file_pool, &write_count, i]() {
-            auto file_result = file_pool.borrow_from_pool();
+            auto file_result = file_pool.try_borrow();
             if (file_result.has_value()) {
                 auto fw = std::move(file_result);
                 std::print(*fw, "Thread %d\n", i);
@@ -184,10 +184,10 @@ TEST(resource_pool_file, file_read_write_operations)
         FILE* fp = std::fopen(temp_file.c_str(), "w+");
         ASSERT_NE(nullptr, fp);
 
-        file_pool.seed_to_pool(std::move(fp));
+        file_pool.seed(std::move(fp));
         EXPECT_EQ(1u, file_pool.size());
 
-        auto file_result = file_pool.borrow_from_pool();
+        auto file_result = file_pool.try_borrow();
         EXPECT_TRUE(file_result.has_value());
         std::print(*file_result, "Line 1\n");
         std::print(*file_result, "Line 2\n");
@@ -199,7 +199,7 @@ TEST(resource_pool_file, file_read_write_operations)
 
     // Read from file
     {
-        auto file_result = file_pool.borrow_from_pool();
+        auto file_result = file_pool.try_borrow();
         EXPECT_TRUE(file_result.has_value());
         auto fw = std::move(file_result);
         std::rewind(*fw);

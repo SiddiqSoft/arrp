@@ -2,7 +2,7 @@
     Counter Balance Tests for resource_pool
 
     This file contains comprehensive tests to verify that the m_resources_checkedout
-    counter is properly balanced between borrow_from_pool() and return_to_pool() operations.
+    counter is properly balanced between try_borrow() and return_to_pool() operations.
 
     The counter should:
     1. Increment when a resource is borrowed
@@ -64,14 +64,14 @@ int64_t get_loan_count(siddiqsoft::arrp::resource_pool<T>& pool)
 TEST(counter_balance, basic_borrow_return)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool {};
-    pool.seed_to_pool(std::string("resource-1"));
+    pool.seed(std::string("resource-1"));
 
     // Initial state: 0 checked out
     EXPECT_EQ(0, get_borrow_count(pool));
 
     {
         // Borrow: counter should increment
-        auto res = pool.borrow_from_pool();
+        auto res = pool.try_borrow();
         EXPECT_TRUE(res.has_value());
         EXPECT_EQ(1, get_borrow_count(pool));
 
@@ -89,7 +89,7 @@ TEST(counter_balance, multiple_sequential_borrows)
     siddiqsoft::arrp::resource_pool<std::string> pool {};
 
     for (int i = 0; i < 5; ++i) {
-        pool.seed_to_pool(std::format("resource-{}", i));
+        pool.seed(std::format("resource-{}", i));
     }
 
     EXPECT_EQ(0, get_borrow_count(pool));
@@ -97,7 +97,7 @@ TEST(counter_balance, multiple_sequential_borrows)
     // Borrow and return sequentially
     for (int i = 0; i < 5; ++i) {
         {
-            auto res = pool.borrow_from_pool();
+            auto res = pool.try_borrow();
             EXPECT_TRUE(res.has_value());
             EXPECT_EQ(1, get_loan_count(pool));
         }
@@ -115,23 +115,23 @@ TEST(counter_balance, multiple_concurrent_borrows)
     siddiqsoft::arrp::resource_pool<std::string> pool {};
 
     for (int i = 0; i < 5; ++i) {
-        pool.seed_to_pool(std::format("resource-{}", i));
+        pool.seed(std::format("resource-{}", i));
     }
 
     EXPECT_EQ(0, get_borrow_count(pool));
 
     {
-        auto res1 = pool.borrow_from_pool();
+        auto res1 = pool.try_borrow();
         EXPECT_TRUE(res1.has_value());
         EXPECT_EQ(1, get_borrow_count(pool));
 
         {
-            auto res2 = pool.borrow_from_pool();
+            auto res2 = pool.try_borrow();
             EXPECT_TRUE(res2.has_value());
             EXPECT_EQ(2, get_borrow_count(pool));
 
             {
-                auto res3 = pool.borrow_from_pool();
+                auto res3 = pool.try_borrow();
                 EXPECT_TRUE(res3.has_value());
                 EXPECT_EQ(3, get_borrow_count(pool));
             }
@@ -150,17 +150,17 @@ TEST(counter_balance, invalidated_resources)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool {};
 
-    pool.seed_to_pool(std::string("resource-1"));
-    pool.seed_to_pool(std::string("resource-2"));
+    pool.seed(std::string("resource-1"));
+    pool.seed(std::string("resource-2"));
 
     EXPECT_EQ(0, get_borrow_count(pool));
 
     {
-        auto res1 = pool.borrow_from_pool();
+        auto res1 = pool.try_borrow();
         EXPECT_TRUE(res1.has_value());
         EXPECT_EQ(1, get_borrow_count(pool));
 
-        auto res2 = pool.borrow_from_pool();
+        auto res2 = pool.try_borrow();
         EXPECT_TRUE(res2.has_value());
         EXPECT_EQ(2, get_borrow_count(pool));
 
@@ -223,18 +223,18 @@ TEST(counter_balance, moved_resources)
 {
     siddiqsoft::arrp::resource_pool<custom_mr> pool {};
 
-    pool.seed_to_pool(custom_mr {"resource-1"});
-    pool.seed_to_pool(custom_mr {"resource-2"});
+    pool.seed(custom_mr {"resource-1"});
+    pool.seed(custom_mr {"resource-2"});
 
     EXPECT_EQ(0, get_borrow_count(pool));
     EXPECT_EQ(2, pool.size());
 
     {
-        auto res1 = pool.borrow_from_pool();
+        auto res1 = pool.try_borrow();
         EXPECT_TRUE(res1.has_value());
         EXPECT_EQ(1, get_borrow_count(pool));
 
-        auto res2 = pool.borrow_from_pool();
+        auto res2 = pool.try_borrow();
         EXPECT_TRUE(res2.has_value());
         EXPECT_EQ(2, get_borrow_count(pool));
 
@@ -265,7 +265,7 @@ TEST(counter_balance, exception_during_borrow)
     EXPECT_EQ(0, get_borrow_count(pool));
 
     // Try to borrow when factory throws
-    auto res = pool.borrow_from_pool();
+    auto res = pool.try_borrow();
     EXPECT_FALSE(res.has_value());
 
     // Counter should still be balanced
@@ -276,12 +276,12 @@ TEST(counter_balance, exception_during_borrow)
 TEST(counter_balance, exception_in_user_code)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool {};
-    pool.seed_to_pool(std::string("resource-1"));
+    pool.seed(std::string("resource-1"));
 
     EXPECT_EQ(0, get_borrow_count(pool));
 
     try {
-        auto res = pool.borrow_from_pool();
+        auto res = pool.try_borrow();
         EXPECT_TRUE(res.has_value());
         EXPECT_EQ(1, get_borrow_count(pool));
 
@@ -301,18 +301,18 @@ TEST(counter_balance, nested_exception_handling)
     siddiqsoft::arrp::resource_pool<std::string> pool {};
 
     for (int i = 0; i < 3; ++i) {
-        pool.seed_to_pool(std::format("resource-{}", i));
+        pool.seed(std::format("resource-{}", i));
     }
 
     EXPECT_EQ(0, get_borrow_count(pool));
 
     try {
-        auto res1 = pool.borrow_from_pool();
+        auto res1 = pool.try_borrow();
         EXPECT_TRUE(res1.has_value());
         EXPECT_EQ(1, get_borrow_count(pool));
 
         try {
-            auto res2 = pool.borrow_from_pool();
+            auto res2 = pool.try_borrow();
             EXPECT_TRUE(res2.has_value());
             EXPECT_EQ(2, get_borrow_count(pool));
 
@@ -344,7 +344,7 @@ TEST(counter_balance, concurrent_borrows_and_returns)
     siddiqsoft::arrp::resource_pool<std::string> pool {};
 
     for (int i = 0; i < 20; ++i) {
-        pool.seed_to_pool(std::format("resource-{}", i));
+        pool.seed(std::format("resource-{}", i));
     }
 
     EXPECT_EQ(0, get_borrow_count(pool));
@@ -359,7 +359,7 @@ TEST(counter_balance, concurrent_borrows_and_returns)
     threads.emplace_back([&]() {
         start_barrier.arrive_and_wait();
         for (int i = 0; i < 50; ++i) {
-            auto res = pool.borrow_from_pool();
+            auto res = pool.try_borrow();
             if (res.has_value()) {
                 total_borrows++;
                 std::this_thread::sleep_for(std::chrono::microseconds(10));
@@ -372,7 +372,7 @@ TEST(counter_balance, concurrent_borrows_and_returns)
     threads.emplace_back([&]() {
         start_barrier.arrive_and_wait();
         for (int i = 0; i < 50; ++i) {
-            auto res = pool.borrow_from_pool();
+            auto res = pool.try_borrow();
             if (res.has_value()) {
                 total_borrows++;
                 std::this_thread::sleep_for(std::chrono::microseconds(10));
@@ -385,7 +385,7 @@ TEST(counter_balance, concurrent_borrows_and_returns)
     threads.emplace_back([&]() {
         start_barrier.arrive_and_wait();
         for (int i = 0; i < 50; ++i) {
-            auto res = pool.borrow_from_pool();
+            auto res = pool.try_borrow();
             if (res.has_value()) {
                 total_borrows++;
                 std::this_thread::sleep_for(std::chrono::microseconds(10));
@@ -420,7 +420,7 @@ TEST(counter_balance, concurrent_invalidations)
     siddiqsoft::arrp::resource_pool<std::string> pool {};
 
     for (int i = 0; i < 30; ++i) {
-        pool.seed_to_pool(std::format("resource-{}", i));
+        pool.seed(std::format("resource-{}", i));
     }
 
     EXPECT_EQ(0, get_borrow_count(pool));
@@ -435,7 +435,7 @@ TEST(counter_balance, concurrent_invalidations)
         threads.emplace_back([&]() {
             start_barrier.arrive_and_wait();
             for (int i = 0; i < 50; ++i) {
-                auto res = pool.borrow_from_pool();
+                auto res = pool.try_borrow();
                 if (res.has_value()) {
                     if (i % 3 == 0) {
                         res.invalidate();
@@ -465,7 +465,7 @@ TEST(counter_balance, concurrent_adds_and_borrows)
     siddiqsoft::arrp::resource_pool<std::string> pool {};
 
     for (int i = 0; i < 10; ++i) {
-        pool.seed_to_pool(std::format("initial-{}", i));
+        pool.seed(std::format("initial-{}", i));
     }
 
     EXPECT_EQ(0, get_borrow_count(pool));
@@ -480,7 +480,7 @@ TEST(counter_balance, concurrent_adds_and_borrows)
     threads.emplace_back([&]() {
         start_barrier.arrive_and_wait();
         for (int i = 0; i < 100; ++i) {
-            pool.seed_to_pool(std::format("added-{}", i));
+            pool.seed(std::format("added-{}", i));
             adds++;
             std::this_thread::sleep_for(std::chrono::microseconds(100));
         }
@@ -490,7 +490,7 @@ TEST(counter_balance, concurrent_adds_and_borrows)
     threads.emplace_back([&]() {
         start_barrier.arrive_and_wait();
         for (int i = 0; i < 100; ++i) {
-            auto res = pool.borrow_from_pool();
+            auto res = pool.try_borrow();
             if (res.has_value()) {
                 borrows++;
                 std::this_thread::sleep_for(std::chrono::microseconds(50));
@@ -520,7 +520,7 @@ TEST(counter_balance, concurrent_clears)
     siddiqsoft::arrp::resource_pool<std::string> pool {};
 
     for (int i = 0; i < 20; ++i) {
-        pool.seed_to_pool(std::format("resource-{}", i));
+        pool.seed(std::format("resource-{}", i));
     }
 
     EXPECT_EQ(0, get_borrow_count(pool));
@@ -535,7 +535,7 @@ TEST(counter_balance, concurrent_clears)
     threads.emplace_back([&]() {
         start_barrier.arrive_and_wait();
         for (int i = 0; i < 100; ++i) {
-            auto res = pool.borrow_from_pool();
+            auto res = pool.try_borrow();
             if (res.has_value()) {
                 borrows++;
                 std::this_thread::sleep_for(std::chrono::microseconds(50));
@@ -550,7 +550,7 @@ TEST(counter_balance, concurrent_clears)
             pool.clear();
             clears++;
             for (int j = 0; j < 10; ++j) {
-                pool.seed_to_pool(std::format("repopulated-{}-{}", i, j));
+                pool.seed(std::format("repopulated-{}-{}", i, j));
             }
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
@@ -585,7 +585,7 @@ TEST(counter_balance, high_concurrency_stress)
     siddiqsoft::arrp::resource_pool<std::string> pool {};
 
     for (int i = 0; i < 50; ++i) {
-        pool.seed_to_pool(std::format("resource-{}", i));
+        pool.seed(std::format("resource-{}", i));
     }
 
     EXPECT_EQ(0, get_borrow_count(pool));
@@ -599,7 +599,7 @@ TEST(counter_balance, high_concurrency_stress)
         threads.emplace_back([&]() {
             start_barrier.arrive_and_wait();
             for (int i = 0; i < 1000; ++i) {
-                auto res = pool.borrow_from_pool();
+                auto res = pool.try_borrow();
                 if (res.has_value()) {
                     operations++;
                     // Simulate some work
@@ -625,7 +625,7 @@ TEST(counter_balance, mixed_operations_stress)
     siddiqsoft::arrp::resource_pool<std::string> pool {};
 
     for (int i = 0; i < 30; ++i) {
-        pool.seed_to_pool(std::format("resource-{}", i));
+        pool.seed(std::format("resource-{}", i));
     }
 
     EXPECT_EQ(0, get_borrow_count(pool));
@@ -657,7 +657,7 @@ TEST(counter_balance, mixed_operations_stress)
     threads.emplace_back([&]() {
         sync_threads_point();
         for (int i = 0; i < 100; ++i) {
-            pool.seed_to_pool(std::format("new-{}", i));
+            pool.seed(std::format("new-{}", i));
             adds++;
         }
     });
@@ -666,7 +666,7 @@ TEST(counter_balance, mixed_operations_stress)
     threads.emplace_back([&]() {
         sync_threads_point();
         for (int i = 0; i < 500; ++i) {
-            auto res = pool.borrow_from_pool();
+            auto res = pool.try_borrow();
             if (res.has_value()) {
                 borrows++;
             }
@@ -677,7 +677,7 @@ TEST(counter_balance, mixed_operations_stress)
     threads.emplace_back([&]() {
         sync_threads_point();
         for (int i = 0; i < 100; ++i) {
-            auto res = pool.borrow_from_pool();
+            auto res = pool.try_borrow();
             if (res.has_value()) {
                 res.invalidate();
                 invalidates++;
@@ -723,12 +723,12 @@ TEST(counter_balance, mixed_operations_stress)
 TEST(counter_balance, single_resource)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool {};
-    pool.seed_to_pool(std::string("only-resource"));
+    pool.seed(std::string("only-resource"));
 
     EXPECT_EQ(0, get_borrow_count(pool));
 
     {
-        auto res = pool.borrow_from_pool();
+        auto res = pool.try_borrow();
         EXPECT_TRUE(res.has_value());
         EXPECT_EQ(1, get_loan_count(pool));
     }
@@ -742,7 +742,7 @@ TEST(counter_balance, maximum_capacity)
     siddiqsoft::arrp::resource_pool<std::string> pool {siddiqsoft::arrp::resource_pool_limits::MaxCapacity};
 
     for (int i = 0; i < 10; ++i) {
-        pool.seed_to_pool(std::format("resource-{}", i));
+        pool.seed(std::format("resource-{}", i));
     }
 
     EXPECT_EQ(0, get_borrow_count(pool));
@@ -750,7 +750,7 @@ TEST(counter_balance, maximum_capacity)
     // Borrow all
     std::vector<siddiqsoft::arrp::scoped_resource<std::string>> resources;
     for (int i = 0; i < 10; ++i) {
-        auto res = pool.borrow_from_pool();
+        auto res = pool.try_borrow();
         EXPECT_TRUE(res.has_value());
         resources.push_back(std::move(res));
     }
@@ -770,13 +770,13 @@ TEST(counter_balance, rapid_create_destroy_cycles)
         siddiqsoft::arrp::resource_pool<std::string> pool {};
 
         for (int i = 0; i < 5; ++i) {
-            pool.seed_to_pool(std::format("resource-{}", i));
+            pool.seed(std::format("resource-{}", i));
         }
 
         EXPECT_EQ(0, get_borrow_count(pool));
 
         {
-            auto res = pool.borrow_from_pool();
+            auto res = pool.try_borrow();
             EXPECT_TRUE(res.has_value());
             EXPECT_EQ(1, get_borrow_count(pool));
         }
@@ -795,7 +795,7 @@ TEST(counter_balance, counter_size_consistency)
     siddiqsoft::arrp::resource_pool<std::string> pool {};
 
     for (int i = 0; i < 10; ++i) {
-        pool.seed_to_pool(std::format("resource-{}", i));
+        pool.seed(std::format("resource-{}", i));
     }
 
     EXPECT_EQ(0, get_borrow_count(pool));
@@ -803,13 +803,13 @@ TEST(counter_balance, counter_size_consistency)
 
     // Borrow 5
     {
-        auto p1 = pool.borrow_from_pool();
-        auto p2 = pool.borrow_from_pool();
+        auto p1 = pool.try_borrow();
+        auto p2 = pool.try_borrow();
         {
             { // borrow 3 more.. and release them first..
-                auto p3 = pool.borrow_from_pool();
-                auto p4 = pool.borrow_from_pool();
-                auto p5 = pool.borrow_from_pool();
+                auto p3 = pool.try_borrow();
+                auto p4 = pool.try_borrow();
+                auto p5 = pool.try_borrow();
 
                 EXPECT_EQ(5, get_borrow_count(pool));
                 EXPECT_EQ(5, pool.size());
@@ -841,7 +841,7 @@ TEST(counter_balance, counter_size_consistency_2)
     siddiqsoft::arrp::resource_pool<std::string> pool {};
 
     for (int i = 0; i < 10; ++i) {
-        pool.seed_to_pool(std::format("resource-{}", i));
+        pool.seed(std::format("resource-{}", i));
     }
 
     EXPECT_EQ(0, get_borrow_count(pool));
@@ -852,7 +852,7 @@ TEST(counter_balance, counter_size_consistency_2)
         std::vector<siddiqsoft::arrp::scoped_resource<std::string>> holdResources;
 
         for (int i = 0; i < 5; i++) {
-            holdResources.emplace_back(pool.borrow_from_pool());
+            holdResources.emplace_back(pool.try_borrow());
         }
 
         EXPECT_EQ(5, get_borrow_count(pool));
@@ -883,12 +883,12 @@ TEST(counter_balance, counter_json_consistency)
     siddiqsoft::arrp::resource_pool<std::string> pool {};
 
     for (int i = 0; i < 5; ++i) {
-        pool.seed_to_pool(std::format("resource-{}", i));
+        pool.seed(std::format("resource-{}", i));
     }
 
     {
-        auto res1 = pool.borrow_from_pool();
-        auto res2 = pool.borrow_from_pool();
+        auto res1 = pool.try_borrow();
+        auto res2 = pool.try_borrow();
 
         EXPECT_TRUE(res1.has_value());
         EXPECT_TRUE(res2.has_value());

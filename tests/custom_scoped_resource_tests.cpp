@@ -113,12 +113,12 @@ TEST(custom_scoped_resource, basic_file_pool_creation)
         ASSERT_NE(nullptr, file);
 
         // std::print( std::cerr, "about to add to pool: {}\n", pool.to_json().dump());
-        pool.seed_to_pool(std::move(file));
+        pool.seed(std::move(file));
         EXPECT_EQ(1u, pool.size());
         // std::print( std::cerr, "after add to pool: {}\n", pool.to_json().dump());
 
         {
-            auto file_result = pool.borrow_from_pool();
+            auto file_result = pool.try_borrow();
             EXPECT_TRUE(file_result.has_value());
             // std::print( std::cerr, "after borrow to pool: {}\n", pool.to_json().dump());
         }
@@ -153,10 +153,10 @@ TEST(custom_scoped_resource, write_to_file)
         FILE*                                  file = std::fopen(temp_file.c_str(), "w+");
         ASSERT_NE(nullptr, file);
 
-        pool.seed_to_pool(std::move(file));
+        pool.seed(std::move(file));
 
         {
-            auto file_result = pool.borrow_from_pool();
+            auto file_result = pool.try_borrow();
             EXPECT_TRUE(file_result.has_value());
             auto   fp      = *file_result;
             size_t written = std::fwrite("Hello, World!", 1, 13, fp);
@@ -199,17 +199,17 @@ TEST(custom_scoped_resource, multiple_file_resources)
             }
         }};
 
-        pool.seed_to_pool(std::fopen(temp_file1.c_str(), "w+"));
-        pool.seed_to_pool(std::fopen(temp_file2.c_str(), "w+"));
-        pool.seed_to_pool(std::fopen(temp_file3.c_str(), "w+"));
+        pool.seed(std::fopen(temp_file1.c_str(), "w+"));
+        pool.seed(std::fopen(temp_file2.c_str(), "w+"));
+        pool.seed(std::fopen(temp_file3.c_str(), "w+"));
 
         EXPECT_EQ(3u, pool.size());
 
         // Borrow all files
         {
-            auto res1 = pool.borrow_from_pool();
-            auto res2 = pool.borrow_from_pool();
-            auto res3 = pool.borrow_from_pool();
+            auto res1 = pool.try_borrow();
+            auto res2 = pool.try_borrow();
+            auto res3 = pool.try_borrow();
 
             EXPECT_EQ(0u, pool.size());
 
@@ -257,7 +257,7 @@ TEST(custom_scoped_resource, file_persistence_across_cycles)
 
         // First cycle: write data
         {
-            auto file_result = pool.borrow_from_pool({},true);
+            auto file_result = pool.try_borrow_create();
             if (file_result.has_value()) {
                 auto fp = *file_result;
                 // FIX 2: Explicit file pointer positioning
@@ -269,7 +269,7 @@ TEST(custom_scoped_resource, file_persistence_across_cycles)
 
         // Second cycle: append more data
         {
-            auto file_result = pool.borrow_from_pool();
+            auto file_result = pool.try_borrow();
             if (file_result.has_value()) {
                 auto fp = *file_result;
                 // FIX 2: Explicit file pointer positioning
@@ -319,7 +319,7 @@ TEST(custom_scoped_resource, concurrent_file_writes)
 
         // Create multiple file handles
         for (int i = 0; i < 4; ++i) {
-            pool.seed_to_pool(std::fopen(temp_file.c_str(), "a+"));
+            pool.seed(std::fopen(temp_file.c_str(), "a+"));
         }
 
         EXPECT_EQ(4u, pool.size());
@@ -332,7 +332,7 @@ TEST(custom_scoped_resource, concurrent_file_writes)
             threads.emplace_back([&, t]() {
                 start_barrier.arrive_and_wait();
                 for (int i = 0; i < 10; ++i) {
-                    auto file_result = pool.borrow_from_pool();
+                    auto file_result = pool.try_borrow();
                     if (file_result.has_value()) {
                         auto        fp  = *file_result;
                         std::string msg = std::format("Thread {} iteration {}\n", t, i);
@@ -372,13 +372,13 @@ TEST(custom_scoped_resource, file_resource_invalidation)
             }
         }};
 
-        pool.seed_to_pool(std::fopen(temp_file.c_str(), "w+"));
-        pool.seed_to_pool(std::fopen(temp_file.c_str(), "w+"));
+        pool.seed(std::fopen(temp_file.c_str(), "w+"));
+        pool.seed(std::fopen(temp_file.c_str(), "w+"));
 
         EXPECT_EQ(2u, pool.size());
 
         {
-            auto file_result = pool.borrow_from_pool();
+            auto file_result = pool.try_borrow();
             EXPECT_TRUE(file_result.has_value());
             EXPECT_EQ(1u, pool.size());
 
@@ -412,10 +412,10 @@ TEST(custom_scoped_resource, file_resource_move_semantics)
             }
         }};
 
-        pool.seed_to_pool(std::fopen(temp_file.c_str(), "w+"));
+        pool.seed(std::fopen(temp_file.c_str(), "w+"));
 
         {
-            auto resource1 = pool.borrow_from_pool();
+            auto resource1 = pool.try_borrow();
             EXPECT_TRUE(resource1.has_value());
 
             // Move to resource2
@@ -449,11 +449,11 @@ TEST(custom_scoped_resource, json_serialization)
             }
         }};
 
-        pool.seed_to_pool(std::fopen(temp_file.c_str(), "w+"));
+        pool.seed(std::fopen(temp_file.c_str(), "w+"));
 
         // Borrow and return
         {
-            auto res = pool.borrow_from_pool();
+            auto res = pool.try_borrow();
             if (res.has_value()) {
                 auto fp = *res;
                 std::print(fp, "test data");
@@ -499,7 +499,7 @@ TEST(custom_scoped_resource, high_throughput_file_ops)
 
         // Pre-populate pool
         for (int i = 0; i < 4; ++i) {
-            pool.seed_to_pool(std::fopen(temp_file.c_str(), "a+"));
+            pool.seed(std::fopen(temp_file.c_str(), "a+"));
         }
 
         std::atomic_int           operations {0};
@@ -510,7 +510,7 @@ TEST(custom_scoped_resource, high_throughput_file_ops)
             threads.emplace_back([&, t]() {
                 start_barrier.arrive_and_wait();
                 for (int i = 0; i < 50; ++i) {
-                    auto file_result = pool.borrow_from_pool();
+                    auto file_result = pool.try_borrow();
                     if (file_result.has_value()) {
                         auto        fp  = *file_result;
                         std::string msg = std::format("Op {} from thread {}\n", i, t);
@@ -550,10 +550,10 @@ TEST(custom_scoped_resource, exception_safety)
             }
         }};
 
-        pool.seed_to_pool(std::fopen(temp_file.c_str(), "w+"));
+        pool.seed(std::fopen(temp_file.c_str(), "w+"));
 
         try {
-            auto res = pool.borrow_from_pool();
+            auto res = pool.try_borrow();
             if (res.has_value()) {
                 auto fp = *res;
                 std::print(fp, "Before exception");
@@ -591,19 +591,19 @@ TEST(custom_scoped_resource, capacity_limits)
                     }
                 }};
 
-        pool.seed_to_pool(std::fopen(temp_file.c_str(), "w+"));
-        pool.seed_to_pool(std::fopen(temp_file.c_str(), "w+"));
+        pool.seed(std::fopen(temp_file.c_str(), "w+"));
+        pool.seed(std::fopen(temp_file.c_str(), "w+"));
 
         EXPECT_EQ(2u, pool.size());
 
         // Borrow both
-        auto r1 = pool.borrow_from_pool();
-        auto r2 = pool.borrow_from_pool();
+        auto r1 = pool.try_borrow();
+        auto r2 = pool.try_borrow();
 
         EXPECT_EQ(0u, pool.size());
 
         // Should fail when trying to borrow beyond capacity
-        auto r3 = pool.borrow_from_pool();
+        auto r3 = pool.try_borrow();
         EXPECT_FALSE(r3.has_value());
     }
     catch (...) {
@@ -629,11 +629,11 @@ TEST(custom_scoped_resource, rapid_file_cycles)
             }
         }};
 
-        pool.seed_to_pool(std::fopen(temp_file.c_str(), "w+"));
+        pool.seed(std::fopen(temp_file.c_str(), "w+"));
 
         for (int cycle = 0; cycle < 50; ++cycle) {
             {
-                auto file_result = pool.borrow_from_pool();
+                auto file_result = pool.try_borrow();
                 if (file_result.has_value()) {
                     auto        fp  = *file_result;
                     std::string msg = std::format("Cycle {}\n", cycle);
@@ -669,9 +669,9 @@ TEST(custom_scoped_resource, clear_operation)
             }
         }};
 
-        pool.seed_to_pool(std::fopen(temp_file.c_str(), "w+"));
-        pool.seed_to_pool(std::fopen(temp_file.c_str(), "w+"));
-        pool.seed_to_pool(std::fopen(temp_file.c_str(), "w+"));
+        pool.seed(std::fopen(temp_file.c_str(), "w+"));
+        pool.seed(std::fopen(temp_file.c_str(), "w+"));
+        pool.seed(std::fopen(temp_file.c_str(), "w+"));
 
         EXPECT_EQ(3u, pool.size());
 
@@ -680,7 +680,7 @@ TEST(custom_scoped_resource, clear_operation)
         EXPECT_EQ(0u, pool.size());
 
         // After clear, checkout should fail
-        auto res = pool.borrow_from_pool();
+        auto res = pool.try_borrow();
         EXPECT_FALSE(res.has_value());
     }
     catch (...) {
@@ -726,17 +726,17 @@ TEST(custom_scoped_resource, fifo_ordering)
         std::fflush(file2);
         std::fflush(file3);
 
-        pool.seed_to_pool(std::move(file1));
-        pool.seed_to_pool(std::move(file2));
-        pool.seed_to_pool(std::move(file3));
+        pool.seed(std::move(file1));
+        pool.seed(std::move(file2));
+        pool.seed(std::move(file3));
 
         EXPECT_EQ(3u, pool.size());
 
         // Checkout in FIFO order
         {
-            auto res1 = pool.borrow_from_pool();
-            auto res2 = pool.borrow_from_pool();
-            auto res3 = pool.borrow_from_pool();
+            auto res1 = pool.try_borrow();
+            auto res2 = pool.try_borrow();
+            auto res3 = pool.try_borrow();
 
             EXPECT_EQ(0u, pool.size());
         }

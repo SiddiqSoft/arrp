@@ -91,7 +91,7 @@ void            do_request(siddiqsoft::arrp::resource_pool<ScopedCurl>& pool, co
 {
     std::this_thread::sleep_for(pause);
     // Wait for 2s.. and if still not available, create one using the registered callback.
-    auto sc = pool.borrow_from_pool(std::chrono::milliseconds(500), true);
+    auto sc = pool.borrow_(std::chrono::milliseconds(500), true);
     if (sc.has_value()) {
         siddiqsoft::timethis ttx;
 

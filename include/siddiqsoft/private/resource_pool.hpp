@@ -79,7 +79,7 @@ namespace siddiqsoft::arrp
     /// );
     ///
     /// // Borrow a resource
-    /// auto resource = pool.borrow_from_pool();
+    /// auto resource = pool.try_borrow();
     /// if (resource) {
     ///     resource->doSomething();
     /// }
@@ -135,7 +135,7 @@ namespace siddiqsoft::arrp
         std::atomic_uint64_t m_peak_poolsize {0};
 
         /// @brief Counters for pool statistics
-        /// @details m_counter_seeds: Resources added via seed_to_pool()
+        /// @details m_counter_seeds: Resources added via seed()
         /// @details m_counter_ondemand_adds: Resources created on-demand via factory callback
         /// @details m_counter_returns: Resources returned to pool
         /// @details m_counter_borrows: Resources borrowed from pool
@@ -196,7 +196,7 @@ namespace siddiqsoft::arrp
         }
 
         /// @brief The loan size is the difference between the borrows and returns and accounting for the abandons.
-        /// @details We're trying to ensure that we have a zero-balance of borrow_from_pool() and the return_to_pool()
+        /// @details We're trying to ensure that we have a zero-balance of try_borrow() and the return_to_pool()
         /// calls by the client.
         /// @return A value representing the number of currently "borrowed" resources by the client.
         inline auto loan_size() const
@@ -234,7 +234,7 @@ namespace siddiqsoft::arrp
         /// @note The factory callback is required and must return SRT. It must NOT call pool methods.
         /// @note The cleanup callback is optional and invoked for each resource during destruction
         /// @note Capacity is clamped to valid range [MinimumCapacity, MaxCapacity]
-        resource_pool(uint8_t                    init_capacity        = resource_pool_limits::DefaultCapacity,
+        resource_pool(uint8_t                   init_capacity        = resource_pool_limits::DefaultCapacity,
                       std::function<void(T&)>&& on_shutdown_callback = {})
             : m_callback_on_resource_cleanup(std::move(on_shutdown_callback))
         {
@@ -275,14 +275,14 @@ namespace siddiqsoft::arrp
             this->clear();
         }
 
-
+    protected:
         /// @brief Create a resource that is wired to invoke the return_to_pool in the destructor of the SRT class.
         /// @note The scoped_resource<T> cannot be directly instantiated and thus this method is the only means
         /// to create a custom resource.
         /// This approach also solves the issue where we hide the return_to_pool() as protected and making the
         /// resource_pool and scoped_resource friends.
         template <typename... Args>
-        auto wrap_as_scoped_resource(Args&&... args) -> SRT
+        auto make_scoped_resource(Args&&... args) -> SRT
         {
             // Allow the compiler to use NRVO (move elision; do not use std::move here!)
             return SRT {[this](T&& src, bool isvalid) {
@@ -298,7 +298,7 @@ namespace siddiqsoft::arrp
 
         // Helper to create a resource from a user-provided callback.
         // The callback may return either `SRT` (already-wrapped) or `T` (raw resource).
-        // If it returns `T`, we forward the result to `wrap_as_scoped_resource` to obtain an `SRT`.
+        // If it returns `T`, we forward the result to `make_scoped_resource` to obtain an `SRT`.
         template <typename F, typename... Args>
         auto create_from_callback(F&& f, Args&&... args) -> SRT
         {
@@ -308,13 +308,14 @@ namespace siddiqsoft::arrp
                 return std::invoke(std::forward<F>(f), std::forward<Args>(args)...);
             }
             else if constexpr (std::is_same_v<result_t, T>) {
-                return wrap_as_scoped_resource(std::invoke(std::forward<F>(f), std::forward<Args>(args)...));
+                return make_scoped_resource(std::invoke(std::forward<F>(f), std::forward<Args>(args)...));
             }
             else {
                 static_assert(std::is_same_v<result_t, SRT> || std::is_same_v<result_t, T>, "Callback must return either SRT or T");
             }
         }
 
+    public:
         /// @brief Set the factory callback used to create resources on-demand
         /// @tparam F Callable type invokable with no arguments returning `SRT` or `T`
         template <typename F>
@@ -375,7 +376,7 @@ namespace siddiqsoft::arrp
             return m_pool.size();
         }
 
-
+    protected:
         /// @brief Borrows a resource from the pool
         ///
         /// Attempts to get a resource from the pool. If the pool is empty but under capacity,
@@ -391,7 +392,7 @@ namespace siddiqsoft::arrp
         ///
         /// @example
         /// @code
-        /// auto resource = pool.borrow_from_pool();
+        /// auto resource = pool.try_borrow();
         /// if (resource) {
         ///     // Use resource
         ///     resource->doSomething();
@@ -400,7 +401,7 @@ namespace siddiqsoft::arrp
         ///     std::print(std::cerr, "Failed to borrow resource\n");
         /// }
         /// @endcode
-        [[nodiscard]] auto borrow_from_pool(std::chrono::nanoseconds timeout = {}, bool createIfEmptyTimeout = false) -> SRT
+        [[nodiscard]] auto borrow_impl(std::chrono::nanoseconds timeout = {}, bool createIfEmptyTimeout = false) -> SRT
         {
             try {
                 // @note We use a unique_lock vs a scoped_lock to allow ourselves
@@ -417,7 +418,7 @@ namespace siddiqsoft::arrp
                     // We have a resource available.. just to be sure, we'll check the pool size inside the lock..
                     if (!m_pool.empty()) {
                         // Move the resource out of the pool while holding the lock.
-                        auto borrowed = wrap_as_scoped_resource(std::move(m_pool.front()));
+                        auto borrowed = make_scoped_resource(std::move(m_pool.front()));
                         // Remove from the deque.. only one client may have exclusive use..
                         m_pool.pop_front();
 
@@ -460,12 +461,16 @@ namespace siddiqsoft::arrp
                 return SRT {siddiqsoft::arrp::pool_error::Unknown};
             }
             catch (...) {
-                std::println(std::cerr, "UNKNOWN Error in borrow_from_pool");
+                std::println(std::cerr, "UNKNOWN Error in borrow");
                 return SRT {siddiqsoft::arrp::pool_error::Unknown};
             }
 
             return SRT {siddiqsoft::arrp::pool_error::NoMoreResources};
         }
+
+    public:
+        [[nodiscard]] auto try_borrow(std::chrono::nanoseconds timeout = {}) -> SRT { return borrow_impl(timeout); }
+        [[nodiscard]] auto try_borrow_create(std::chrono::nanoseconds timeout = {}) -> SRT { return borrow_impl(timeout, true); }
 
         /// @brief Adds a resource to the pool by constructing it in-place
         ///
@@ -479,7 +484,7 @@ namespace siddiqsoft::arrp
         /// @note This method MUST NOT be invoked to "return"; use the return_to_pool() method otherwise the accounting and resource
         /// management will not work properly!
         template <typename... Args>
-        auto seed_to_pool(Args&&... args) -> pool_error
+        auto seed(Args&&... args) -> pool_error
         {
             {
                 std::scoped_lock l(m_pool_lock);
@@ -513,7 +518,7 @@ namespace siddiqsoft::arrp
         /// @note Returns error if pool is shutting down
         /// @note This method MUST NOT be invoked to "return"; use the return_to_pool() method otherwise the accounting and resource
         /// management will not work properly!
-        auto seed_to_pool(T&& item) -> pool_error
+        auto seed(T&& item) -> pool_error
         {
             {
                 std::scoped_lock l(m_pool_lock);
@@ -632,7 +637,7 @@ namespace siddiqsoft::arrp
             stats["capacity"] = m_capacity;                            ///< Maximum resources
             stats["peaksize"] = m_peak_poolsize.load();                ///< Peak pool size reached
             stats["abandons"] = m_counter_abandons.load();             ///< Invalidated resources
-            stats["seeds"]    = m_counter_seeds.load();                ///< Resources added via seed_to_pool()
+            stats["seeds"]    = m_counter_seeds.load();                ///< Resources added via seed()
             stats["autoadds"] = m_counter_ondemand_adds.load();        ///< Resources created on-demand
             stats["returns"]  = m_counter_returns.load();              ///< Resources returned to pool
             stats["borrows"]  = m_counter_borrows.load();              ///< Resources borrowed from pool

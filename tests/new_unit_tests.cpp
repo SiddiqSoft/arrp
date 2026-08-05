@@ -27,15 +27,15 @@ TEST(resource_pool, capacity_enforcement_no_autogrow)
     siddiqsoft::arrp::resource_pool<std::string> pool {POOL_CAPACITY};
 
     // Seed the pool to capacity
-    pool.seed_to_pool(std::string("res1"));
-    pool.seed_to_pool(std::string("res2"));
-    pool.seed_to_pool(std::string("res3"));
+    pool.seed(std::string("res1"));
+    pool.seed(std::string("res2"));
+    pool.seed(std::string("res3"));
     EXPECT_EQ(3u, pool.size());
 
     // Borrow all resources
-    auto res1 = pool.borrow_from_pool();
-    auto res2 = pool.borrow_from_pool();
-    auto res3 = pool.borrow_from_pool();
+    auto res1 = pool.try_borrow();
+    auto res2 = pool.try_borrow();
+    auto res3 = pool.try_borrow();
 
     EXPECT_TRUE(res1.has_value());
     EXPECT_TRUE(res2.has_value());
@@ -45,7 +45,7 @@ TEST(resource_pool, capacity_enforcement_no_autogrow)
     EXPECT_EQ(0u, pool.size());
 
     // Try to borrow when pool is starving (under capacity) with no auto-grow
-    auto res4 = pool.borrow_from_pool();
+    auto res4 = pool.try_borrow();
     EXPECT_FALSE(res4.has_value());
     EXPECT_EQ(res4.error(), siddiqsoft::arrp::pool_error::NoMoreResources);
 }
@@ -65,14 +65,14 @@ TEST(resource_pool, deficit_size_calculation)
     EXPECT_EQ(5, json1["deficit"]);
 
     // Add 2 resources to pool
-    pool.seed_to_pool(std::string("res1"));
-    pool.seed_to_pool(std::string("res2"));
+    pool.seed(std::string("res1"));
+    pool.seed(std::string("res2"));
     // deficit = 5 - (2 + 0) = 3
     auto json2 = pool.to_json();
     EXPECT_EQ(3, json2["deficit"]);
 
     // Borrow 1 resource
-    auto res = pool.borrow_from_pool();
+    auto res = pool.try_borrow();
     EXPECT_TRUE(res.has_value());
     // deficit = 5 - (1 + 1) = 3 (pool has 1, checked out has 1)
     auto json3 = pool.to_json();
@@ -90,17 +90,17 @@ TEST(resource_pool, loan_size_with_abandons)
     siddiqsoft::arrp::resource_pool<std::string> pool {};
 
     // Seed pool with resources
-    pool.seed_to_pool(std::string("res1"));
-    pool.seed_to_pool(std::string("res2"));
-    pool.seed_to_pool(std::string("res3"));
+    pool.seed(std::string("res1"));
+    pool.seed(std::string("res2"));
+    pool.seed(std::string("res3"));
 
     // Initial state: loans = 0
     auto json1 = pool.to_json();
     EXPECT_EQ(0, json1["loans"]);
 
     // Borrow 2 resources
-    auto res1 = pool.borrow_from_pool();
-    auto res2 = pool.borrow_from_pool();
+    auto res1 = pool.try_borrow();
+    auto res2 = pool.try_borrow();
     EXPECT_TRUE(res1.has_value());
     EXPECT_TRUE(res2.has_value());
 
@@ -135,7 +135,7 @@ TEST(resource_pool, concurrent_json_no_deadlock)
 
     // Seed pool
     for (int i = 0; i < 5; ++i) {
-        pool.seed_to_pool(std::format("resource-{}", i));
+        pool.seed(std::format("resource-{}", i));
     }
 
     std::atomic_int json_reads {0};
@@ -162,7 +162,7 @@ TEST(resource_pool, concurrent_json_no_deadlock)
     auto borrow_thread = std::jthread([&]() {
         sync_threads_point();
         for (int i = 0; i < 100; ++i) {
-            auto res = pool.borrow_from_pool();
+            auto res = pool.try_borrow();
             if (res.has_value()) {
                 borrows++;
             }
@@ -182,7 +182,7 @@ TEST(resource_pool, concurrent_json_no_deadlock)
     // Main thread: Also borrow/return
     sync_threads_point();
     for (int i = 0; i < 50; ++i) {
-        auto res = pool.borrow_from_pool();
+        auto res = pool.try_borrow();
         if (res.has_value()) {
             borrows++;
         }
@@ -203,20 +203,20 @@ TEST(scoped_resource, move_assignment_returns_previous)
     siddiqsoft::arrp::resource_pool<std::string> pool {};
 
     // Seed pool with resources
-    pool.seed_to_pool(std::string("original"));
-    pool.seed_to_pool(std::string("replacement"));
+    pool.seed(std::string("original"));
+    pool.seed(std::string("replacement"));
 
     EXPECT_EQ(2u, pool.size());
 
     // Borrow first resource
-    auto res1_result = pool.borrow_from_pool();
+    auto res1_result = pool.try_borrow();
     EXPECT_TRUE(res1_result.has_value());
     auto res1 = std::move(res1_result);
     EXPECT_EQ("original", *res1);
     EXPECT_EQ(1u, pool.size());
 
     // Borrow second resource
-    auto res2_result = pool.borrow_from_pool();
+    auto res2_result = pool.try_borrow();
     EXPECT_TRUE(res2_result.has_value());
     auto res2 = std::move(res2_result);
     EXPECT_EQ("replacement", *res2);
@@ -231,7 +231,7 @@ TEST(scoped_resource, move_assignment_returns_previous)
     EXPECT_EQ(1u, pool.size());
 
     // Verify we can borrow the original resource
-    auto res3_result = pool.borrow_from_pool();
+    auto res3_result = pool.try_borrow();
     EXPECT_TRUE(res3_result.has_value());
     auto res3 = std::move(res3_result);
     EXPECT_EQ("original", *res3);

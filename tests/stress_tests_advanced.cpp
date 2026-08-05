@@ -79,7 +79,7 @@ TEST(stress_extreme_concurrency, max_threads_high_iterations)
 
     siddiqsoft::arrp::resource_pool<std::string> pool {};
     for (int i = 0; i < POOL_SIZE; ++i) {
-        pool.seed_to_pool(std::format("resource-{}", i));
+        pool.seed(std::format("resource-{}", i));
     }
 
     std::atomic_int           total_borrows {0};
@@ -91,7 +91,7 @@ TEST(stress_extreme_concurrency, max_threads_high_iterations)
         threads.emplace_back([&]() {
             start_barrier.arrive_and_wait();
             for (int i = 0; i < ITERATIONS; ++i) {
-                auto res = pool.borrow_from_pool();
+                auto res = pool.try_borrow();
                 if (res.has_value()) {
                     total_borrows++;
                 }
@@ -120,7 +120,7 @@ TEST(stress_extreme_concurrency, dynamic_thread_lifecycle)
 
     siddiqsoft::arrp::resource_pool<std::string> pool {};
     for (int i = 0; i < POOL_SIZE; ++i) {
-        pool.seed_to_pool(std::format("resource-{}", i));
+        pool.seed(std::format("resource-{}", i));
     }
 
     std::atomic_int total_ops {0};
@@ -133,7 +133,7 @@ TEST(stress_extreme_concurrency, dynamic_thread_lifecycle)
             threads.emplace_back([&]() {
                 start_barrier.arrive_and_wait();
                 for (int i = 0; i < ITERATIONS_PER_THREAD; ++i) {
-                    auto res = pool.borrow_from_pool();
+                    auto res = pool.try_borrow();
                     if (res.has_value()) {
                         total_ops++;
                     }
@@ -158,7 +158,7 @@ TEST(stress_extreme_concurrency, persistent_worker_threads)
 
     siddiqsoft::arrp::resource_pool<std::string> pool {};
     for (int i = 0; i < POOL_SIZE; ++i) {
-        pool.seed_to_pool(std::format("resource-{}", i));
+        pool.seed(std::format("resource-{}", i));
     }
 
     std::atomic_int           tasks_completed {0};
@@ -171,7 +171,7 @@ TEST(stress_extreme_concurrency, persistent_worker_threads)
             start_barrier.arrive_and_wait();
             int local_tasks = 0;
             while (local_tasks < TASKS_PER_WORKER && !shutdown.load()) {
-                auto res = pool.borrow_from_pool();
+                auto res = pool.try_borrow();
                 if (res.has_value()) {
                     // Simulate work
                     std::this_thread::sleep_for(std::chrono::microseconds(10));
@@ -202,10 +202,10 @@ TEST(stress_lifecycle, rapid_pool_creation_destruction)
 {
     for (int i = 0; i < 100; ++i) {
         siddiqsoft::arrp::resource_pool<std::string> pool {};
-        pool.seed_to_pool(std::string("resource"));
+        pool.seed(std::string("resource"));
 
         {
-            auto res = pool.borrow_from_pool();
+            auto res = pool.try_borrow();
             EXPECT_TRUE(res.has_value());
             EXPECT_EQ("resource", *res);
         }
@@ -236,13 +236,13 @@ TEST(stress_lifecycle, complex_resource_types)
         ComplexResource res;
         res.data.push_back(std::format("item-{}", i));
         res.metadata["index"] = i;
-        pool.seed_to_pool(std::move(res));
+        pool.seed(std::move(res));
     }
 
     EXPECT_EQ(5u, pool.size());
 
     for (int i = 0; i < 5; ++i) {
-        auto res = pool.borrow_from_pool();
+        auto res = pool.try_borrow();
         EXPECT_TRUE(res.has_value());
         EXPECT_FALSE((*res).data.empty());
         EXPECT_FALSE((*res).metadata.empty());
@@ -257,11 +257,11 @@ TEST(stress_lifecycle, complex_resource_types)
 TEST(stress_lifecycle, resource_state_persistence)
 {
     siddiqsoft::arrp::resource_pool<std::vector<int>> pool {};
-    pool.seed_to_pool(std::vector<int> {1, 2, 3});
+    pool.seed(std::vector<int> {1, 2, 3});
 
     for (int cycle = 0; cycle < 50; ++cycle) {
         {
-            auto res = pool.borrow_from_pool();
+            auto res = pool.try_borrow();
             if (res.has_value()) {
                 (*res).push_back(cycle);
             }
@@ -269,7 +269,7 @@ TEST(stress_lifecycle, resource_state_persistence)
     }
 
     {
-        auto res = pool.borrow_from_pool();
+        auto res = pool.try_borrow();
         EXPECT_TRUE(res.has_value());
         EXPECT_EQ(53u, (*res).size()); // 3 initial + 50 cycles
     }
@@ -285,7 +285,7 @@ TEST(stress_lifecycle, move_only_concurrent)
 
     siddiqsoft::arrp::resource_pool<std::unique_ptr<std::string>> pool {};
     for (int i = 0; i < POOL_SIZE; ++i) {
-        pool.seed_to_pool(std::make_unique<std::string>(std::format("resource-{}", i)));
+        pool.seed(std::make_unique<std::string>(std::format("resource-{}", i)));
     }
 
     std::atomic_int           total_ops {0};
@@ -296,7 +296,7 @@ TEST(stress_lifecycle, move_only_concurrent)
         threads.emplace_back([&]() {
             start_barrier.arrive_and_wait();
             for (int i = 0; i < ITERATIONS; ++i) {
-                auto res = pool.borrow_from_pool();
+                auto res = pool.try_borrow();
                 if (res.has_value()) {
                     EXPECT_NE(nullptr, *res);
                     total_ops++;
@@ -327,13 +327,13 @@ TEST(stress_memory, large_object_pool)
     for (int i = 0; i < POOL_SIZE; ++i) {
         std::string large_vec(OBJECT_SIZE, 'x');
         large_vec.insert(0, std::format("{}", i));
-        pool.seed_to_pool(std::move(large_vec));
+        pool.seed(std::move(large_vec));
     }
 
     EXPECT_EQ(2u, pool.size());
 
     {
-        auto res = pool.borrow_from_pool();
+        auto res = pool.try_borrow();
         if (res.has_value()) {
             (*res)[0] = 'y';
         }
@@ -342,8 +342,8 @@ TEST(stress_memory, large_object_pool)
     EXPECT_EQ(2u, pool.size());
 
     {
-        auto res1 = pool.borrow_from_pool();
-        auto res2 = pool.borrow_from_pool();
+        auto res1 = pool.try_borrow();
+        auto res2 = pool.try_borrow();
         if (res1.has_value() && res2.has_value()) {
             EXPECT_TRUE(('y' == (*res1)[0]) || ('y' == (*res2)[0])); // Verify state persistence
         }
@@ -358,11 +358,11 @@ TEST(stress_memory, variable_size_objects)
 {
     siddiqsoft::arrp::resource_pool<std::vector<int>> pool {};
 
-    pool.seed_to_pool(std::vector<int>(1000, 1));
+    pool.seed(std::vector<int>(1000, 1));
 
     for (int cycle = 0; cycle < 100; ++cycle) {
         {
-            auto res = pool.borrow_from_pool();
+            auto res = pool.try_borrow();
             if (res.has_value()) {
                 // Grow the vector
                 for (int i = 0; i < 100; ++i) {
@@ -372,7 +372,7 @@ TEST(stress_memory, variable_size_objects)
         }
 
         {
-            auto res = pool.borrow_from_pool();
+            auto res = pool.try_borrow();
             if (res.has_value()) {
                 // Shrink the vector
                 (*res).clear();
@@ -392,13 +392,13 @@ TEST(stress_memory, many_small_objects)
 
     siddiqsoft::arrp::resource_pool<SmallObject> pool {};
     for (int i = 0; i < POOL_SIZE; ++i) {
-        pool.seed_to_pool(SmallObject(i));
+        pool.seed(SmallObject(i));
     }
 
     EXPECT_EQ(POOL_SIZE, pool.size());
 
     for (int i = 0; i < POOL_SIZE; ++i) {
-        auto res = pool.borrow_from_pool();
+        auto res = pool.try_borrow();
         if (res.has_value()) {
             EXPECT_GE((*res).value, 0);
         }
@@ -420,7 +420,7 @@ TEST(stress_contention, extreme_starvation)
     constexpr int                                ITERATIONS   = 100;
 
     siddiqsoft::arrp::resource_pool<std::string> pool {};
-    pool.seed_to_pool(std::string("single-resource"));
+    pool.seed(std::string("single-resource"));
 
     std::atomic_int           successes {0};
     std::atomic_int           failures {0};
@@ -431,7 +431,7 @@ TEST(stress_contention, extreme_starvation)
         threads.emplace_back([&]() {
             start_barrier.arrive_and_wait();
             for (int i = 0; i < ITERATIONS; ++i) {
-                auto res = pool.borrow_from_pool();
+                auto res = pool.try_borrow();
                 if (res.has_value()) {
                     successes++;
                     std::this_thread::sleep_for(std::chrono::microseconds(100));
@@ -459,7 +459,7 @@ TEST(stress_contention, gradual_contention_increase)
 
     siddiqsoft::arrp::resource_pool<std::string> pool {};
     for (int i = 0; i < POOL_SIZE; ++i) {
-        pool.seed_to_pool(std::format("resource-{}", i));
+        pool.seed(std::format("resource-{}", i));
     }
 
     for (int thread_count = 1; thread_count <= 32; thread_count *= 2) {
@@ -471,7 +471,7 @@ TEST(stress_contention, gradual_contention_increase)
             threads.emplace_back([&]() {
                 start_barrier.arrive_and_wait();
                 for (int i = 0; i < 100; ++i) {
-                    auto res = pool.borrow_from_pool();
+                    auto res = pool.try_borrow();
                     if (res.has_value()) {
                         ops++;
                     }
@@ -496,7 +496,7 @@ TEST(stress_contention, fairness_distribution)
 
     siddiqsoft::arrp::resource_pool<std::string> pool {};
     for (int i = 0; i < POOL_SIZE; ++i) {
-        pool.seed_to_pool(std::format("resource-{}", i));
+        pool.seed(std::format("resource-{}", i));
     }
 
     std::vector<std::atomic_int> thread_successes(THREAD_COUNT);
@@ -512,7 +512,7 @@ TEST(stress_contention, fairness_distribution)
             }
 
             for (int i = 0; i < ITERATIONS; ++i) {
-                auto res = pool.borrow_from_pool();
+                auto res = pool.try_borrow();
                 if (res.has_value()) {
                     thread_successes[t]++;
                 }
@@ -554,7 +554,7 @@ TEST(stress_chaos, random_operation_timing)
 
     siddiqsoft::arrp::resource_pool<std::string> pool {};
     for (int i = 0; i < 8; ++i) {
-        pool.seed_to_pool(std::format("resource-{}", i));
+        pool.seed(std::format("resource-{}", i));
     }
 
     std::atomic_int           ops {0};
@@ -566,7 +566,7 @@ TEST(stress_chaos, random_operation_timing)
             std::mt19937 local_gen(rd() + t);
             start_barrier.arrive_and_wait();
             for (int i = 0; i < 100; ++i) {
-                auto res = pool.borrow_from_pool();
+                auto res = pool.try_borrow();
                 if (res.has_value()) {
                     ops++;
                     std::this_thread::sleep_for(std::chrono::microseconds(delay_dist(local_gen)));
@@ -590,13 +590,13 @@ TEST(stress_chaos, random_exception_injection)
     std::uniform_int_distribution<>              exception_dist(0, 10);
 
     siddiqsoft::arrp::resource_pool<std::string> pool {};
-    pool.seed_to_pool(std::string("resource"));
+    pool.seed(std::string("resource"));
 
     std::atomic_int exceptions_caught {0};
     std::atomic_int successful_ops {0};
 
     for (int i = 0; i < 1000; ++i) {
-        auto res = pool.borrow_from_pool();
+        auto res = pool.try_borrow();
         if (res.has_value()) {
             if (exception_dist(gen) < 3) {
                 // Simulate exception handling
@@ -623,7 +623,7 @@ TEST(stress_chaos, random_clear_operations)
 
     siddiqsoft::arrp::resource_pool<std::string> pool {};
     for (int i = 0; i < 10; ++i) {
-        pool.seed_to_pool(std::format("resource-{}", i));
+        pool.seed(std::format("resource-{}", i));
     }
 
     std::atomic_int  clears {0};
@@ -632,7 +632,7 @@ TEST(stress_chaos, random_clear_operations)
 
     auto             worker  = std::jthread([&]() {
         for (int i = 0; i < 500 && !stop.load(); ++i) {
-            auto res = pool.borrow_from_pool();
+            auto res = pool.try_borrow();
             if (res.has_value()) {
                 borrows++;
             }
@@ -646,7 +646,7 @@ TEST(stress_chaos, random_clear_operations)
                 clears++;
                 // Repopulate
                 for (int j = 0; j < 5; ++j) {
-                    pool.seed_to_pool(std::format("resource-{}", j));
+                    pool.seed(std::format("resource-{}", j));
                 }
             }
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -676,7 +676,7 @@ TEST(stress_capacity, maximum_capacity)
 
     // Fill to capacity
     for (uint8_t i = 0; i < MAX_CAPACITY; ++i) {
-        pool.seed_to_pool(std::format("resource-{}", i));
+        pool.seed(std::format("resource-{}", i));
     }
 
     EXPECT_EQ(MAX_CAPACITY, pool.size());
@@ -684,7 +684,7 @@ TEST(stress_capacity, maximum_capacity)
     // Checkout all
     std::vector<siddiqsoft::arrp::scoped_resource<std::string>> resources;
     for (uint8_t i = 0; i < MAX_CAPACITY; ++i) {
-        auto res = pool.borrow_from_pool();
+        auto res = pool.try_borrow();
         if (res.has_value()) {
             resources.push_back(std::move(res));
         }
@@ -693,7 +693,7 @@ TEST(stress_capacity, maximum_capacity)
     EXPECT_EQ(0u, pool.size());
 
     // Should fail when trying to borrow beyond capacity
-    auto res = pool.borrow_from_pool();
+    auto res = pool.try_borrow();
     EXPECT_FALSE(res.has_value());
 
     // Return all
@@ -709,7 +709,7 @@ TEST(stress_capacity, capacity_enforcement_concurrent)
     siddiqsoft::arrp::resource_pool<std::string, siddiqsoft::arrp::scoped_resource<std::string>> pool {CAPACITY};
 
     for (uint8_t i = 0; i < CAPACITY; ++i) {
-        pool.seed_to_pool(std::format("resource-{}", i));
+        pool.seed(std::format("resource-{}", i));
     }
 
     std::atomic_int successes {0};
@@ -718,7 +718,7 @@ TEST(stress_capacity, capacity_enforcement_concurrent)
 
     // Let us first invalidate a few resources..
     {
-        auto r1 = pool.borrow_from_pool();
+        auto r1 = pool.try_borrow();
         if (r1.has_value()) {
             r1.invalidate();
         }
@@ -731,7 +731,7 @@ TEST(stress_capacity, capacity_enforcement_concurrent)
         threads.emplace_back([&, t]() {
             start_barrier.arrive_and_wait();
             for (int i = 0; i < 10; ++i) {
-                auto res = pool.borrow_from_pool();
+                auto res = pool.try_borrow();
                 if (res.has_value()) {
                     successes++;
                     // hold on to the resource for a few ms..
@@ -762,10 +762,10 @@ TEST(stress_capacity, capacity_enforcement_concurrent)
 TEST(stress_recovery, repeated_exceptions)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool {};
-    pool.seed_to_pool(std::string("resource"));
+    pool.seed(std::string("resource"));
 
     for (int i = 0; i < 100; ++i) {
-        auto res = pool.borrow_from_pool();
+        auto res = pool.try_borrow();
         if (res.has_value()) {
             if (i % 2 == 0) {
                 // Simulate exception handling
@@ -775,7 +775,7 @@ TEST(stress_recovery, repeated_exceptions)
 
     // Pool should still be functional
     EXPECT_EQ(1u, pool.size());
-    auto res = pool.borrow_from_pool();
+    auto res = pool.try_borrow();
     EXPECT_TRUE(res.has_value());
     EXPECT_EQ("resource", *res);
 }
@@ -789,14 +789,14 @@ TEST(stress_recovery, clear_and_repopulate)
     for (int cycle = 0; cycle < 50; ++cycle) {
         // Populate
         for (int i = 0; i < 10; ++i) {
-            pool.seed_to_pool(std::format("resource-{}-{}", cycle, i));
+            pool.seed(std::format("resource-{}-{}", cycle, i));
         }
 
         EXPECT_EQ(10u, pool.size());
 
         // Use some resources
         {
-            auto res = pool.borrow_from_pool();
+            auto res = pool.try_borrow();
             if (res.has_value()) {
                 EXPECT_FALSE((*res).empty());
             }
@@ -823,7 +823,7 @@ TEST(stress_patterns, producer_consumer)
 
     siddiqsoft::arrp::resource_pool<std::string> pool {};
     for (int i = 0; i < POOL_SIZE; ++i) {
-        pool.seed_to_pool(std::format("resource-{}", i));
+        pool.seed(std::format("resource-{}", i));
     }
 
     std::atomic_int           produced {0};
@@ -837,7 +837,7 @@ TEST(stress_patterns, producer_consumer)
         threads.emplace_back([&, p]() {
             start_barrier.arrive_and_wait();
             for (int i = 0; i < ITEMS_PER_PRODUCER; ++i) {
-                pool.seed_to_pool(std::format("produced-{}-{}", p, i));
+                pool.seed(std::format("produced-{}-{}", p, i));
                 produced++;
             }
         });
@@ -848,7 +848,7 @@ TEST(stress_patterns, producer_consumer)
         threads.emplace_back([&]() {
             start_barrier.arrive_and_wait();
             for (int i = 0; i < ITEMS_PER_PRODUCER; ++i) {
-                auto res = pool.borrow_from_pool();
+                auto res = pool.try_borrow();
                 if (res.has_value()) {
                     consumed++;
                 }
@@ -868,7 +868,7 @@ TEST(stress_patterns, mixed_operations)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool {};
     for (int i = 0; i < 10; ++i) {
-        pool.seed_to_pool(std::format("resource-{}", i));
+        pool.seed(std::format("resource-{}", i));
     }
 
     std::atomic_int           borrows {0};
@@ -882,7 +882,7 @@ TEST(stress_patterns, mixed_operations)
     threads.emplace_back([&]() {
         start_barrier.arrive_and_wait();
         for (int i = 0; i < 100; ++i) {
-            auto res = pool.borrow_from_pool();
+            auto res = pool.try_borrow();
             if (res.has_value()) {
                 borrows++;
             }
@@ -893,7 +893,7 @@ TEST(stress_patterns, mixed_operations)
     threads.emplace_back([&]() {
         start_barrier.arrive_and_wait();
         for (int i = 0; i < 50; ++i) {
-            pool.seed_to_pool(std::format("new-resource-{}", i));
+            pool.seed(std::format("new-resource-{}", i));
             adds++;
         }
     });
@@ -943,7 +943,7 @@ TEST(stress_ultimate, comprehensive_stress)
 
     siddiqsoft::arrp::resource_pool<std::string> pool {};
     for (int i = 0; i < POOL_SIZE; ++i) {
-        pool.seed_to_pool(std::format("resource-{}", i));
+        pool.seed(std::format("resource-{}", i));
     }
 
     EXPECT_EQ(POOL_SIZE, pool.size());
@@ -969,7 +969,7 @@ TEST(stress_ultimate, comprehensive_stress)
                 try {
                     if (op < 70) {
                         // Borrow operation
-                        auto res = pool.borrow_from_pool();
+                        auto res = pool.try_borrow();
                         if (res.has_value()) {
                             total_ops++;
                             std::this_thread::sleep_for(std::chrono::microseconds(op_dist(gen) % 100));
@@ -981,7 +981,7 @@ TEST(stress_ultimate, comprehensive_stress)
                     else if (op < 85) {
                         // Add operation (guard against exceptions)
                         try {
-                            pool.seed_to_pool(std::format("new-resource-{}-{}", t, op_dist(gen)));
+                            pool.seed(std::format("new-resource-{}-{}", t, op_dist(gen)));
                             total_ops++;
                         }
                         catch (...) {
@@ -996,7 +996,7 @@ TEST(stress_ultimate, comprehensive_stress)
                             // Repopulate (guard each seed)
                             for (int i = 0; i < 5; ++i) {
                                 try {
-                                    pool.seed_to_pool(std::format("repopulated-{}", i));
+                                    pool.seed(std::format("repopulated-{}", i));
                                 }
                                 catch (...) {
                                     total_exceptions++;
