@@ -192,7 +192,7 @@ TEST(custom_scoped_resource, multiple_file_resources)
     std::string temp_file3 = create_temp_file();
 
     try {
-        siddiqsoft::arrp::resource_pool<FILE*> pool {[](FILE*& fh) {
+        siddiqsoft::arrp::resource_pool<FILE*> pool {[](auto& fh) {
             if (fh != nullptr) {
                 std::print(std::cerr, "{} - closing filehandle:{:p}\n", __func__, (void*)fh);
                 fclose(fh);
@@ -245,7 +245,7 @@ TEST(custom_scoped_resource, file_persistence_across_cycles)
     std::string temp_file = create_temp_file();
 
     try {
-        siddiqsoft::arrp::resource_pool<FILE*> pool {[temp_file](FILE*& fh) {
+        siddiqsoft::arrp::resource_pool<FILE*> pool {[temp_file](auto& fh) {
             if (fh != nullptr) {
                 std::print(std::cerr, "{} - closing `{}` filehandle:{:p}\n", __func__, temp_file, (void*)fh);
                 fclose(fh);
@@ -253,11 +253,11 @@ TEST(custom_scoped_resource, file_persistence_across_cycles)
         }};
 
         // FIX 1: Use append mode
-        pool.seed_to_pool(std::fopen(temp_file.c_str(), "a+"));
+        pool.set_factory_callback([&temp_file] { return std::fopen(temp_file.c_str(), "a+"); });
 
         // First cycle: write data
         {
-            auto file_result = pool.borrow_from_pool();
+            auto file_result = pool.borrow_from_pool({},true);
             if (file_result.has_value()) {
                 auto fp = *file_result;
                 // FIX 2: Explicit file pointer positioning
