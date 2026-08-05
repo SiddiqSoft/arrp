@@ -3,10 +3,7 @@
 #define ARRP_COMMON_HPP
 
 #include <cstdint>
-#include <exception>
-#include <format>
-#include <limits>
-#include <string_view>
+#include <climits>
 
 
 namespace siddiqsoft::arrp
