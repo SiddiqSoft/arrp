@@ -371,6 +371,16 @@ namespace siddiqsoft::arrp
         /// @note The resource is marked as valid
         scoped_resource& operator=(T&& src)
         {
+            if (m_putback_callback) {
+                try {
+                    m_putback_callback(std::move(m_rsrc), m_is_valid);
+                }
+                catch (...) {
+                    std::print(std::cerr,
+                               "scoped_resource resource-assignment: exception while returning existing resource to pool!\n");
+                }
+            }
+
             m_rsrc     = std::move(src);
             m_is_valid = true;
             return *this;
