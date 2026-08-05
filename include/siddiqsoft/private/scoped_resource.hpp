@@ -215,14 +215,17 @@ namespace siddiqsoft::arrp
         ///
         /// @note The source's callback is cleared to prevent double-return
         /// @note The source is marked as invalid
-        scoped_resource(scoped_resource&& src) noexcept
+        scoped_resource(scoped_resource&& src) noexcept(
+            std::is_nothrow_move_constructible_v<T> && std::is_nothrow_move_constructible_v<PutbackCallbackFunc>)
             : m_rsrc(std::move(src.m_rsrc))
             , m_putback_callback(std::move(src.m_putback_callback))
             , m_is_valid(src.m_is_valid)
+            , m_error_code(src.m_error_code)
         {
-            // Reset to ensure that the source does not double return!
+            // Reset to ensure that the source does not double return or preserve stale error state.
             src.m_putback_callback = {};
             src.m_is_valid         = false;
+            src.m_error_code       = pool_error::Ok;
         }
 
         /// @brief Move assignment operator
@@ -256,8 +259,7 @@ namespace siddiqsoft::arrp
                         std::print(std::cerr,
                                    "scoped_resource move-assignment: exception while returning current resource to pool!\n");
                     }
-                    // Clear our own callback and validity now that the resource has been
-                    // handed back; this prevents the destructor from double-returning.
+                    // Clear the old callback and validity now that the resource has been handed back.
                     m_putback_callback = {};
                     m_is_valid         = false;
                 }
@@ -266,10 +268,12 @@ namespace siddiqsoft::arrp
                 m_rsrc             = std::move(src.m_rsrc);
                 m_putback_callback = std::move(src.m_putback_callback);
                 m_is_valid         = src.m_is_valid;
+                m_error_code       = src.m_error_code;
 
-                // Disarm src so its destructor does nothing.
+                // Disarm src so its destructor does nothing and stale error state is cleared.
                 src.m_putback_callback = {};
                 src.m_is_valid         = false;
+                src.m_error_code       = pool_error::Ok;
             }
             return *this;
         }
