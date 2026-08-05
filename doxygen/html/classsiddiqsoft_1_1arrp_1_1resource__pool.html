@@ -110,10 +110,10 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a92894077c3201d3249b6e4794eccb9f2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy assignment operator is deleted.  <br /></td></tr>
 <tr class="memitem:a677f09ac75e9fb183037cc22beed0e4a" id="r_a677f09ac75e9fb183037cc22beed0e4a"><td class="memItemLeft"><a class="el" href="#a39921925c1e41b9f3eb86819dc227f25">resource_pool</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a677f09ac75e9fb183037cc22beed0e4a">operator=</a> (<a class="el" href="#a39921925c1e41b9f3eb86819dc227f25">resource_pool</a> &amp;&amp;src)=delete</td></tr>
 <tr class="memdesc:a677f09ac75e9fb183037cc22beed0e4a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Move assignment operator is deleted.  <br /></td></tr>
-<tr class="memitem:a501c92c79d8e8b83ae023a7288dd39b4" id="r_a501c92c79d8e8b83ae023a7288dd39b4"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a501c92c79d8e8b83ae023a7288dd39b4">resource_pool</a> (uint8_t init_capacity=resource_pool_limits::DefaultCapacity, std::function&lt; void(T &amp;&amp;)&gt; &amp;&amp;on_shutdown_callback={})</td></tr>
-<tr class="memdesc:a501c92c79d8e8b83ae023a7288dd39b4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructs a resource pool with factory and cleanup callbacks.  <br /></td></tr>
-<tr class="memitem:a1071db7c8884fdb74dee2edd166f63c0" id="r_a1071db7c8884fdb74dee2edd166f63c0"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a1071db7c8884fdb74dee2edd166f63c0">resource_pool</a> (std::function&lt; void(T &amp;&amp;)&gt; &amp;&amp;on_shutdown_callback)</td></tr>
-<tr class="memdesc:a1071db7c8884fdb74dee2edd166f63c0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructs a resource pool with only cleanup callback.  <br /></td></tr>
+<tr class="memitem:a2b20dcb083eda1489c547d73a11a146e" id="r_a2b20dcb083eda1489c547d73a11a146e"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a2b20dcb083eda1489c547d73a11a146e">resource_pool</a> (uint8_t init_capacity=resource_pool_limits::DefaultCapacity, std::function&lt; void(T &amp;)&gt; &amp;&amp;on_shutdown_callback={})</td></tr>
+<tr class="memdesc:a2b20dcb083eda1489c547d73a11a146e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructs a resource pool with factory and cleanup callbacks.  <br /></td></tr>
+<tr class="memitem:a9cf11b7c281887e0ad0b382629d7913d" id="r_a9cf11b7c281887e0ad0b382629d7913d"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a9cf11b7c281887e0ad0b382629d7913d">resource_pool</a> (std::function&lt; void(T &amp;)&gt; &amp;&amp;on_shutdown_callback)</td></tr>
+<tr class="memdesc:a9cf11b7c281887e0ad0b382629d7913d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructs a resource pool with only cleanup callback.  <br /></td></tr>
 <tr class="memitem:a4c5adeffece26472c1f3c11e333c99c9" id="r_a4c5adeffece26472c1f3c11e333c99c9"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a4c5adeffece26472c1f3c11e333c99c9">~resource_pool</a> ()</td></tr>
 <tr class="memdesc:a4c5adeffece26472c1f3c11e333c99c9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Destructor - cleans up all resources in the pool.  <br /></td></tr>
 <tr class="memitem:a3fbd76ff3f32b990e02f2c0b296c30a0" id="r_a3fbd76ff3f32b990e02f2c0b296c30a0"><td class="memTemplParams" colspan="2">template&lt;typename... Args&gt; </td></tr>
@@ -237,8 +237,8 @@ template&lt;typename T, typename SRT = scoped_resource&lt;T&gt;&gt; </div>
 
 </div>
 </div>
-<a id="a501c92c79d8e8b83ae023a7288dd39b4" name="a501c92c79d8e8b83ae023a7288dd39b4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a501c92c79d8e8b83ae023a7288dd39b4">&#9670;&#160;</a></span>resource_pool() <span class="overload">[3/4]</span></h2>
+<a id="a2b20dcb083eda1489c547d73a11a146e" name="a2b20dcb083eda1489c547d73a11a146e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2b20dcb083eda1489c547d73a11a146e">&#9670;&#160;</a></span>resource_pool() <span class="overload">[3/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -256,7 +256,7 @@ template&lt;typename T, typename SRT = scoped_resource&lt;T&gt;&gt; </div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">std::function&lt; void(T &amp;&amp;)&gt; &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em>on_shutdown_callback</em></span><span class="paramdefsep"> = </span><span class="paramdefval">{}</span>&#160;)</td>
+          <td class="paramtype">std::function&lt; void(T &amp;)&gt; &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em>on_shutdown_callback</em></span><span class="paramdefsep"> = </span><span class="paramdefval">{}</span>&#160;)</td>
         </tr>
       </table>
   </td>
@@ -285,8 +285,8 @@ Capacity is clamped to valid range [MinimumCapacity, MaxCapacity] </dd></dl>
 
 </div>
 </div>
-<a id="a1071db7c8884fdb74dee2edd166f63c0" name="a1071db7c8884fdb74dee2edd166f63c0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1071db7c8884fdb74dee2edd166f63c0">&#9670;&#160;</a></span>resource_pool() <span class="overload">[4/4]</span></h2>
+<a id="a9cf11b7c281887e0ad0b382629d7913d" name="a9cf11b7c281887e0ad0b382629d7913d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9cf11b7c281887e0ad0b382629d7913d">&#9670;&#160;</a></span>resource_pool() <span class="overload">[4/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -299,7 +299,7 @@ template&lt;typename T, typename SRT = scoped_resource&lt;T&gt;&gt; </div>
         <tr>
           <td class="memname"><a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool</a>&lt; T, SRT &gt;::resource_pool </td>
           <td>(</td>
-          <td class="paramtype">std::function&lt; void(T &amp;&amp;)&gt; &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em>on_shutdown_callback</em></span></td><td>)</td>
+          <td class="paramtype">std::function&lt; void(T &amp;)&gt; &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em>on_shutdown_callback</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
