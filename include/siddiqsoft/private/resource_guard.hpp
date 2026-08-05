@@ -85,7 +85,7 @@ namespace siddiqsoft::arrp
     /// @brief RAII wrapper for managing resource lifecycle in a resource pool
     ///
     /// @details
-    /// resource_guard automatically returns resources to the pool when destroyed.
+    /// resource_guard invokes its return callback when destroyed.
     /// It enforces move-only semantics to prevent resource ownership ambiguity.
     /// The resource is wrapped with a callback that is invoked during destruction
     /// to return the resource to the pool.
@@ -94,12 +94,13 @@ namespace siddiqsoft::arrp
     ///
     /// @warning This class is NOT thread-safe. Each resource_guard instance
     /// should be accessed by only one thread at a time. The resource_pool itself
-    /// is thread-safe, but individual resource_guard instances are not.
+    /// has synchronized storage operations, but individual resource_guard instances
+    /// are not.
     ///
     /// @note Move-only semantics: Copy operations are deleted to prevent resource ownership ambiguity
     /// @note RAII pattern: Resource is automatically returned to pool on destruction
     /// @note Callback-based: Uses std::function callback to return resource to pool
-    /// @note Not directly constructible: Only resource_pool can create instances
+    /// @note Pool-created guards carry the callback that returns their resource.
     /// @note Validity tracking: Tracks whether resource is valid and should be returned to pool
     ///
     /// @example
@@ -119,10 +120,8 @@ namespace siddiqsoft::arrp
     public:
         /// @brief Callback function type for returning resource to pool
         ///
-        /// This callback allows the implementor that is asking for the resource_guard the ability to
-        /// recall it back or perform any additional tasks.
-        /// The callback must not throw and must not invoke any other method in the pool that requires
-        /// lock manipulation.
+        /// The callback receives the resource and whether it remains reusable.
+        /// It is normally installed by resource_pool.
         ///
         /// @param resource The resource being returned (moved)
         /// @param is_valid Whether the resource is valid and should be reused
@@ -140,8 +139,7 @@ namespace siddiqsoft::arrp
         friend class resource_pool;
 
         /// @brief Callback function to return the resource to the pool
-        /// @details Called by destructor when resource is valid. Typically returns the
-        ///          resource to the resource_pool for reuse.
+        /// @details Called by the destructor for both valid and invalid resources.
         PutbackCallbackFunc m_putback_callback {};
 
         /// @brief Tracks whether the resource is valid and should be returned to pool
@@ -153,10 +151,8 @@ namespace siddiqsoft::arrp
         pool_error m_error_code {pool_error::Ok};
 
     protected:
-        /// @brief Default constructor is protected to allow derived classes
-        /// construct their own data.
-        /// @note Marking this as valid is critical otherwise the clients will
-        /// assume the resource is invalid during borrow_or_create().
+        /// @brief Default constructor for derived scoped-resource types
+        /// @note It creates a valid guard without a return callback.
         resource_guard()
             : m_is_valid(true)
         {
@@ -198,7 +194,8 @@ namespace siddiqsoft::arrp
         /// and prevent resource ownership ambiguity.
         resource_guard& operator=(const resource_guard&) = delete;
 
-        /// @brief Constructs a resource_guard in an error state
+        /// @brief Constructs an invalid guard carrying a borrow error
+        /// @param err Error reported by error()
         resource_guard(const pool_error& err)
             : m_is_valid(false)
             , m_error_code(err)
@@ -310,18 +307,22 @@ namespace siddiqsoft::arrp
     public:
         /// @brief Dereference operator to access the wrapped resource
         /// @return Reference to the wrapped resource
-        /// @warning Behavior is undefined if resource has been invalidated
+        /// @warning Does not check validity; do not use after invalidation or move-out.
         auto operator*() -> T& { return m_rsrc; }
 
         /// @brief Pointer-like access to the wrapped resource
         /// @return Pointer to the wrapped resource, or nullptr if invalid
         /// @note Returns nullptr if resource is invalid
         auto operator->() -> T* { return m_is_valid ? &m_rsrc : nullptr; }
+
+        /// @brief Provides const pointer-like access to the wrapped resource.
+        /// @return The resource address, or nullptr if the guard is invalid.
         auto operator->() const -> const T* { return m_is_valid ? &m_rsrc : nullptr; }
 
         /// @brief Explicit conversion to resource value
-        /// @returns The wrapped resource, moving it out of this wrapper.
-        /// @note Invalidates the resource_guard to prevent double-return during destruction.
+        /// @return The wrapped resource, moved out of this wrapper.
+        /// @note Invalidates the guard so its destructor abandons rather than returns
+        ///       the moved-from resource.
         explicit operator T() &&
         {
             m_is_valid = false;
@@ -330,28 +331,20 @@ namespace siddiqsoft::arrp
 
         /// @brief Explicit conversion to resource reference
         /// @return Reference to the wrapped resource
-        /// @warning Behavior is undefined if resource has been invalidated
+        /// @warning Does not check validity; do not use after invalidation or move-out.
         explicit operator T&() & { return m_rsrc; }
+
+        /// @brief Provides a const reference to the wrapped resource.
+        /// @warning Does not check validity; do not use after invalidation or move-out.
         explicit operator const T&() const& { return m_rsrc; }
 
-        /// @brief Explicit bool conversion to indicate resource validity
+        /// @brief Tests whether the guard holds a resource eligible for return.
+        /// @return true when the guard is valid
         explicit operator bool() const noexcept { return m_is_valid; }
 
-        /// @brief This bit of code allows the client to get at the available
-        /// conversion within the stored type T.
-        /// @example Consider the following snippet (see the full example in examples/scoped_file)
-        /// class F {
-        ///    FILE* m_fh{};
-        ///    operator FILE*() { return m_fh}
-        /// }
-        /// ...
-        /// resource_pool<F> pool{};
-        /// ...
-        /// Allows us to do things such as
-        /// auto myfile = pool.try_borrow();
-        /// ...
-        /// fputs("Hello World", myfile);
-        ///
+        /// @brief Converts through a conversion supplied by the stored resource type.
+        /// @tparam InnerType Requested conversion target.
+        /// @return The result of converting the stored resource to InnerType.
         template <typename InnerType>
             requires std::convertible_to<const T&, InnerType>
         operator InnerType() const
@@ -361,14 +354,13 @@ namespace siddiqsoft::arrp
 
         /// @brief Assignment operator for resource value
         ///
-        /// Assigns a new resource value to this wrapper.
-        /// Marks the resource as valid.
+        /// Returns the current resource through its callback, then stores a replacement.
         ///
         /// @param src The new resource value (moved)
         /// @return Reference to this resource_guard
         ///
-        /// @note The resource is moved into the wrapper
-        /// @note The resource is marked as valid
+        /// @note The replacement is marked valid. If no callback is installed, the
+        ///       previous stored value is simply overwritten.
         resource_guard& operator=(T&& src)
         {
             if (m_putback_callback) {
@@ -396,7 +388,7 @@ namespace siddiqsoft::arrp
         ///
         /// @note Virtual: Can be overridden in derived classes
         /// @note The callback is still invoked; only the validity flag changes
-        /// @note The pool's callback should check the validity flag and handle accordingly
+        /// @note An override must preserve this state change to prevent return.
         /// @note Typically called when the resource is corrupted, moved out, or consumed
         ///
         /// @example
@@ -418,12 +410,20 @@ namespace siddiqsoft::arrp
         /// @note Const: Does not modify the resource
         virtual bool is_valid() const { return m_is_valid; }
 
+        /// @brief Sets the error reported by error().
+        /// @param err Error code to store.
+        /// @return This guard.
         auto&        set_error(pool_error err)
         {
             m_error_code = err;
             return *this;
         }
+        /// @brief Gets the error associated with this guard.
+        /// @return The stored error code; valid guards normally report pool_error::Ok.
         pool_error   error() const { return m_error_code; }
+
+        /// @brief Tests whether the guard holds a valid resource.
+        /// @return true when is_valid() would return true.
         virtual bool has_value() const { return m_is_valid; }
 
 #if defined(NLOHMANN_JSON_VERSION_MAJOR)
@@ -438,12 +438,8 @@ namespace siddiqsoft::arrp
         ///   - valid: Whether the resource is valid (boolean)
         ///   - value: The resource value (if serializable, otherwise "-noserializer-")
         ///
-        /// @note Requires NLOHMANN_JSON_VERSION_MAJOR to be defined
+        /// @note Available only when nlohmann/json.hpp was included before this header.
         /// @note If T is not serializable, value is set to "-noserializer-"
-        ///
-        /// @warning BREAKING CHANGE (v1.0.0): The JSON schema key changed from "capacity" to "valid".
-        ///          Previous versions incorrectly used "capacity" to represent the validity flag.
-        ///          Code parsing this JSON must be updated to use the "valid" key.
         ///
         /// @par JSON Schema:
         /// @code{.json}

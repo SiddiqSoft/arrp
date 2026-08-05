@@ -11,10 +11,9 @@ namespace siddiqsoft::arrp
     /// @brief Resource pool capacity limits and defaults
     ///
     /// @details
-    /// Defines the minimum, default, and maximum capacity values for resource pools.
-    /// These values control how many resources can be managed by a pool.
-    /// Do not use large values as this defeats the purpose of a resource_pool
-    /// and shared across multiple threads.
+    /// Defines the minimum, default, and maximum configured capacity values for
+    /// resource pools. The configured capacity is reported in pool statistics; it
+    /// is not an insertion limit.
     ///
     /// @note Values selected here have no special meaning and are only guides.
     /// @note MinimumCapacity: Smallest allowed pool size (1 resource)
@@ -57,6 +56,7 @@ namespace siddiqsoft::arrp
 template <>
 struct std::formatter<siddiqsoft::arrp::resource_pool_limits> : std::formatter<std::string>
 {
+    /// @brief Formats the numeric limit value.
     auto format(siddiqsoft::arrp::resource_pool_limits& pl, auto& ctx) const noexcept
     {
         return std::format_to(ctx.out(), "{}", static_cast<uint8_t>(pl));
@@ -67,6 +67,7 @@ struct std::formatter<siddiqsoft::arrp::resource_pool_limits> : std::formatter<s
 template <>
 struct std::formatter<siddiqsoft::arrp::pool_error> : std::formatter<std::string>
 {
+    /// @brief Formats the symbolic error name.
     auto format(siddiqsoft::arrp::pool_error& pe, auto& ctx) const noexcept
     {
         switch (pe) {
@@ -83,6 +84,7 @@ struct std::formatter<siddiqsoft::arrp::pool_error> : std::formatter<std::string
 template <>
 struct std::formatter<siddiqsoft::arrp::release_reason> : std::formatter<std::string>
 {
+    /// @brief Formats the symbolic release reason.
     auto format(siddiqsoft::arrp::release_reason& rr, auto& ctx) const noexcept
     {
         switch (rr) {
