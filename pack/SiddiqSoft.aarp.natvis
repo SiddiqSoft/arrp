@@ -6,7 +6,7 @@
     
     This file provides custom visualizations for:
     - siddiqsoft::arrp::resource_pool: Thread-safe auto-returning resource pool
-    - siddiqsoft::arrp::scoped_resource: RAII wrapper for resource lifecycle management
+    - siddiqsoft::arrp::resource_guard: RAII wrapper for resource lifecycle management
     
     Installation:
     - Visual Studio: Copy to %USERPROFILE%\Documents\Visual Studio 20XX\Visualizers\
@@ -19,11 +19,11 @@
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
 
   <!-- ============================================================================
-       scoped_resource<T> - RAII wrapper for resource lifecycle management
+       resource_guard<T> - RAII wrapper for resource lifecycle management
        ============================================================================ -->
-  <Type Name="siddiqsoft::arrp::scoped_resource&lt;*&gt;">
-    <DisplayString Condition="m_is_valid">scoped_resource&lt;{$T1}&gt; [valid, err:{m_error_code}]</DisplayString>
-    <DisplayString Condition="!m_is_valid">scoped_resource&lt;{$T1}&gt; [invalid, err:{m_error_code}]</DisplayString>
+  <Type Name="siddiqsoft::arrp::resource_guard&lt;*&gt;">
+    <DisplayString Condition="m_is_valid">resource_guard&lt;{$T1}&gt; [valid, err:{m_error_code}]</DisplayString>
+    <DisplayString Condition="!m_is_valid">resource_guard&lt;{$T1}&gt; [invalid, err:{m_error_code}]</DisplayString>
     <Expand>
       <Item Name="[Resource]">m_rsrc</Item>
       <Item Name="[Valid]">m_is_valid</Item>

@@ -748,7 +748,7 @@ TEST(counter_balance, maximum_capacity)
     EXPECT_EQ(0, get_borrow_count(pool));
 
     // Borrow all
-    std::vector<siddiqsoft::arrp::scoped_resource<std::string>> resources;
+    std::vector<siddiqsoft::arrp::resource_guard<std::string>> resources;
     for (int i = 0; i < 10; ++i) {
         auto res = pool.try_borrow();
         EXPECT_TRUE(res.has_value());
@@ -849,7 +849,7 @@ TEST(counter_balance, counter_size_consistency_2)
 
     // Borrow 5
     {
-        std::vector<siddiqsoft::arrp::scoped_resource<std::string>> holdResources;
+        std::vector<siddiqsoft::arrp::resource_guard<std::string>> holdResources;
 
         for (int i = 0; i < 5; i++) {
             holdResources.emplace_back(pool.try_borrow());

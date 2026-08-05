@@ -30,7 +30,7 @@ auto resource = pool.try_borrow();
 if (resource) {
     resource->doSomething();
 }
-// Resource automatically returned when scoped_resource is destroyed
+// Resource automatically returned when resource_guard is destroyed
 ```
 
 @subsection custom_factory Custom Factory
@@ -53,7 +53,7 @@ The library consists of three main components:
    - Handles borrowing and returning
    - Tracks statistics
 
-2. **scoped_resource<T>**: RAII wrapper
+2. **resource_guard<T>**: RAII wrapper
    - Wraps individual resources
    - Automatically returns on destruction
    - Supports move semantics
@@ -65,12 +65,12 @@ The library consists of three main components:
 @section thread_safety Thread Safety
 
 - **resource_pool**: Fully thread-safe (mutex-protected)
-- **scoped_resource**: NOT thread-safe (single-threaded access)
-- Each scoped_resource should be accessed by only one thread
+- **resource_guard**: NOT thread-safe (single-threaded access)
+- Each resource_guard should be accessed by only one thread
 
 @section error_handling Error Handling
 
-Borrowed resources are represented by `scoped_resource<T>` wrappers. Check validity before use and inspect `error()` when invalid:
+Borrowed resources are represented by `resource_guard<T>` wrappers. Check validity before use and inspect `error()` when invalid:
 
 ```cpp
 auto resource = pool.try_borrow();
@@ -153,6 +153,6 @@ if (file) {
 All types are in `siddiqsoft::arrp` namespace.
 
 @see resource_pool
-@see scoped_resource
+@see resource_guard
 @see pool_error
 */

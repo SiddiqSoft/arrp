@@ -1,7 +1,7 @@
 /*
-    Test cases for scoped_resource validity tracking fix
+    Test cases for resource_guard validity tracking fix
 
-    These tests verify that the scoped_resource class properly tracks
+    These tests verify that the resource_guard class properly tracks
     resource validity and prevents returning uninitialized or Abandoned
     resources to the pool.
 
@@ -28,7 +28,7 @@
  * Ensures the fix doesn't break normal operation.
  * This test works in both DEBUG and RELEASE builds.
  */
-TEST(scoped_resource_validity, valid_resource_returned)
+TEST(resource_guard_validity, valid_resource_returned)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool;
     pool.seed(std::string("42"));
@@ -36,7 +36,7 @@ TEST(scoped_resource_validity, valid_resource_returned)
     EXPECT_EQ(1u, pool.size());
 
     {
-        siddiqsoft::arrp::scoped_resource<std::string> wrap = pool.try_borrow();
+        siddiqsoft::arrp::resource_guard<std::string> wrap = pool.try_borrow();
         EXPECT_TRUE(wrap.has_value());
         EXPECT_EQ(0u, pool.size());
         // Don't invalidate - resource should be returned
@@ -53,7 +53,7 @@ TEST(scoped_resource_validity, valid_resource_returned)
 /**
  * @brief Test that assignment operator maintains validity
  */
-TEST(scoped_resource_validity, assignment_maintains_validity)
+TEST(resource_guard_validity, assignment_maintains_validity)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool;
     pool.seed(std::string("42"));
@@ -80,7 +80,7 @@ TEST(scoped_resource_validity, assignment_maintains_validity)
 /**
  * @brief Test that destructor properly handles valid resources
  */
-TEST(scoped_resource_validity, destructor_returns_valid_resource)
+TEST(resource_guard_validity, destructor_returns_valid_resource)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool;
     pool.seed(std::string("100"));
@@ -110,7 +110,7 @@ TEST(scoped_resource_validity, destructor_returns_valid_resource)
  *
  * NOTE: This test is only available in DEBUG builds
  */
-TEST(scoped_resource_validity, no_corruption_on_invalid_resource)
+TEST(resource_guard_validity, no_corruption_on_invalid_resource)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool;
     pool.seed(std::string("42"));
@@ -136,7 +136,7 @@ TEST(scoped_resource_validity, no_corruption_on_invalid_resource)
  *
  * NOTE: This test is only available in DEBUG builds
  */
-TEST(scoped_resource_validity, unique_ptr_invalidation)
+TEST(resource_guard_validity, unique_ptr_invalidation)
 {
     siddiqsoft::arrp::resource_pool<std::unique_ptr<std::string>> pool;
     pool.seed(std::make_unique<std::string>("42"));
@@ -161,7 +161,7 @@ TEST(scoped_resource_validity, unique_ptr_invalidation)
  *
  * NOTE: This test is only available in DEBUG builds
  */
-TEST(scoped_resource_validity, multiple_invalidations)
+TEST(resource_guard_validity, multiple_invalidations)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool;
     pool.seed(std::string("42"));
@@ -188,7 +188,7 @@ TEST(scoped_resource_validity, multiple_invalidations)
  *
  * NOTE: This test is only available in DEBUG builds
  */
-TEST(scoped_resource_validity, concurrent_with_invalidation)
+TEST(resource_guard_validity, concurrent_with_invalidation)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool;
 
@@ -248,7 +248,7 @@ TEST(scoped_resource_validity, concurrent_with_invalidation)
  *
  * NOTE: This test is only available in DEBUG builds
  */
-TEST(scoped_resource_validity, destructor_skips_invalid_resource)
+TEST(resource_guard_validity, destructor_skips_invalid_resource)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool;
     pool.seed(std::string("200"));
@@ -270,7 +270,7 @@ TEST(scoped_resource_validity, destructor_skips_invalid_resource)
  *
  * NOTE: This test is only available in DEBUG builds
  */
-TEST(scoped_resource_validity, mixed_valid_invalid_concurrent)
+TEST(resource_guard_validity, mixed_valid_invalid_concurrent)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool;
 
@@ -311,7 +311,7 @@ TEST(scoped_resource_validity, mixed_valid_invalid_concurrent)
 }
 
 
-TEST(scoped_resource_validity, valid_resource_returned_2)
+TEST(resource_guard_validity, valid_resource_returned_2)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool;
 
@@ -325,7 +325,7 @@ TEST(scoped_resource_validity, valid_resource_returned_2)
     EXPECT_EQ(0u, pool.size());
 
     {
-        siddiqsoft::arrp::scoped_resource<std::string> wrap = pool.try_borrow_create();
+        siddiqsoft::arrp::resource_guard<std::string> wrap = pool.try_borrow_create();
         EXPECT_TRUE(wrap.has_value());
         EXPECT_EQ(0u, pool.size());
         // Don't invalidate - resource should be returned

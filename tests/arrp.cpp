@@ -51,13 +51,13 @@
 
 // NOLINTBEGIN(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 #if defined (TODO_FIX)
-TEST(scoped_resource, T_string)
+TEST(resource_guard, T_string)
 {
     bool                                         passTest {false};
     siddiqsoft::arrp::resource_pool<std::string> rp {};
 
     EXPECT_NO_THROW({
-        auto sr = rp.wrap_as_scoped_resource("ﷵ");
+        auto sr = rp.wrap_as_resource_guard("ﷵ");
         std::print(std::cerr, "stat: {}\n", sr.to_json().dump());
         passTest = true;
     });
@@ -65,7 +65,7 @@ TEST(scoped_resource, T_string)
     EXPECT_TRUE(passTest);
 }
 
-TEST(scoped_resource, T_struct)
+TEST(resource_guard, T_struct)
 {
     bool passTest {false};
     struct custom1
@@ -78,7 +78,7 @@ TEST(scoped_resource, T_struct)
 
     siddiqsoft::arrp::resource_pool<custom1> rp;
     EXPECT_NO_THROW({
-        auto sr = rp.wrap_as_scoped_resource(custom1 {99, "ﷵ", true, {1, 2, 3}});
+        auto sr = rp.wrap_as_resource_guard(custom1 {99, "ﷵ", true, {1, 2, 3}});
         std::print(std::cerr, "stat: {}\n", sr.to_json().dump());
         sr.invalidate();
         passTest = true;
@@ -88,7 +88,7 @@ TEST(scoped_resource, T_struct)
 }
 
 
-TEST(scoped_resource, T_class1)
+TEST(resource_guard, T_class1)
 {
     bool passTest {false};
     class custom2
@@ -112,7 +112,7 @@ TEST(scoped_resource, T_class1)
     siddiqsoft::arrp::resource_pool<custom2> rp;
 
     EXPECT_NO_THROW({
-        auto sr = rp.wrap_as_scoped_resource(99, std::string("ﷵ"), true, std::vector<int> {1, 1, 2, 3});
+        auto sr = rp.wrap_as_resource_guard(99, std::string("ﷵ"), true, std::vector<int> {1, 1, 2, 3});
         std::print(std::cerr, "stat: {}\n", sr.to_json().dump());
         sr.invalidate();
         passTest = true;
@@ -121,7 +121,7 @@ TEST(scoped_resource, T_class1)
     EXPECT_TRUE(passTest);
 }
 
-TEST(scoped_resource, T_class2)
+TEST(resource_guard, T_class2)
 {
     bool passTest {false};
     class custom2
@@ -145,7 +145,7 @@ TEST(scoped_resource, T_class2)
     siddiqsoft::arrp::resource_pool<custom2> rp;
 
     EXPECT_NO_THROW({
-        auto sr = rp.wrap_as_scoped_resource(custom2 {99, "ﷵ", true, {1, 1, 2, 3}}); // this approach allows the compiler to deduce the
+        auto sr = rp.wrap_as_resource_guard(custom2 {99, "ﷵ", true, {1, 1, 2, 3}}); // this approach allows the compiler to deduce the
                                                                              // proper arguments and perform copy/move elision
         std::print(std::cerr, "stat: {}\n", sr.to_json().dump());
         sr.invalidate();
@@ -155,7 +155,7 @@ TEST(scoped_resource, T_class2)
     EXPECT_TRUE(passTest);
 }
 
-TEST(scoped_resource, T_pair)
+TEST(resource_guard, T_pair)
 {
     bool passTest {false};
     using custom2 = std::pair<int, std::string>;
@@ -163,7 +163,7 @@ TEST(scoped_resource, T_pair)
     siddiqsoft::arrp::resource_pool<custom2> rp;
 
     EXPECT_NO_THROW({
-        auto sr = rp.wrap_as_scoped_resource(custom2 {99, "ﷵ"});
+        auto sr = rp.wrap_as_resource_guard(custom2 {99, "ﷵ"});
         // sr.invalidate();
         std::print(std::cerr, "stat: {}\n", sr.to_json().dump());
         passTest = true;
@@ -223,7 +223,7 @@ TEST(resource_pool, serializer_pair)
         EXPECT_EQ(2, rp.size());
 
         auto p1 = rp.try_borrow();
-        siddiqsoft::arrp::scoped_resource<custom2> p2 = rp.try_borrow();
+        siddiqsoft::arrp::resource_guard<custom2> p2 = rp.try_borrow();
         if (p2.has_value()) {
             (*p2).first = 2020;
             p2.invalidate(); // This resource will not be returned to the pool

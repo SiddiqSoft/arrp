@@ -196,9 +196,9 @@ TEST(resource_pool, concurrent_json_no_deadlock)
 }
 
 /// @brief Test 5: Should properly handle resource invalidation in move assignment
-/// Verifies that when a scoped_resource is move-assigned, the previous
+/// Verifies that when a resource_guard is move-assigned, the previous
 /// resource is properly returned before taking ownership of the new one
-TEST(scoped_resource, move_assignment_returns_previous)
+TEST(resource_guard, move_assignment_returns_previous)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool {};
 

@@ -49,8 +49,8 @@ public:
     // Move constructor and move assignment operator
     // This is critical for resource management, as we want to transfer ownership of the file handle
     // via move semantics, ensuring that the original object no longer manages the resource after the move.
-    // The scoped_resource<> is the envelope that allows for the borrowing of the resource
-    // with the guarantee that the resource will be returned to the pool when the scoped_resource<> goes out of scope.
+    // The resource_guard<> is the envelope that allows for the borrowing of the resource
+    // with the guarantee that the resource will be returned to the pool when the resource_guard<> goes out of scope.
     ScopedCurl(ScopedCurl&& other) noexcept
         : m_curlhandle(other.m_curlhandle)
         , m_content(std::move(other.m_content))

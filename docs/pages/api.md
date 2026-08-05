@@ -7,7 +7,7 @@ Thread-safe auto-returning resource pool.
 
 @subsection rp_template Template Parameters
 - `T`: Resource type (must satisfy NonNumericMoveConstructible)
-- `SRT`: Scoped resource type (defaults to scoped_resource<T>)
+- `SRT`: Scoped resource type (defaults to resource_guard<T>)
 
 @subsection rp_constructors Constructors
 
@@ -59,7 +59,7 @@ Access via `to_json()`:
 
 ---
 
-@section scoped_resource_class scoped_resource<T>
+@section resource_guard_class resource_guard<T>
 
 RAII wrapper for managing resource lifecycle.
 
@@ -72,8 +72,8 @@ RAII wrapper for managing resource lifecycle.
 |---|---|---|
 | `operator*()` | `T&` | Dereference to resource |
 | `operator->()` | `T*` | Pointer access (nullptr if invalid) |
-| `operator=(T&&)` | `scoped_resource&` | Assign new resource |
-| `operator=(scoped_resource&&)` | `scoped_resource&` | Move assignment |
+| `operator=(T&&)` | `resource_guard&` | Assign new resource |
+| `operator=(resource_guard&&)` | `resource_guard&` | Move assignment |
 
 @subsection sr_methods Methods
 
@@ -169,10 +169,10 @@ if (res) {
 - `to_json()`
 
 **NOT Thread-Safe**
-- Individual `scoped_resource` instances
+- Individual `resource_guard` instances
 - Resource access via `operator*()` or `operator->()`
 
-**Recommendation**: Each thread should have its own `scoped_resource` instance.
+**Recommendation**: Each thread should have its own `resource_guard` instance.
 
 ---
 
@@ -189,7 +189,7 @@ if (res) {
 
 - Capacity limited to 255 resources
 - Callbacks must not call pool methods (deadlock risk)
-- `scoped_resource` not thread-safe
+- `resource_guard` not thread-safe
 - No support for arithmetic types (int, float, etc.)
 
 */

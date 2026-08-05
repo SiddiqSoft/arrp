@@ -1,5 +1,5 @@
 /*
-    Comprehensive Coverage Tests for resource_pool and scoped_resource
+    Comprehensive Coverage Tests for resource_pool and resource_guard
 
     This file contains additional tests to ensure full coverage of:
     1. Edge cases and boundary conditions
@@ -38,8 +38,8 @@
 // NOLINTBEGIN(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
 
 
-/// @brief Test scoped_resource pointer-like access operator->
-TEST(scoped_resource_operators, pointer_access)
+/// @brief Test resource_guard pointer-like access operator->
+TEST(resource_guard_operators, pointer_access)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool {};
     pool.seed(std::string("test-string"));
@@ -64,8 +64,8 @@ TEST(scoped_resource_operators, pointer_access)
     }
 }
 
-/// @brief Test scoped_resource explicit conversion operator
-TEST(scoped_resource_operators, explicit_conversion)
+/// @brief Test resource_guard explicit conversion operator
+TEST(resource_guard_operators, explicit_conversion)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool {};
     pool.seed(std::string("conversion-test"));
@@ -88,8 +88,8 @@ TEST(scoped_resource_operators, explicit_conversion)
     }
 }
 
-/// @brief Test scoped_resource is_valid method
-TEST(scoped_resource_operators, is_valid_method)
+/// @brief Test resource_guard is_valid method
+TEST(resource_guard_operators, is_valid_method)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool {};
     pool.seed(std::string("valid-test"));
@@ -150,8 +150,8 @@ public:
     std::strong_ordering operator<=>(const char* src) const { return v <=> src; }
 };
 
-/// @brief Test scoped_resource move assignment with self-assignment protection
-TEST(scoped_resource_operators, move_assignment_self_protection)
+/// @brief Test resource_guard move assignment with self-assignment protection
+TEST(resource_guard_operators, move_assignment_self_protection)
 {
     siddiqsoft::arrp::resource_pool<custom_masp> pool {};
 
@@ -187,8 +187,8 @@ TEST(scoped_resource_operators, move_assignment_self_protection)
     EXPECT_EQ(2, pool.size());
 }
 
-/// @brief Test scoped_resource with nullptr pointer access
-TEST(scoped_resource_operators, nullptr_pointer_access)
+/// @brief Test resource_guard with nullptr pointer access
+TEST(resource_guard_operators, nullptr_pointer_access)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool {};
     pool.seed(std::string("test"));
@@ -935,7 +935,7 @@ TEST(concurrent_edge_cases, alternating_validity)
         pool.seed(std::format("resource-{}", i));
     }
 
-    std::vector<siddiqsoft::arrp::scoped_resource<std::string>> resources;
+    std::vector<siddiqsoft::arrp::resource_guard<std::string>> resources;
 
     // Borrow all
     for (int i = 0; i < 30; ++i) {
@@ -983,18 +983,18 @@ TEST(special_members, pool_not_movable)
     EXPECT_FALSE(std::is_move_assignable_v<siddiqsoft::arrp::resource_pool<std::string>>);
 }
 
-/// @brief Test that scoped_resource is not copyable
-TEST(special_members, scoped_resource_not_copyable)
+/// @brief Test that resource_guard is not copyable
+TEST(special_members, resource_guard_not_copyable)
 {
-    EXPECT_FALSE(std::is_copy_constructible_v<siddiqsoft::arrp::scoped_resource<std::string>>);
-    EXPECT_FALSE(std::is_copy_assignable_v<siddiqsoft::arrp::scoped_resource<std::string>>);
+    EXPECT_FALSE(std::is_copy_constructible_v<siddiqsoft::arrp::resource_guard<std::string>>);
+    EXPECT_FALSE(std::is_copy_assignable_v<siddiqsoft::arrp::resource_guard<std::string>>);
 }
 
-/// @brief Test that scoped_resource is move-only
-TEST(special_members, scoped_resource_is_movable)
+/// @brief Test that resource_guard is move-only
+TEST(special_members, resource_guard_is_movable)
 {
-    EXPECT_TRUE(std::is_move_constructible_v<siddiqsoft::arrp::scoped_resource<std::string>>);
-    EXPECT_TRUE(std::is_move_assignable_v<siddiqsoft::arrp::scoped_resource<std::string>>);
+    EXPECT_TRUE(std::is_move_constructible_v<siddiqsoft::arrp::resource_guard<std::string>>);
+    EXPECT_TRUE(std::is_move_assignable_v<siddiqsoft::arrp::resource_guard<std::string>>);
 }
 
 
@@ -1012,8 +1012,8 @@ TEST(formatters, resource_pool_format)
     EXPECT_TRUE(formatted.find("capacity") != std::string::npos);
 }
 
-/// @brief Test std::format with scoped_resource
-TEST(formatters, scoped_resource_format)
+/// @brief Test std::format with resource_guard
+TEST(formatters, resource_guard_format)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool {};
     pool.seed(std::string("test-item"));

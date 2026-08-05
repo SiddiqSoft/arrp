@@ -94,7 +94,7 @@ TEST(resource_pool_file, basic_file_pool)
 
     // Borrow the file
     {
-        siddiqsoft::arrp::scoped_resource<FILE*> file_result = file_pool.try_borrow();
+        siddiqsoft::arrp::resource_guard<FILE*> file_result = file_pool.try_borrow();
         EXPECT_TRUE(file_result.has_value());
         auto file_wrapper = std::move(file_result);
         EXPECT_EQ(0u, file_pool.size());

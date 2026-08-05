@@ -110,11 +110,11 @@ if(${${PROJECT_NAME}_BUILD_TESTS})
                     PRIVATE
                     ${PROJECT_SOURCE_DIR}/tests/arrp.cpp
                     ${PROJECT_SOURCE_DIR}/tests/counter_balance_tests.cpp
-                    ${PROJECT_SOURCE_DIR}/tests/scoped_resource.cpp
+                    ${PROJECT_SOURCE_DIR}/tests/resource_guard.cpp
                     ${PROJECT_SOURCE_DIR}/tests/resource_pool_file.cpp
                     ${PROJECT_SOURCE_DIR}/tests/stress_tests_advanced.cpp
-                    ${PROJECT_SOURCE_DIR}/tests/resource_wrap_validity.cpp
-                    ${PROJECT_SOURCE_DIR}/tests/custom_scoped_resource_tests.cpp
+                    ${PROJECT_SOURCE_DIR}/tests/resource_guard_validity.cpp
+                    ${PROJECT_SOURCE_DIR}/tests/custom_resource_guard_tests.cpp
                     ${PROJECT_SOURCE_DIR}/tests/new_unit_tests.cpp
                     ${PROJECT_SOURCE_DIR}/tests/comprehensive_coverage_tests.cpp
     )

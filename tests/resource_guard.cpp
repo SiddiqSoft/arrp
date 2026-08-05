@@ -756,8 +756,8 @@ TEST(resource_pool, concurrent_shared_ptr_access)
 // NEW COMPREHENSIVE TESTS FOR FULL COVERAGE AND STRESS TESTING
 
 
-/// @brief Test scoped_resource dereference operator
-TEST(scoped_resource, dereference_operator)
+/// @brief Test resource_guard dereference operator
+TEST(resource_guard, dereference_operator)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool {};
     pool.seed(std::string("test"));
@@ -772,8 +772,8 @@ TEST(scoped_resource, dereference_operator)
     EXPECT_EQ("test-deref", *resource);
 }
 
-/// @brief Test scoped_resource invalidate
-TEST(scoped_resource, invalidate)
+/// @brief Test resource_guard invalidate
+TEST(resource_guard, invalidate)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool {};
     pool.seed(std::string("resource1"));
@@ -795,8 +795,8 @@ TEST(scoped_resource, invalidate)
     EXPECT_EQ(1u, pool.size());
 }
 
-/// @brief Test scoped_resource move semantics
-TEST(scoped_resource, move_semantics)
+/// @brief Test resource_guard move semantics
+TEST(resource_guard, move_semantics)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool {};
     pool.seed(std::string("original"));
@@ -884,7 +884,7 @@ TEST(resource_pool, extreme_stress_high_concurrency)
 /// @brief Test capacity limits
 TEST(resource_pool, capacity_limits)
 {
-    siddiqsoft::arrp::resource_pool<std::string, siddiqsoft::arrp::scoped_resource<std::string>> pool {4};
+    siddiqsoft::arrp::resource_pool<std::string, siddiqsoft::arrp::resource_guard<std::string>> pool {4};
 
     // Add resources up to capacity
     pool.seed(std::string("1"));
@@ -980,7 +980,7 @@ TEST(resource_pool, exception_safety)
 }
 
 /// @brief Test move assignment operator
-TEST(scoped_resource, move_assignment)
+TEST(resource_guard, move_assignment)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool {};
     pool.seed(std::string("res1"));
@@ -1229,7 +1229,7 @@ TEST(resource_pool_adversarial, interleaved_invalidate_returns)
         pool.seed(std::format("resource-{}", i));
     }
 
-    std::vector<siddiqsoft::arrp::scoped_resource<std::string>> resources;
+    std::vector<siddiqsoft::arrp::resource_guard<std::string>> resources;
 
     // Borrow all resources
     for (int i = 0; i < 20; ++i) {

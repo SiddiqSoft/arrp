@@ -672,7 +672,7 @@ TEST(stress_chaos, random_clear_operations)
 TEST(stress_capacity, maximum_capacity)
 {
     constexpr uint8_t MAX_CAPACITY = siddiqsoft::arrp::resource_pool_limits::MaxCapacity;
-    siddiqsoft::arrp::resource_pool<std::string, siddiqsoft::arrp::scoped_resource<std::string>> pool {MAX_CAPACITY};
+    siddiqsoft::arrp::resource_pool<std::string, siddiqsoft::arrp::resource_guard<std::string>> pool {MAX_CAPACITY};
 
     // Fill to capacity
     for (uint8_t i = 0; i < MAX_CAPACITY; ++i) {
@@ -682,7 +682,7 @@ TEST(stress_capacity, maximum_capacity)
     EXPECT_EQ(MAX_CAPACITY, pool.size());
 
     // Checkout all
-    std::vector<siddiqsoft::arrp::scoped_resource<std::string>> resources;
+    std::vector<siddiqsoft::arrp::resource_guard<std::string>> resources;
     for (uint8_t i = 0; i < MAX_CAPACITY; ++i) {
         auto res = pool.try_borrow();
         if (res.has_value()) {
@@ -706,7 +706,7 @@ TEST(stress_capacity, maximum_capacity)
 TEST(stress_capacity, capacity_enforcement_concurrent)
 {
     constexpr uint8_t                                                                            CAPACITY = 8;
-    siddiqsoft::arrp::resource_pool<std::string, siddiqsoft::arrp::scoped_resource<std::string>> pool {CAPACITY};
+    siddiqsoft::arrp::resource_pool<std::string, siddiqsoft::arrp::resource_guard<std::string>> pool {CAPACITY};
 
     for (uint8_t i = 0; i < CAPACITY; ++i) {
         pool.seed(std::format("resource-{}", i));

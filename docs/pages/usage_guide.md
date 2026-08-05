@@ -28,7 +28,7 @@ int main() {
     if (resource) {
         resource->doWork();
     }
-    // Resource automatically returned when scoped_resource is destroyed
+    // Resource automatically returned when resource_guard is destroyed
 
     return 0;
 }
@@ -227,7 +227,7 @@ t2.join();
 
 @subsection thread_unsafe NOT Thread-Safe
 
-Individual `scoped_resource` instances are NOT thread-safe:
+Individual `resource_guard` instances are NOT thread-safe:
 
 ```cpp
 auto resource = pool.try_borrow();
@@ -261,16 +261,16 @@ for (auto& t : threads) {
 
 @section advanced Advanced Usage
 
-@subsection custom_scoped_resource Custom Scoped Resource
+@subsection custom_resource_guard Custom Scoped Resource
 
 ```cpp
-class MyCustomScoped : public siddiqsoft::arrp::scoped_resource<MyResource> {
+class MyCustomScoped : public siddiqsoft::arrp::resource_guard<MyResource> {
 public:
-    using scoped_resource::scoped_resource;
+    using resource_guard::resource_guard;
     
     void invalidate() override {
         std::cout << "Custom invalidate\n";
-        scoped_resource::invalidate();
+        resource_guard::invalidate();
     }
 };
 
@@ -383,12 +383,12 @@ if (resource) {
 
 **Causes**:
 1. Calling pool methods from callbacks
-2. Holding scoped_resource across thread boundaries
+2. Holding resource_guard across thread boundaries
 3. Recursive mutex not enabled
 
 **Solutions**:
 1. Don't call pool methods in callbacks
-2. Each thread gets its own scoped_resource
+2. Each thread gets its own resource_guard
 3. Enable recursive mutex if needed: `#define ARRP_USE_RECURSIVE_MUTEX`
 
 @subsection ts_memory_leak Memory Leak
@@ -400,7 +400,7 @@ if (resource) {
 2. Cleanup callback not implemented
 
 **Solutions**:
-1. Ensure scoped_resource goes out of scope
+1. Ensure resource_guard goes out of scope
 2. Implement cleanup callback if needed
 3. Check statistics: `pool.to_json()`
 

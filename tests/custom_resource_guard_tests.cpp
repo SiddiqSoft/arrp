@@ -1,6 +1,6 @@
 /*
     Custom Scoped Resource Tests
-    Tests for resource_pool using custom scoped_resource<FILE*> wrapper
+    Tests for resource_pool using custom resource_guard<FILE*> wrapper
 
     BSD 3-Clause License
 
@@ -94,7 +94,7 @@ void cleanup_temp_file(const std::string& path)
 /**
  * @brief Test basic file resource pool creation
  */
-TEST(custom_scoped_resource, basic_file_pool_creation)
+TEST(custom_resource_guard, basic_file_pool_creation)
 {
     std::string temp_file = create_temp_file();
 
@@ -138,7 +138,7 @@ TEST(custom_scoped_resource, basic_file_pool_creation)
 /**
  * @brief Test writing to file through resource
  */
-TEST(custom_scoped_resource, write_to_file)
+TEST(custom_resource_guard, write_to_file)
 {
     std::string temp_file = create_temp_file();
 
@@ -185,7 +185,7 @@ TEST(custom_scoped_resource, write_to_file)
 /**
  * @brief Test multiple file resources in pool
  */
-TEST(custom_scoped_resource, multiple_file_resources)
+TEST(custom_resource_guard, multiple_file_resources)
 {
     std::string temp_file1 = create_temp_file();
     std::string temp_file2 = create_temp_file();
@@ -240,7 +240,7 @@ TEST(custom_scoped_resource, multiple_file_resources)
 /**
  * @brief Test file resource persistence across borrow/return cycles
  */
-TEST(custom_scoped_resource, file_persistence_across_cycles)
+TEST(custom_resource_guard, file_persistence_across_cycles)
 {
     std::string temp_file = create_temp_file();
 
@@ -305,7 +305,7 @@ TEST(custom_scoped_resource, file_persistence_across_cycles)
 /**
  * @brief Test concurrent file writes from multiple threads
  */
-TEST(custom_scoped_resource, concurrent_file_writes)
+TEST(custom_resource_guard, concurrent_file_writes)
 {
     std::string temp_file = create_temp_file();
 
@@ -360,7 +360,7 @@ TEST(custom_scoped_resource, concurrent_file_writes)
 /**
  * @brief Test file resource invalidation
  */
-TEST(custom_scoped_resource, file_resource_invalidation)
+TEST(custom_resource_guard, file_resource_invalidation)
 {
     std::string temp_file = create_temp_file();
 
@@ -400,7 +400,7 @@ TEST(custom_scoped_resource, file_resource_invalidation)
 /**
  * @brief Test file resource move semantics
  */
-TEST(custom_scoped_resource, file_resource_move_semantics)
+TEST(custom_resource_guard, file_resource_move_semantics)
 {
     std::string temp_file = create_temp_file();
 
@@ -437,7 +437,7 @@ TEST(custom_scoped_resource, file_resource_move_semantics)
 /**
  * @brief Test JSON serialization with file resources
  */
-TEST(custom_scoped_resource, json_serialization)
+TEST(custom_resource_guard, json_serialization)
 {
     std::string temp_file = create_temp_file();
 
@@ -485,7 +485,7 @@ TEST(custom_scoped_resource, json_serialization)
 /**
  * @brief Test high-throughput file operations
  */
-TEST(custom_scoped_resource, high_throughput_file_ops)
+TEST(custom_resource_guard, high_throughput_file_ops)
 {
     std::string temp_file = create_temp_file();
 
@@ -538,7 +538,7 @@ TEST(custom_scoped_resource, high_throughput_file_ops)
 /**
  * @brief Test exception safety with file resources
  */
-TEST(custom_scoped_resource, exception_safety)
+TEST(custom_resource_guard, exception_safety)
 {
     std::string temp_file = create_temp_file();
 
@@ -578,7 +578,7 @@ TEST(custom_scoped_resource, exception_safety)
 /**
  * @brief Test capacity limits with file resources
  */
-TEST(custom_scoped_resource, capacity_limits)
+TEST(custom_resource_guard, capacity_limits)
 {
     std::string temp_file = create_temp_file();
 
@@ -617,7 +617,7 @@ TEST(custom_scoped_resource, capacity_limits)
 /**
  * @brief Test rapid file open/close cycles
  */
-TEST(custom_scoped_resource, rapid_file_cycles)
+TEST(custom_resource_guard, rapid_file_cycles)
 {
     std::string temp_file = create_temp_file();
 
@@ -656,7 +656,7 @@ TEST(custom_scoped_resource, rapid_file_cycles)
 /**
  * @brief Test file resource with clear operation
  */
-TEST(custom_scoped_resource, clear_operation)
+TEST(custom_resource_guard, clear_operation)
 {
     std::string temp_file = create_temp_file();
 
@@ -694,7 +694,7 @@ TEST(custom_scoped_resource, clear_operation)
 /**
  * @brief Test FIFO ordering with file resources
  */
-TEST(custom_scoped_resource, fifo_ordering)
+TEST(custom_resource_guard, fifo_ordering)
 {
     std::string temp_file1 = create_temp_file();
     std::string temp_file2 = create_temp_file();

@@ -50,19 +50,19 @@
 #include <semaphore>
 
 #include "common.hpp"
-#include "scoped_resource.hpp"
+#include "resource_guard.hpp"
 
 namespace siddiqsoft::arrp
 {
     /// @brief Thread-safe auto-returning resource pool
     ///
     /// @details
-    /// Manages a pool of resources that are automatically returned when scoped_resource
+    /// Manages a pool of resources that are automatically returned when resource_guard
     /// instances are destroyed. Supports both fixed-size and auto-growing pools.
     /// All operations are thread-safe using std::mutex or std::recursive_mutex.
     ///
     /// @tparam T The resource type (must be move-constructible and non-arithmetic)
-    /// @tparam SRT The scoped resource type (defaults to scoped_resource<T>)
+    /// @tparam SRT The scoped resource type (defaults to resource_guard<T>)
     ///
     /// @note Thread-safe: All operations are protected by mutex (std::mutex or std::recursive_mutex)
     /// @note RAII pattern: Resources are automatically returned to pool on destruction
@@ -83,10 +83,10 @@ namespace siddiqsoft::arrp
     /// if (resource) {
     ///     resource->doSomething();
     /// }
-    /// // Resource automatically returned to pool when scoped_resource is destroyed
+    /// // Resource automatically returned to pool when resource_guard is destroyed
     /// @endcode
-    template <typename T, typename SRT = scoped_resource<T>>
-        requires NonNumericMoveConstructible<T> && std::derived_from<SRT, scoped_resource<T>>
+    template <typename T, typename SRT = resource_guard<T>>
+        requires NonNumericMoveConstructible<T> && std::derived_from<SRT, resource_guard<T>>
     class resource_pool final
     {
     private:
@@ -277,12 +277,12 @@ namespace siddiqsoft::arrp
 
     protected:
         /// @brief Create a resource that is wired to invoke the return_to_pool in the destructor of the SRT class.
-        /// @note The scoped_resource<T> cannot be directly instantiated and thus this method is the only means
+        /// @note The resource_guard<T> cannot be directly instantiated and thus this method is the only means
         /// to create a custom resource.
         /// This approach also solves the issue where we hide the return_to_pool() as protected and making the
-        /// resource_pool and scoped_resource friends.
+        /// resource_pool and resource_guard friends.
         template <typename... Args>
-        auto make_scoped_resource(Args&&... args) -> SRT
+        auto make_resource_guard(Args&&... args) -> SRT
         {
             // Allow the compiler to use NRVO (move elision; do not use std::move here!)
             return SRT {[this](T&& src, bool isvalid) {
@@ -298,7 +298,7 @@ namespace siddiqsoft::arrp
 
         // Helper to create a resource from a user-provided callback.
         // The callback may return either `SRT` (already-wrapped) or `T` (raw resource).
-        // If it returns `T`, we forward the result to `make_scoped_resource` to obtain an `SRT`.
+        // If it returns `T`, we forward the result to `make_resource_guard` to obtain an `SRT`.
         template <typename F, typename... Args>
         auto create_from_callback(F&& f, Args&&... args) -> SRT
         {
@@ -308,7 +308,7 @@ namespace siddiqsoft::arrp
                 return std::invoke(std::forward<F>(f), std::forward<Args>(args)...);
             }
             else if constexpr (std::is_same_v<result_t, T>) {
-                return make_scoped_resource(std::invoke(std::forward<F>(f), std::forward<Args>(args)...));
+                return make_resource_guard(std::invoke(std::forward<F>(f), std::forward<Args>(args)...));
             }
             else {
                 static_assert(std::is_same_v<result_t, SRT> || std::is_same_v<result_t, T>, "Callback must return either SRT or T");
@@ -418,7 +418,7 @@ namespace siddiqsoft::arrp
                     // We have a resource available.. just to be sure, we'll check the pool size inside the lock..
                     if (!m_pool.empty()) {
                         // Move the resource out of the pool while holding the lock.
-                        auto borrowed = make_scoped_resource(std::move(m_pool.front()));
+                        auto borrowed = make_resource_guard(std::move(m_pool.front()));
                         // Remove from the deque.. only one client may have exclusive use..
                         m_pool.pop_front();
 
@@ -546,7 +546,7 @@ namespace siddiqsoft::arrp
     protected:
         /// @brief Returns a resource to the pool
         ///
-        /// Called by scoped_resource destructor to return the resource to the pool.
+        /// Called by resource_guard destructor to return the resource to the pool.
         /// If the resource is valid, it's added back to the pool for reuse.
         /// If invalid, it's discarded and the abandoned counter is incremented.
         ///
@@ -660,8 +660,8 @@ namespace siddiqsoft::arrp
     /// @tparam SRT The scoped resource type
     /// @param dest Destination JSON object
     /// @param src Source resource_pool
-    template <typename T, typename SRT = scoped_resource<T>>
-        requires NonNumericMoveConstructible<T> && std::derived_from<SRT, scoped_resource<T>>
+    template <typename T, typename SRT = resource_guard<T>>
+        requires NonNumericMoveConstructible<T> && std::derived_from<SRT, resource_guard<T>>
     static void to_json(nlohmann::json& dest, const siddiqsoft::arrp::resource_pool<T, SRT>& src)
     {
         dest = src.to_json();
@@ -674,7 +674,7 @@ namespace siddiqsoft::arrp
 
 
 template <typename T, typename SRT>
-    requires siddiqsoft::arrp::NonNumericMoveConstructible<T> && std::derived_from<SRT, siddiqsoft::arrp::scoped_resource<T>>
+    requires siddiqsoft::arrp::NonNumericMoveConstructible<T> && std::derived_from<SRT, siddiqsoft::arrp::resource_guard<T>>
 struct std::formatter<siddiqsoft::arrp::resource_pool<T, SRT>> : std::formatter<std::string>
 {
     auto format(const siddiqsoft::arrp::resource_pool<T, SRT>& pool, auto& ctx) const

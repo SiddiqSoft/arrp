@@ -1,5 +1,5 @@
 /*
-    scoped_resource
+    resource_guard
 
     BSD 3-Clause License
 
@@ -35,8 +35,8 @@
 
 #pragma once
 
-#ifndef SCOPED_RESOURCE_HPP
-#define SCOPED_RESOURCE_HPP
+#ifndef RESOURCE_GUARD_HPP
+#define RESOURCE_GUARD_HPP
 
 #include <concepts>
 #include <cstdint>
@@ -85,16 +85,16 @@ namespace siddiqsoft::arrp
     /// @brief RAII wrapper for managing resource lifecycle in a resource pool
     ///
     /// @details
-    /// scoped_resource automatically returns resources to the pool when destroyed.
+    /// resource_guard automatically returns resources to the pool when destroyed.
     /// It enforces move-only semantics to prevent resource ownership ambiguity.
     /// The resource is wrapped with a callback that is invoked during destruction
     /// to return the resource to the pool.
     ///
     /// @tparam T The resource type (must be move-constructible and non-arithmetic)
     ///
-    /// @warning This class is NOT thread-safe. Each scoped_resource instance
+    /// @warning This class is NOT thread-safe. Each resource_guard instance
     /// should be accessed by only one thread at a time. The resource_pool itself
-    /// is thread-safe, but individual scoped_resource instances are not.
+    /// is thread-safe, but individual resource_guard instances are not.
     ///
     /// @note Move-only semantics: Copy operations are deleted to prevent resource ownership ambiguity
     /// @note RAII pattern: Resource is automatically returned to pool on destruction
@@ -110,16 +110,16 @@ namespace siddiqsoft::arrp
     ///     // Use resource
     ///     resource->doSomething();
     /// }
-    /// // Resource automatically returned to pool when scoped_resource is destroyed
+    /// // Resource automatically returned to pool when resource_guard is destroyed
     /// @endcode
     template <typename T>
         requires NonNumericMoveConstructible<T>
-    class scoped_resource
+    class resource_guard
     {
     public:
         /// @brief Callback function type for returning resource to pool
         ///
-        /// This callback allows the implementor that is asking for the scoped_resource the ability to
+        /// This callback allows the implementor that is asking for the resource_guard the ability to
         /// recall it back or perform any additional tasks.
         /// The callback must not throw and must not invoke any other method in the pool that requires
         /// lock manipulation.
@@ -136,7 +136,7 @@ namespace siddiqsoft::arrp
     private:
         // Allow resource_pool to access protected members
         template <typename U, typename SRT>
-            requires NonNumericMoveConstructible<U> && std::derived_from<SRT, scoped_resource<U>>
+            requires NonNumericMoveConstructible<U> && std::derived_from<SRT, resource_guard<U>>
         friend class resource_pool;
 
         /// @brief Callback function to return the resource to the pool
@@ -157,27 +157,27 @@ namespace siddiqsoft::arrp
         /// construct their own data.
         /// @note Marking this as valid is critical otherwise the clients will
         /// assume the resource is invalid during borrow_or_create().
-        scoped_resource()
+        resource_guard()
             : m_is_valid(true)
         {
         }
 
     private:
-        /// @brief Constructs a scoped_resource with a callback and resource
+        /// @brief Constructs a resource_guard with a callback and resource
         ///
-        /// @note Only resource_pool may create scoped_resource instances.
-        explicit scoped_resource(PutbackCallbackFunc&& f, T&& src)
+        /// @note Only resource_pool may create resource_guard instances.
+        explicit resource_guard(PutbackCallbackFunc&& f, T&& src)
             : m_rsrc(std::move(src))
             , m_putback_callback(std::move(f))
         {
             m_is_valid = true;
         }
 
-        /// @brief Constructs a scoped_resource with a callback and in-place constructed resource
+        /// @brief Constructs a resource_guard with a callback and in-place constructed resource
         ///
-        /// @note Only resource_pool may create scoped_resource instances.
+        /// @note Only resource_pool may create resource_guard instances.
         template <typename... Args>
-        scoped_resource(PutbackCallbackFunc&& f, Args&&... args)
+        resource_guard(PutbackCallbackFunc&& f, Args&&... args)
             : m_rsrc(std::forward<Args>(args)...)
             , m_putback_callback(std::move(f))
             , m_error_code(pool_error::Ok)
@@ -187,19 +187,19 @@ namespace siddiqsoft::arrp
 
     public:
         /// @brief Copy constructor is deleted
-        /// @details scoped_resource is move-only to prevent resource ownership ambiguity
-        /// and ensure proper RAII semantics. Only one scoped_resource can own a resource.
-        scoped_resource(const scoped_resource&) = delete;
+        /// @details resource_guard is move-only to prevent resource ownership ambiguity
+        /// and ensure proper RAII semantics. Only one resource_guard can own a resource.
+        resource_guard(const resource_guard&) = delete;
 
         /// @brief Copy assignment operator is deleted
         ///
         /// @details
         /// Copy assignment is not allowed to maintain move-only semantics
         /// and prevent resource ownership ambiguity.
-        scoped_resource& operator=(const scoped_resource&) = delete;
+        resource_guard& operator=(const resource_guard&) = delete;
 
-        /// @brief Constructs a scoped_resource in an error state
-        scoped_resource(const pool_error& err)
+        /// @brief Constructs a resource_guard in an error state
+        resource_guard(const pool_error& err)
             : m_is_valid(false)
             , m_error_code(err)
         {
@@ -208,14 +208,14 @@ namespace siddiqsoft::arrp
     public:
         /// @brief Move constructor
         ///
-        /// Transfers ownership from another scoped_resource to this one.
+        /// Transfers ownership from another resource_guard to this one.
         /// The source is invalidated to prevent double-return.
         ///
-        /// @param src The source scoped_resource to move from
+        /// @param src The source resource_guard to move from
         ///
         /// @note The source's callback is cleared to prevent double-return
         /// @note The source is marked as invalid
-        scoped_resource(scoped_resource&& src) noexcept(
+        resource_guard(resource_guard&& src) noexcept(
             std::is_nothrow_move_constructible_v<T> && std::is_nothrow_move_constructible_v<PutbackCallbackFunc>)
             : m_rsrc(std::move(src.m_rsrc))
             , m_putback_callback(std::move(src.m_putback_callback))
@@ -230,13 +230,13 @@ namespace siddiqsoft::arrp
 
         /// @brief Move assignment operator
         ///
-        /// Transfers ownership from another scoped_resource to this one.
+        /// Transfers ownership from another resource_guard to this one.
         /// Before taking ownership, the currently-held resource (if valid) is returned
         /// to the pool via the putback callback. The source is then invalidated to
         /// prevent double-return.
         ///
-        /// @param src The source scoped_resource to move from
-        /// @return Reference to this scoped_resource
+        /// @param src The source resource_guard to move from
+        /// @return Reference to this resource_guard
         ///
         /// @note Self-assignment is checked via pointer comparison
         /// @note The currently-held resource is returned to the pool before overwrite
@@ -245,7 +245,7 @@ namespace siddiqsoft::arrp
         /// @note NOT noexcept: T's move-assignment may throw; declaring noexcept here
         ///       would call std::terminate if T::operator=(T&&) throws after the
         ///       putback callback has already fired (state would be inconsistent).
-        scoped_resource& operator=(scoped_resource&& src)
+        resource_guard& operator=(resource_guard&& src)
         {
             if (this != &src) {
                 // Return current resource to pool before overwriting it.
@@ -257,7 +257,7 @@ namespace siddiqsoft::arrp
                     }
                     catch (...) {
                         std::print(std::cerr,
-                                   "scoped_resource move-assignment: exception while returning current resource to pool!\n");
+                                   "resource_guard move-assignment: exception while returning current resource to pool!\n");
                     }
                     // Clear the old callback and validity now that the resource has been handed back.
                     m_putback_callback = {};
@@ -290,7 +290,7 @@ namespace siddiqsoft::arrp
         /// @note The callback receives the validity flag to make the appropriate decision
         /// @note The callback is cleared after invocation
         /// @note The resource is marked as invalid after callback invocation
-        ~scoped_resource() noexcept
+        ~resource_guard() noexcept
         {
             // Invoke callback if it exists, passing the resource and validity status
             // The callback (typically resource_pool::return_to_pool) decides whether to
@@ -300,7 +300,7 @@ namespace siddiqsoft::arrp
                     m_putback_callback(std::move(m_rsrc), m_is_valid);
                 }
                 catch (...) {
-                    std::print(std::cerr, "scoped_resource destructor: exception while invoking putback callback!\n");
+                    std::print(std::cerr, "resource_guard destructor: exception while invoking putback callback!\n");
                 }
                 m_is_valid         = false;
                 m_putback_callback = {};
@@ -321,7 +321,7 @@ namespace siddiqsoft::arrp
 
         /// @brief Explicit conversion to resource value
         /// @returns The wrapped resource, moving it out of this wrapper.
-        /// @note Invalidates the scoped_resource to prevent double-return during destruction.
+        /// @note Invalidates the resource_guard to prevent double-return during destruction.
         explicit operator T() &&
         {
             m_is_valid = false;
@@ -365,11 +365,11 @@ namespace siddiqsoft::arrp
         /// Marks the resource as valid.
         ///
         /// @param src The new resource value (moved)
-        /// @return Reference to this scoped_resource
+        /// @return Reference to this resource_guard
         ///
         /// @note The resource is moved into the wrapper
         /// @note The resource is marked as valid
-        scoped_resource& operator=(T&& src)
+        resource_guard& operator=(T&& src)
         {
             if (m_putback_callback) {
                 try {
@@ -377,7 +377,7 @@ namespace siddiqsoft::arrp
                 }
                 catch (...) {
                     std::print(std::cerr,
-                               "scoped_resource resource-assignment: exception while returning existing resource to pool!\n");
+                               "resource_guard resource-assignment: exception while returning existing resource to pool!\n");
                 }
             }
 
@@ -428,13 +428,13 @@ namespace siddiqsoft::arrp
 
 #if defined(NLOHMANN_JSON_VERSION_MAJOR)
     public:
-        /// @brief Serializes the scoped_resource to JSON
+        /// @brief Serializes the resource_guard to JSON
         ///
         /// Returns a JSON object containing the resource state and validity.
         /// Only available if nlohmann/json.hpp is included before this header.
         ///
         /// @return JSON object with:
-        ///   - _typver: Type and version string ("siddiqsoft.arrp.scoped_resource/1.0.0")
+        ///   - _typver: Type and version string ("siddiqsoft.arrp.resource_guard/1.0.0")
         ///   - valid: Whether the resource is valid (boolean)
         ///   - value: The resource value (if serializable, otherwise "-noserializer-")
         ///
@@ -448,7 +448,7 @@ namespace siddiqsoft::arrp
         /// @par JSON Schema:
         /// @code{.json}
         /// {
-        ///   "_typver": "siddiqsoft.arrp.scoped_resource/1.0.0",
+        ///   "_typver": "siddiqsoft.arrp.resource_guard/1.0.0",
         ///   "valid": true,
         ///   "value": <resource_value>
         /// }
@@ -456,40 +456,39 @@ namespace siddiqsoft::arrp
         nlohmann::json to_json() const
         {
             if constexpr (std::is_same_v<T, std::string> || std::is_arithmetic_v<T>)
-                return {{"_typver", "siddiqsoft.arrp.scoped_resource/1.0.0"}, {"valid", m_is_valid}, {"value", m_rsrc}};
+                return {{"_typver", "siddiqsoft.arrp.resource_guard/1.0.0"}, {"valid", m_is_valid}, {"value", m_rsrc}};
             else if constexpr (HasStdToStringImpl<T>)
-                return {{"_typver", "siddiqsoft.arrp.scoped_resource/1.0.0"},
+                return {{"_typver", "siddiqsoft.arrp.resource_guard/1.0.0"},
                         {"valid", m_is_valid},
                         {"value", std::to_string(m_rsrc)}};
             else
-                return {{"_typver", "siddiqsoft.arrp.scoped_resource/1.0.0"}, {"valid", m_is_valid}, {"value", "-noserializer-"}};
+                return {{"_typver", "siddiqsoft.arrp.resource_guard/1.0.0"}, {"valid", m_is_valid}, {"value", "-noserializer-"}};
         }
 #endif
     };
 } // namespace siddiqsoft::arrp
 
 
-/// @brief Specialization of std::formatter for scoped_resource
-/// @details Provides formatted output for scoped_resource instances using std::format.
+/// @brief Specialization of std::formatter for resource_guard
+/// @details Provides formatted output for resource_guard instances using std::format.
 /// Uses a consistent format across all translation units to avoid ODR violations.
 /// @tparam T The resource type
 /// @note This formatter always uses the same format regardless of whether nlohmann/json is available,
 ///       ensuring ODR safety. For JSON output, use the to_json() method directly.
 template <typename T>
-struct std::formatter<siddiqsoft::arrp::scoped_resource<T>> : std::formatter<std::string>
+struct std::formatter<siddiqsoft::arrp::resource_guard<T>> : std::formatter<std::string>
 {
-    /// @brief Format the scoped_resource
-    /// @param sr The scoped_resource to format
+    /// @brief Format the resource_guard
+    /// @param sr The resource_guard to format
     /// @param ctx Format context
     /// @return Iterator to end of formatted output
     /// @note Always uses the same format to ensure ODR safety across translation units
-    auto format(const siddiqsoft::arrp::scoped_resource<T>& sr, auto& ctx) const
+    auto format(const siddiqsoft::arrp::resource_guard<T>& sr, auto& ctx) const
     {
         // Use consistent format across all TUs to avoid ODR violations
-        // Format: scoped_resource<T>{valid: <bool>}
-        return std::format_to(ctx.out(), "scoped_resource<T>{{valid: {}}}", sr.is_valid());
+        // Format: resource_guard<T>{valid: <bool>}
+        return std::format_to(ctx.out(), "resource_guard<T>{{valid: {}}}", sr.is_valid());
     }
 };
-
 
 #endif

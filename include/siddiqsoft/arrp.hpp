@@ -37,5 +37,5 @@
 #pragma once
 
 #include "private/common.hpp"
-#include "private/scoped_resource.hpp"
+#include "private/resource_guard.hpp"
 #include "private/resource_pool.hpp"

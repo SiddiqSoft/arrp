@@ -12,7 +12,7 @@ A thread-safe, header-only C++23 resource pool library with automatic lifecycle 
 ## Features
 
 - **Thread-Safe**: All operations protected by mutexes for concurrent access
-- **RAII Pattern**: Automatic resource return via `scoped_resource`
+- **RAII Pattern**: Automatic resource return via `resource_guard`
 - **Capacity Management**: Enforces maximum capacity limits to prevent unbounded growth
 - **FIFO Ordering**: Predictable resource ordering (first-in, first-out)
 - **Factory Callback**: Support for on-demand resource creation
@@ -173,8 +173,8 @@ std::cout << stats.dump(2) << std::endl;
 
 | Method | Returns | Description |
 |--------|---------|-------------|
-| `try_borrow()` | `scoped_resource<T>` | Borrow a resource from the pool. Returns an invalid scoped resource with `error()` set when unavailable.
-| `try_borrow_create()` | `scoped_resource<T>` | Borrow a resource or create one on demand using the registered factory callback.
+| `try_borrow()` | `resource_guard<T>` | Borrow a resource from the pool. Returns an invalid scoped resource with `error()` set when unavailable.
+| `try_borrow_create()` | `resource_guard<T>` | Borrow a resource or create one on demand using the registered factory callback.
 | `seed(Args&&...)` | `pool_error` | Add a resource to the pool by constructing it in place.
 | `seed(T&&)` | `pool_error` | Add a moved resource to the pool.
 | `size()` | `size_t` | Get the number of available resources in the pool.
@@ -182,7 +182,7 @@ std::cout << stats.dump(2) << std::endl;
 | `set_factory_callback(F&&)` | `void` | Register a callback to create resources when the pool is empty.
 | `to_json()` | `nlohmann::json` | Export pool statistics to JSON when nlohmann/json is available.
 
-### `scoped_resource` Methods
+### `resource_guard` Methods
 
 | Method | Description |
 |--------|-------------|
@@ -209,7 +209,7 @@ The library uses `pool_error` for error reporting:
 - `Unknown`: Unknown error
 
 Usage notes:
-- `try_borrow()` and `try_borrow_create()` return a `scoped_resource<T>` that may be invalid
+- `try_borrow()` and `try_borrow_create()` return a `resource_guard<T>` that may be invalid
 - `seed()` and `clear()` return `pool_error`
 - `size()` returns `size_t`
 - `to_json()` returns `nlohmann::json` when JSON support is enabled
@@ -219,7 +219,7 @@ Usage notes:
 
 ## Best Practices
 
-1. **Always use RAII**: Let `scoped_resource` handle resource return. You can use derived classes that--for example--specialize the handling of `CURL*`.
+1. **Always use RAII**: Let `resource_guard` handle resource return. You can use derived classes that--for example--specialize the handling of `CURL*`.
 2. **Pre-populate pools**: Add resources before concurrent access
 3. **Handle errors**: Check `std::expected` return values from `try_borrow()`
 4. **Keep factories simple**: Factory callbacks should only create resources
