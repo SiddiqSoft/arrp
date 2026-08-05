@@ -10,7 +10,18 @@ cmake_minimum_required(VERSION 3.31)
 
 # Version detection must precede project() declaration
 # Figures out ${CURRENT_PROJECT_VERSION} and brings in CPM module
-set(CPM_SOURCE_CACHE "$ENV{HOME}/.cache/.cpmcache" CACHE PATH "CPM source cache")
+if(WIN32)
+    if(DEFINED ENV{LOCALAPPDATA})
+        set(CPM_SOURCE_CACHE "$ENV{LOCALAPPDATA}/CPM/.cpmcache")
+    elseif(DEFINED ENV{USERPROFILE})
+        set(CPM_SOURCE_CACHE "$ENV{USERPROFILE}/AppData/Local/CPM/.cpmcache")
+    else()
+        set(CPM_SOURCE_CACHE "${CMAKE_BINARY_DIR}/.cpmcache")
+    endif()
+else()
+    set(CPM_SOURCE_CACHE "$ENV{HOME}/.cache/.cpmcache")
+endif()
+set(CPM_SOURCE_CACHE ${CPM_SOURCE_CACHE} CACHE PATH "CPM source cache")
 include(pack/CMakeCommonHelpers.cmake)
 
 # Project metadata
