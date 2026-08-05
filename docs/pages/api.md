@@ -20,8 +20,8 @@ To expose JSON members, include nlohmann JSON first:
 
 @section resource_pool_api resource_pool<T, SRT>
 
-`resource_pool<T, SRT>` is a non-copyable, non-movable, thread-safe pool. `SRT`
-defaults to `resource_guard<T>` and must derive from it.
+`resource_pool<T, SRT>` is a non-copyable, non-movable pool with synchronized
+storage operations. `SRT` defaults to `resource_guard<T>` and must derive from it.
 
 @subsection pool_constructors Constructors
 
@@ -32,7 +32,8 @@ defaults to `resource_guard<T>` and must derive from it.
 
 The cleanup callback is called for each resource available when `clear()` or the
 destructor removes it. It executes while the pool lock is held and must not call
-pool methods. Exceptions are caught and written to standard error.
+pool methods. Exceptions derived from `std::exception` are caught and written to
+standard error.
 
 @subsection pool_methods Methods
 
@@ -91,7 +92,7 @@ Borrow methods return an invalid `SRT` with one of these errors:
 | `returns` | Valid resources returned by guards. |
 | `abandons` | Invalidated resources discarded by guards. |
 | `loans` | `borrows - returns - abandons`. |
-| `items` | Available items for `std::string`, arithmetic types, and `nlohmann::json` resources only. |
+| `items` | Available items for `std::string` and `nlohmann::json` resources only. |
 
 @section resource_guard_api resource_guard<T>
 

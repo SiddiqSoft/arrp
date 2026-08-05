@@ -99,6 +99,7 @@ JSON support is available only when `nlohmann/json.hpp` is included before
 @code{.cpp}
 #include <nlohmann/json.hpp>
 #include <siddiqsoft/arrp.hpp>
+#include <iostream>
 
 auto stats = pool.to_json();
 std::cout << stats.dump(2) << '\n';

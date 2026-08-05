@@ -126,6 +126,7 @@ Include nlohmann JSON before arrp to enable `to_json()`:
 @code{.cpp}
 #include <nlohmann/json.hpp>
 #include <siddiqsoft/arrp.hpp>
+#include <iostream>
 
 auto stats = pool.to_json();
 std::cout << stats.dump(2) << '\n';
