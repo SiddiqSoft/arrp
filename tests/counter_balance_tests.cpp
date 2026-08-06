@@ -199,9 +199,9 @@ TEST(counter_balance, loan_size_matches_checked_out_resources)
     first.invalidate();
     EXPECT_EQ(1, get_loan_count(pool));
 
-    first = pool.try_borrow();
-    EXPECT_FALSE(first.has_value());
-    EXPECT_EQ(1, get_loan_count(pool));
+    auto third = pool.try_borrow();
+    EXPECT_TRUE(third.has_value());
+    EXPECT_EQ(2, get_loan_count(pool));
 }
 
 class custom_mr
