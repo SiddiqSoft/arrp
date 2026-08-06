@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['is_5fvalid_0',['is_valid',['../classsiddiqsoft_1_1arrp_1_1resource__guard.html#a899a309271834f7a616cf86e2753d52b',1,'siddiqsoft::arrp::resource_guard']]]
+  ['format_0',['format',['../structstd_1_1formatter_3_01siddiqsoft_1_1arrp_1_1resource__pool__limits_01_4.html#aa9bd88064e88f9419fc40365e70fc190',1,'std::formatter&lt; siddiqsoft::arrp::resource_pool_limits &gt;::format()'],['../structstd_1_1formatter_3_01siddiqsoft_1_1arrp_1_1pool__error_01_4.html#a75091d1e6218b938bf26ea289d378535',1,'std::formatter&lt; siddiqsoft::arrp::pool_error &gt;::format()'],['../structstd_1_1formatter_3_01siddiqsoft_1_1arrp_1_1release__reason_01_4.html#a225fe236014eca71bddf52c7313b38e6',1,'std::formatter&lt; siddiqsoft::arrp::release_reason &gt;::format()'],['../structstd_1_1formatter_3_01siddiqsoft_1_1arrp_1_1resource__guard_3_01T_01_4_01_4.html#abde480a04b66f6f99d6e9e27b03abd8e',1,'std::formatter&lt; siddiqsoft::arrp::resource_guard&lt; T &gt; &gt;::format()']]]
 ];

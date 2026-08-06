@@ -1,8 +1,5 @@
 var searchData=
 [
-  ['enumerations_0',['Enumerations',['../api_reference.html#enums',1,'']]],
-  ['error_20handling_1',['Error Handling',['../index.html#error_handling',1,'Error Handling'],['../usage_guide.html#borrow_error',1,'Error Handling']]],
-  ['example_2',['Basic Example',['../usage_guide.html#basic_example',1,'']]],
-  ['examples_3',['Examples',['../index.html#examples',1,'']]],
-  ['exhausted_4',['Pool Exhausted',['../usage_guide.html#ts_pool_exhausted',1,'']]]
+  ['error_0',['error',['../classsiddiqsoft_1_1arrp_1_1resource__guard.html#ab806fff0061d73685a71ee835fe22b49',1,'siddiqsoft::arrp::resource_guard']]],
+  ['errors_1',['Borrow errors',['../api_reference.html#pool_borrow_errors',1,'']]]
 ];

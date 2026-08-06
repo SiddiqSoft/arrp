@@ -1,9 +1,6 @@
 var searchData=
 [
-  ['basic_20borrowing_0',['Basic Borrowing',['../usage_guide.html#borrow_basic',1,'']]],
-  ['basic_20example_1',['Basic Example',['../usage_guide.html#basic_example',1,'']]],
-  ['basic_20usage_2',['Basic Usage',['../index.html#basic_usage',1,'']]],
-  ['best_20practices_3',['Best Practices',['../usage_guide.html#best_practices',1,'']]],
-  ['borrowing_4',['Basic Borrowing',['../usage_guide.html#borrow_basic',1,'']]],
-  ['borrowing_20resources_5',['Borrowing Resources',['../usage_guide.html#resource_borrowing',1,'']]]
+  ['behavior_0',['Pool behavior',['../index.html#behavior',1,'']]],
+  ['borrow_20errors_1',['Borrow errors',['../api_reference.html#pool_borrow_errors',1,'']]],
+  ['borrowing_20seeded_20resources_2',['Borrowing seeded resources',['../usage_guide.html#usage_basics',1,'']]]
 ];

@@ -1,6 +1,5 @@
 var searchData=
 [
-  ['handle_20pool_0',['File Handle Pool',['../index.html#example_file_pool',1,'']]],
-  ['handling_1',['Handling',['../index.html#error_handling',1,'Error Handling'],['../usage_guide.html#borrow_error',1,'Error Handling']]],
-  ['header_2',['Include Header',['../usage_guide.html#include_header',1,'']]]
+  ['include_20and_20requirements_0',['Include and requirements',['../api_reference.html#api_include',1,'']]],
+  ['inspecting_20statistics_1',['Inspecting statistics',['../usage_guide.html#usage_statistics',1,'']]]
 ];

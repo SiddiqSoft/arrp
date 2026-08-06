@@ -25,87 +25,34 @@
 var NAVTREE =
 [
   [ "arrp", "index.html", [
-    [ "arrp - Auto Returning Resource Pool", "index.html", "index" ],
+    [ "Overview", "index.html#overview", null ],
+    [ "Quick start", "index.html#quick_start", null ],
+    [ "Core types", "index.html#concepts", null ],
+    [ "Pool behavior", "index.html#behavior", null ],
+    [ "Lifetime rules", "index.html#lifecycle", null ],
+    [ "JSON statistics", "index.html#json", null ],
     [ "api", "md_docs_2pages_2api.html", null ],
-    [ "API Reference", "api_reference.html", [
-      [ "resource_pool&lt;T, SRT&gt;", "api_reference.html#resource_pool_class", [
-        [ "Template Parameters", "api_reference.html#rp_template", null ],
-        [ "Constructors", "api_reference.html#rp_constructors", null ],
-        [ "Methods", "api_reference.html#rp_methods", null ],
-        [ "Callbacks", "api_reference.html#rp_callbacks", null ],
-        [ "Statistics", "api_reference.html#rp_statistics", null ]
+    [ "API reference", "api_reference.html", [
+      [ "Include and requirements", "api_reference.html#api_include", null ],
+      [ "resource_pool&lt;T, SRT&gt;", "api_reference.html#resource_pool_api", [
+        [ "Constructors", "api_reference.html#pool_constructors", null ],
+        [ "Methods", "api_reference.html#pool_methods", null ],
+        [ "Borrow errors", "api_reference.html#pool_borrow_errors", null ],
+        [ "Statistics", "api_reference.html#pool_statistics", null ]
       ] ],
-      [ "resource_guard&lt;T&gt;", "api_reference.html#resource_guard_class", [
-        [ "Template Parameters", "api_reference.html#sr_template", null ],
-        [ "Operators", "api_reference.html#sr_operators", null ],
-        [ "Methods", "api_reference.html#sr_methods", null ],
-        [ "Move Semantics", "api_reference.html#sr_semantics", null ]
-      ] ],
-      [ "Enumerations", "api_reference.html#enums", [
-        [ "pool_error", "api_reference.html#pool_error", null ],
-        [ "resource_pool_limits", "api_reference.html#resource_pool_limits", null ]
-      ] ],
-      [ "Concepts", "api_reference.html#concepts_section", [
-        [ "NonNumericMoveConstructible&lt;T&gt;", "api_reference.html#non_numeric_move_constructible", null ]
-      ] ],
-      [ "Usage Patterns", "api_reference.html#usage_patterns", [
-        [ "Fixed-Size Pool", "api_reference.html#pattern_fixed_pool", null ],
-        [ "Factory Callback", "api_reference.html#pattern_factory_callback", null ],
-        [ "Invalidate Resource", "api_reference.html#pattern_invalidate", null ]
-      ] ],
-      [ "Thread Safety Details", "api_reference.html#thread_safety_details", null ],
-      [ "Performance Considerations", "api_reference.html#performance", null ],
-      [ "Limitations", "api_reference.html#limitations", null ]
+      [ "resource_guard&lt;T&gt;", "api_reference.html#resource_guard_api", null ],
+      [ "Common types", "api_reference.html#common_types", null ]
     ] ],
     [ "mainpage", "md_docs_2pages_2mainpage.html", null ],
     [ "usage_guide", "md_docs_2pages_2usage__guide.html", null ],
-    [ "Usage Guide", "usage_guide.html", [
-      [ "Getting Started", "usage_guide.html#getting_started", [
-        [ "Include Header", "usage_guide.html#include_header", null ],
-        [ "Basic Example", "usage_guide.html#basic_example", null ]
-      ] ],
-      [ "Pool Creation", "usage_guide.html#pool_creation", [
-        [ "Simple Pool", "usage_guide.html#create_simple", null ],
-        [ "Pool with Factory", "usage_guide.html#create_factory", null ],
-        [ "Pool with Cleanup", "usage_guide.html#create_cleanup", null ]
-      ] ],
-      [ "Borrowing Resources", "usage_guide.html#resource_borrowing", [
-        [ "Basic Borrowing", "usage_guide.html#borrow_basic", null ],
-        [ "Error Handling", "usage_guide.html#borrow_error", null ],
-        [ "Move Resource", "usage_guide.html#borrow_move", null ]
-      ] ],
-      [ "Seeding Resources", "usage_guide.html#resource_seeding", [
-        [ "Seed via Move", "usage_guide.html#seed_move", null ],
-        [ "Seed via In-Place Construction", "usage_guide.html#seed_inplace", null ]
-      ] ],
-      [ "Resource Invalidation", "usage_guide.html#resource_invalidation", [
-        [ "Invalidate Resource", "usage_guide.html#invalidate_example", null ],
-        [ "Check Validity", "usage_guide.html#check_validity", null ],
-        [ "Get Statistics", "usage_guide.html#get_statistics", null ],
-        [ "Statistics Fields", "usage_guide.html#statistics_fields", null ]
-      ] ],
-      [ "Threading", "usage_guide.html#threading", [
-        [ "Thread-Safe Operations", "usage_guide.html#thread_safe", null ],
-        [ "NOT Thread-Safe", "usage_guide.html#thread_unsafe", null ],
-        [ "Correct Threading", "usage_guide.html#thread_correct", null ]
-      ] ],
-      [ "Advanced Usage", "usage_guide.html#advanced", [
-        [ "Custom Scoped Resource", "usage_guide.html#custom_resource_guard", null ],
-        [ "Clear Pool", "usage_guide.html#pool_clear", null ],
-        [ "Get Pool Size", "usage_guide.html#pool_size", null ]
-      ] ],
-      [ "Best Practices", "usage_guide.html#best_practices", [
-        [ "Choose Appropriate Capacity", "usage_guide.html#bp_capacity", null ],
-        [ "Keep Callbacks Fast", "usage_guide.html#bp_callbacks", null ],
-        [ "Don't Call Pool Methods in Callbacks", "usage_guide.html#bp_no_deadlock", null ],
-        [ "Always Check Results", "usage_guide.html#bp_error_handling", null ],
-        [ "Invalidate Corrupted Resources", "usage_guide.html#bp_invalidate", null ]
-      ] ],
-      [ "Troubleshooting", "usage_guide.html#troubleshooting", [
-        [ "Pool Exhausted", "usage_guide.html#ts_pool_exhausted", null ],
-        [ "Deadlock", "usage_guide.html#ts_deadlock", null ],
-        [ "Memory Leak", "usage_guide.html#ts_memory_leak", null ]
-      ] ]
+    [ "Usage guide", "usage_guide.html", [
+      [ "Borrowing seeded resources", "usage_guide.html#usage_basics", null ],
+      [ "Creating on demand", "usage_guide.html#usage_factory", null ],
+      [ "Waiting for a resource", "usage_guide.html#usage_waiting", null ],
+      [ "Discarding a resource", "usage_guide.html#usage_invalidating", null ],
+      [ "Cleaning up available resources", "usage_guide.html#usage_cleanup", null ],
+      [ "Inspecting statistics", "usage_guide.html#usage_statistics", null ],
+      [ "Capacity guidance", "usage_guide.html#usage_capacity", null ]
     ] ],
     [ "Concepts", "concepts.html", "concepts" ],
     [ "Classes", "annotated.html", [
@@ -128,7 +75,7 @@ var NAVTREE =
 
 var NAVTREEINDEX =
 [
-"Consider-example.html"
+"_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2resource_guard_8hpp-example.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronization';

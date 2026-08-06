@@ -28,7 +28,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="Siddiq-Software-Avatar.png"/></td>
   <td id="projectalign">
-   <div id="projectname">arrp<span id="projectnumber">&#160;0.1.0</span>
+   <div id="projectname">arrp<span id="projectnumber">&#160;0.1.1</span>
    </div>
    <div id="projectbrief">Auto returning resource pool for modern C++</div>
   </td>
@@ -107,7 +107,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:acb1054fba7fd688648f517925b1d6219" id="r_acb1054fba7fd688648f517925b1d6219"><td class="memItemLeft"><a class="el" href="#a3495caae58e003881e976318559ba06e">resource_guard</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#acb1054fba7fd688648f517925b1d6219">operator=</a> (const <a class="el" href="#a3495caae58e003881e976318559ba06e">resource_guard</a> &amp;)=delete</td></tr>
 <tr class="memdesc:acb1054fba7fd688648f517925b1d6219"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy assignment operator is deleted.  <br /></td></tr>
 <tr class="memitem:a6f177e84230f911f734db42ab5998e42" id="r_a6f177e84230f911f734db42ab5998e42"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a6f177e84230f911f734db42ab5998e42">resource_guard</a> (const pool_error &amp;err)</td></tr>
-<tr class="memdesc:a6f177e84230f911f734db42ab5998e42"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructs a <a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__guard.html">resource_guard</a> in an error state.  <br /></td></tr>
+<tr class="memdesc:a6f177e84230f911f734db42ab5998e42"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructs an invalid guard carrying a borrow error.  <br /></td></tr>
 <tr class="memitem:a302c48464f6266f8a712b452816d79bd" id="r_a302c48464f6266f8a712b452816d79bd"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a302c48464f6266f8a712b452816d79bd">resource_guard</a> (resource_guard &amp;&amp;src) noexcept(std::is_nothrow_move_constructible_v&lt; T &gt; &amp;&amp;std::is_nothrow_move_constructible_v&lt; <a class="el" href="#a764da98af690ef5faf0ca546f772e243">PutbackCallbackFunc</a> &gt;)</td></tr>
 <tr class="memdesc:a302c48464f6266f8a712b452816d79bd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Move constructor.  <br /></td></tr>
 <tr class="memitem:adf7d8051c7b0eb8ae4f8b96780266996" id="r_adf7d8051c7b0eb8ae4f8b96780266996"><td class="memItemLeft"><a class="el" href="#a3495caae58e003881e976318559ba06e">resource_guard</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#adf7d8051c7b0eb8ae4f8b96780266996">operator=</a> (<a class="el" href="#a3495caae58e003881e976318559ba06e">resource_guard</a> &amp;&amp;src)</td></tr>
@@ -119,28 +119,34 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a9f23b9bc4f7682f1a61d91966cb416bc" id="r_a9f23b9bc4f7682f1a61d91966cb416bc"><td class="memItemLeft">auto&#160;</td><td class="memItemRight"><a class="el" href="#a9f23b9bc4f7682f1a61d91966cb416bc">operator-&gt;</a> () -&gt; T *</td></tr>
 <tr class="memdesc:a9f23b9bc4f7682f1a61d91966cb416bc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pointer-like access to the wrapped resource.  <br /></td></tr>
 <tr class="memitem:af478b8c10cbbc642a39a84b758884fc7" id="r_af478b8c10cbbc642a39a84b758884fc7"><td class="memItemLeft">auto&#160;</td><td class="memItemRight"><a class="el" href="#af478b8c10cbbc642a39a84b758884fc7">operator-&gt;</a> () const -&gt; const T *</td></tr>
+<tr class="memdesc:af478b8c10cbbc642a39a84b758884fc7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Provides const pointer-like access to the wrapped resource.  <br /></td></tr>
 <tr class="memitem:ae3a2fb8d3d5bb143bb7d980f4c9015f3" id="r_ae3a2fb8d3d5bb143bb7d980f4c9015f3"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#ae3a2fb8d3d5bb143bb7d980f4c9015f3">operator T</a> () &amp;&amp;</td></tr>
 <tr class="memdesc:ae3a2fb8d3d5bb143bb7d980f4c9015f3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Explicit conversion to resource value.  <br /></td></tr>
 <tr class="memitem:ae271c2e559ef43933a3f5da356b5f0ff" id="r_ae271c2e559ef43933a3f5da356b5f0ff"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#ae271c2e559ef43933a3f5da356b5f0ff">operator T&amp;</a> () &amp;</td></tr>
 <tr class="memdesc:ae271c2e559ef43933a3f5da356b5f0ff"><td class="mdescLeft">&#160;</td><td class="mdescRight">Explicit conversion to resource reference.  <br /></td></tr>
 <tr class="memitem:a77ffadcb9626e0ce57aa273ca108b8ab" id="r_a77ffadcb9626e0ce57aa273ca108b8ab"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a77ffadcb9626e0ce57aa273ca108b8ab">operator const T &amp;</a> () const &amp;</td></tr>
+<tr class="memdesc:a77ffadcb9626e0ce57aa273ca108b8ab"><td class="mdescLeft">&#160;</td><td class="mdescRight">Provides a const reference to the wrapped resource.  <br /></td></tr>
 <tr class="memitem:a44091eca34cb9c5e7e562d511f0d06fa" id="r_a44091eca34cb9c5e7e562d511f0d06fa"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a44091eca34cb9c5e7e562d511f0d06fa">operator bool</a> () const noexcept</td></tr>
-<tr class="memdesc:a44091eca34cb9c5e7e562d511f0d06fa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Explicit bool conversion to indicate resource validity.  <br /></td></tr>
+<tr class="memdesc:a44091eca34cb9c5e7e562d511f0d06fa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Tests whether the guard holds a resource eligible for return.  <br /></td></tr>
 <tr class="memitem:a28f73f971629a8a080a3fe6f660a38ce" id="r_a28f73f971629a8a080a3fe6f660a38ce"><td class="memTemplParams" colspan="2">template&lt;typename InnerType&gt; </td></tr>
 <tr class="memitem:a28f73f971629a8a080a3fe6f660a38ce template"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a28f73f971629a8a080a3fe6f660a38ce">operator InnerType</a> () const</td></tr>
+<tr class="memdesc:a28f73f971629a8a080a3fe6f660a38ce"><td class="mdescLeft">&#160;</td><td class="mdescRight">Converts through a conversion supplied by the stored resource type.  <br /></td></tr>
 <tr class="memitem:a9c668bed1a5a10556f237ecc0abc54ad" id="r_a9c668bed1a5a10556f237ecc0abc54ad"><td class="memItemLeft"><a class="el" href="#a3495caae58e003881e976318559ba06e">resource_guard</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a9c668bed1a5a10556f237ecc0abc54ad">operator=</a> (T &amp;&amp;src)</td></tr>
 <tr class="memdesc:a9c668bed1a5a10556f237ecc0abc54ad"><td class="mdescLeft">&#160;</td><td class="mdescRight">Assignment operator for resource value.  <br /></td></tr>
 <tr class="memitem:abda03d642ffe1096d182ae43914681e4" id="r_abda03d642ffe1096d182ae43914681e4"><td class="memItemLeft">virtual void&#160;</td><td class="memItemRight"><a class="el" href="#abda03d642ffe1096d182ae43914681e4">invalidate</a> ()</td></tr>
 <tr class="memitem:a899a309271834f7a616cf86e2753d52b" id="r_a899a309271834f7a616cf86e2753d52b"><td class="memItemLeft">virtual bool&#160;</td><td class="memItemRight"><a class="el" href="#a899a309271834f7a616cf86e2753d52b">is_valid</a> () const</td></tr>
 <tr class="memdesc:a899a309271834f7a616cf86e2753d52b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks if the resource is valid.  <br /></td></tr>
 <tr class="memitem:a19fa5028409bbd0e300ac9265d530456" id="r_a19fa5028409bbd0e300ac9265d530456"><td class="memItemLeft">auto &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a19fa5028409bbd0e300ac9265d530456">set_error</a> (pool_error err)</td></tr>
+<tr class="memdesc:a19fa5028409bbd0e300ac9265d530456"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the error reported by <a class="el" href="#ab806fff0061d73685a71ee835fe22b49" title="Gets the error associated with this guard.">error()</a>.  <br /></td></tr>
 <tr class="memitem:ab806fff0061d73685a71ee835fe22b49" id="r_ab806fff0061d73685a71ee835fe22b49"><td class="memItemLeft">pool_error&#160;</td><td class="memItemRight"><a class="el" href="#ab806fff0061d73685a71ee835fe22b49">error</a> () const</td></tr>
+<tr class="memdesc:ab806fff0061d73685a71ee835fe22b49"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the error associated with this guard.  <br /></td></tr>
 <tr class="memitem:aaaa62a004ab8cecaa5be5406b58ba2ff" id="r_aaaa62a004ab8cecaa5be5406b58ba2ff"><td class="memItemLeft">virtual bool&#160;</td><td class="memItemRight"><a class="el" href="#aaaa62a004ab8cecaa5be5406b58ba2ff">has_value</a> () const</td></tr>
+<tr class="memdesc:aaaa62a004ab8cecaa5be5406b58ba2ff"><td class="mdescLeft">&#160;</td><td class="mdescRight">Tests whether the guard holds a valid resource.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pro-methods" class="groupheader"><a id="pro-methods" name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
 <tr class="memitem:a3495caae58e003881e976318559ba06e" id="r_a3495caae58e003881e976318559ba06e"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a3495caae58e003881e976318559ba06e">resource_guard</a> ()</td></tr>
-<tr class="memdesc:a3495caae58e003881e976318559ba06e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default constructor is protected to allow derived classes construct their own data.  <br /></td></tr>
+<tr class="memdesc:a3495caae58e003881e976318559ba06e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default constructor for derived scoped-resource types.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pro-attribs" class="groupheader"><a id="pro-attribs" name="pro-attribs"></a>
 Protected Attributes</h2></td></tr>
@@ -155,10 +161,10 @@ Friends</h2></td></tr>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><div class="compoundTemplParams">template&lt;typename T&gt;<br />
 requires NonNumericMoveConstructible&lt;T&gt;<br />
-class siddiqsoft::arrp::resource_guard&lt; T &gt;</div><dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2resource_guard_8hpp-example.html#_a8">/opt/azure-agent/_work/1/s/include/siddiqsoft/private/resource_guard.hpp</a>.</dd>
+class siddiqsoft::arrp::resource_guard&lt; T &gt;</div><dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2resource_guard_8hpp-example.html#_a11">/opt/azure-agent/_work/1/s/include/siddiqsoft/private/resource_guard.hpp</a>.</dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00117">117</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00118">118</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
 </div><a name="doc-typedef-members" id="doc-typedef-members"></a><h2 id="header-doc-typedef-members" class="groupheader">Member Typedef Documentation</h2>
 <a id="a764da98af690ef5faf0ca546f772e243" name="a764da98af690ef5faf0ca546f772e243"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a764da98af690ef5faf0ca546f772e243">&#9670;&#160;</a></span>PutbackCallbackFunc</h2>
@@ -175,7 +181,7 @@ template&lt;typename T&gt; </div>
 </div><div class="memdoc">
 
 <p>Callback function type for returning resource to pool. </p>
-<p>This callback allows the implementor that is asking for the <a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__guard.html">resource_guard</a> the ability to recall it back or perform any additional tasks. The callback must not throw and must not invoke any other method in the pool that requires lock manipulation.</p>
+<p>The callback receives the resource and whether it remains reusable. It is normally installed by <a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">resource_pool</a>.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">resource</td><td>The resource being returned (moved) </td></tr>
@@ -186,7 +192,7 @@ template&lt;typename T&gt; </div>
 <dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2resource_guard_8hpp-example.html#a0">/opt/azure-agent/_work/1/s/include/siddiqsoft/private/resource_guard.hpp</a>.</dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00129">129</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00128">128</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
 
 </div>
 </div>
@@ -216,14 +222,14 @@ template&lt;typename T&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p>Default constructor is protected to allow derived classes construct their own data. </p>
-<dl class="section note"><dt>Note</dt><dd>Marking this as valid is critical otherwise the clients will assume the resource is invalid during borrow_or_create(). </dd></dl>
+<p>Default constructor for derived scoped-resource types. </p>
+<dl class="section note"><dt>Note</dt><dd>It creates a valid guard without a return callback. </dd></dl>
 <dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2resource_guard_8hpp-example.html#a2">/opt/azure-agent/_work/1/s/include/siddiqsoft/private/resource_guard.hpp</a>.</dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00160">160</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00156">156</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#acb1054fba7fd688648f517925b1d6219">operator=()</a>, <a class="el" href="resource__guard_8hpp_source.html#l00248">operator=()</a>, <a class="el" href="resource__guard_8hpp_source.html#l00372">operator=()</a>, <a class="el" href="#af5949392e4dac60ef492b5585d4ac35b">resource_guard()</a>, and <a class="el" href="resource__guard_8hpp_source.html#l00218">resource_guard()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#acb1054fba7fd688648f517925b1d6219">operator=()</a>, <a class="el" href="resource__guard_8hpp_source.html#l00245">operator=()</a>, <a class="el" href="resource__guard_8hpp_source.html#l00364">operator=()</a>, <a class="el" href="#af5949392e4dac60ef492b5585d4ac35b">resource_guard()</a>, and <a class="el" href="resource__guard_8hpp_source.html#l00215">resource_guard()</a>.</p>
 
 </div>
 </div>
@@ -255,7 +261,7 @@ template&lt;typename T&gt; </div>
 <p>Copy constructor is deleted. </p>
 <p><a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__guard.html">resource_guard</a> is move-only to prevent resource ownership ambiguity and ensure proper RAII semantics. Only one <a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__guard.html">resource_guard</a> can own a resource. </p>
 
-<p class="reference">References <a class="el" href="resource__guard_8hpp_source.html#l00160">resource_guard()</a>.</p>
+<p class="reference">References <a class="el" href="resource__guard_8hpp_source.html#l00156">resource_guard()</a>.</p>
 
 </div>
 </div>
@@ -284,9 +290,15 @@ template&lt;typename T&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p>Constructs a <a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__guard.html">resource_guard</a> in an error state. </p>
+<p>Constructs an invalid guard carrying a borrow error. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">err</td><td>Error reported by <a class="el" href="#ab806fff0061d73685a71ee835fe22b49" title="Gets the error associated with this guard.">error()</a> </td></tr>
+  </table>
+  </dd>
+</dl>
 
-<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00202">202</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00199">199</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
 
 </div>
 </div>
@@ -327,9 +339,9 @@ template&lt;typename T&gt; </div>
 <dd>
 The source is marked as invalid </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00218">218</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00215">215</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
 
-<p class="reference">References <a class="el" href="resource__guard_8hpp_source.html#l00134">m_rsrc</a>, and <a class="el" href="resource__guard_8hpp_source.html#l00160">resource_guard()</a>.</p>
+<p class="reference">References <a class="el" href="resource__guard_8hpp_source.html#l00133">m_rsrc</a>, and <a class="el" href="resource__guard_8hpp_source.html#l00156">resource_guard()</a>.</p>
 
 </div>
 </div>
@@ -372,9 +384,9 @@ The resource is marked as invalid after callback invocation </dd></dl>
 <dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2resource_guard_8hpp-example.html#a4">/opt/azure-agent/_work/1/s/include/siddiqsoft/private/resource_guard.hpp</a>.</dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00293">293</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00290">290</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
 
-<p class="reference">References <a class="el" href="resource__guard_8hpp_source.html#l00134">m_rsrc</a>.</p>
+<p class="reference">References <a class="el" href="resource__guard_8hpp_source.html#l00133">m_rsrc</a>.</p>
 
 </div>
 </div>
@@ -404,7 +416,12 @@ template&lt;typename T&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00426">426</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
+<p>Gets the error associated with this guard. </p>
+<dl class="section return"><dt>Returns</dt><dd>The stored error code; valid guards normally report pool_error::Ok. </dd></dl>
+<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2resource_guard_8hpp-example.html#a9">/opt/azure-agent/_work/1/s/include/siddiqsoft/private/resource_guard.hpp</a>.</dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00423">423</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
 
 </div>
 </div>
@@ -432,6 +449,11 @@ template&lt;typename T&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Tests whether the guard holds a valid resource. </p>
+<dl class="section return"><dt>Returns</dt><dd>true when <a class="el" href="#a899a309271834f7a616cf86e2753d52b" title="Checks if the resource is valid.">is_valid()</a> would return true. </dd></dl>
+<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2resource_guard_8hpp-example.html#a10">/opt/azure-agent/_work/1/s/include/siddiqsoft/private/resource_guard.hpp</a>.</dd>
+</dl>
 
 <p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00427">427</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
 
@@ -462,7 +484,7 @@ template&lt;typename T&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00411">411</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00403">403</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
 
 </div>
 </div>
@@ -499,9 +521,9 @@ Const: Does not modify the resource </dd></dl>
 <dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2resource_guard_8hpp-example.html#a7">/opt/azure-agent/_work/1/s/include/siddiqsoft/private/resource_guard.hpp</a>.</dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00419">419</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00411">411</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="resource__guard_8hpp_source.html#l00486">std::formatter&lt; siddiqsoft::arrp::resource_guard&lt; T &gt; &gt;::format()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="resource__guard_8hpp_source.html#l00482">std::formatter&lt; siddiqsoft::arrp::resource_guard&lt; T &gt; &gt;::format()</a>.</p>
 
 </div>
 </div>
@@ -530,9 +552,10 @@ template&lt;typename T&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p>Explicit bool conversion to indicate resource validity. </p>
+<p>Tests whether the guard holds a resource eligible for return. </p>
+<dl class="section return"><dt>Returns</dt><dd>true when the guard is valid </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00338">338</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00343">343</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
 
 </div>
 </div>
@@ -561,7 +584,12 @@ template&lt;typename T&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00335">335</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
+<p>Provides a const reference to the wrapped resource. </p>
+<dl class="section warning"><dt>Warning</dt><dd>Does not check validity; do not use after invalidation or move-out. </dd></dl>
+
+<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00339">339</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
+
+<p class="reference">References <a class="el" href="resource__guard_8hpp_source.html#l00133">m_rsrc</a>.</p>
 
 </div>
 </div>
@@ -592,7 +620,18 @@ template&lt;typename InnerType&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00357">357</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
+<p>Converts through a conversion supplied by the stored resource type. </p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">InnerType</td><td>Requested conversion target. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The result of converting the stored resource to InnerType. </dd></dl>
+
+<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00350">350</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
+
+<p class="reference">References <a class="el" href="resource__guard_8hpp_source.html#l00133">m_rsrc</a>.</p>
 
 </div>
 </div>
@@ -622,12 +661,12 @@ template&lt;typename T&gt; </div>
 </div><div class="memdoc">
 
 <p>Explicit conversion to resource value. </p>
-<dl class="section return"><dt>Returns</dt><dd>The wrapped resource, moving it out of this wrapper. </dd></dl>
-<dl class="section note"><dt>Note</dt><dd>Invalidates the <a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__guard.html">resource_guard</a> to prevent double-return during destruction. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>The wrapped resource, moved out of this wrapper. </dd></dl>
+<dl class="section note"><dt>Note</dt><dd>Invalidates the guard so its destructor abandons rather than returns the moved-from resource. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00325">325</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00326">326</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
 
-<p class="reference">References <a class="el" href="resource__guard_8hpp_source.html#l00134">m_rsrc</a>.</p>
+<p class="reference">References <a class="el" href="resource__guard_8hpp_source.html#l00133">m_rsrc</a>.</p>
 
 </div>
 </div>
@@ -658,11 +697,11 @@ template&lt;typename T&gt; </div>
 
 <p>Explicit conversion to resource reference. </p>
 <dl class="section return"><dt>Returns</dt><dd>Reference to the wrapped resource </dd></dl>
-<dl class="section warning"><dt>Warning</dt><dd>Behavior is undefined if resource has been invalidated </dd></dl>
+<dl class="section warning"><dt>Warning</dt><dd>Does not check validity; do not use after invalidation or move-out. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00334">334</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00335">335</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
 
-<p class="reference">References <a class="el" href="resource__guard_8hpp_source.html#l00134">m_rsrc</a>.</p>
+<p class="reference">References <a class="el" href="resource__guard_8hpp_source.html#l00133">m_rsrc</a>.</p>
 
 </div>
 </div>
@@ -693,13 +732,13 @@ template&lt;typename T&gt; </div>
 
 <p>Dereference operator to access the wrapped resource. </p>
 <dl class="section return"><dt>Returns</dt><dd>Reference to the wrapped resource </dd></dl>
-<dl class="section warning"><dt>Warning</dt><dd>Behavior is undefined if resource has been invalidated </dd></dl>
+<dl class="section warning"><dt>Warning</dt><dd>Does not check validity; do not use after invalidation or move-out. </dd></dl>
 <dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2resource_guard_8hpp-example.html#a5">/opt/azure-agent/_work/1/s/include/siddiqsoft/private/resource_guard.hpp</a>.</dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00314">314</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00311">311</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
 
-<p class="reference">References <a class="el" href="resource__guard_8hpp_source.html#l00134">m_rsrc</a>.</p>
+<p class="reference">References <a class="el" href="resource__guard_8hpp_source.html#l00133">m_rsrc</a>.</p>
 
 </div>
 </div>
@@ -734,9 +773,9 @@ template&lt;typename T&gt; </div>
 <dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2resource_guard_8hpp-example.html#a6">/opt/azure-agent/_work/1/s/include/siddiqsoft/private/resource_guard.hpp</a>.</dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00319">319</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00316">316</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
 
-<p class="reference">References <a class="el" href="resource__guard_8hpp_source.html#l00134">m_rsrc</a>.</p>
+<p class="reference">References <a class="el" href="resource__guard_8hpp_source.html#l00133">m_rsrc</a>.</p>
 
 </div>
 </div>
@@ -765,7 +804,12 @@ template&lt;typename T&gt; </div>
 </table>
 </div><div class="memdoc">
 
+<p>Provides const pointer-like access to the wrapped resource. </p>
+<dl class="section return"><dt>Returns</dt><dd>The resource address, or nullptr if the guard is invalid. </dd></dl>
+
 <p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00320">320</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
+
+<p class="reference">References <a class="el" href="resource__guard_8hpp_source.html#l00133">m_rsrc</a>.</p>
 
 </div>
 </div>
@@ -799,7 +843,7 @@ template&lt;typename T&gt; </div>
 <dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2resource_guard_8hpp-example.html#a3">/opt/azure-agent/_work/1/s/include/siddiqsoft/private/resource_guard.hpp</a>.</dd>
 </dl>
 
-<p class="reference">References <a class="el" href="resource__guard_8hpp_source.html#l00160">resource_guard()</a>.</p>
+<p class="reference">References <a class="el" href="resource__guard_8hpp_source.html#l00156">resource_guard()</a>.</p>
 
 </div>
 </div>
@@ -847,9 +891,9 @@ The source is marked as invalid after the move </dd>
 <dd>
 NOT noexcept: T's move-assignment may throw; declaring noexcept here would call std::terminate if T::operator=(T&amp;&amp;) throws after the putback callback has already fired (state would be inconsistent). </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00248">248</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00245">245</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
 
-<p class="reference">References <a class="el" href="resource__guard_8hpp_source.html#l00134">m_rsrc</a>, and <a class="el" href="resource__guard_8hpp_source.html#l00160">resource_guard()</a>.</p>
+<p class="reference">References <a class="el" href="resource__guard_8hpp_source.html#l00133">m_rsrc</a>, and <a class="el" href="resource__guard_8hpp_source.html#l00156">resource_guard()</a>.</p>
 
 </div>
 </div>
@@ -879,7 +923,7 @@ template&lt;typename T&gt; </div>
 </div><div class="memdoc">
 
 <p>Assignment operator for resource value. </p>
-<p>Assigns a new resource value to this wrapper. Marks the resource as valid.</p>
+<p>Returns the current resource through its callback, then stores a replacement.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">src</td><td>The new resource value (moved) </td></tr>
@@ -887,13 +931,11 @@ template&lt;typename T&gt; </div>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Reference to this <a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__guard.html">resource_guard</a></dd></dl>
-<dl class="section note"><dt>Note</dt><dd>The resource is moved into the wrapper </dd>
-<dd>
-The resource is marked as valid </dd></dl>
+<dl class="section note"><dt>Note</dt><dd>The replacement is marked valid. If no callback is installed, the previous stored value is simply overwritten. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00372">372</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00364">364</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
 
-<p class="reference">References <a class="el" href="resource__guard_8hpp_source.html#l00134">m_rsrc</a>, and <a class="el" href="resource__guard_8hpp_source.html#l00160">resource_guard()</a>.</p>
+<p class="reference">References <a class="el" href="resource__guard_8hpp_source.html#l00133">m_rsrc</a>, and <a class="el" href="resource__guard_8hpp_source.html#l00156">resource_guard()</a>.</p>
 
 </div>
 </div>
@@ -922,7 +964,18 @@ template&lt;typename T&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00421">421</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
+<p>Sets the error reported by <a class="el" href="#ab806fff0061d73685a71ee835fe22b49" title="Gets the error associated with this guard.">error()</a>. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">err</td><td>Error code to store. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>This guard. </dd></dl>
+<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2resource_guard_8hpp-example.html#a8">/opt/azure-agent/_work/1/s/include/siddiqsoft/private/resource_guard.hpp</a>.</dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00416">416</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
 
 </div>
 </div>
@@ -951,7 +1004,7 @@ template&lt;typename U, typename SRT&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00140">140</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00139">139</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
 
 </div>
 </div>
@@ -983,9 +1036,9 @@ template&lt;typename T&gt; </div>
 <dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2resource_guard_8hpp-example.html#a1">/opt/azure-agent/_work/1/s/include/siddiqsoft/private/resource_guard.hpp</a>.</dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00134">134</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00133">133</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="resource__guard_8hpp_source.html#l00325">operator T()</a>, <a class="el" href="resource__guard_8hpp_source.html#l00334">operator T&amp;()</a>, <a class="el" href="resource__guard_8hpp_source.html#l00314">operator*()</a>, <a class="el" href="resource__guard_8hpp_source.html#l00319">operator-&gt;()</a>, <a class="el" href="resource__guard_8hpp_source.html#l00248">operator=()</a>, <a class="el" href="resource__guard_8hpp_source.html#l00372">operator=()</a>, <a class="el" href="resource__guard_8hpp_source.html#l00218">resource_guard()</a>, and <a class="el" href="resource__guard_8hpp_source.html#l00293">~resource_guard()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="resource__guard_8hpp_source.html#l00339">operator const T &amp;()</a>, <a class="el" href="resource__guard_8hpp_source.html#l00350">operator InnerType()</a>, <a class="el" href="resource__guard_8hpp_source.html#l00326">operator T()</a>, <a class="el" href="resource__guard_8hpp_source.html#l00335">operator T&amp;()</a>, <a class="el" href="resource__guard_8hpp_source.html#l00311">operator*()</a>, <a class="el" href="resource__guard_8hpp_source.html#l00316">operator-&gt;()</a>, <a class="el" href="resource__guard_8hpp_source.html#l00320">operator-&gt;()</a>, <a class="el" href="resource__guard_8hpp_source.html#l00245">operator=()</a>, <a class="el" href="resource__guard_8hpp_source.html#l00364">operator=()</a>, <a class="el" href="resource__guard_8hpp_source.html#l00215">resource_guard()</a>, and <a class="el" href="resource__guard_8hpp_source.html#l00290">~resource_guard()</a>.</p>
 
 </div>
 </div>

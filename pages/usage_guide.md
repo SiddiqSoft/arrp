@@ -1,407 +1,144 @@
 /**
-@page usage_guide Usage Guide
+@page usage_guide Usage guide
 
-@section getting_started Getting Started
+@section usage_basics Borrowing seeded resources
 
-@subsection include_header Include Header
+Construct the pool, add resources, then keep each borrowed guard in a scope that
+ends before the pool's scope:
 
-```cpp
-#include "siddiqsoft/resource_pool.hpp"
-```
+@code{.cpp}
+#include <siddiqsoft/arrp.hpp>
+#include <memory>
 
-@subsection basic_example Basic Example
-
-```cpp
-#include "siddiqsoft/resource_pool.hpp"
-
-class MyResource {
+class connection {
 public:
-    void doWork() { /* ... */ }
+    void query(const char* statement);
 };
 
-int main() {
-    // Create pool with 10 resources
-    siddiqsoft::arrp::resource_pool<MyResource> pool(10);
-
-    // Borrow resource
-    auto resource = pool.try_borrow();
-    if (resource) {
-        resource->doWork();
-    }
-    // Resource automatically returned when resource_guard is destroyed
-
-    return 0;
-}
-```
-
----
-
-@section pool_creation Pool Creation
-
-@subsection create_simple Simple Pool
-
-```cpp
-// Default: 8 resources
-siddiqsoft::arrp::resource_pool<MyResource> pool;
-
-// Custom capacity
-siddiqsoft::arrp::resource_pool<MyResource> pool(20);
-```
-
-@subsection create_factory Pool with Factory
-
-```cpp
-siddiqsoft::arrp::resource_pool<MyResource> pool(10);
-pool.set_factory_callback([]() {
-    return MyResource();
-});
-
-auto resource = pool.try_borrow_create();
-```
-
-@subsection create_cleanup Pool with Cleanup
-
-```cpp
-siddiqsoft::arrp::resource_pool<MyResource> pool(10);
-pool.set_factory_callback([]() {
-    return MyResource();
-});
-
-siddiqsoft::arrp::pool_error result = pool.clear();
-if (result == siddiqsoft::arrp::pool_error::Ok) {
-    std::cout << "Pool cleared\n";
-}
-```
-
----
-
-@section resource_borrowing Borrowing Resources
-
-@subsection borrow_basic Basic Borrowing
-
-```cpp
-auto resource = pool.try_borrow();
-if (resource) {
-    // Use resource
-    resource->doWork();
-    // Automatically returned when scope ends
-}
-```
-
-@subsection borrow_error Error Handling
-
-```cpp
-auto resource = pool.try_borrow();
-if (!resource) {
-    switch (resource.error()) {
-        case siddiqsoft::arrp::pool_error::NoMoreResources:
-            std::cerr << "Pool exhausted\n";
-            break;
-        case siddiqsoft::arrp::pool_error::ShutdownInitiated:
-            std::cerr << "Pool shutting down\n";
-            break;
-        default:
-            std::cerr << "Unknown error\n";
-    }
-}
-```
-
-@subsection borrow_move Move Resource
-
-```cpp
-auto resource = pool.try_borrow();
-if (resource) {
-    // Extract resource
-    auto extracted = std::move(*resource);
-    
-    // Mark as invalid so pool discards it
-    resource.invalidate();
-    
-    // Use extracted resource elsewhere
-    use_elsewhere(std::move(extracted));
-}
-```
-
----
-
-@section resource_seeding Seeding Resources
-
-@subsection seed_move Seed via Move
-
-```cpp
-MyResource res("config");
-auto result = pool.seed(std::move(res));
-if (result) {
-    std::cout << "Resource added\n";
-}
-```
-
-@subsection seed_inplace Seed via In-Place Construction
-
-```cpp
-auto result = pool.seed("arg1", "arg2", "arg3");
-if (result) {
-    std::cout << "Resource created and added\n";
-}
-```
-
----
-
-@section resource_invalidation Resource Invalidation
-
-@subsection invalidate_example Invalidate Resource
-
-```cpp
-auto resource = pool.try_borrow();
-if (resource) {
-    if (resource->isCorrupted()) {
-        resource.invalidate();  // Don't return to pool
-    }
-    // Resource destroyed without returning to pool
-}
-```
-
-@subsection check_validity Check Validity
-
-```cpp
-auto resource = pool.try_borrow();
-if (resource && resource.is_valid()) {
-    // Resource is valid
-}
-```
-
----
-
-@section statistics Monitoring Statistics
-
-@subsection get_statistics Get Statistics
-
-```cpp
-auto stats = pool.to_json();
-if (stats) {
-    auto& json = stats.value().get();
-    std::cout << json.dump(2) << std::endl;
-}
-```
-
-@subsection statistics_fields Statistics Fields
-
-```json
+int main()
 {
-  "_typver": "siddiqsoft.arrp.resource_pool/0.0.0",
-  "capacity": 10,
-  "size": 5,
-  "deficit": 0,
-  "peaksize": 10,
-  "abandons": 2,
-  "seeds": 10,
-  "autoadds": 0,
-  "returns": 8,
-  "borrows": 10,
-  "loans": 2
-}
-```
+    siddiqsoft::arrp::resource_pool<std::unique_ptr<connection>> pool {8};
+    pool.seed(std::make_unique<connection>());
 
----
-
-@section threading Threading
-
-@subsection thread_safe Thread-Safe Operations
-
-All pool operations are thread-safe:
-
-```cpp
-std::thread t1([&pool]() {
-    auto res = pool.try_borrow();
-    // Use resource
-});
-
-std::thread t2([&pool]() {
-    auto res = pool.try_borrow();
-    // Use resource
-});
-
-t1.join();
-t2.join();
-```
-
-@subsection thread_unsafe NOT Thread-Safe
-
-Individual `resource_guard` instances are NOT thread-safe:
-
-```cpp
-auto resource = pool.try_borrow();
-
-// WRONG: Don't share across threads
-std::thread t([&resource]() {
-    resource->doWork();  // NOT SAFE
-});
-```
-
-@subsection thread_correct Correct Threading
-
-```cpp
-// Each thread gets its own resource
-std::vector<std::thread> threads;
-for (int i = 0; i < 4; ++i) {
-    threads.emplace_back([&pool]() {
-        auto resource = pool.try_borrow();
-        if (resource) {
-            resource->doWork();
+    {
+        auto connection = pool.try_borrow();
+        if (!connection) {
+            return 1;
         }
-    });
+        connection->get()->query("SELECT 1");
+    } // The unique_ptr is returned to pool.
+}
+@endcode
+
+Borrowing, seeding, clearing, sizing, and JSON statistics are synchronized; a
+borrowed `resource_guard` is not. Configure factories before concurrent borrowing,
+move a guard to transfer its ownership, and do not share the same guard between
+threads.
+
+@section usage_factory Creating on demand
+
+Use a factory when the pool may initially be empty or when invalidated resources
+should be replaced on the next request:
+
+@code{.cpp}
+siddiqsoft::arrp::resource_pool<std::unique_ptr<connection>> pool {8};
+pool.set_factory_callback([] {
+    return std::make_unique<connection>();
+});
+
+auto connection = pool.try_borrow_create();
+if (connection) {
+    connection->get()->query("SELECT 1");
+}
+@endcode
+
+`try_borrow()` only uses resources already in the pool. `try_borrow_create()`
+uses the factory whenever no resource is available, including after a positive
+wait timeout. Factory callbacks have no arguments, must return `T` or the pool's
+scoped type, and must not call pool methods.
+
+@section usage_waiting Waiting for a resource
+
+Pass a positive duration to wait for another guard to return a resource:
+
+@code{.cpp}
+using namespace std::chrono_literals;
+
+auto resource = pool.try_borrow(250ms);
+if (!resource) {
+    if (resource.error() == siddiqsoft::arrp::pool_error::Timeout) {
+        // No resource returned within 250 ms.
+    }
+}
+@endcode
+
+With the default zero duration, borrowing is non-blocking and an empty pool
+reports `pool_error::NoMoreResources`.
+
+@section usage_invalidating Discarding a resource
+
+Invalidate a resource that is unusable, or move it out through the rvalue
+conversion. Both paths prevent it from returning to the pool:
+
+@code{.cpp}
+auto resource = pool.try_borrow();
+if (resource && resource->get()->failed_health_check()) {
+    resource.invalidate();
 }
 
-for (auto& t : threads) {
-    t.join();
-}
-```
+// Or transfer ownership out of a guard:
+auto owned_connection =
+    static_cast<std::unique_ptr<connection>>(std::move(resource));
+@endcode
 
----
+Do not use `operator*()` after invalidating a guard. `operator->()` returns
+`nullptr` after invalidation.
 
-@section advanced Advanced Usage
+@section usage_cleanup Cleaning up available resources
 
-@subsection custom_resource_guard Custom Scoped Resource
+Supply a cleanup callback for resources that need explicit cleanup. It runs for
+resources currently available when `clear()` or pool destruction occurs:
 
-```cpp
-class MyCustomScoped : public siddiqsoft::arrp::resource_guard<MyResource> {
-public:
-    using resource_guard::resource_guard;
-    
-    void invalidate() override {
-        std::cout << "Custom invalidate\n";
-        resource_guard::invalidate();
+@code{.cpp}
+siddiqsoft::arrp::resource_pool<FILE*> pool {
+    4,
+    [](FILE*& file) {
+        if (file != nullptr) {
+            std::fclose(file);
+            file = nullptr;
+        }
     }
 };
 
-siddiqsoft::arrp::resource_pool<MyResource, MyCustomScoped> pool(10);
-```
+pool.seed(std::fopen("output.log", "w"));
+pool.clear();
+@endcode
 
-@subsection pool_clear Clear Pool
+The cleanup callback is called under the pool lock. Keep it short and never call
+any method on the same pool from it. `clear()` does not invalidate outstanding
+guards; their valid resources may return later. Ensure all guards have been
+destroyed before the pool itself is destroyed.
 
-```cpp
-auto result = pool.clear();
-if (result) {
-    std::cout << "Pool cleared\n";
-}
-```
+@section usage_statistics Inspecting statistics
 
-@subsection pool_size Get Pool Size
+Include nlohmann JSON before arrp to enable `to_json()`:
 
-```cpp
-auto size = pool.size();
-if (size) {
-    std::cout << "Available resources: " << size.value() << "\n";
-}
-```
+@code{.cpp}
+#include <nlohmann/json.hpp>
+#include <siddiqsoft/arrp.hpp>
+#include <iostream>
 
----
+auto stats = pool.to_json();
+std::cout << stats.dump(2) << '\n';
+@endcode
 
-@section best_practices Best Practices
+Useful fields are `size` (available resources), `loans` (currently borrowed
+resources), `abandons` (discarded guards), and `autoadds` (factory-created
+resources). See @ref api_reference for the complete schema.
 
-@subsection bp_capacity Choose Appropriate Capacity
+@section usage_capacity Capacity guidance
 
-```cpp
-// Good: Reasonable capacity for typical workload
-siddiqsoft::arrp::resource_pool<Resource> pool(10);
-
-// Bad: Too large, defeats purpose of pooling
-siddiqsoft::arrp::resource_pool<Resource> pool(255);
-```
-
-@subsection bp_callbacks Keep Callbacks Fast
-
-```cpp
-// Good: Quick factory
-[]() {
-    return MyResource();
-}
-
-// Bad: Slow factory
-[]() {
-    std::this_thread::sleep_for(std::chrono::seconds(1));
-    return MyResource();
-}
-```
-
-@subsection bp_no_deadlock Don't Call Pool Methods in Callbacks
-
-```cpp
-// WRONG: Deadlock risk
-[]() {
-    auto size = pool.size();  // DEADLOCK!
-    return MyResource();
-}
-
-// Correct: Only create resource
-[]() {
-    return MyResource();
-}
-```
-
-@subsection bp_error_handling Always Check Results
-
-```cpp
-// Good
-auto resource = pool.try_borrow();
-if (resource) {
-    // Use resource
-}
-
-// Bad: Ignoring errors
-auto resource = pool.try_borrow();
-resource->doWork();  // Undefined behavior if error
-```
-
-@subsection bp_invalidate Invalidate Corrupted Resources
-
-```cpp
-auto resource = pool.try_borrow();
-if (resource) {
-    if (!resource->isHealthy()) {
-        resource.invalidate();  // Don't return corrupted resource
-    }
-}
-```
-
----
-
-@section troubleshooting Troubleshooting
-
-@subsection ts_pool_exhausted Pool Exhausted
-
-**Problem**: `try_borrow()` returns `NoMoreResources`
-
-**Solutions**:
-1. Increase capacity: `resource_pool<T>(20)` instead of `resource_pool<T>(10)`
-2. Provide a factory callback for on-demand creation
-3. Ensure resources are being returned (check `loans` in statistics)
-
-@subsection ts_deadlock Deadlock
-
-**Problem**: Application hangs
-
-**Causes**:
-1. Calling pool methods from callbacks
-2. Holding resource_guard across thread boundaries
-3. Recursive mutex not enabled
-
-**Solutions**:
-1. Don't call pool methods in callbacks
-2. Each thread gets its own resource_guard
-3. Enable recursive mutex if needed: `#define ARRP_USE_RECURSIVE_MUTEX`
-
-@subsection ts_memory_leak Memory Leak
-
-**Problem**: Resources not being cleaned up
-
-**Causes**:
-1. Resources not returned to pool (check `loans` in statistics)
-2. Cleanup callback not implemented
-
-**Solutions**:
-1. Ensure resource_guard goes out of scope
-2. Implement cleanup callback if needed
-3. Check statistics: `pool.to_json()`
-
+The constructor's capacity is clamped to 1 through 255 and appears in statistics,
+but it is not a hard maximum. `seed()` and a factory can add more resources than
+the configured value, so size the pool responsibly in application code.
 */

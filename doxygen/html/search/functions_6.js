@@ -1,6 +1,11 @@
 var searchData=
 [
-  ['seed_0',['seed',['../classsiddiqsoft_1_1arrp_1_1resource__pool.html#a0d69dc395c0ed814587f61d3a47d3c63',1,'siddiqsoft::arrp::resource_pool::seed(Args &amp;&amp;... args) -&gt; pool_error'],['../classsiddiqsoft_1_1arrp_1_1resource__pool.html#a4302f7b32bf368993d9eefa780a550ce',1,'siddiqsoft::arrp::resource_pool::seed(T &amp;&amp;item) -&gt; pool_error']]],
-  ['set_5ffactory_5fcallback_1',['set_factory_callback',['../classsiddiqsoft_1_1arrp_1_1resource__pool.html#a2d24ea993b55f0b36412143fb998d6f1',1,'siddiqsoft::arrp::resource_pool']]],
-  ['size_2',['size',['../classsiddiqsoft_1_1arrp_1_1resource__pool.html#ad275913e4d61ea92561a317cdca99d29',1,'siddiqsoft::arrp::resource_pool']]]
+  ['operator_20bool_0',['operator bool',['../classsiddiqsoft_1_1arrp_1_1resource__guard.html#a44091eca34cb9c5e7e562d511f0d06fa',1,'siddiqsoft::arrp::resource_guard']]],
+  ['operator_20const_20t_20_26_1',['operator const T &amp;',['../classsiddiqsoft_1_1arrp_1_1resource__guard.html#a77ffadcb9626e0ce57aa273ca108b8ab',1,'siddiqsoft::arrp::resource_guard']]],
+  ['operator_20innertype_2',['operator InnerType',['../classsiddiqsoft_1_1arrp_1_1resource__guard.html#a28f73f971629a8a080a3fe6f660a38ce',1,'siddiqsoft::arrp::resource_guard']]],
+  ['operator_20t_3',['operator T',['../classsiddiqsoft_1_1arrp_1_1resource__guard.html#ae3a2fb8d3d5bb143bb7d980f4c9015f3',1,'siddiqsoft::arrp::resource_guard']]],
+  ['operator_20t_26_4',['operator T&amp;',['../classsiddiqsoft_1_1arrp_1_1resource__guard.html#ae271c2e559ef43933a3f5da356b5f0ff',1,'siddiqsoft::arrp::resource_guard']]],
+  ['operator_2a_5',['operator*',['../classsiddiqsoft_1_1arrp_1_1resource__guard.html#ac2e51222141722283fa988b5621f8b38',1,'siddiqsoft::arrp::resource_guard']]],
+  ['operator_2d_3e_6',['operator-&gt;',['../classsiddiqsoft_1_1arrp_1_1resource__guard.html#a9f23b9bc4f7682f1a61d91966cb416bc',1,'siddiqsoft::arrp::resource_guard::operator-&gt;() -&gt; T *'],['../classsiddiqsoft_1_1arrp_1_1resource__guard.html#af478b8c10cbbc642a39a84b758884fc7',1,'siddiqsoft::arrp::resource_guard::operator-&gt;() const -&gt; const T *']]],
+  ['operator_3d_7',['operator=',['../classsiddiqsoft_1_1arrp_1_1resource__guard.html#acb1054fba7fd688648f517925b1d6219',1,'siddiqsoft::arrp::resource_guard::operator=(const resource_guard &amp;)=delete'],['../classsiddiqsoft_1_1arrp_1_1resource__guard.html#adf7d8051c7b0eb8ae4f8b96780266996',1,'siddiqsoft::arrp::resource_guard::operator=(resource_guard &amp;&amp;src)'],['../classsiddiqsoft_1_1arrp_1_1resource__guard.html#a9c668bed1a5a10556f237ecc0abc54ad',1,'siddiqsoft::arrp::resource_guard::operator=(T &amp;&amp;src)'],['../classsiddiqsoft_1_1arrp_1_1resource__pool.html#a92894077c3201d3249b6e4794eccb9f2',1,'siddiqsoft::arrp::resource_pool::operator=(resource_pool &amp;)=delete'],['../classsiddiqsoft_1_1arrp_1_1resource__pool.html#a677f09ac75e9fb183037cc22beed0e4a',1,'siddiqsoft::arrp::resource_pool::operator=(resource_pool &amp;&amp;src)=delete']]]
 ];

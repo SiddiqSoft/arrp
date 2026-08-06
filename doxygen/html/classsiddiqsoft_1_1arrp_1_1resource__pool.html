@@ -28,7 +28,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="Siddiq-Software-Avatar.png"/></td>
   <td id="projectalign">
-   <div id="projectname">arrp<span id="projectnumber">&#160;0.1.0</span>
+   <div id="projectname">arrp<span id="projectnumber">&#160;0.1.1</span>
    </div>
    <div id="projectbrief">Auto returning resource pool for modern C++</div>
   </td>
@@ -106,20 +106,22 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a677f09ac75e9fb183037cc22beed0e4a" id="r_a677f09ac75e9fb183037cc22beed0e4a"><td class="memItemLeft"><a class="el" href="#a39921925c1e41b9f3eb86819dc227f25">resource_pool</a> &amp;&#160;</td><td class="memItemRight"><a class="el" href="#a677f09ac75e9fb183037cc22beed0e4a">operator=</a> (<a class="el" href="#a39921925c1e41b9f3eb86819dc227f25">resource_pool</a> &amp;&amp;src)=delete</td></tr>
 <tr class="memdesc:a677f09ac75e9fb183037cc22beed0e4a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Move assignment operator is deleted.  <br /></td></tr>
 <tr class="memitem:a2b20dcb083eda1489c547d73a11a146e" id="r_a2b20dcb083eda1489c547d73a11a146e"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a2b20dcb083eda1489c547d73a11a146e">resource_pool</a> (uint8_t init_capacity=resource_pool_limits::DefaultCapacity, std::function&lt; void(T &amp;)&gt; &amp;&amp;on_shutdown_callback={})</td></tr>
-<tr class="memdesc:a2b20dcb083eda1489c547d73a11a146e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructs a resource pool with factory and cleanup callbacks.  <br /></td></tr>
+<tr class="memdesc:a2b20dcb083eda1489c547d73a11a146e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructs a resource pool with an optional cleanup callback.  <br /></td></tr>
 <tr class="memitem:a9cf11b7c281887e0ad0b382629d7913d" id="r_a9cf11b7c281887e0ad0b382629d7913d"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a9cf11b7c281887e0ad0b382629d7913d">resource_pool</a> (std::function&lt; void(T &amp;)&gt; &amp;&amp;on_shutdown_callback)</td></tr>
 <tr class="memdesc:a9cf11b7c281887e0ad0b382629d7913d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructs a resource pool with only cleanup callback.  <br /></td></tr>
 <tr class="memitem:a4c5adeffece26472c1f3c11e333c99c9" id="r_a4c5adeffece26472c1f3c11e333c99c9"><td class="memItemLeft">&#160;</td><td class="memItemRight"><a class="el" href="#a4c5adeffece26472c1f3c11e333c99c9">~resource_pool</a> ()</td></tr>
 <tr class="memdesc:a4c5adeffece26472c1f3c11e333c99c9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Destructor - cleans up all resources in the pool.  <br /></td></tr>
 <tr class="memitem:a2d24ea993b55f0b36412143fb998d6f1" id="r_a2d24ea993b55f0b36412143fb998d6f1"><td class="memTemplParams" colspan="2">template&lt;typename F&gt; </td></tr>
 <tr class="memitem:a2d24ea993b55f0b36412143fb998d6f1 template"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a2d24ea993b55f0b36412143fb998d6f1">set_factory_callback</a> (F &amp;&amp;f)</td></tr>
-<tr class="memdesc:a2d24ea993b55f0b36412143fb998d6f1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the factory callback used to create resources on-demand.  <br /></td></tr>
+<tr class="memdesc:a2d24ea993b55f0b36412143fb998d6f1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the factory used by <a class="el" href="#ac0fbfd2ac4ba5c071909411367601bd5" title="Borrows an available resource or creates one through the factory.">try_borrow_create()</a> when no resource is available.  <br /></td></tr>
 <tr class="memitem:ae93636e0036afd37ba0e0afa599e4225" id="r_ae93636e0036afd37ba0e0afa599e4225"><td class="memItemLeft">auto&#160;</td><td class="memItemRight"><a class="el" href="#ae93636e0036afd37ba0e0afa599e4225">clear</a> () -&gt; pool_error</td></tr>
 <tr class="memdesc:ae93636e0036afd37ba0e0afa599e4225"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clears all resources from the pool.  <br /></td></tr>
 <tr class="memitem:ad275913e4d61ea92561a317cdca99d29" id="r_ad275913e4d61ea92561a317cdca99d29"><td class="memItemLeft">auto&#160;</td><td class="memItemRight"><a class="el" href="#ad275913e4d61ea92561a317cdca99d29">size</a> () const</td></tr>
 <tr class="memdesc:ad275913e4d61ea92561a317cdca99d29"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the current size of the pool.  <br /></td></tr>
 <tr class="memitem:a2a934b83e95a62765f16335d5b8a512a" id="r_a2a934b83e95a62765f16335d5b8a512a"><td class="memItemLeft">auto&#160;</td><td class="memItemRight"><a class="el" href="#a2a934b83e95a62765f16335d5b8a512a">try_borrow</a> (std::chrono::nanoseconds timeout={}) -&gt; SRT</td></tr>
+<tr class="memdesc:a2a934b83e95a62765f16335d5b8a512a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Borrows an available resource without creating one.  <br /></td></tr>
 <tr class="memitem:ac0fbfd2ac4ba5c071909411367601bd5" id="r_ac0fbfd2ac4ba5c071909411367601bd5"><td class="memItemLeft">auto&#160;</td><td class="memItemRight"><a class="el" href="#ac0fbfd2ac4ba5c071909411367601bd5">try_borrow_create</a> (std::chrono::nanoseconds timeout={}) -&gt; SRT</td></tr>
+<tr class="memdesc:ac0fbfd2ac4ba5c071909411367601bd5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Borrows an available resource or creates one through the factory.  <br /></td></tr>
 <tr class="memitem:a0d69dc395c0ed814587f61d3a47d3c63" id="r_a0d69dc395c0ed814587f61d3a47d3c63"><td class="memTemplParams" colspan="2">template&lt;typename... Args&gt; </td></tr>
 <tr class="memitem:a0d69dc395c0ed814587f61d3a47d3c63 template"><td class="memItemLeft">auto&#160;</td><td class="memItemRight"><a class="el" href="#a0d69dc395c0ed814587f61d3a47d3c63">seed</a> (Args &amp;&amp;... args) -&gt; pool_error</td></tr>
 <tr class="memdesc:a0d69dc395c0ed814587f61d3a47d3c63"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds a resource to the pool by constructing it in-place.  <br /></td></tr>
@@ -130,14 +132,16 @@ Public Member Functions</h2></td></tr>
 Protected Types</h2></td></tr>
 <tr class="memitem:afab187861a1b377bc23954ab65f9e649" id="r_afab187861a1b377bc23954ab65f9e649"><td class="memTemplParams" colspan="2">template&lt;typename... Args&gt; </td></tr>
 <tr class="memitem:afab187861a1b377bc23954ab65f9e649 template"><td class="memItemLeft">using&#160;</td><td class="memItemRight"><a class="el" href="#afab187861a1b377bc23954ab65f9e649">resource_callback_t</a> = std::function&lt;SRT(Args...)&gt;</td></tr>
+<tr class="memdesc:afab187861a1b377bc23954ab65f9e649"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function type for a callback that produces a scoped resource.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pro-methods" class="groupheader"><a id="pro-methods" name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
 <tr class="memitem:ace6dd68834bea61dac5ebca0a843d316" id="r_ace6dd68834bea61dac5ebca0a843d316"><td class="memTemplParams" colspan="2">template&lt;typename... Args&gt; </td></tr>
 <tr class="memitem:ace6dd68834bea61dac5ebca0a843d316 template"><td class="memItemLeft">auto&#160;</td><td class="memItemRight"><a class="el" href="#ace6dd68834bea61dac5ebca0a843d316">make_resource_guard</a> (Args &amp;&amp;... args) -&gt; SRT</td></tr>
-<tr class="memdesc:ace6dd68834bea61dac5ebca0a843d316"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a resource that is wired to invoke the return_to_pool in the destructor of the SRT class.  <br /></td></tr>
+<tr class="memdesc:ace6dd68834bea61dac5ebca0a843d316"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a scoped resource wired to return to this pool on destruction.  <br /></td></tr>
 <tr class="memitem:ac0f68371e968375bd706443debf70ceb" id="r_ac0f68371e968375bd706443debf70ceb"><td class="memTemplParams" colspan="2">template&lt;typename F, typename... Args&gt; </td></tr>
 <tr class="memitem:ac0f68371e968375bd706443debf70ceb template"><td class="memItemLeft">auto&#160;</td><td class="memItemRight"><a class="el" href="#ac0f68371e968375bd706443debf70ceb">create_from_callback</a> (F &amp;&amp;f, Args &amp;&amp;... args) -&gt; SRT</td></tr>
+<tr class="memdesc:ac0f68371e968375bd706443debf70ceb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Invokes a callback and converts its result to the scoped resource type.  <br /></td></tr>
 <tr class="memitem:a0889a8fe73d8a115abc6c7dbd411e6e1" id="r_a0889a8fe73d8a115abc6c7dbd411e6e1"><td class="memItemLeft">auto&#160;</td><td class="memItemRight"><a class="el" href="#a0889a8fe73d8a115abc6c7dbd411e6e1">borrow_impl</a> (std::chrono::nanoseconds timeout={}, bool createIfEmptyTimeout=false) -&gt; SRT</td></tr>
 <tr class="memitem:a2e72588a69698f35fad372a36bede8c6" id="r_a2e72588a69698f35fad372a36bede8c6"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a2e72588a69698f35fad372a36bede8c6">return_to_pool</a> (T &amp;&amp;item, bool isvalid)</td></tr>
 <tr class="memdesc:a2e72588a69698f35fad372a36bede8c6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns a resource to the pool.  <br /></td></tr>
@@ -148,7 +152,7 @@ requires NonNumericMoveConstructible&lt;T&gt; &amp;&amp; std::derived_from&lt;SR
 class siddiqsoft::arrp::resource_pool&lt; T, SRT &gt;</div><dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2resource_pool_8hpp-example.html#_a0">/opt/azure-agent/_work/1/s/include/siddiqsoft/private/resource_pool.hpp</a>.</dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00090">90</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00088">88</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
 </div><a name="doc-typedef-members" id="doc-typedef-members"></a><h2 id="header-doc-typedef-members" class="groupheader">Member Typedef Documentation</h2>
 <a id="afab187861a1b377bc23954ab65f9e649" name="afab187861a1b377bc23954ab65f9e649"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#afab187861a1b377bc23954ab65f9e649">&#9670;&#160;</a></span>resource_callback_t</h2>
@@ -174,7 +178,17 @@ template&lt;typename... Args&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00297">297</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
+<p>Function type for a callback that produces a scoped resource. </p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">Args</td><td>Callback argument types. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2resource_pool_8hpp-example.html#a7">/opt/azure-agent/_work/1/s/include/siddiqsoft/private/resource_pool.hpp</a>.</dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00290">290</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
 
 </div>
 </div>
@@ -276,22 +290,19 @@ template&lt;typename T, typename SRT = resource_guard&lt;T&gt;&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p>Constructs a resource pool with factory and cleanup callbacks. </p>
+<p>Constructs a resource pool with an optional cleanup callback. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">init_capacity</td><td>Initial capacity of the pool </td></tr>
-    <tr><td class="paramname">new_resource_callback</td><td>Factory callback to create new resources </td></tr>
     <tr><td class="paramname">on_shutdown_callback</td><td>Optional cleanup callback invoked on destruction</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section note"><dt>Note</dt><dd>The factory callback is required and must return SRT. It must NOT call pool methods. </dd>
+<dl class="section note"><dt>Note</dt><dd>Register a factory separately with <a class="el" href="#a2d24ea993b55f0b36412143fb998d6f1" title="Sets the factory used by try_borrow_create() when no resource is available.">set_factory_callback()</a>. </dd>
 <dd>
-The cleanup callback is optional and invoked for each resource during destruction </dd>
-<dd>
-Capacity is clamped to valid range [MinimumCapacity, MaxCapacity] </dd></dl>
+Capacity is clamped to [MinimumCapacity, MaxCapacity] but does not enforce a maximum number of seeded or factory-created resources. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00237">237</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00230">230</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
 
 </div>
 </div>
@@ -327,11 +338,9 @@ template&lt;typename T, typename SRT = resource_guard&lt;T&gt;&gt; </div>
   </table>
   </dd>
 </dl>
-<dl class="section note"><dt>Note</dt><dd>Uses default capacity and no auto-grow policy </dd>
-<dd>
-The cleanup callback is optional and invoked for each resource during destruction </dd></dl>
+<dl class="section note"><dt>Note</dt><dd>Uses the default capacity. The cleanup callback is invoked for resources available during <a class="el" href="#ae93636e0036afd37ba0e0afa599e4225" title="Clears all resources from the pool.">clear()</a> or destruction. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00250">250</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00243">243</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
 
 </div>
 </div>
@@ -362,15 +371,14 @@ template&lt;typename T, typename SRT = resource_guard&lt;T&gt;&gt; </div>
 
 <p>Destructor - cleans up all resources in the pool. </p>
 <p>Sets the shutdown flag and delegates to <a class="el" href="#ae93636e0036afd37ba0e0afa599e4225" title="Clears all resources from the pool.">clear()</a> to clean up resources. The cleanup callback (if provided) is invoked for each resource during cleanup.</p>
-<dl class="section note"><dt>Note</dt><dd>Noexcept: Exceptions during cleanup are caught and logged </dd>
-<dd>
-All resources are cleaned up before destruction completes </dd></dl>
+<dl class="section note"><dt>Note</dt><dd>Exceptions derived from std::exception in the cleanup callback are caught and written to stderr. </dd></dl>
+<dl class="section warning"><dt>Warning</dt><dd>Guards borrowed from this pool must be destroyed before the pool. </dd></dl>
 <dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2resource_pool_8hpp-example.html#a3">/opt/azure-agent/_work/1/s/include/siddiqsoft/private/resource_pool.hpp</a>.</dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00264">264</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00258">258</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
 
-<p class="reference">References <a class="el" href="resource__pool_8hpp_source.html#l00340">clear()</a>.</p>
+<p class="reference">References <a class="el" href="resource__pool_8hpp_source.html#l00337">clear()</a>.</p>
 
 </div>
 </div>
@@ -404,7 +412,7 @@ template&lt;typename T, typename SRT = resource_guard&lt;T&gt;&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00404">404</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00396">396</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
 
 </div>
 </div>
@@ -434,19 +442,15 @@ template&lt;typename T, typename SRT = resource_guard&lt;T&gt;&gt; </div>
 </div><div class="memdoc">
 
 <p>Clears all resources from the pool. </p>
-<p>Removes all resources from the pool and invokes the cleanup callback for each. This is called automatically during destruction. Can also be called manually.</p>
-<dl class="section return"><dt>Returns</dt><dd>std::expected&lt;void, pool_error&gt; indicating success or error</dd></dl>
-<dl class="section note"><dt>Note</dt><dd>Thread-safe: Uses exclusive lock </dd>
-<dd>
-Cleanup callback is invoked for each resource if provided </dd>
-<dd>
-Exceptions from cleanup callback are caught and logged </dd></dl>
+<p>Removes currently available resources and invokes the cleanup callback for each. Borrowed resources can return after <a class="el" href="#ae93636e0036afd37ba0e0afa599e4225" title="Clears all resources from the pool.">clear()</a> completes.</p>
+<dl class="section return"><dt>Returns</dt><dd>pool_error::Ok</dd></dl>
+<dl class="section note"><dt>Note</dt><dd>The cleanup callback runs under the pool lock. Exceptions derived from std::exception are caught and written to stderr. </dd></dl>
 <dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2resource_pool_8hpp-example.html#a4">/opt/azure-agent/_work/1/s/include/siddiqsoft/private/resource_pool.hpp</a>.</dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00340">340</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00337">337</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="resource__pool_8hpp_source.html#l00264">~resource_pool()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="resource__pool_8hpp_source.html#l00258">~resource_pool()</a>.</p>
 
 </div>
 </div>
@@ -481,7 +485,30 @@ template&lt;typename F, typename... Args&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00303">303</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
+<p>Invokes a callback and converts its result to the scoped resource type. </p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">F</td><td>Callable type returning T or SRT. </td></tr>
+    <tr><td class="paramname">Args</td><td>Argument types passed to the callable. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">f</td><td>Callback to invoke. </td></tr>
+    <tr><td class="paramname">args</td><td>Arguments passed to the callback. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The callback's scoped resource, or a guard created around its T result. </dd></dl>
+<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2resource_pool_8hpp-example.html#a8">/opt/azure-agent/_work/1/s/include/siddiqsoft/private/resource_pool.hpp</a>.</dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00299">299</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
+
+<p class="reference">References <a class="el" href="resource__pool_8hpp_source.html#l00277">make_resource_guard()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="resource__pool_8hpp_source.html#l00320">set_factory_callback()</a>.</p>
 
 </div>
 </div>
@@ -512,14 +539,16 @@ template&lt;typename... Args&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p>Create a resource that is wired to invoke the return_to_pool in the destructor of the SRT class. </p>
-<dl class="section note"><dt>Note</dt><dd>The <a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__guard.html">resource_guard&lt;T&gt;</a> cannot be directly instantiated and thus this method is the only means to create a custom resource. This approach also solves the issue where we hide the <a class="el" href="#a2e72588a69698f35fad372a36bede8c6" title="Returns a resource to the pool.">return_to_pool()</a> as protected and making the <a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">resource_pool</a> and <a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__guard.html">resource_guard</a> friends. </dd></dl>
+<p>Creates a scoped resource wired to return to this pool on destruction. </p>
+<dl class="section note"><dt>Note</dt><dd>The callback constructor of <a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__guard.html">resource_guard</a> is private; this helper supplies the callback for the default scoped-resource type. </dd></dl>
 <dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2resource_pool_8hpp-example.html#a5">/opt/azure-agent/_work/1/s/include/siddiqsoft/private/resource_pool.hpp</a>.</dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00285">285</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00277">277</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
 
-<p class="reference">References <a class="el" href="resource__pool_8hpp_source.html#l00563">return_to_pool()</a>.</p>
+<p class="reference">References <a class="el" href="resource__pool_8hpp_source.html#l00555">return_to_pool()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="resource__pool_8hpp_source.html#l00299">create_from_callback()</a>.</p>
 
 </div>
 </div>
@@ -627,22 +656,13 @@ template&lt;typename T, typename SRT = resource_guard&lt;T&gt;&gt; </div>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>std::expected&lt;void, pool_error&gt; indicating success or error</dd></dl>
-<dl class="section note"><dt>Note</dt><dd>Thread-safe: Uses exclusive lock </dd>
-<dd>
-Increments appropriate counter (valid_returns or invalid_returns) </dd>
-<dd>
-Decrements checkout counter </dd>
-<dd>
-Returns if pool is shutting down </dd>
-<dd>
-This method MUST be invoked to "return" the resource back to pool otherwise the accounting and resource management will not work properly! </dd></dl>
+<dl class="section note"><dt>Note</dt><dd>Valid resources increment returns; invalid resources increment abandons. Returns after shutdown are discarded. </dd></dl>
 <dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2resource_pool_8hpp-example.html#a6">/opt/azure-agent/_work/1/s/include/siddiqsoft/private/resource_pool.hpp</a>.</dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00563">563</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00555">555</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="resource__pool_8hpp_source.html#l00285">make_resource_guard()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="resource__pool_8hpp_source.html#l00277">make_resource_guard()</a>.</p>
 
 </div>
 </div>
@@ -686,15 +706,11 @@ template&lt;typename... Args&gt; </div>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>std::expected&lt;void, pool_error&gt; indicating success or error</dd></dl>
-<dl class="section note"><dt>Note</dt><dd>Thread-safe: Uses exclusive lock </dd>
+<dl class="section return"><dt>Returns</dt><dd>pool_error::Ok, or pool_error::ShutdownInitiated during destruction</dd></dl>
+<dl class="section note"><dt>Note</dt><dd>Resource is constructed in-place </dd>
 <dd>
-Resource is constructed in-place </dd>
-<dd>
-Returns error if pool is shutting down </dd>
-<dd>
-This method MUST NOT be invoked to "return"; use the <a class="el" href="#a2e72588a69698f35fad372a36bede8c6" title="Returns a resource to the pool.">return_to_pool()</a> method otherwise the accounting and resource management will not work properly! </dd></dl>
-<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2resource_pool_8hpp-example.html#a9">/opt/azure-agent/_work/1/s/include/siddiqsoft/private/resource_pool.hpp</a>.</dd>
+Does not enforce the configured capacity. Do not use this to return a borrowed resource; guards return resources automatically. </dd></dl>
+<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2resource_pool_8hpp-example.html#a13">/opt/azure-agent/_work/1/s/include/siddiqsoft/private/resource_pool.hpp</a>.</dd>
 </dl>
 
 <p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00487">487</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
@@ -733,16 +749,12 @@ template&lt;typename T, typename SRT = resource_guard&lt;T&gt;&gt; </div>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>std::expected&lt;void, pool_error&gt; indicating success or error. Returns error if pool is shutting down.</dd></dl>
-<dl class="section note"><dt>Note</dt><dd>Thread-safe: Uses exclusive lock </dd>
+<dl class="section return"><dt>Returns</dt><dd>pool_error::Ok, or pool_error::ShutdownInitiated during destruction</dd></dl>
+<dl class="section note"><dt>Note</dt><dd>Resource is moved into the pool </dd>
 <dd>
-Resource is moved into the pool </dd>
-<dd>
-Returns error if pool is shutting down </dd>
-<dd>
-This method MUST NOT be invoked to "return"; use the <a class="el" href="#a2e72588a69698f35fad372a36bede8c6" title="Returns a resource to the pool.">return_to_pool()</a> method otherwise the accounting and resource management will not work properly! </dd></dl>
+Does not enforce the configured capacity. Do not use this to return a borrowed resource; guards return resources automatically. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00521">521</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00519">519</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
 
 </div>
 </div>
@@ -773,17 +785,20 @@ template&lt;typename F&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p>Set the factory callback used to create resources on-demand. </p>
+<p>Sets the factory used by <a class="el" href="#ac0fbfd2ac4ba5c071909411367601bd5" title="Borrows an available resource or creates one through the factory.">try_borrow_create()</a> when no resource is available. </p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">F</td><td>Callable type invokable with no arguments returning <span class="tt">SRT</span> or <span class="tt">T</span> </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2resource_pool_8hpp-example.html#a7">/opt/azure-agent/_work/1/s/include/siddiqsoft/private/resource_pool.hpp</a>.</dd>
+<dl class="section warning"><dt>Warning</dt><dd>Configure the factory before concurrent borrow attempts. The callback must not call methods on this pool. </dd></dl>
+<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2resource_pool_8hpp-example.html#a9">/opt/azure-agent/_work/1/s/include/siddiqsoft/private/resource_pool.hpp</a>.</dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00322">322</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00320">320</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
+
+<p class="reference">References <a class="el" href="resource__pool_8hpp_source.html#l00299">create_from_callback()</a>.</p>
 
 </div>
 </div>
@@ -813,16 +828,12 @@ template&lt;typename T, typename SRT = resource_guard&lt;T&gt;&gt; </div>
 </div><div class="memdoc">
 
 <p>Gets the current size of the pool. </p>
-<dl class="section return"><dt>Returns</dt><dd>std::expected&lt;size_t, pool_error&gt; containing the number of available resources or error</dd></dl>
-<dl class="section note"><dt>Note</dt><dd>Thread-safe: Uses exclusive lock </dd>
-<dd>
-Returns error if pool is shutting down </dd>
-<dd>
-Does not include checked-out resources </dd></dl>
-<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2resource_pool_8hpp-example.html#a8">/opt/azure-agent/_work/1/s/include/siddiqsoft/private/resource_pool.hpp</a>.</dd>
+<dl class="section return"><dt>Returns</dt><dd>Number of currently available resources</dd></dl>
+<dl class="section note"><dt>Note</dt><dd>Does not include checked-out resources </dd></dl>
+<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2resource_pool_8hpp-example.html#a10">/opt/azure-agent/_work/1/s/include/siddiqsoft/private/resource_pool.hpp</a>.</dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00373">373</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00368">368</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
 
 </div>
 </div>
@@ -851,7 +862,18 @@ template&lt;typename T, typename SRT = resource_guard&lt;T&gt;&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00472">472</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
+<p>Borrows an available resource without creating one. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">timeout</td><td>Maximum time to wait; zero performs a non-blocking attempt. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A valid scoped resource, or an invalid one with NoMoreResources, Timeout, ShutdownInitiated, or Unknown set as its error. </dd></dl>
+<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2resource_pool_8hpp-example.html#a11">/opt/azure-agent/_work/1/s/include/siddiqsoft/private/resource_pool.hpp</a>.</dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00469">469</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
 
 </div>
 </div>
@@ -880,7 +902,18 @@ template&lt;typename T, typename SRT = resource_guard&lt;T&gt;&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00473">473</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
+<p>Borrows an available resource or creates one through the factory. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">timeout</td><td>Maximum time to wait; zero performs a non-blocking attempt. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A valid scoped resource, or an invalid one when shutdown or an implementation or factory error prevents borrowing. </dd></dl>
+<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2resource_pool_8hpp-example.html#a12">/opt/azure-agent/_work/1/s/include/siddiqsoft/private/resource_pool.hpp</a>.</dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="resource__pool_8hpp_source.html#l00475">475</a> of file <a class="el" href="resource__pool_8hpp_source.html">resource_pool.hpp</a>.</p>
 
 </div>
 </div>
