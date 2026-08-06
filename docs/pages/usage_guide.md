@@ -135,6 +135,12 @@ Useful fields are `size` (available resources), `loans` (currently borrowed
 resources), `abandons` (discarded guards), and `autoadds` (factory-created
 resources). See @ref api_reference for the complete schema.
 
+@section usage_debugging Debugger visualization
+
+The repository ships a Natvis file at [SiddiqSoft.arrp.natvis](../../SiddiqSoft.arrp.natvis) for Visual Studio and VS Code. It adds custom displays for `resource_pool` and `resource_guard`, making available resources, checked-out counts, counters, and validity state easier to inspect while debugging.
+
+The same file is also included in the NuGet package so tooling can load it automatically when consuming the package.
+
 @section usage_capacity Capacity guidance
 
 The constructor's capacity is clamped to 1 through 255 and appears in statistics,

@@ -137,6 +137,12 @@ std::cout << stats.dump(2) << '\n';
 The statistics include available `size`, configured `capacity`, `borrows`,
 `returns`, `abandons`, `loans`, seeded resources, and factory-created resources.
 
+## Debugging and visualization
+
+The repository includes a Natvis file at [SiddiqSoft.arrp.natvis](SiddiqSoft.arrp.natvis) for Visual Studio and VS Code debugging. It provides richer views for `resource_pool` and `resource_guard` so their state can be inspected directly in the debugger.
+
+When consuming the NuGet package, the Natvis file is packaged under the native build folder so MSBuild-based tooling can discover it automatically.
+
 ## Documentation
 
 - [Documentation site](https://siddiqsoft.github.io/arrp/)
