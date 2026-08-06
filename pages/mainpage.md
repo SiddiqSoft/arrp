@@ -52,8 +52,8 @@ and user-defined resource classes are suitable resource types.
 @section behavior Pool behavior
 
 Borrowing, seeding, clearing, sizing, and JSON statistics synchronize access to
-the pool. Configure a factory before concurrent borrowing; a `resource_guard` is
-not thread-safe and must have one owning thread at a time.
+the pool, as does registering a factory with `set_factory_callback()`; a
+`resource_guard` is not thread-safe and must have one owning thread at a time.
 
 The constructor capacity is clamped to the range 1 through 255 and is exposed in
 statistics. It is not currently enforced as a hard limit on `seed()` or factory

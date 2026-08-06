@@ -30,10 +30,9 @@ int main()
 }
 @endcode
 
-Borrowing, seeding, clearing, sizing, and JSON statistics are synchronized; a
-borrowed `resource_guard` is not. Configure factories before concurrent borrowing,
-move a guard to transfer its ownership, and do not share the same guard between
-threads.
+Borrowing, seeding, clearing, sizing, setting the factory callback, and JSON
+statistics are synchronized; a borrowed `resource_guard` is not. Move a guard to
+transfer its ownership, and do not share the same guard between threads.
 
 @section usage_factory Creating on demand
 

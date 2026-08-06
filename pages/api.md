@@ -109,7 +109,7 @@ pool, and do not access a single guard concurrently.
 | `T* operator->()` | Returns the resource address, or `nullptr` after invalidation. |
 | `explicit operator T() &&` | Moves the resource out and invalidates the guard. |
 | `explicit operator T&() &` | Provides a reference to the resource. |
-| `resource_guard& operator=(T&&)` | Returns the current resource, then stores the replacement. |
+| `resource_guard& operator=(T&&)` | Replaces the held resource in place; the previous value is discarded (not returned to the pool). |
 | `resource_guard& operator=(resource_guard&&)` | Returns the current resource, then takes ownership from another guard. |
 | `virtual void invalidate()` | Marks the resource abandoned; it will be discarded on destruction. |
 
