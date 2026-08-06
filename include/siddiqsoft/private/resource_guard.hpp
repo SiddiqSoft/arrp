@@ -115,7 +115,7 @@ namespace siddiqsoft::arrp
     /// @endcode
     template <typename T>
         requires NonNumericMoveConstructible<T>
-    class resource_guard
+    class resource_guard final
     {
     public:
         /// @brief Callback function type for returning resource to pool
@@ -134,8 +134,8 @@ namespace siddiqsoft::arrp
 
     private:
         // Allow resource_pool to access protected members
-        template <typename U, typename SRT>
-            requires NonNumericMoveConstructible<U> && std::derived_from<SRT, resource_guard<U>>
+        template <typename U>
+            requires NonNumericMoveConstructible<U>
         friend class resource_pool;
 
         /// @brief Callback function to return the resource to the pool
@@ -151,8 +151,10 @@ namespace siddiqsoft::arrp
         pool_error m_error_code {pool_error::Ok};
 
     protected:
-        /// @brief Default constructor for derived scoped-resource types
-        /// @note It creates a valid guard without a return callback.
+        /// @brief Default constructor
+        /// @note resource_guard is `final`, so no derived class can call this
+        ///       constructor. It is retained as `protected` rather than removed;
+        ///       it creates a valid guard without a return callback.
         resource_guard()
             : m_is_valid(true)
         {
@@ -212,8 +214,8 @@ namespace siddiqsoft::arrp
         ///
         /// @note The source's callback is cleared to prevent double-return
         /// @note The source is marked as invalid
-        resource_guard(resource_guard&& src) noexcept(
-            std::is_nothrow_move_constructible_v<T> && std::is_nothrow_move_constructible_v<PutbackCallbackFunc>)
+        resource_guard(resource_guard&& src) noexcept(std::is_nothrow_move_constructible_v<T> &&
+                                                      std::is_nothrow_move_constructible_v<PutbackCallbackFunc>)
             : m_rsrc(std::move(src.m_rsrc))
             , m_putback_callback(std::move(src.m_putback_callback))
             , m_is_valid(src.m_is_valid)
@@ -382,9 +384,9 @@ namespace siddiqsoft::arrp
         /// rather than returning it for reuse. This is appropriate when the resource has
         /// been moved out, corrupted, or otherwise rendered unusable.
         ///
-        /// @note Virtual: Can be overridden in derived classes
+        /// @note Virtual for interface consistency, but resource_guard is `final`,
+        ///       so there is currently no derived class to override this.
         /// @note The callback is still invoked; only the validity flag changes
-        /// @note An override must preserve this state change to prevent return.
         /// @note Typically called when the resource is corrupted, moved out, or consumed
         ///
         /// @example
@@ -402,21 +404,22 @@ namespace siddiqsoft::arrp
         ///
         /// @return true if the resource is valid and will be returned to pool, false otherwise
         ///
-        /// @note Virtual: Can be overridden in derived classes
+        /// @note Virtual for interface consistency, but resource_guard is `final`,
+        ///       so there is currently no derived class to override this.
         /// @note Const: Does not modify the resource
         virtual bool is_valid() const { return m_is_valid; }
 
         /// @brief Sets the error reported by error().
         /// @param err Error code to store.
         /// @return This guard.
-        auto&        set_error(pool_error err)
+        auto& set_error(pool_error err)
         {
             m_error_code = err;
             return *this;
         }
         /// @brief Gets the error associated with this guard.
         /// @return The stored error code; valid guards normally report pool_error::Ok.
-        pool_error   error() const { return m_error_code; }
+        pool_error error() const { return m_error_code; }
 
         /// @brief Tests whether the guard holds a valid resource.
         /// @return true when is_valid() would return true.

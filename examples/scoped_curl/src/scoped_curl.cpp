@@ -105,10 +105,12 @@ void            do_request(siddiqsoft::arrp::resource_pool<ScopedCurl>& pool, co
             std::println(std::cerr, "{} - Failed to perform curl request: {}", __func__, curl_easy_strerror(rc));
         }
         else {
-            std::println(std::cerr,
-                         "\n{} - Successfully performed curl request...ttx: {}\n\n---=---=---=---=---=---=---=---=---=---=---=---=---=---=---=---=---=---=---=---=---=---=---=---\n\n",
-                         __func__,
-                         duration_cast<std::chrono::milliseconds>(ttx.elapsed()).count());
+            std::println(
+                    std::cerr,
+                    "\n{} - Successfully performed curl request...ttx: "
+                    "{}\n\n---=---=---=---=---=---=---=---=---=---=---=---=---=---=---=---=---=---=---=---=---=---=---=---\n\n",
+                    __func__,
+                    duration_cast<std::chrono::milliseconds>(ttx.elapsed()).count());
             g_request_count++;
         }
     }
@@ -130,15 +132,17 @@ int main(int argc, char** argv)
         // We need to introduce a small delay prior to processing to simulate the factory creating
         // a single resource which is used later.
         // If we spam (no delay) then a resource is created per request!
-        std::future<void> f1 = std::async(std::launch::async, do_request, std::ref(pool), "https://www.example.com", std::chrono::milliseconds(5));
-        std::future<void> f2 = std::async(std::launch::async, do_request, std::ref(pool), "https://www.duckduckgo.com", std::chrono::milliseconds(900));
+        std::future<void> f1 =
+                std::async(std::launch::async, do_request, std::ref(pool), "https://www.example.com", std::chrono::milliseconds(5));
+        std::future<void> f2 = std::async(
+                std::launch::async, do_request, std::ref(pool), "https://www.duckduckgo.com", std::chrono::milliseconds(900));
 
         // The main thread will wait here for the tasks to complete.
         f2.get();
-        //std::println(std::cerr, "\n{} - Post test stats:{}", __func__, pool.to_json().dump());
-        //std::this_thread::sleep_for(std::chrono::seconds(1));
+        // std::println(std::cerr, "\n{} - Post test stats:{}", __func__, pool.to_json().dump());
+        // std::this_thread::sleep_for(std::chrono::seconds(1));
         f1.get();
-        //std::println(std::cerr, "\n{} - Post test stats:{}", __func__, pool.to_json().dump());
+        // std::println(std::cerr, "\n{} - Post test stats:{}", __func__, pool.to_json().dump());
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
         std::println(std::cerr, "\n\n{} - Final test stats:{}", __func__, pool.to_json().dump());

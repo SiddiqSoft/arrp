@@ -39,8 +39,8 @@ by itself; either seed resources explicitly or register a factory and use
 
 @section concepts Core types
 
-- `resource_pool<T, SRT>` owns available resources and synchronizes pool access.
-- `resource_guard<T>` is the move-only RAII handle returned by borrowing.
+- `resource_pool<T>` owns available resources and synchronizes pool access.
+- `resource_guard<T>` is the move-only, `final` RAII handle returned by borrowing.
 - `pool_error` describes an unsuccessful borrow or seed during shutdown.
 - `release_reason` distinguishes valid and abandoned releases.
 - `resource_pool_limits` provides the capacity defaults and bounds.

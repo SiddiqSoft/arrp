@@ -593,7 +593,9 @@ TEST(resource_pool_clear, does_not_deadlock_with_concurrent_borrow)
             borrowers.emplace_back([&pool, &stop]() {
                 while (!stop.load(std::memory_order_relaxed)) {
                     auto g = pool.try_borrow(std::chrono::milliseconds(1));
-                    if (g.has_value()) { *g += "x"; }
+                    if (g.has_value()) {
+                        *g += "x";
+                    }
                 }
             });
         }
@@ -615,7 +617,8 @@ TEST(resource_pool_clear, does_not_deadlock_with_concurrent_borrow)
 
         seeder.join();
         clearer.join();
-        for (auto& b : borrowers) b.join();
+        for (auto& b : borrowers)
+            b.join();
     });
 
     // Watchdog: if this ever hangs (regression of the clear()/borrow_impl()
@@ -640,11 +643,11 @@ TEST(resource_pool_factory, set_factory_callback_concurrent_with_borrow_create)
 {
     siddiqsoft::arrp::resource_pool<std::string> pool {4};
 
-    std::atomic_bool         stop {false};
-    std::atomic_int          created {0};
-    std::vector<std::thread> borrowers;
+    std::atomic_bool                             stop {false};
+    std::atomic_int                              created {0};
+    std::vector<std::thread>                     borrowers;
 
-    std::thread setter([&pool, &stop, &created]() {
+    std::thread                                  setter([&pool, &stop, &created]() {
         while (!stop.load(std::memory_order_relaxed)) {
             pool.set_factory_callback([&created]() -> std::string {
                 created++;
@@ -653,12 +656,14 @@ TEST(resource_pool_factory, set_factory_callback_concurrent_with_borrow_create)
         }
     });
 
-    std::atomic_int successes {0};
+    std::atomic_int                              successes {0};
     for (int t = 0; t < 4; ++t) {
         borrowers.emplace_back([&pool, &stop, &successes]() {
             while (!stop.load(std::memory_order_relaxed)) {
                 auto g = pool.try_borrow_create();
-                if (g.has_value()) { successes++; }
+                if (g.has_value()) {
+                    successes++;
+                }
             }
         });
     }
@@ -667,7 +672,8 @@ TEST(resource_pool_factory, set_factory_callback_concurrent_with_borrow_create)
     stop = true;
 
     setter.join();
-    for (auto& b : borrowers) b.join();
+    for (auto& b : borrowers)
+        b.join();
 
     EXPECT_GT(successes.load(), 0);
 }

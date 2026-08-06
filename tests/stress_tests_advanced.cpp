@@ -671,8 +671,8 @@ TEST(stress_chaos, random_clear_operations)
 /// Validates pool at capacity limits
 TEST(stress_capacity, maximum_capacity)
 {
-    constexpr uint8_t MAX_CAPACITY = siddiqsoft::arrp::resource_pool_limits::MaxCapacity;
-    siddiqsoft::arrp::resource_pool<std::string, siddiqsoft::arrp::resource_guard<std::string>> pool {MAX_CAPACITY};
+    constexpr uint8_t                            MAX_CAPACITY = siddiqsoft::arrp::resource_pool_limits::MaxCapacity;
+    siddiqsoft::arrp::resource_pool<std::string> pool {MAX_CAPACITY};
 
     // Fill to capacity
     for (uint8_t i = 0; i < MAX_CAPACITY; ++i) {
@@ -705,8 +705,8 @@ TEST(stress_capacity, maximum_capacity)
 /// Validates that capacity limits are respected
 TEST(stress_capacity, capacity_enforcement_concurrent)
 {
-    constexpr uint8_t                                                                            CAPACITY = 8;
-    siddiqsoft::arrp::resource_pool<std::string, siddiqsoft::arrp::resource_guard<std::string>> pool {CAPACITY};
+    constexpr uint8_t                            CAPACITY = 8;
+    siddiqsoft::arrp::resource_pool<std::string> pool {CAPACITY};
 
     for (uint8_t i = 0; i < CAPACITY; ++i) {
         pool.seed(std::format("resource-{}", i));

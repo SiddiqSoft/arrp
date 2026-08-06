@@ -884,7 +884,7 @@ TEST(resource_pool, extreme_stress_high_concurrency)
 /// @brief Test capacity limits
 TEST(resource_pool, capacity_limits)
 {
-    siddiqsoft::arrp::resource_pool<std::string, siddiqsoft::arrp::resource_guard<std::string>> pool {4};
+    siddiqsoft::arrp::resource_pool<std::string> pool {4};
 
     // Add resources up to capacity
     pool.seed(std::string("1"));

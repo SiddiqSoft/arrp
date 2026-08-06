@@ -62,7 +62,6 @@ namespace siddiqsoft::arrp
     /// optional factory used by try_borrow_create().
     ///
     /// @tparam T The resource type (must be move-constructible and non-arithmetic)
-    /// @tparam SRT The scoped resource type (defaults to resource_guard<T>)
     ///
     /// @note Pool storage, including the factory callback, is synchronized with a
     ///       mutex, so set_factory_callback() may be called concurrently with
@@ -84,8 +83,8 @@ namespace siddiqsoft::arrp
     /// }
     /// // Resource automatically returned to pool when resource_guard is destroyed
     /// @endcode
-    template <typename T, typename SRT = resource_guard<T>>
-        requires NonNumericMoveConstructible<T> && std::derived_from<SRT, resource_guard<T>>
+    template <typename T>
+        requires NonNumericMoveConstructible<T>
     class resource_pool final
     {
     private:
@@ -147,9 +146,9 @@ namespace siddiqsoft::arrp
         std::function<void(T&)> m_callback_on_resource_cleanup {};
 
         /// @brief Optional factory callback used to create resources on-demand
-        /// @details Stored as a zero-argument callable returning `SRT`. A supplied
-        /// callback may return either `T` or `SRT`.
-        std::function<SRT()> m_factory_callback {};
+        /// @details Stored as a zero-argument callable returning `resource_guard<T>`. A supplied
+        /// callback may return either `T` or `resource_guard<T>`.
+        std::function<resource_guard<T>()> m_factory_callback {};
 
         /// @brief Sets the capacity. This is internal and can only be called from the constructor.
         /// @details The configured capacity cannot be changed after construction.
@@ -273,48 +272,49 @@ namespace siddiqsoft::arrp
     protected:
         /// @brief Creates a scoped resource wired to return to this pool on destruction.
         /// @note The callback constructor of resource_guard is private; this helper
-        ///       supplies the callback for the default scoped-resource type.
+        ///       supplies that callback when constructing a resource_guard<T>.
         template <typename... Args>
-        auto make_resource_guard(Args&&... args) -> SRT
+        auto make_resource_guard(Args&&... args) -> resource_guard<T>
         {
             // Allow the compiler to use NRVO (move elision; do not use std::move here!)
-            return SRT {[this](T&& src, bool isvalid) {
-                            // this callback puts the resource back..
-                            return this->return_to_pool(std::forward<T>(src), isvalid);
-                        },
-                        std::forward<Args>(args)...};
+            return resource_guard<T> {[this](T&& src, bool isvalid) {
+                                          // this callback puts the resource back..
+                                          return this->return_to_pool(std::forward<T>(src), isvalid);
+                                      },
+                                      std::forward<Args>(args)...};
         }
 
         /// @brief Function type for a callback that produces a scoped resource.
         /// @tparam Args Callback argument types.
         template <typename... Args>
-        using resource_callback_t = std::function<SRT(Args...)>;
+        using resource_callback_t = std::function<resource_guard<T>(Args...)>;
 
         /// @brief Invokes a callback and converts its result to the scoped resource type.
-        /// @tparam F Callable type returning T or SRT.
+        /// @tparam F Callable type returning T or resource_guard<T>.
         /// @tparam Args Argument types passed to the callable.
         /// @param f Callback to invoke.
         /// @param args Arguments passed to the callback.
         /// @return The callback's scoped resource, or a guard created around its T result.
         template <typename F, typename... Args>
-        auto create_from_callback(F&& f, Args&&... args) -> SRT
+        auto create_from_callback(F&& f, Args&&... args) -> resource_guard<T>
         {
             using result_t = std::invoke_result_t<F, Args...>;
 
-            if constexpr (std::is_same_v<result_t, SRT>) {
+            if constexpr (std::is_same_v<result_t, resource_guard<T>>) {
                 return std::invoke(std::forward<F>(f), std::forward<Args>(args)...);
             }
             else if constexpr (std::is_same_v<result_t, T>) {
                 return make_resource_guard(std::invoke(std::forward<F>(f), std::forward<Args>(args)...));
             }
             else {
-                static_assert(std::is_same_v<result_t, SRT> || std::is_same_v<result_t, T>, "Callback must return either SRT or T");
+                static_assert(std::is_same_v<result_t, resource_guard<T>> || std::is_same_v<result_t, T>,
+                              "Callback must return either resource_guard<T> or T");
             }
         }
 
     public:
         /// @brief Sets the factory used by try_borrow_create() when no resource is available.
-        /// @tparam F Callable type invokable with no arguments returning `SRT` or `T`
+        /// @tparam F Callable type invokable with no arguments returning `resource_guard<T>` or `T`
         /// @note Safe to call concurrently with borrow_impl(): assignment is
         ///       synchronized under m_pool_lock, matching the read sites in
         ///       borrow_impl(). A borrow in flight may still use the factory that
@@ -326,7 +326,7 @@ namespace siddiqsoft::arrp
         void set_factory_callback(F&& f)
         {
             auto factory = std::forward<F>(f);
-            auto wrapped = [this, factory = std::move(factory)]() mutable -> SRT {
+            auto wrapped = [this, factory = std::move(factory)]() mutable -> resource_guard<T> {
                 return create_from_callback(factory);
             };
 
@@ -404,7 +404,7 @@ namespace siddiqsoft::arrp
         /// Attempts to get a resource from the pool. When creation is requested and
         /// no resource is available, invokes the registered factory callback.
         ///
-        /// @return SRT containing the borrowed resource or error
+        /// @return resource_guard<T> containing the borrowed resource or error
         ///
         /// @note A positive timeout waits for the availability semaphore; zero does
         ///       not wait. The factory must not call pool methods.
@@ -420,7 +420,8 @@ namespace siddiqsoft::arrp
         ///     std::print(std::cerr, "Failed to borrow resource\n");
         /// }
         /// @endcode
-        [[nodiscard]] auto borrow_impl(std::chrono::nanoseconds timeout = {}, bool createIfEmptyTimeout = false) -> SRT
+        [[nodiscard]] auto borrow_impl(std::chrono::nanoseconds timeout = {}, bool createIfEmptyTimeout = false)
+                -> resource_guard<T>
         {
             try {
                 // @note We use a unique_lock vs a scoped_lock to allow ourselves
@@ -428,7 +429,7 @@ namespace siddiqsoft::arrp
 
                 // Fast pre-check — the authoritative shutdown check is performed
                 // under the lock below after semaphore acquisition.
-                if (m_is_shutdown) return SRT {pool_error::ShutdownInitiated};
+                if (m_is_shutdown) return resource_guard<T> {pool_error::ShutdownInitiated};
 
                 // Wait for an available resource, then optionally create one when
                 // try_borrow_create() was requested.
@@ -440,7 +441,7 @@ namespace siddiqsoft::arrp
                     // have run between the pre-semaphore check and taking this lock.
                     if (m_is_shutdown) {
                         m_pool_semaphore.release();
-                        return SRT {pool_error::ShutdownInitiated};
+                        return resource_guard<T> {pool_error::ShutdownInitiated};
                     }
 
                     // We have a resource available.. just to be sure, we'll check the pool size inside the lock..
@@ -474,7 +475,7 @@ namespace siddiqsoft::arrp
                         // Permit was acquired but no resource exists; release it so
                         // the semaphore count stays in sync with the pool size.
                         m_pool_semaphore.release();
-                        return SRT {siddiqsoft::arrp::pool_error::NoMoreResources};
+                        return resource_guard<T> {siddiqsoft::arrp::pool_error::NoMoreResources};
                     }
                 }
                 else if (createIfEmptyTimeout) {
@@ -482,13 +483,13 @@ namespace siddiqsoft::arrp
                     // synchronized with set_factory_callback(), then invoke it
                     // without holding m_pool_lock to avoid deadlock if the factory
                     // calls back into the pool.
-                    std::function<SRT()> cb;
+                    std::function<resource_guard<T>()> cb;
                     {
                         std::scoped_lock l(m_pool_lock);
                         cb = m_factory_callback;
                     }
                     if (!cb) {
-                        return SRT {siddiqsoft::arrp::pool_error::NoMoreResources};
+                        return resource_guard<T> {siddiqsoft::arrp::pool_error::NoMoreResources};
                     }
                     std::println(std::cerr, "{} - We exhausted timeout; asked to create new if empty..", __func__);
                     auto ondemand = create_from_callback(cb);
@@ -498,21 +499,21 @@ namespace siddiqsoft::arrp
                     return ondemand;
                 }
                 else if (timeout.count() > 0) {
-                    return SRT {siddiqsoft::arrp::pool_error::Timeout};
+                    return resource_guard<T> {siddiqsoft::arrp::pool_error::Timeout};
                 }
                 else {
-                    return SRT {siddiqsoft::arrp::pool_error::NoMoreResources};
+                    return resource_guard<T> {siddiqsoft::arrp::pool_error::NoMoreResources};
                 }
             } // scope end
             catch (std::exception& ex) {
-                return SRT {siddiqsoft::arrp::pool_error::Unknown};
+                return resource_guard<T> {siddiqsoft::arrp::pool_error::Unknown};
             }
             catch (...) {
                 std::println(std::cerr, "UNKNOWN Error in borrow");
-                return SRT {siddiqsoft::arrp::pool_error::Unknown};
+                return resource_guard<T> {siddiqsoft::arrp::pool_error::Unknown};
             }
 
-            return SRT {siddiqsoft::arrp::pool_error::NoMoreResources};
+            return resource_guard<T> {siddiqsoft::arrp::pool_error::NoMoreResources};
         }
 
     public:
@@ -520,13 +521,16 @@ namespace siddiqsoft::arrp
         /// @param timeout Maximum time to wait; zero performs a non-blocking attempt.
         /// @return A valid scoped resource, or an invalid one with NoMoreResources,
         ///         Timeout, ShutdownInitiated, or Unknown set as its error.
-        [[nodiscard]] auto try_borrow(std::chrono::nanoseconds timeout = {}) -> SRT { return borrow_impl(timeout); }
+        [[nodiscard]] auto try_borrow(std::chrono::nanoseconds timeout = {}) -> resource_guard<T> { return borrow_impl(timeout); }
 
         /// @brief Borrows an available resource or creates one through the factory.
         /// @param timeout Maximum time to wait; zero performs a non-blocking attempt.
         /// @return A valid scoped resource, or an invalid one when shutdown or an
         ///         implementation or factory error prevents borrowing.
-        [[nodiscard]] auto try_borrow_create(std::chrono::nanoseconds timeout = {}) -> SRT { return borrow_impl(timeout, true); }
+        [[nodiscard]] auto try_borrow_create(std::chrono::nanoseconds timeout = {}) -> resource_guard<T>
+        {
+            return borrow_impl(timeout, true);
+        }
 
         /// @brief Adds a resource to the pool by constructing it in-place
         ///
@@ -701,12 +705,11 @@ namespace siddiqsoft::arrp
 
     /// @brief Converts resource_pool to JSON
     /// @tparam T The resource type
-    /// @tparam SRT The scoped resource type
     /// @param dest Destination JSON object
     /// @param src Source resource_pool
-    template <typename T, typename SRT = resource_guard<T>>
-        requires NonNumericMoveConstructible<T> && std::derived_from<SRT, resource_guard<T>>
-    static void to_json(nlohmann::json& dest, const siddiqsoft::arrp::resource_pool<T, SRT>& src)
+    template <typename T>
+        requires NonNumericMoveConstructible<T>
+    static void to_json(nlohmann::json& dest, const siddiqsoft::arrp::resource_pool<T>& src)
     {
         dest = src.to_json();
     }
@@ -717,11 +720,11 @@ namespace siddiqsoft::arrp
 #endif
 
 
-template <typename T, typename SRT>
-    requires siddiqsoft::arrp::NonNumericMoveConstructible<T> && std::derived_from<SRT, siddiqsoft::arrp::resource_guard<T>>
-struct std::formatter<siddiqsoft::arrp::resource_pool<T, SRT>> : std::formatter<std::string>
+template <typename T>
+    requires siddiqsoft::arrp::NonNumericMoveConstructible<T>
+struct std::formatter<siddiqsoft::arrp::resource_pool<T>> : std::formatter<std::string>
 {
-    auto format(const siddiqsoft::arrp::resource_pool<T, SRT>& pool, auto& ctx) const
+    auto format(const siddiqsoft::arrp::resource_pool<T>& pool, auto& ctx) const
     {
 #if defined(NLOHMANN_JSON_VERSION_MAJOR)
         return std::format_to(ctx.out(), "{}", pool.to_json().dump());

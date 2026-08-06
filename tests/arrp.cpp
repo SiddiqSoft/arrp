@@ -50,7 +50,7 @@
 #include "../include/siddiqsoft/private/resource_pool.hpp"
 
 // NOLINTBEGIN(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
-#if defined (TODO_FIX)
+#if defined(TODO_FIX)
 TEST(resource_guard, T_string)
 {
     bool                                         passTest {false};
@@ -145,8 +145,9 @@ TEST(resource_guard, T_class2)
     siddiqsoft::arrp::resource_pool<custom2> rp;
 
     EXPECT_NO_THROW({
-        auto sr = rp.wrap_as_resource_guard(custom2 {99, "ﷵ", true, {1, 1, 2, 3}}); // this approach allows the compiler to deduce the
-                                                                             // proper arguments and perform copy/move elision
+        auto sr =
+                rp.wrap_as_resource_guard(custom2 {99, "ﷵ", true, {1, 1, 2, 3}}); // this approach allows the compiler to deduce the
+                                                                                  // proper arguments and perform copy/move elision
         std::print(std::cerr, "stat: {}\n", sr.to_json().dump());
         sr.invalidate();
         passTest = true;
@@ -222,7 +223,7 @@ TEST(resource_pool, serializer_pair)
 
         EXPECT_EQ(2, rp.size());
 
-        auto p1 = rp.try_borrow();
+        auto                                      p1 = rp.try_borrow();
         siddiqsoft::arrp::resource_guard<custom2> p2 = rp.try_borrow();
         if (p2.has_value()) {
             (*p2).first = 2020;
