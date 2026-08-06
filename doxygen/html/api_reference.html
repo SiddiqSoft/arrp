@@ -28,7 +28,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="Siddiq-Software-Avatar.png"/></td>
   <td id="projectalign">
-   <div id="projectname">arrp<span id="projectnumber">&#160;0.1.3</span>
+   <div id="projectname">arrp<span id="projectnumber">&#160;0.1.4</span>
    </div>
    <div id="projectbrief">Auto returning resource pool for modern C++</div>
   </td>
@@ -102,8 +102,8 @@ Include and requirements</h1>
 <div class="fragment"><div class="line"><span class="preprocessor">#include &lt;nlohmann/json.hpp&gt;</span></div>
 <div class="line"><span class="preprocessor">#include &lt;siddiqsoft/arrp.hpp&gt;</span></div>
 </div><!-- fragment --><h1 class="doxsection"><a class="anchor" id="resource_pool_api"></a>
-resource_pool&lt;T, SRT&gt;</h1>
-<p><span class="tt">resource_pool&lt;T, SRT&gt;</span> is a non-copyable, non-movable pool with synchronized storage operations. <span class="tt">SRT</span> defaults to <span class="tt">resource_guard&lt;T&gt;</span> and must derive from it.</p>
+resource_pool&lt;T&gt;</h1>
+<p><span class="tt">resource_pool&lt;T&gt;</span> is a non-copyable, non-movable pool with synchronized storage operations. Each pool owns and returns <span class="tt">resource_guard&lt;T&gt;</span> instances; there is no customizable scoped-resource type.</p>
 <h2 class="doxsection"><a class="anchor" id="pool_constructors"></a>
 Constructors</h2>
 <table class="markdownTable">
@@ -121,11 +121,11 @@ Methods</h2>
 <tr class="markdownTableHead">
 <th class="markdownTableHeadNone">Declaration  </th><th class="markdownTableHeadNone">Result  </th></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone"><span class="tt">SRT try_borrow(std::chrono::nanoseconds timeout = {})</span>  </td><td class="markdownTableBodyNone">Borrows the next available resource. A zero timeout does not wait; a positive timeout waits for an available resource.  </td></tr>
+<td class="markdownTableBodyNone"><span class="tt">resource_guard&lt;T&gt; try_borrow(std::chrono::nanoseconds timeout = {})</span>  </td><td class="markdownTableBodyNone">Borrows the next available resource. A zero timeout does not wait; a positive timeout waits for an available resource.  </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone"><span class="tt">SRT try_borrow_create(std::chrono::nanoseconds timeout = {})</span>  </td><td class="markdownTableBodyNone">Borrows an available resource, or invokes the factory callback when no resource becomes available.  </td></tr>
+<td class="markdownTableBodyNone"><span class="tt">resource_guard&lt;T&gt; try_borrow_create(std::chrono::nanoseconds timeout = {})</span>  </td><td class="markdownTableBodyNone">Borrows an available resource, or invokes the factory callback when no resource becomes available.  </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone"><span class="tt">template&lt;class F&gt; void set_factory_callback(F&amp;&amp; f)</span>  </td><td class="markdownTableBodyNone">Registers a no-argument factory returning <span class="tt">T</span> or <span class="tt">SRT</span>.  </td></tr>
+<td class="markdownTableBodyNone"><span class="tt">template&lt;class F&gt; void set_factory_callback(F&amp;&amp; f)</span>  </td><td class="markdownTableBodyNone">Registers a no-argument factory returning <span class="tt">T</span> or <span class="tt">resource_guard&lt;T&gt;</span>.  </td></tr>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone"><span class="tt">template&lt;class... Args&gt; pool_error seed(Args&amp;&amp;... args)</span>  </td><td class="markdownTableBodyNone">Constructs <span class="tt">T</span> in place and adds it to the available pool.  </td></tr>
 <tr class="markdownTableRowOdd">
@@ -146,7 +146,7 @@ Methods</h2>
 <div class="line"><span class="keyword">auto</span> connection = pool.try_borrow_create();</div>
 </div><!-- fragment --><h2 class="doxsection"><a class="anchor" id="pool_borrow_errors"></a>
 Borrow errors</h2>
-<p>Borrow methods return an invalid <span class="tt">SRT</span> with one of these errors:</p>
+<p>Borrow methods return an invalid <span class="tt">resource_guard&lt;T&gt;</span> with one of these errors:</p>
 <table class="markdownTable">
 <tr class="markdownTableHead">
 <th class="markdownTableHeadNone">Error  </th><th class="markdownTableHeadNone">Meaning  </th></tr>
@@ -192,7 +192,7 @@ Statistics</h2>
 </table>
 <h1 class="doxsection"><a class="anchor" id="resource_guard_api"></a>
 resource_guard&lt;T&gt;</h1>
-<p><span class="tt">resource_guard&lt;T&gt;</span> is the non-copyable, movable RAII handle returned by a pool. Its destructor calls the pool's return callback. Do not let a guard outlive its pool, and do not access a single guard concurrently.</p>
+<p><span class="tt">resource_guard&lt;T&gt;</span> is the non-copyable, movable, <span class="tt">final</span> RAII handle returned by a pool. Its destructor calls the pool's return callback. Do not let a guard outlive its pool, and do not access a single guard concurrently.</p>
 <table class="markdownTable">
 <tr class="markdownTableHead">
 <th class="markdownTableHeadNone">Declaration  </th><th class="markdownTableHeadNone">Behavior  </th></tr>

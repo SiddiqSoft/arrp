@@ -34,7 +34,7 @@ var NAVTREE =
     [ "api", "md_docs_2pages_2api.html", null ],
     [ "API reference", "api_reference.html", [
       [ "Include and requirements", "api_reference.html#api_include", null ],
-      [ "resource_pool&lt;T, SRT&gt;", "api_reference.html#resource_pool_api", [
+      [ "resource_pool&lt;T&gt;", "api_reference.html#resource_pool_api", [
         [ "Constructors", "api_reference.html#pool_constructors", null ],
         [ "Methods", "api_reference.html#pool_methods", null ],
         [ "Borrow errors", "api_reference.html#pool_borrow_errors", null ],
@@ -52,6 +52,7 @@ var NAVTREE =
       [ "Discarding a resource", "usage_guide.html#usage_invalidating", null ],
       [ "Cleaning up available resources", "usage_guide.html#usage_cleanup", null ],
       [ "Inspecting statistics", "usage_guide.html#usage_statistics", null ],
+      [ "Debugger visualization", "usage_guide.html#usage_debugging", null ],
       [ "Capacity guidance", "usage_guide.html#usage_capacity", null ]
     ] ],
     [ "Concepts", "concepts.html", "concepts" ],

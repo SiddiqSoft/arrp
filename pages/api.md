@@ -18,10 +18,11 @@ To expose JSON members, include nlohmann JSON first:
 #include <siddiqsoft/arrp.hpp>
 @endcode
 
-@section resource_pool_api resource_pool<T, SRT>
+@section resource_pool_api resource_pool<T>
 
-`resource_pool<T, SRT>` is a non-copyable, non-movable pool with synchronized
-storage operations. `SRT` defaults to `resource_guard<T>` and must derive from it.
+`resource_pool<T>` is a non-copyable, non-movable pool with synchronized storage
+operations. Each pool owns and returns `resource_guard<T>` instances; there is no
+customizable scoped-resource type.
 
 @subsection pool_constructors Constructors
 
@@ -39,9 +40,9 @@ standard error.
 
 | Declaration | Result |
 |---|---|
-| `SRT try_borrow(std::chrono::nanoseconds timeout = {})` | Borrows the next available resource. A zero timeout does not wait; a positive timeout waits for an available resource. |
-| `SRT try_borrow_create(std::chrono::nanoseconds timeout = {})` | Borrows an available resource, or invokes the factory callback when no resource becomes available. |
-| `template<class F> void set_factory_callback(F&& f)` | Registers a no-argument factory returning `T` or `SRT`. |
+| `resource_guard<T> try_borrow(std::chrono::nanoseconds timeout = {})` | Borrows the next available resource. A zero timeout does not wait; a positive timeout waits for an available resource. |
+| `resource_guard<T> try_borrow_create(std::chrono::nanoseconds timeout = {})` | Borrows an available resource, or invokes the factory callback when no resource becomes available. |
+| `template<class F> void set_factory_callback(F&& f)` | Registers a no-argument factory returning `T` or `resource_guard<T>`. |
 | `template<class... Args> pool_error seed(Args&&... args)` | Constructs `T` in place and adds it to the available pool. |
 | `pool_error seed(T&& item)` | Moves an existing resource into the available pool. |
 | `pool_error clear()` | Removes all resources currently available in the pool. |
@@ -66,7 +67,7 @@ auto connection = pool.try_borrow_create();
 
 @subsection pool_borrow_errors Borrow errors
 
-Borrow methods return an invalid `SRT` with one of these errors:
+Borrow methods return an invalid `resource_guard<T>` with one of these errors:
 
 | Error | Meaning |
 |---|---|
@@ -96,9 +97,9 @@ Borrow methods return an invalid `SRT` with one of these errors:
 
 @section resource_guard_api resource_guard<T>
 
-`resource_guard<T>` is the non-copyable, movable RAII handle returned by a pool.
-Its destructor calls the pool's return callback. Do not let a guard outlive its
-pool, and do not access a single guard concurrently.
+`resource_guard<T>` is the non-copyable, movable, `final` RAII handle returned by
+a pool. Its destructor calls the pool's return callback. Do not let a guard
+outlive its pool, and do not access a single guard concurrently.
 
 | Declaration | Behavior |
 |---|---|

@@ -11,6 +11,6 @@ var annotated_dup =
       [ "formatter&lt; siddiqsoft::arrp::pool_error &gt;", "structstd_1_1formatter_3_01siddiqsoft_1_1arrp_1_1pool__error_01_4.html", "structstd_1_1formatter_3_01siddiqsoft_1_1arrp_1_1pool__error_01_4" ],
       [ "formatter&lt; siddiqsoft::arrp::release_reason &gt;", "structstd_1_1formatter_3_01siddiqsoft_1_1arrp_1_1release__reason_01_4.html", "structstd_1_1formatter_3_01siddiqsoft_1_1arrp_1_1release__reason_01_4" ],
       [ "formatter&lt; siddiqsoft::arrp::resource_guard&lt; T &gt; &gt;", "structstd_1_1formatter_3_01siddiqsoft_1_1arrp_1_1resource__guard_3_01T_01_4_01_4.html", "structstd_1_1formatter_3_01siddiqsoft_1_1arrp_1_1resource__guard_3_01T_01_4_01_4" ],
-      [ "formatter&lt; siddiqsoft::arrp::resource_pool&lt; T, SRT &gt; &gt;", "structstd_1_1formatter_3_01siddiqsoft_1_1arrp_1_1resource__pool_3_01T_00_01SRT_01_4_01_4.html", null ]
+      [ "formatter&lt; siddiqsoft::arrp::resource_pool&lt; T &gt; &gt;", "structstd_1_1formatter_3_01siddiqsoft_1_1arrp_1_1resource__pool_3_01T_01_4_01_4.html", null ]
     ] ]
 ];
