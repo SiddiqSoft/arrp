@@ -339,11 +339,13 @@ namespace siddiqsoft::arrp
             std::scoped_lock l(m_pool_lock);
 
             try {
-                if (m_callback_on_resource_cleanup && !m_pool.empty()) {
-                    while (!m_pool.empty()) {
-                        m_pool_semaphore.acquire();
-                        auto item = std::move(m_pool.front());
-                        m_pool.pop_front();
+                // Drain semaphore and pool together so their counts stay in sync.
+                // The cleanup callback, if set, runs under the lock per item.
+                while (!m_pool.empty()) {
+                    m_pool_semaphore.acquire();
+                    auto item = std::move(m_pool.front());
+                    m_pool.pop_front();
+                    if (m_callback_on_resource_cleanup) {
                         // delegate to the cleanup.
                         // the delegate must not invoke any pool member to avoid deadlocks.
                         m_callback_on_resource_cleanup(item);
@@ -353,9 +355,6 @@ namespace siddiqsoft::arrp
             catch (std::exception& ex) {
                 std::print(std::cerr, "{} - exception while delegating to on_cleanup: {}\n", __func__, ex.what());
             }
-
-            // This will clear the pool (of any remaining resources) and reset the size to zero.
-            m_pool.clear();
 
             return pool_error::Ok;
         }
@@ -399,8 +398,8 @@ namespace siddiqsoft::arrp
                 // @note We use a unique_lock vs a scoped_lock to allow ourselves
                 // to create the resource outside the lock!
 
-                // Now that we're inside the lock, we should check again to ensure that
-                // the shutdown is not in progress..
+                // Fast pre-check — the authoritative shutdown check is performed
+                // under the lock below after semaphore acquisition.
                 if (m_is_shutdown) return SRT {pool_error::ShutdownInitiated};
 
                 // Wait for an available resource, then optionally create one when
@@ -408,6 +407,14 @@ namespace siddiqsoft::arrp
                 if (timeout.count() == 0 ? m_pool_semaphore.try_acquire() : m_pool_semaphore.try_acquire_for(timeout)) {
                     // We likely have a resource available.. grab a lock.
                     std::unique_lock l(m_pool_lock);
+
+                    // Authoritative shutdown check under the lock: the destructor may
+                    // have run between the pre-semaphore check and taking this lock.
+                    if (m_is_shutdown) {
+                        m_pool_semaphore.release();
+                        return SRT {pool_error::ShutdownInitiated};
+                    }
+
                     // We have a resource available.. just to be sure, we'll check the pool size inside the lock..
                     if (!m_pool.empty()) {
                         // Move the resource out of the pool while holding the lock.
@@ -425,18 +432,27 @@ namespace siddiqsoft::arrp
                     }
                     else if (createIfEmptyTimeout && m_factory_callback) {
                         std::println(std::cerr, "{} - Empty pool; asked to create new if empty..", __func__);
-                        auto ondemand = create_from_callback(m_factory_callback);
+                        // Release the lock before invoking arbitrary user code to
+                        // prevent deadlock if the factory calls back into the pool.
+                        auto cb = m_factory_callback;
+                        l.unlock();
+                        auto ondemand = create_from_callback(cb);
                         m_counter_ondemand_adds++;
                         m_resources_checkedout++;
                         m_counter_borrows++;
                         return ondemand;
                     }
                     else {
+                        // Permit was acquired but no resource exists; release it so
+                        // the semaphore count stays in sync with the pool size.
+                        m_pool_semaphore.release();
                         return SRT {siddiqsoft::arrp::pool_error::NoMoreResources};
                     }
                 }
                 else if (createIfEmptyTimeout && m_factory_callback) {
                     std::println(std::cerr, "{} - We exhausted timeout; asked to create new if empty..", __func__);
+                    // No lock needed here — factory is invoked without holding m_pool_lock
+                    // to avoid deadlock if the factory calls back into the pool.
                     auto ondemand = create_from_callback(m_factory_callback);
                     m_counter_ondemand_adds++;
                     m_resources_checkedout++;
@@ -556,10 +572,12 @@ namespace siddiqsoft::arrp
         {
             std::unique_lock l(m_pool_lock);
 
+            // Always decrement the checkout counter — the resource is leaving our
+            // custody regardless of whether the pool is still alive.
+            m_resources_checkedout--;
+
             // Check inside the lock..
             if (m_is_shutdown) return;
-
-            m_resources_checkedout--;
 
             if (isvalid) {
                 m_pool.push_back(std::move(item));

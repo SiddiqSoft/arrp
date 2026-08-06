@@ -354,25 +354,21 @@ namespace siddiqsoft::arrp
 
         /// @brief Assignment operator for resource value
         ///
-        /// Returns the current resource through its callback, then stores a replacement.
+        /// Replaces the held resource value in place. The guard retains ownership
+        /// and will return the new resource to the pool when destroyed.
         ///
         /// @param src The new resource value (moved)
         /// @return Reference to this resource_guard
         ///
-        /// @note The replacement is marked valid. If no callback is installed, the
-        ///       previous stored value is simply overwritten.
+        /// @note The replacement is marked valid.
+        /// @note Does NOT invoke the putback callback — doing so here would cause
+        ///       a double-return when the destructor subsequently fires.
         resource_guard& operator=(T&& src)
         {
-            if (m_putback_callback) {
-                try {
-                    m_putback_callback(std::move(m_rsrc), m_is_valid);
-                }
-                catch (...) {
-                    std::print(std::cerr,
-                               "resource_guard resource-assignment: exception while returning existing resource to pool!\n");
-                }
-            }
-
+            // Replace the held value in place. The guard retains ownership via
+            // m_putback_callback and will return the new resource on destruction.
+            // Invoking the callback here would cause a double-return: once now
+            // and again when the destructor fires.
             m_rsrc     = std::move(src);
             m_is_valid = true;
             return *this;
