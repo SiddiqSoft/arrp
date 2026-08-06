@@ -6,8 +6,8 @@
     </ClCompile>
   </ItemDefinitionGroup>
 
-  <!-- Include natvis file for Visual Studio debugger visualization -->
+  <!-- Include natvis file for Visual Studio and VS Code debugger visualization -->
   <ItemGroup>
-    <Natvis Include="$(MSBuildThisFileDirectory)SiddiqSoft.aarp.natvis" />
+    <Natvis Include="$(MSBuildThisFileDirectory)SiddiqSoft.arrp.natvis" />
   </ItemGroup>
 </Project>

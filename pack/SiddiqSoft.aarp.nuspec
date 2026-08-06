@@ -35,13 +35,14 @@
 	<files>
 		<!-- includes -->
 		<file src="..\include\siddiqsoft\*.hpp" target="build\native\include\siddiqsoft\" />
+		<file src="..\include\siddiqsoft\private\**\*" target="build\native\include\siddiqsoft\private\" />
 		<file src="Siddiq-Software-Avatar.png" target="docs\" />
 		<file src="..\README.md" target="docs\" />
 
 		<!-- MSBuild .targets files -->
 		<file src="SiddiqSoft.aarp.targets" target="build\native" />
 
-		<!-- Natvis file for Visual Studio debugger visualization -->
-		<file src="..\pack\SiddiqSoft.aarp.natvis" target="build\native" />
+		<!-- Natvis file for Visual Studio and VS Code debugger visualization -->
+		<file src="..\SiddiqSoft.arrp.natvis" target="build\native" />
 	</files>
 </package>

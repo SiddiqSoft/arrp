@@ -16,7 +16,7 @@
             "externalConsole": false,
             "MIMode": "gdb",
             "showDisplayString": true,
-            "visualizerFile": "${workspaceFolder}/pack/SiddiqSoft.arrp.natvis",
+            "visualizerFile": "${workspaceFolder}/SiddiqSoft.arrp.natvis",
             "env": {
                 "LSAN_OPTIONS": "verbosity=1:log_threads=1"
             },
@@ -41,7 +41,7 @@
                 "LSAN_OPTIONS": "verbosity=1:log_threads=1"
             },
             "showDisplayString": true,
-            "visualizerFile": "${workspaceFolder}/pack/SiddiqSoft.arrp.natvis"
+            "visualizerFile": "${workspaceFolder}/SiddiqSoft.arrp.natvis"
         }
     ]
 }
