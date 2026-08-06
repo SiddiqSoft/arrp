@@ -415,6 +415,7 @@ namespace siddiqsoft::arrp
         auto& set_error(pool_error err)
         {
             m_error_code = err;
+            m_is_valid   = err != pool_error::Ok; // Mark invalid if error is not Ok
             return *this;
         }
         /// @brief Gets the error associated with this guard.

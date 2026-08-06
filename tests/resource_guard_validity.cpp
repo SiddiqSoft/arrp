@@ -131,6 +131,25 @@ TEST(resource_guard_validity, no_corruption_on_invalid_resource)
     EXPECT_EQ(0u, pool.size());
 }
 
+TEST(resource_guard_validity, error_state_invalidates_guard_and_discards_resource)
+{
+    siddiqsoft::arrp::resource_pool<std::string> pool;
+    pool.seed(std::string("42"));
+
+    {
+        auto wrap = pool.try_borrow();
+        ASSERT_TRUE(wrap.has_value());
+
+        wrap.set_error(siddiqsoft::arrp::pool_error::Unknown);
+
+        EXPECT_FALSE(wrap.has_value());
+        EXPECT_FALSE(wrap.is_valid());
+        EXPECT_EQ(siddiqsoft::arrp::pool_error::Unknown, wrap.error());
+    }
+
+    EXPECT_EQ(0u, pool.size());
+}
+
 /**
  * @brief Test with unique_ptr to ensure move-only types work correctly
  *
