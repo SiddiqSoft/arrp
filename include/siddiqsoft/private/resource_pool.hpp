@@ -319,10 +319,16 @@ namespace siddiqsoft::arrp
         template <typename F>
         void set_factory_callback(F&& f)
         {
-            auto factory       = std::forward<F>(f);
-            m_factory_callback = [this, factory = std::move(factory)]() mutable -> SRT {
+            auto factory = std::forward<F>(f);
+            auto wrapped = [this, factory = std::move(factory)]() mutable -> SRT {
                 return create_from_callback(factory);
             };
+
+            // Synchronize with borrow_impl()'s reads of m_factory_callback (both the
+            // locked and unlocked read sites) so concurrent set_factory_callback()
+            // calls do not race with in-flight borrows.
+            std::scoped_lock l(m_pool_lock);
+            m_factory_callback = std::move(wrapped);
         }
 
         /// @brief Clears all resources from the pool
@@ -341,8 +347,18 @@ namespace siddiqsoft::arrp
             try {
                 // Drain semaphore and pool together so their counts stay in sync.
                 // The cleanup callback, if set, runs under the lock per item.
-                while (!m_pool.empty()) {
-                    m_pool_semaphore.acquire();
+                //
+                // @note We MUST use try_acquire() here, not the blocking acquire().
+                // A concurrent borrow_impl() may have already claimed a permit via
+                // m_pool_semaphore.try_acquire()/try_acquire_for() and be waiting on
+                // m_pool_lock (which we currently hold) before it pops its item from
+                // m_pool. If we block here waiting for a permit that will only be
+                // released once that borrower runs — and it can't run until we
+                // release this lock — the pool deadlocks. When try_acquire() fails,
+                // every remaining permit is already claimed by such an in-flight
+                // borrower, so we stop draining and let those borrowers pop their
+                // own items once they acquire the lock after we release it.
+                while (!m_pool.empty() && m_pool_semaphore.try_acquire()) {
                     auto item = std::move(m_pool.front());
                     m_pool.pop_front();
                     if (m_callback_on_resource_cleanup) {
@@ -449,11 +465,21 @@ namespace siddiqsoft::arrp
                         return SRT {siddiqsoft::arrp::pool_error::NoMoreResources};
                     }
                 }
-                else if (createIfEmptyTimeout && m_factory_callback) {
+                else if (createIfEmptyTimeout) {
+                    // Take a copy of the factory under the lock so the read is
+                    // synchronized with set_factory_callback(), then invoke it
+                    // without holding m_pool_lock to avoid deadlock if the factory
+                    // calls back into the pool.
+                    std::function<SRT()> cb;
+                    {
+                        std::scoped_lock l(m_pool_lock);
+                        cb = m_factory_callback;
+                    }
+                    if (!cb) {
+                        return SRT {siddiqsoft::arrp::pool_error::NoMoreResources};
+                    }
                     std::println(std::cerr, "{} - We exhausted timeout; asked to create new if empty..", __func__);
-                    // No lock needed here — factory is invoked without holding m_pool_lock
-                    // to avoid deadlock if the factory calls back into the pool.
-                    auto ondemand = create_from_callback(m_factory_callback);
+                    auto ondemand = create_from_callback(cb);
                     m_counter_ondemand_adds++;
                     m_resources_checkedout++;
                     m_counter_borrows++;

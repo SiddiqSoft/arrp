@@ -31,6 +31,7 @@
 #include <memory>
 #include <map>
 #include <set>
+#include <future>
 
 #include "nlohmann/json.hpp"
 #include "../include/siddiqsoft/private/resource_pool.hpp"
@@ -558,6 +559,117 @@ TEST(resource_pool_clear, concurrent_with_borrow)
     std::println(std::cerr, "borrows:{}. borrow_fails:{}. clears:{}", borrows.load(), borrow_fails.load(), clears.load());
     EXPECT_GT(clears.load(), 0);
     EXPECT_GT(borrows.load(), 0);
+}
+
+
+/// @brief Regression test for a deadlock between clear() and borrow_impl().
+///
+/// @details
+/// clear() used to drain the pool with a *blocking* m_pool_semaphore.acquire()
+/// while holding m_pool_lock. A concurrent try_borrow()/try_borrow_create() can
+/// succeed at claiming a semaphore permit (via try_acquire()/try_acquire_for())
+/// and then block waiting for m_pool_lock to pop its item. If clear() takes the
+/// lock first and still needs a permit for a remaining item, it would block
+/// forever on acquire() waiting for a permit that only the (lock-starved)
+/// borrower could ever release -- a deadlock. clear() must never block while
+/// holding the pool lock.
+///
+/// This test hammers try_borrow()/seed()/clear() with several tight, sleep-free
+/// threads (maximizing the chance of hitting the exact interleaving) and fails
+/// via a watchdog if the run does not complete within a generous deadline,
+/// rather than hanging the test binary indefinitely.
+TEST(resource_pool_clear, does_not_deadlock_with_concurrent_borrow)
+{
+    siddiqsoft::arrp::resource_pool<std::string> pool {8};
+    for (int i = 0; i < 8; ++i) {
+        pool.seed(std::format("seed-{}", i));
+    }
+
+    auto run = std::async(std::launch::async, [&pool]() {
+        std::atomic_bool         stop {false};
+        std::vector<std::thread> borrowers;
+
+        for (int t = 0; t < 4; ++t) {
+            borrowers.emplace_back([&pool, &stop]() {
+                while (!stop.load(std::memory_order_relaxed)) {
+                    auto g = pool.try_borrow(std::chrono::milliseconds(1));
+                    if (g.has_value()) { *g += "x"; }
+                }
+            });
+        }
+
+        std::thread seeder([&pool, &stop]() {
+            for (int i = 0; i < 5000 && !stop.load(std::memory_order_relaxed); ++i) {
+                pool.seed(std::format("more-{}", i));
+            }
+        });
+
+        std::thread clearer([&pool, &stop]() {
+            for (int i = 0; i < 2000 && !stop.load(std::memory_order_relaxed); ++i) {
+                pool.clear();
+            }
+        });
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(300));
+        stop = true;
+
+        seeder.join();
+        clearer.join();
+        for (auto& b : borrowers) b.join();
+    });
+
+    // Watchdog: if this ever hangs (regression of the clear()/borrow_impl()
+    // deadlock), fail the test instead of hanging the whole test binary.
+    ASSERT_EQ(std::future_status::ready, run.wait_for(std::chrono::seconds(15)))
+            << "resource_pool::clear() appears to have deadlocked with a concurrent borrow";
+}
+
+
+/// @brief Regression test for a data race between set_factory_callback() and
+///        borrow_impl()'s reads of the factory callback.
+///
+/// @details
+/// set_factory_callback() used to assign m_factory_callback without holding
+/// m_pool_lock, while borrow_impl() read it (both under lock and, on the
+/// timed-out path, without any lock at all). Under ThreadSanitizer this is
+/// reported as a data race. This test exercises try_borrow_create() and
+/// set_factory_callback() concurrently; it is most effective when built with
+/// -fsanitize=thread, but also asserts functional correctness (borrowed
+/// resources are always valid) under plain builds.
+TEST(resource_pool_factory, set_factory_callback_concurrent_with_borrow_create)
+{
+    siddiqsoft::arrp::resource_pool<std::string> pool {4};
+
+    std::atomic_bool         stop {false};
+    std::atomic_int          created {0};
+    std::vector<std::thread> borrowers;
+
+    std::thread setter([&pool, &stop, &created]() {
+        while (!stop.load(std::memory_order_relaxed)) {
+            pool.set_factory_callback([&created]() -> std::string {
+                created++;
+                return "made";
+            });
+        }
+    });
+
+    std::atomic_int successes {0};
+    for (int t = 0; t < 4; ++t) {
+        borrowers.emplace_back([&pool, &stop, &successes]() {
+            while (!stop.load(std::memory_order_relaxed)) {
+                auto g = pool.try_borrow_create();
+                if (g.has_value()) { successes++; }
+            }
+        });
+    }
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    stop = true;
+
+    setter.join();
+    for (auto& b : borrowers) b.join();
+
+    EXPECT_GT(successes.load(), 0);
 }
 
 
