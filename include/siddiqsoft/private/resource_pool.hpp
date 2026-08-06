@@ -189,17 +189,12 @@ namespace siddiqsoft::arrp
             return static_cast<int64_t>(m_capacity) - (static_cast<int64_t>(m_pool.size()) + m_resources_checkedout.load());
         }
 
-        /// @brief The loan size is the difference between the borrows and returns and accounting for the abandons.
-        /// @details We're trying to ensure that we have a zero-balance of try_borrow() and the return_to_pool()
-        /// calls by the client.
+        /// @brief Returns the number of resources currently checked out by clients.
+        /// @details This uses the authoritative checkout counter rather than deriving
+        /// the value from borrow/return counters, which can momentarily disagree while
+        /// concurrent operations are in flight.
         /// @return A value representing the number of currently "borrowed" resources by the client.
-        inline auto loan_size() const
-        {
-            auto loans = m_counter_borrows.load(); // total number of borrows (current counter)
-            loans -= m_counter_returns.load();     // total number of returns (current counter)
-            loans -= m_counter_abandons.load();    // adjust for any abandons
-            return loans;
-        }
+        inline auto loan_size() const { return m_resources_checkedout.load(); }
 
     public:
         /// @brief Copy constructor is deleted

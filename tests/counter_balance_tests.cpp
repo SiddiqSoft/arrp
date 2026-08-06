@@ -176,6 +176,33 @@ TEST(counter_balance, invalidated_resources)
     EXPECT_EQ(1, pool.size());
 }
 
+TEST(counter_balance, loan_size_matches_checked_out_resources)
+{
+    siddiqsoft::arrp::resource_pool<std::string> pool {};
+    pool.seed(std::string("resource-1"));
+    pool.seed(std::string("resource-2"));
+
+    EXPECT_EQ(0, get_loan_count(pool));
+
+    auto first = pool.try_borrow();
+    ASSERT_TRUE(first.has_value());
+    EXPECT_EQ(1, get_loan_count(pool));
+
+    {
+        auto second = pool.try_borrow();
+        ASSERT_TRUE(second.has_value());
+        EXPECT_EQ(2, get_loan_count(pool));
+    }
+
+    EXPECT_EQ(1, get_loan_count(pool));
+
+    first.invalidate();
+    EXPECT_EQ(1, get_loan_count(pool));
+
+    first = pool.try_borrow();
+    EXPECT_FALSE(first.has_value());
+    EXPECT_EQ(1, get_loan_count(pool));
+}
 
 class custom_mr
 {
