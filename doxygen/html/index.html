@@ -28,7 +28,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="Siddiq-Software-Avatar.png"/></td>
   <td id="projectalign">
-   <div id="projectname">arrp<span id="projectnumber">&#160;0.1.1</span>
+   <div id="projectname">arrp<span id="projectnumber">&#160;0.1.2</span>
    </div>
    <div id="projectbrief">Auto returning resource pool for modern C++</div>
   </td>
@@ -115,8 +115,8 @@ Quick start</h1>
 <div class="line">    } <span class="comment">// The guard returns the string here.</span></div>
 <div class="line">}</div>
 <div class="ttc" id="aclasssiddiqsoft_1_1arrp_1_1resource__pool_html"><div class="ttname"><a href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool</a></div><div class="ttdef"><b>Definition</b> <a href="resource__pool_8hpp_source.html#l00088">resource_pool.hpp:89</a></div></div>
-<div class="ttc" id="aclasssiddiqsoft_1_1arrp_1_1resource__pool_html_a0d69dc395c0ed814587f61d3a47d3c63"><div class="ttname"><a href="classsiddiqsoft_1_1arrp_1_1resource__pool.html#a0d69dc395c0ed814587f61d3a47d3c63">siddiqsoft::arrp::resource_pool::seed</a></div><div class="ttdeci">auto seed(Args &amp;&amp;... args) -&gt; pool_error</div><div class="ttdoc">Adds a resource to the pool by constructing it in-place.</div><div class="ttdef"><b>Definition</b> <a href="resource__pool_8hpp_source.html#l00487">resource_pool.hpp:487</a></div></div>
-<div class="ttc" id="aclasssiddiqsoft_1_1arrp_1_1resource__pool_html_a2a934b83e95a62765f16335d5b8a512a"><div class="ttname"><a href="classsiddiqsoft_1_1arrp_1_1resource__pool.html#a2a934b83e95a62765f16335d5b8a512a">siddiqsoft::arrp::resource_pool::try_borrow</a></div><div class="ttdeci">auto try_borrow(std::chrono::nanoseconds timeout={}) -&gt; SRT</div><div class="ttdoc">Borrows an available resource without creating one.</div><div class="ttdef"><b>Definition</b> <a href="resource__pool_8hpp_source.html#l00469">resource_pool.hpp:469</a></div></div>
+<div class="ttc" id="aclasssiddiqsoft_1_1arrp_1_1resource__pool_html_a0d69dc395c0ed814587f61d3a47d3c63"><div class="ttname"><a href="classsiddiqsoft_1_1arrp_1_1resource__pool.html#a0d69dc395c0ed814587f61d3a47d3c63">siddiqsoft::arrp::resource_pool::seed</a></div><div class="ttdeci">auto seed(Args &amp;&amp;... args) -&gt; pool_error</div><div class="ttdoc">Adds a resource to the pool by constructing it in-place.</div><div class="ttdef"><b>Definition</b> <a href="resource__pool_8hpp_source.html#l00529">resource_pool.hpp:529</a></div></div>
+<div class="ttc" id="aclasssiddiqsoft_1_1arrp_1_1resource__pool_html_a2a934b83e95a62765f16335d5b8a512a"><div class="ttname"><a href="classsiddiqsoft_1_1arrp_1_1resource__pool.html#a2a934b83e95a62765f16335d5b8a512a">siddiqsoft::arrp::resource_pool::try_borrow</a></div><div class="ttdeci">auto try_borrow(std::chrono::nanoseconds timeout={}) -&gt; SRT</div><div class="ttdoc">Borrows an available resource without creating one.</div><div class="ttdef"><b>Definition</b> <a href="resource__pool_8hpp_source.html#l00511">resource_pool.hpp:511</a></div></div>
 </div><!-- fragment --><p>Resources are stored and borrowed in FIFO order. A pool does not create resources by itself; either seed resources explicitly or register a factory and use <span class="tt">try_borrow_create()</span>.</p>
 <h1 class="doxsection"><a class="anchor" id="concepts"></a>
 Core types</h1>

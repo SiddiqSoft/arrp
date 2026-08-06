@@ -28,7 +28,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="Siddiq-Software-Avatar.png"/></td>
   <td id="projectalign">
-   <div id="projectname">arrp<span id="projectnumber">&#160;0.1.1</span>
+   <div id="projectname">arrp<span id="projectnumber">&#160;0.1.2</span>
    </div>
    <div id="projectbrief">Auto returning resource pool for modern C++</div>
   </td>
@@ -229,7 +229,7 @@ template&lt;typename T&gt; </div>
 
 <p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00156">156</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#acb1054fba7fd688648f517925b1d6219">operator=()</a>, <a class="el" href="resource__guard_8hpp_source.html#l00245">operator=()</a>, <a class="el" href="resource__guard_8hpp_source.html#l00364">operator=()</a>, <a class="el" href="#af5949392e4dac60ef492b5585d4ac35b">resource_guard()</a>, and <a class="el" href="resource__guard_8hpp_source.html#l00215">resource_guard()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="#acb1054fba7fd688648f517925b1d6219">operator=()</a>, <a class="el" href="resource__guard_8hpp_source.html#l00245">operator=()</a>, <a class="el" href="resource__guard_8hpp_source.html#l00366">operator=()</a>, <a class="el" href="#af5949392e4dac60ef492b5585d4ac35b">resource_guard()</a>, and <a class="el" href="resource__guard_8hpp_source.html#l00215">resource_guard()</a>.</p>
 
 </div>
 </div>
@@ -421,7 +421,7 @@ template&lt;typename T&gt; </div>
 <dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2resource_guard_8hpp-example.html#a9">/opt/azure-agent/_work/1/s/include/siddiqsoft/private/resource_guard.hpp</a>.</dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00423">423</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00419">419</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
 
 </div>
 </div>
@@ -455,7 +455,7 @@ template&lt;typename T&gt; </div>
 <dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2resource_guard_8hpp-example.html#a10">/opt/azure-agent/_work/1/s/include/siddiqsoft/private/resource_guard.hpp</a>.</dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00427">427</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00423">423</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
 
 </div>
 </div>
@@ -484,7 +484,7 @@ template&lt;typename T&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00403">403</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00399">399</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
 
 </div>
 </div>
@@ -521,9 +521,9 @@ Const: Does not modify the resource </dd></dl>
 <dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2resource_guard_8hpp-example.html#a7">/opt/azure-agent/_work/1/s/include/siddiqsoft/private/resource_guard.hpp</a>.</dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00411">411</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00407">407</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="resource__guard_8hpp_source.html#l00482">std::formatter&lt; siddiqsoft::arrp::resource_guard&lt; T &gt; &gt;::format()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="resource__guard_8hpp_source.html#l00478">std::formatter&lt; siddiqsoft::arrp::resource_guard&lt; T &gt; &gt;::format()</a>.</p>
 
 </div>
 </div>
@@ -923,7 +923,7 @@ template&lt;typename T&gt; </div>
 </div><div class="memdoc">
 
 <p>Assignment operator for resource value. </p>
-<p>Returns the current resource through its callback, then stores a replacement.</p>
+<p>Replaces the held resource value in place. The guard retains ownership and will return the new resource to the pool when destroyed.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">src</td><td>The new resource value (moved) </td></tr>
@@ -931,9 +931,11 @@ template&lt;typename T&gt; </div>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Reference to this <a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__guard.html">resource_guard</a></dd></dl>
-<dl class="section note"><dt>Note</dt><dd>The replacement is marked valid. If no callback is installed, the previous stored value is simply overwritten. </dd></dl>
+<dl class="section note"><dt>Note</dt><dd>The replacement is marked valid. </dd>
+<dd>
+Does NOT invoke the putback callback — doing so here would cause a double-return when the destructor subsequently fires. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00364">364</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00366">366</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
 
 <p class="reference">References <a class="el" href="resource__guard_8hpp_source.html#l00133">m_rsrc</a>, and <a class="el" href="resource__guard_8hpp_source.html#l00156">resource_guard()</a>.</p>
 
@@ -975,7 +977,7 @@ template&lt;typename T&gt; </div>
 <dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2resource_guard_8hpp-example.html#a8">/opt/azure-agent/_work/1/s/include/siddiqsoft/private/resource_guard.hpp</a>.</dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00416">416</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00412">412</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
 
 </div>
 </div>
@@ -1038,7 +1040,7 @@ template&lt;typename T&gt; </div>
 
 <p class="definition">Definition at line <a class="el" href="resource__guard_8hpp_source.html#l00133">133</a> of file <a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="resource__guard_8hpp_source.html#l00339">operator const T &amp;()</a>, <a class="el" href="resource__guard_8hpp_source.html#l00350">operator InnerType()</a>, <a class="el" href="resource__guard_8hpp_source.html#l00326">operator T()</a>, <a class="el" href="resource__guard_8hpp_source.html#l00335">operator T&amp;()</a>, <a class="el" href="resource__guard_8hpp_source.html#l00311">operator*()</a>, <a class="el" href="resource__guard_8hpp_source.html#l00316">operator-&gt;()</a>, <a class="el" href="resource__guard_8hpp_source.html#l00320">operator-&gt;()</a>, <a class="el" href="resource__guard_8hpp_source.html#l00245">operator=()</a>, <a class="el" href="resource__guard_8hpp_source.html#l00364">operator=()</a>, <a class="el" href="resource__guard_8hpp_source.html#l00215">resource_guard()</a>, and <a class="el" href="resource__guard_8hpp_source.html#l00290">~resource_guard()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="resource__guard_8hpp_source.html#l00339">operator const T &amp;()</a>, <a class="el" href="resource__guard_8hpp_source.html#l00350">operator InnerType()</a>, <a class="el" href="resource__guard_8hpp_source.html#l00326">operator T()</a>, <a class="el" href="resource__guard_8hpp_source.html#l00335">operator T&amp;()</a>, <a class="el" href="resource__guard_8hpp_source.html#l00311">operator*()</a>, <a class="el" href="resource__guard_8hpp_source.html#l00316">operator-&gt;()</a>, <a class="el" href="resource__guard_8hpp_source.html#l00320">operator-&gt;()</a>, <a class="el" href="resource__guard_8hpp_source.html#l00245">operator=()</a>, <a class="el" href="resource__guard_8hpp_source.html#l00366">operator=()</a>, <a class="el" href="resource__guard_8hpp_source.html#l00215">resource_guard()</a>, and <a class="el" href="resource__guard_8hpp_source.html#l00290">~resource_guard()</a>.</p>
 
 </div>
 </div>
