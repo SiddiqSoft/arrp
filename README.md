@@ -73,7 +73,7 @@ resource; expiry returns `pool_error::Timeout`.
 
 ## Creating resources on demand
 
-Register a factory before concurrent borrowing and use `try_borrow_create()`:
+Register a factory and use `try_borrow_create()`:
 
 ```cpp
 siddiqsoft::arrp::resource_pool<std::string> pool {8};
@@ -108,9 +108,9 @@ An invalid guard is discarded rather than returned. Moving the value out through
 
 ## Threading and lifetime
 
-Borrowing, seeding, clearing, sizing, and JSON statistics synchronize pool
-storage. Individual `resource_guard` instances are not thread-safe. Do not let a
-guard outlive the pool that created it.
+Borrowing, seeding, clearing, sizing, setting the factory callback, and JSON
+statistics synchronize pool storage. Individual `resource_guard` instances are
+not thread-safe. Do not let a guard outlive the pool that created it.
 
 `clear()` removes resources currently available in the pool. Borrowed resources
 can still return when their guards are destroyed. An optional cleanup callback

@@ -64,8 +64,9 @@ namespace siddiqsoft::arrp
     /// @tparam T The resource type (must be move-constructible and non-arithmetic)
     /// @tparam SRT The scoped resource type (defaults to resource_guard<T>)
     ///
-    /// @note Pool storage is synchronized with a mutex. Configure the factory before
-    ///       calling borrowing methods concurrently.
+    /// @note Pool storage, including the factory callback, is synchronized with a
+    ///       mutex, so set_factory_callback() may be called concurrently with
+    ///       borrowing methods.
     /// @note RAII pattern: Resources are automatically returned to pool on destruction
     /// @note Callback-based: Supports factory, cleanup, and return callbacks
     /// @note Statistics: Tracks borrow/return operations and resource counts via atomic counters
@@ -314,8 +315,13 @@ namespace siddiqsoft::arrp
     public:
         /// @brief Sets the factory used by try_borrow_create() when no resource is available.
         /// @tparam F Callable type invokable with no arguments returning `SRT` or `T`
-        /// @warning Configure the factory before concurrent borrow attempts. The
-        ///          callback must not call methods on this pool.
+        /// @note Safe to call concurrently with borrow_impl(): assignment is
+        ///       synchronized under m_pool_lock, matching the read sites in
+        ///       borrow_impl(). A borrow in flight may still use the factory that
+        ///       was registered just before or after this call (no ordering is
+        ///       guaranteed relative to a specific concurrent borrow), but the
+        ///       read/write of the underlying std::function is race-free.
+        /// @warning The callback must not call methods on this pool.
         template <typename F>
         void set_factory_callback(F&& f)
         {
@@ -340,6 +346,12 @@ namespace siddiqsoft::arrp
         ///
         /// @note The cleanup callback runs under the pool lock. Exceptions derived
         ///       from std::exception are caught and written to stderr.
+        /// @note Non-blocking by design: if a concurrent borrow has already claimed
+        ///       a resource's semaphore permit but not yet popped it from the pool
+        ///       (it is waiting on the same lock clear() holds), that item is left
+        ///       in place for the borrower rather than drained here. This avoids a
+        ///       deadlock; it means a racing clear() call is not guaranteed to
+        ///       empty every resource that was visible to size() just before it ran.
         auto clear() -> pool_error
         {
             std::scoped_lock l(m_pool_lock);
