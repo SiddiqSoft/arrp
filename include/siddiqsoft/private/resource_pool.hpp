@@ -595,7 +595,7 @@ namespace siddiqsoft::arrp
         /// @code{.json}
         /// {
         ///   "_typver": "siddiqsoft.arrp.resource_pool/0.0.0",
-        ///   "capacity": <max_resources>,
+        ///   "capacity": <configured_capacity>,
         ///   "size": <available_resources>,
         ///   "deficit": <resources_needed>,
         ///   "peaksize": <peak_size_reached>,
@@ -610,10 +610,8 @@ namespace siddiqsoft::arrp
         ///
         /// @example
         /// @code
-        /// auto json_result = pool.to_json();
-        /// if (json_result) {
-        ///     std::cout << json_result.value().get().dump(2) << std::endl;
-        /// }
+        /// auto stats = pool.to_json();
+        /// std::cout << stats.dump(2) << '\n';
         /// @endcode
         auto to_json() const -> nlohmann::json
         {
