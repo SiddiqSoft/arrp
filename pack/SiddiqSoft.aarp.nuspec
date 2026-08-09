@@ -12,7 +12,7 @@
 		<version>$VERSION$</version>
 		<authors>SiddiqSoft</authors>
 		<description>Add auto-returning resource pool to your apps</description>
-		<tags>jthread thread pool deque cpp20 native nativepackage cpp</tags>
+		<tags>jthread thread pool deque cpp23 native nativepackage cpp</tags>
 		<projectUrl>https://github.com/SiddiqSoft/arrp</projectUrl>
 		<requireLicenseAcceptance>true</requireLicenseAcceptance>
 		<license type="expression">BSD-3-Clause</license>
