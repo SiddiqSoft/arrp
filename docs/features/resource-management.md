@@ -57,14 +57,17 @@ auto resource = pool.try_borrow_create();
 
 > [!NOTE]
 > `try_borrow()` **never** calls the factory callback; only `try_borrow_create()` does. The factory callback must take no parameters and return `T` (or `resource_guard<T>`). It must not perform recursive operations on the same pool instance.
+>
+> [!NOTE] This is a deliberate decision where the user is able to handle a failed borrow or have a callback setup where they wish to have a resource allocated whenever
+threads starve the resource pool.
+
 
 ---
 
 ## Discarding and Invalidating Resources
 
-If a resource encounters an unrecoverable error during use (such as a disconnected database handle or network failure), or if its contents are moved out, it should **not** be returned to the pool.
 
-Call `invalidate()` on the guard, or move the resource out using rvalue cast:
+Call `invalidate()` on the guard.
 
 === "Calling invalidate()"
 
