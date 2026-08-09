@@ -1,7 +1,7 @@
 var NAVTREEINDEX0 =
 {
-"_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2resource_guard_8hpp-example.html":[14,0],
-"_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2resource_pool_8hpp-example.html":[14,1],
+"_2opt_2azure-agent_2_work_24_2s_2include_2siddiqsoft_2private_2resource_guard_8hpp-example.html":[14,0],
+"_2opt_2azure-agent_2_work_24_2s_2include_2siddiqsoft_2private_2resource_pool_8hpp-example.html":[14,1],
 "annotated.html":[12,0],
 "api_reference.html":[7],
 "api_reference.html#api_include":[7,0],

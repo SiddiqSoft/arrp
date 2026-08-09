@@ -76,7 +76,7 @@ var NAVTREE =
 
 var NAVTREEINDEX =
 [
-"_2opt_2azure-agent_2_work_21_2s_2include_2siddiqsoft_2private_2resource_guard_8hpp-example.html"
+"_2opt_2azure-agent_2_work_24_2s_2include_2siddiqsoft_2private_2resource_guard_8hpp-example.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronization';
