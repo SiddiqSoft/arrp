@@ -137,7 +137,10 @@ namespace siddiqsoft::arrp
         /// @details m_counter_ondemand_adds: Resources created on-demand via factory callback
         /// @details m_counter_returns: Resources returned to pool
         /// @details m_counter_borrows: Resources borrowed from pool
-        std::atomic_uint64_t m_counter_seeds {0}, m_counter_ondemand_adds {0}, m_counter_returns {0}, m_counter_borrows {0};
+        std::atomic_uint64_t m_counter_seeds {0};
+        std::atomic_uint64_t m_counter_ondemand_adds {0};
+        std::atomic_uint64_t m_counter_returns {0};
+        std::atomic_uint64_t m_counter_borrows {0};
 
         /// @brief Callback on resource cleanup during pool destruction
         /// @details Invoked under the pool lock for each resource available during
@@ -172,43 +175,6 @@ namespace siddiqsoft::arrp
         /// @brief Shared lock type for pool operations
         using lock_type        = std::scoped_lock<decltype(m_pool_lock)>;
         using unique_lock_type = std::unique_lock<decltype(m_pool_lock)>;
-
-        /// @brief Calculates difference between capacity and resources (unlocked internal helper)
-        inline int64_t deficit_size_unlocked() const
-        {
-            return static_cast<int64_t>(m_capacity) - (static_cast<int64_t>(m_pool.size()) + m_resources_checkedout.load());
-        }
-
-        /// @brief Checks whether total resources are below capacity (unlocked internal helper)
-        inline bool is_pool_starving_unlocked() const
-        {
-            return m_resources_checkedout.load() + m_pool.size() < m_capacity;
-        }
-
-        /// @brief Checks whether total resources are below the configured capacity
-        /// @return true when available plus checked-out resources is below capacity
-        inline bool is_pool_starving() const
-        {
-            std::scoped_lock l(m_pool_lock);
-            return is_pool_starving_unlocked();
-        }
-
-        /// @brief Checks if there is a deficit between configured capacity and current resources
-        /// @return true if deficit exists, false otherwise
-        inline auto is_there_a_pool_deficit() const
-        {
-            std::scoped_lock l(m_pool_lock);
-            return deficit_size_unlocked() != 0;
-        }
-
-        /// @brief Calculates the difference between configured and current resources
-        /// @return `capacity - (available resources + checked-out resources)`.
-        ///         Negative values indicate that more resources were added than capacity.
-        inline int64_t deficit_size() const
-        {
-            std::scoped_lock l(m_pool_lock);
-            return deficit_size_unlocked();
-        }
 
         /// @brief Returns the number of resources currently checked out by clients.
         /// @details This uses the authoritative checkout counter rather than deriving
@@ -674,7 +640,6 @@ namespace siddiqsoft::arrp
         ///   "_typver": "siddiqsoft.arrp.resource_pool/0.0.0",
         ///   "capacity": <configured_capacity>,
         ///   "size": <available_resources>,
-        ///   "deficit": <resources_needed>,
         ///   "peaksize": <peak_size_reached>,
         ///   "abandons": <invalidated_resources>,
         ///   "seeds": <resources_added_via_seed>,
@@ -696,9 +661,8 @@ namespace siddiqsoft::arrp
             std::scoped_lock l(m_pool_lock);
 
             // Update the pool statistics
-            stats["_typver"]  = "siddiqsoft.arrp.resource_pool/0.0.0"; ///< Type and version number of the class
+            stats["_typver"]  = "siddiqsoft.arrp.resource_pool/1.1.0"; ///< Type and version number of the class
             stats["size"]     = m_pool.size();                         ///< Available resources in pool
-            stats["deficit"]  = deficit_size_unlocked();               ///< Resources needed to reach capacity
             stats["capacity"] = m_capacity;                            ///< Maximum resources
             stats["peaksize"] = m_peak_poolsize.load();                ///< Peak pool size reached
             stats["abandons"] = m_counter_abandons.load();             ///< Invalidated resources

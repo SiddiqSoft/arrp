@@ -36,7 +36,6 @@ Calling `pool.to_json()` returns a JSON object with the following telemetry fiel
 | `capacity` | `number` | Configured initial capacity (clamped between 1 and 255). |
 | `size` | `number` | Current number of available (idle) resources in pool. |
 | `peaksize` | `number` | Maximum number of idle resources observed in the pool concurrently. |
-| `deficit` | `number` | Calculated capacity deficit (`capacity - (size + loans)`). |
 | `seeds` | `number` | Total number of resources added via `seed()`. |
 | `autoadds` | `number` | Total number of resources created dynamically by the factory callback. |
 | `borrows` | `number` | Total number of successful borrow operations (`try_borrow` / `try_borrow_create`). |
@@ -53,7 +52,6 @@ Calling `pool.to_json()` returns a JSON object with the following telemetry fiel
   "capacity": 8,
   "size": 2,
   "peaksize": 4,
-  "deficit": 5,
   "seeds": 4,
   "autoadds": 1,
   "borrows": 3,

@@ -50,38 +50,6 @@ TEST(resource_pool, capacity_enforcement_no_autogrow)
     EXPECT_EQ(res4.error(), siddiqsoft::arrp::pool_error::NoMoreResources);
 }
 
-/// @brief Test 2: Should properly track deficit size calculations
-/// Ensures deficit_size() correctly calculates the difference between
-/// capacity and current resources (pool + checked-out)
-TEST(resource_pool, deficit_size_calculation)
-{
-    constexpr uint8_t                            POOL_CAPACITY = 5;
-
-    siddiqsoft::arrp::resource_pool<std::string> pool {POOL_CAPACITY};
-
-    // Initially, pool is empty: deficit = capacity - (pool_size + checked_out)
-    // deficit = 5 - (0 + 0) = 5
-    auto json1 = pool.to_json();
-    EXPECT_EQ(5, json1["deficit"]);
-
-    // Add 2 resources to pool
-    pool.seed(std::string("res1"));
-    pool.seed(std::string("res2"));
-    // deficit = 5 - (2 + 0) = 3
-    auto json2 = pool.to_json();
-    EXPECT_EQ(3, json2["deficit"]);
-
-    // Borrow 1 resource
-    auto res = pool.try_borrow();
-    EXPECT_TRUE(res.has_value());
-    // deficit = 5 - (1 + 1) = 3 (pool has 1, checked out has 1)
-    auto json3 = pool.to_json();
-    EXPECT_EQ(3, json3["deficit"]);
-
-    // Return the resource
-    // (resource goes out of scope and is returned)
-}
-
 /// @brief Test 3: Should handle loan size accounting with abandons
 /// Verifies that loan_size() correctly accounts for borrows, returns,
 /// and abandoned resources
