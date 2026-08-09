@@ -127,9 +127,9 @@ variables:
   # Auto-enable publishing on main/master branches
   - ${{ if and(eq(parameters.PublishNuGet, false), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(variables['Build.SourceBranch'], 'refs/heads/master'))) }}:
     - name: PublishNuGet
-      value: false
+      value: true
     - name: PublishGitHub
-      value: false
+      value: true
     - name: PublishDocs
       value: true
   - ${{ else }}:
