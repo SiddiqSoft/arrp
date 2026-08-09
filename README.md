@@ -1,6 +1,9 @@
 # Auto Returning Resource Pool
 
 [![Build Status](https://dev.azure.com/siddiqsoft/siddiqsoft/_apis/build/status%2FSiddiqSoft.arrp?branchName=master)](https://dev.azure.com/siddiqsoft/siddiqsoft/_build/latest?definitionId=33&branchName=master)
+![](https://img.shields.io/nuget/v/SiddiqSoft.arrp)
+![](https://img.shields.io/github/v/tag/SiddiqSoft/arrp)
+![](https://img.shields.io/azure-devops/tests/siddiqsoft/siddiqsoft/33)
 
 `arrp` is a header-only C++23 resource pool. A `resource_pool<T>` owns available
 resources, while a move-only `resource_guard<T>` returns each borrowed resource

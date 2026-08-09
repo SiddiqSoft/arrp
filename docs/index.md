@@ -17,8 +17,11 @@
 </div>
 
 **arrp** (`Auto Returning Resource Pool`) is a lightweight, thread-safe, header-only C++23 resource pool library. It allows applications to manage and reuse scarce, expensive, or moveable resources seamlessly using RAII semantics.
-
-A `resource_pool<T>` owns available resources, while borrowing returns a move-only `resource_guard<T>`. When the guard goes out of scope or is destroyed, the borrowed resource is automatically returned to the pool for immediate reuse by other components or threads.
+- Uses std::deque to store objects of type `T`.
+- Uses std::mutex to implement thread-safe access to the resources.
+- Uses lambdas to return the underlying resource to the std::deque.
+- A `resource_pool<T>` owns available resources, while borrowing returns a move-only `resource_guard<T>`.
+- Uses RAII via a helper class. When the guard goes out of scope or is destroyed, the borrowed resource is automatically returned to the pool for immediate reuse by other components or threads.
 
 ---
 
