@@ -146,8 +146,8 @@ When consuming the NuGet package, the Natvis file is packaged under the native b
 ## Documentation
 
 - [Documentation site](https://siddiqsoft.github.io/arrp/)
-- [API reference](https://siddiqsoft.github.io/arrp/api.html)
-- [Usage guide](https://siddiqsoft.github.io/arrp/usage_guide.html)
+- [Features & Usage Guide](https://siddiqsoft.github.io/arrp/features/)
+- [API Reference](https://siddiqsoft.github.io/arrp/api/)
 
 ## Building and testing
 

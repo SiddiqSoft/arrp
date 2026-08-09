@@ -1,0 +1,89 @@
+site_name: arrp
+site_description: "Auto Returning Resource Pool for Modern C++23"
+site_author: "Siddiq Software LLC"
+site_url: "https://siddiqsoft.github.io/arrp/"
+repo_url: "https://github.com/SiddiqSoft/arrp"
+repo_name: "SiddiqSoft/arrp"
+edit_uri: "edit/main/docs/"
+exclude_docs: "MIGRATE_DOCS_PROMPT.md"
+
+
+theme:
+  name: material
+  language: en
+  palette:
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+  font:
+    text: Roboto
+    code: JetBrains Mono
+
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.path
+    - navigation.top
+    - navigation.footer
+    - navigation.tracking
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+
+extra_css:
+  - css/custom.css
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Features:
+      - Overview: features/index.md
+      - Resource Management: features/resource-management.md
+      - Threading & Lifetime: features/threading-lifetime.md
+      - JSON & Diagnostics: features/json-diagnostics.md
+  - Integration:
+      - Overview: integration/index.md
+      - CMake: integration/cmake.md
+      - Package Managers: integration/package-managers.md
+  - API Reference:
+      - Overview: api/index.md
+      - resource_pool: api/resource_pool.md
+      - resource_guard: api/resource_guard.md
+      - Types & Enums: api/types.md
+  - License: license.md
