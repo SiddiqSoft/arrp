@@ -343,23 +343,6 @@ namespace siddiqsoft::arrp
         /// @return The resource address, or nullptr if the guard is invalid.
         auto operator->() const -> const T* { return m_is_valid ? &m_rsrc : nullptr; }
 
-        /// @brief Explicit conversion to resource value
-        /// @return The wrapped resource, moved out of this wrapper.
-        /// @note Disarms the guard and notifies pool of completion so resource accounting stays accurate.
-        explicit operator T() &&
-        {
-            if (m_putback_callback) {
-                try {
-                    m_putback_callback(std::move(m_rsrc), false);
-                }
-                catch (...) {
-                }
-                m_putback_callback = {};
-            }
-            m_is_valid = false;
-            return std::move(m_rsrc);
-        }
-
         /// @brief Explicit conversion to resource reference
         /// @return Reference to the wrapped resource
         /// @warning Does not check validity; do not use after invalidation or move-out.

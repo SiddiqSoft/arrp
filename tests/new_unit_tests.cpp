@@ -230,28 +230,6 @@ TEST(resource_guard, operator_assign_value_returns_previous)
     EXPECT_EQ(2u, pool.size());
 }
 
-/// @brief Test 7: Verifies that explicit operator T()&& disarms guard and updates checkout counter immediately
-TEST(resource_guard, explicit_operator_t_disarms_immediately)
-{
-    siddiqsoft::arrp::resource_pool<std::string> pool {};
-    pool.seed(std::string("test_resource"));
-
-    {
-        auto guard = pool.try_borrow();
-        EXPECT_TRUE(guard.has_value());
-        EXPECT_EQ(1, pool.to_json()["loans"]) << "Checkout counter should be 1 after borrowing.";
-
-        // Move out T value
-        std::string extracted = static_cast<std::string>(std::move(guard));
-        EXPECT_EQ("test_resource", extracted) << "Extracted value should match the original resource.";
-
-        // Checkout counter should be decremented immediately when extracted
-        EXPECT_EQ(0, pool.to_json()["loans"]) << "Checkout counter should be 0 after explicit operator T()&& disarm.";
-    }
-
-    // After guard scope exit, checkout counter remains 0 (no double-decrement)
-    EXPECT_EQ(0, pool.to_json()["loans"]) << "Checkout counter should remain 0 after guard scope exit.";
-}
 
 /// @brief Test 8: Verifies concurrent borrow and return does not cause checkout counter underflow
 TEST(resource_pool, concurrent_borrow_return_no_underflow)

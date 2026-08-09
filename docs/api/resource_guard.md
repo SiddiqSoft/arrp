@@ -78,14 +78,6 @@ const T* operator->() const noexcept;
 Accesses the underlying resource `T`.
 - **Precondition**: `operator bool()` must be `true`. `operator->()` returns `nullptr` if the guard is invalid.
 
-#### Rvalue Conversion `explicit operator T() &&`
-
-```cpp
-explicit operator T() &&;
-```
-
-Moves the held resource out of the guard and marks the guard invalidated (`release_reason::Abandoned`). The resource is **not** returned to the pool on guard destruction.
-
 ---
 
 ### Mutation & Invalidation
