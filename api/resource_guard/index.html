@@ -1160,17 +1160,6 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#rvalue-conversion-explicit-operator-t" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Rvalue Conversion explicit operator T() &amp;&amp;
-      
-    </span>
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
@@ -1413,17 +1402,6 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#rvalue-conversion-explicit-operator-t" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Rvalue Conversion explicit operator T() &amp;&amp;
-      
-    </span>
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
@@ -1591,18 +1569,14 @@
 </span></code></pre></div>
 <p>Accesses the underlying resource <code>T</code>.
 - <strong>Precondition</strong>: <code>operator bool()</code> must be <code>true</code>. <code>operator-&gt;()</code> returns <code>nullptr</code> if the guard is invalid.</p>
-<h4 id="rvalue-conversion-explicit-operator-t">Rvalue Conversion <code>explicit operator T() &amp;&amp;</code><a class="headerlink" href="#rvalue-conversion-explicit-operator-t" title="Permanent link">&para;</a></h4>
-<div class="language-cpp highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">explicit</span><span class="w"> </span><span class="k">operator</span><span class="w"> </span><span class="n">T</span><span class="p">()</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="p">;</span>
-</span></code></pre></div>
-<p>Moves the held resource out of the guard and marks the guard invalidated (<code>release_reason::Abandoned</code>). The resource is <strong>not</strong> returned to the pool on guard destruction.</p>
 <hr />
 <h3 id="mutation-invalidation">Mutation &amp; Invalidation<a class="headerlink" href="#mutation-invalidation" title="Permanent link">&para;</a></h3>
 <h4 id="invalidate"><code>invalidate</code><a class="headerlink" href="#invalidate" title="Permanent link">&para;</a></h4>
-<div class="language-cpp highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kt">void</span><span class="w"> </span><span class="nf">invalidate</span><span class="p">()</span><span class="w"> </span><span class="k">noexcept</span><span class="p">;</span>
+<div class="language-cpp highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kt">void</span><span class="w"> </span><span class="nf">invalidate</span><span class="p">()</span><span class="w"> </span><span class="k">noexcept</span><span class="p">;</span>
 </span></code></pre></div>
 <p>Marks the guard invalid/abandoned. When the guard's destructor runs, the resource will be discarded rather than returned to the pool.</p>
 <h4 id="to_json"><code>to_json</code><a class="headerlink" href="#to_json" title="Permanent link">&para;</a></h4>
-<div class="language-cpp highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="n">nlohmann</span><span class="o">::</span><span class="n">json</span><span class="w"> </span><span class="nf">to_json</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="p">;</span>
+<div class="language-cpp highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">nlohmann</span><span class="o">::</span><span class="n">json</span><span class="w"> </span><span class="nf">to_json</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="p">;</span>
 </span></code></pre></div>
 <p>Returns a JSON representation of the guard's state. Only compiled when <code>nlohmann/json.hpp</code> is included prior to <code>arrp.hpp</code>.</p>
 
