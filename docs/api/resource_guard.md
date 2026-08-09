@@ -2,6 +2,12 @@
 
 Defined in header `<siddiqsoft/arrp.hpp>` / `<siddiqsoft/private/resource_guard.hpp>`.
 
+This is a helper class meant to allow your underlying resource to be automatically returned to the `resource_pool<T>`.
+- DO NOT extend or derive from this class. It should not be used to store data--use `T` as your data!
+- DO NOT share the resource_guard<T> across threads. It is NOT move-able or copy-able so you're supposed to use it in a scope.
+  You can use it across multiple functions but never store this class.
+- The `resource_pool<T>` must be in a parent scope or otherwise available to the `resource_guard<T>`
+
 ```cpp
 namespace siddiqsoft::arrp {
     template <NonNumericMoveConstructible T>

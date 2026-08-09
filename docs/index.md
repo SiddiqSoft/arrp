@@ -9,6 +9,9 @@
   </a>
   <img src="https://img.shields.io/badge/C%2B%2B-23-blue.svg" alt="C++23 Standard" />
   <img src="https://img.shields.io/badge/Header--Only-Yes-green.svg" alt="Header Only" />
+    <img src="https://img.shields.io/nuget/v/SiddiqSoft.arrp" alt="nuget" />
+    <img src="https://img.shields.io/github/v/tag/SiddiqSoft/arrp" alt="version" />
+    <img src="https://img.shields.io/azure-devops/tests/siddiqsoft/siddiqsoft/33" alt="tests" />
 </div>
 
 **arrp** (`Auto Returning Resource Pool`) is a lightweight, thread-safe, header-only C++23 resource pool library. It allows applications to manage and reuse scarce, expensive, or moveable resources seamlessly using RAII semantics.
@@ -136,5 +139,6 @@ A `resource_pool<T>` owns available resources, while borrowing returns a move-on
 
 - **[Features Overview](features/index.md)**: Explore resource lifecycle management, thread-safety, and JSON diagnostics.
 - **[Integration Guide](integration/index.md)**: Learn how to add `arrp` using CMake FetchContent, NuGet, or direct headers.
+- **[Examples Overview](examples/index.md)**: Explore complete runnable examples in the repository [`examples/`](https://github.com/SiddiqSoft/arrp/tree/master/examples) directory.
 - **[API Reference](api/index.md)**: Complete detailed documentation of all classes, methods, enums, and concept constraints.
 - **[License](license.md)**: Project license details (BSD 3-Clause).

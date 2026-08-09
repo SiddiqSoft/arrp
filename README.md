@@ -143,10 +143,20 @@ The repository includes a Natvis file at [SiddiqSoft.arrp.natvis](SiddiqSoft.arr
 
 When consuming the NuGet package, the Natvis file is packaged under the native build folder so MSBuild-based tooling can discover it automatically.
 
+## Examples
+
+Full runnable example applications demonstrating various resource management patterns are available in the repository's [`examples/`](examples/) folder:
+
+- **[scoped_file](examples/scoped_file/)**: Demonstrates managing C `FILE*` file handles using an RAII wrapper (`ScopedFile`) and a seeded `resource_pool`.
+- **[scoped_curl](examples/scoped_curl/)**: Demonstrates multi-threaded asynchronous HTTP requests with `libcurl` (`CURL*`), dynamic factory creation with `try_borrow_create()`, timeouts, and JSON telemetry reporting.
+
+See the online [Examples Guide](https://siddiqsoft.github.io/arrp/examples/) for build instructions and walkthroughs.
+
 ## Documentation
 
 - [Documentation site](https://siddiqsoft.github.io/arrp/)
 - [Features & Usage Guide](https://siddiqsoft.github.io/arrp/features/)
+- [Examples Guide](https://siddiqsoft.github.io/arrp/examples/)
 - [API Reference](https://siddiqsoft.github.io/arrp/api/)
 
 ## Building and testing

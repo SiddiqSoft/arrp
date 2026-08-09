@@ -81,6 +81,10 @@ nav:
       - Overview: integration/index.md
       - CMake: integration/cmake.md
       - Package Managers: integration/package-managers.md
+  - Examples:
+      - Overview: examples/index.md
+      - Scoped File: examples/scoped_file.md
+      - Scoped cURL: examples/scoped_curl.md
   - API Reference:
       - Overview: api/index.md
       - resource_pool: api/resource_pool.md
