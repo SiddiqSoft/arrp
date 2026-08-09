@@ -12,13 +12,13 @@
         <meta name="author" content="Siddiq Software LLC">
       
       
-        <link rel="canonical" href="https://siddiqsoft.github.io/arrp/api/">
+        <link rel="canonical" href="https://siddiqsoft.github.io/arrp/examples/">
       
       
-        <link rel="prev" href="../examples/scoped_curl/">
+        <link rel="prev" href="../integration/package-managers/">
       
       
-        <link rel="next" href="resource_pool/">
+        <link rel="next" href="scoped_file/">
       
       
         
@@ -82,7 +82,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#api-reference-overview" class="md-skip">
+        <a href="#examples-overview" class="md-skip">
           Skip to content
         </a>
       
@@ -287,11 +287,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../examples/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
           
   
   
@@ -307,13 +309,11 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="./" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../api/" class="md-tabs__link">
           
   
   
@@ -744,151 +744,6 @@
       
   
   
-  
-  
-    
-    
-    
-    
-      
-      
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-          
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
-        
-          
-          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Examples
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Examples
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../examples/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Overview
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../examples/scoped_file/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Scoped File
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../examples/scoped_curl/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Scoped cURL
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
     
   
   
@@ -910,17 +765,17 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
         
           
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
             
   
   
   <span class="md-ellipsis">
     
   
-    API Reference
+    Examples
   
 
     
@@ -931,12 +786,12 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_5">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
             
   
-    API Reference
+    Examples
   
 
           </label>
@@ -1009,10 +864,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#core-api-elements" class="md-nav__link">
+  <a href="#available-examples" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Core API Elements
+        Available Examples
       
     </span>
   </a>
@@ -1020,22 +875,44 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#type-constraints-nonnumericmoveconstructible-concept" class="md-nav__link">
+  <a href="#example-repository-directory" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Type Constraints: NonNumericMoveConstructible Concept
+        Example Repository Directory
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Type Constraints: NonNumericMoveConstructible Concept">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#building-the-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Building the Examples
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Building the Examples">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#type-requirements" class="md-nav__link">
+  <a href="#building-scoped_file" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Type Requirements
+        Building scoped_file
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#building-scoped_curl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Building scoped_curl
       
     </span>
   </a>
@@ -1063,7 +940,152 @@
   
   
     <li class="md-nav__item">
-      <a href="resource_pool/" class="md-nav__link">
+      <a href="scoped_file/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scoped File
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="scoped_curl/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scoped cURL
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/resource_pool/" class="md-nav__link">
         
   
   
@@ -1091,7 +1113,7 @@
   
   
     <li class="md-nav__item">
-      <a href="resource_guard/" class="md-nav__link">
+      <a href="../api/resource_guard/" class="md-nav__link">
         
   
   
@@ -1119,7 +1141,7 @@
   
   
     <li class="md-nav__item">
-      <a href="types/" class="md-nav__link">
+      <a href="../api/types/" class="md-nav__link">
         
   
   
@@ -1201,10 +1223,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#core-api-elements" class="md-nav__link">
+  <a href="#available-examples" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Core API Elements
+        Available Examples
       
     </span>
   </a>
@@ -1212,22 +1234,44 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#type-constraints-nonnumericmoveconstructible-concept" class="md-nav__link">
+  <a href="#example-repository-directory" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Type Constraints: NonNumericMoveConstructible Concept
+        Example Repository Directory
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Type Constraints: NonNumericMoveConstructible Concept">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#building-the-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Building the Examples
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Building the Examples">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#type-requirements" class="md-nav__link">
+  <a href="#building-scoped_file" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Type Requirements
+        Building scoped_file
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#building-scoped_curl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Building scoped_curl
       
     </span>
   </a>
@@ -1285,7 +1329,7 @@
         <a href="./" class="md-path__link">
           
   <span class="md-ellipsis">
-    API Reference
+    Examples
   </span>
 
         </a>
@@ -1307,44 +1351,47 @@
   
 
 
-<h1 id="api-reference-overview">API Reference Overview<a class="headerlink" href="#api-reference-overview" title="Permanent link">&para;</a></h1>
-<p>All public types and concepts in <code>arrp</code> reside within the namespace <code>siddiqsoft::arrp</code>.</p>
-<p>Include the complete public API with:</p>
-<div class="language-cpp highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;siddiqsoft/arrp.hpp&gt;</span>
-</span></code></pre></div>
+<h1 id="examples-overview">Examples Overview<a class="headerlink" href="#examples-overview" title="Permanent link">&para;</a></h1>
+<p>The <code>arrp</code> repository includes runnable, standalone example applications located in the <a href="https://github.com/SiddiqSoft/arrp/tree/master/examples"><code>examples/</code></a> directory. These examples demonstrate how to integrate <code>arrp::resource_pool&lt;T&gt;</code> and <code>arrp::resource_guard&lt;T&gt;</code> into C++ applications for managing various resource types.</p>
 <hr />
-<h2 id="core-api-elements">Core API Elements<a class="headerlink" href="#core-api-elements" title="Permanent link">&para;</a></h2>
+<h2 id="available-examples">Available Examples<a class="headerlink" href="#available-examples" title="Permanent link">&para;</a></h2>
 <div class="grid">
   <div class="card">
-    <h3><a href="resource_pool/">resource_pool&lt;T&gt;</a></h3>
-    <p>Thread-safe resource container template managing available resources, factory callbacks, timeouts, and JSON metrics.</p>
+    <h3><a href="scoped_file/">Scoped File Example</a></h3>
+    <p>Demonstrates wrapping standard C <code>FILE*</code> handles inside a move-only RAII class (<code>ScopedFile</code>) and managing file handles using a seeded <code>arrp::resource_pool</code>.</p>
   </div>
   <div class="card">
-    <h3><a href="resource_guard/">resource_guard&lt;T&gt;</a></h3>
-    <p>Move-only RAII handle returned by borrowing. Automatically returns the resource on scope exit or discards it if invalidated.</p>
-  </div>
-  <div class="card">
-    <h3><a href="types/">Types & Enumerations</a></h3>
-    <p>Capacity limits, error codes (<code>pool_error</code>), release reasons (<code>release_reason</code>), and <code>std::formatter</code> specializations.</p>
+    <h3><a href="scoped_curl/">Scoped cURL Example</a></h3>
+    <p>Demonstrates thread-safe asynchronous HTTP request handling with <code>libcurl</code> (<code>CURL*</code>), dynamic on-demand resource creation via <code>try_borrow_create()</code> with timeouts, and JSON statistics diagnostics.</p>
   </div>
 </div>
 
 <hr />
-<h2 id="type-constraints-nonnumericmoveconstructible-concept">Type Constraints: <code>NonNumericMoveConstructible</code> Concept<a class="headerlink" href="#type-constraints-nonnumericmoveconstructible-concept" title="Permanent link">&para;</a></h2>
-<p><code>resource_pool&lt;T&gt;</code> and <code>resource_guard&lt;T&gt;</code> require that <code>T</code> satisfies the concept <code>NonNumericMoveConstructible</code>.</p>
-<div class="language-cpp highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">T</span><span class="o">&gt;</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="k">concept</span><span class="w"> </span><span class="nc">NonNumericMoveConstructible</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">move_constructible</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">is_move_assignable_v</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="o">!</span><span class="n">std</span><span class="o">::</span><span class="n">is_arithmetic_v</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">;</span>
+<h2 id="example-repository-directory">Example Repository Directory<a class="headerlink" href="#example-repository-directory" title="Permanent link">&para;</a></h2>
+<p>You can explore the source code for all examples directly in the repository:</p>
+<ul>
+<li><strong><a href="https://github.com/SiddiqSoft/arrp/tree/master/examples">Repository Examples Folder (<code>examples/</code>)</a></strong></li>
+<li><a href="https://github.com/SiddiqSoft/arrp/tree/master/examples/scoped_file"><code>examples/scoped_file/</code></a>: Standalone file handle pooling project.</li>
+<li><a href="https://github.com/SiddiqSoft/arrp/tree/master/examples/scoped_curl"><code>examples/scoped_curl/</code></a>: Multi-threaded HTTP libcurl handle pooling project.</li>
+</ul>
+<hr />
+<h2 id="building-the-examples">Building the Examples<a class="headerlink" href="#building-the-examples" title="Permanent link">&para;</a></h2>
+<p>Each example project contains its own <code>CMakeLists.txt</code> and <code>CMakePresets.json</code>, allowing them to be built independently or as part of the overall workspace.</p>
+<h3 id="building-scoped_file">Building <code>scoped_file</code><a class="headerlink" href="#building-scoped_file" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nb">cd</span><span class="w"> </span>examples/scoped_file
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>cmake<span class="w"> </span>--fresh<span class="w"> </span>--preset<span class="o">=</span>Apple-Debug
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>cmake<span class="w"> </span>--build<span class="w"> </span>--preset<span class="o">=</span>Apple-Debug
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>./build/Apple-Debug/scoped_file
 </span></code></pre></div>
-<h3 id="type-requirements">Type Requirements<a class="headerlink" href="#type-requirements" title="Permanent link">&para;</a></h3>
-<ol>
-<li><strong>Move Constructible</strong>: <code>T</code> must be movable (<code>std::move_constructible&lt;T&gt;</code>).</li>
-<li><strong>Move Assignable</strong>: <code>T</code> must be move assignable (<code>std::is_move_assignable_v&lt;T&gt;</code>).</li>
-<li><strong>Non-Arithmetic</strong>: <code>T</code> cannot be a primitive numeric or boolean type (<code>!std::is_arithmetic_v&lt;T&gt;</code>).</li>
-</ol>
-<p>Suitable resource types include smart pointers (<code>std::unique_ptr</code>, <code>std::shared_ptr</code>), container objects (<code>std::string</code>, <code>std::vector</code>), network sockets, file handles, and custom database connection classes.</p>
+<h3 id="building-scoped_curl">Building <code>scoped_curl</code><a class="headerlink" href="#building-scoped_curl" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p><strong>Note</strong>: Building <code>scoped_curl</code> requires <code>libcurl</code> development headers installed on your system.</p>
+</blockquote>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">cd</span><span class="w"> </span>examples/scoped_curl
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>cmake<span class="w"> </span>--fresh<span class="w"> </span>--preset<span class="o">=</span>Apple-Debug
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>cmake<span class="w"> </span>--build<span class="w"> </span>--preset<span class="o">=</span>Apple-Debug
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>./build/Apple-Debug/scoped_curl
+</span></code></pre></div>
 
 
 
@@ -1380,7 +1427,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../examples/scoped_curl/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Scoped cURL">
+          <a href="../integration/package-managers/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Package Managers">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -1390,20 +1437,20 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                Scoped cURL
+                Package Managers
               </div>
             </div>
           </a>
         
         
           
-          <a href="resource_pool/" class="md-footer__link md-footer__link--next" aria-label="Next: resource_pool">
+          <a href="scoped_file/" class="md-footer__link md-footer__link--next" aria-label="Next: Scoped File">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                resource_pool
+                Scoped File
               </div>
             </div>
             <div class="md-footer__button md-icon">

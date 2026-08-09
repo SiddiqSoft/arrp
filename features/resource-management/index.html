@@ -293,6 +293,26 @@
     
     
       <li class="md-tabs__item">
+        <a href="../../examples/" class="md-tabs__link">
+          
+  
+  
+  Examples
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
         <a href="../../api/" class="md-tabs__link">
           
   
@@ -857,7 +877,7 @@
   <span class="md-ellipsis">
     
   
-    API Reference
+    Examples
   
 
     
@@ -870,6 +890,151 @@
         
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Examples
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/scoped_file/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scoped File
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/scoped_curl/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scoped cURL
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1217,11 +1382,12 @@
 <blockquote>
 <p>[!NOTE]
 <code>try_borrow()</code> <strong>never</strong> calls the factory callback; only <code>try_borrow_create()</code> does. The factory callback must take no parameters and return <code>T</code> (or <code>resource_guard&lt;T&gt;</code>). It must not perform recursive operations on the same pool instance.</p>
+<p>[!NOTE] This is a deliberate decision where the user is able to handle a failed borrow or have a callback setup where they wish to have a resource allocated whenever
+threads starve the resource pool.</p>
 </blockquote>
 <hr />
 <h2 id="discarding-and-invalidating-resources">Discarding and Invalidating Resources<a class="headerlink" href="#discarding-and-invalidating-resources" title="Permanent link">&para;</a></h2>
-<p>If a resource encounters an unrecoverable error during use (such as a disconnected database handle or network failure), or if its contents are moved out, it should <strong>not</strong> be returned to the pool.</p>
-<p>Call <code>invalidate()</code> on the guard, or move the resource out using rvalue cast:</p>
+<p>Call <code>invalidate()</code> on the guard.</p>
 <div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Calling invalidate()</label><label for="__tabbed_1_2">Moving Out via Rvalue Cast</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
