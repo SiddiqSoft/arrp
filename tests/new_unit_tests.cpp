@@ -237,4 +237,86 @@ TEST(resource_guard, move_assignment_returns_previous)
     EXPECT_EQ("original", *res3);
 }
 
+/// @brief Test 6: Verifies that assigning T&& to a resource_guard returns the old resource to the pool
+TEST(resource_guard, operator_assign_value_returns_previous)
+{
+    siddiqsoft::arrp::resource_pool<std::string> pool {};
+    pool.seed(std::string("initial_val"));
+    EXPECT_EQ(1u, pool.size());
+
+    {
+        auto guard = pool.try_borrow();
+        EXPECT_TRUE(guard.has_value());
+        EXPECT_EQ("initial_val", *guard);
+        EXPECT_EQ(0u, pool.size());
+
+        // Assign a new T value to guard
+        guard = std::string("assigned_val");
+        EXPECT_EQ("assigned_val", *guard);
+
+        // The old resource ("initial_val") should be returned to pool immediately
+        EXPECT_EQ(1u, pool.size());
+    }
+
+    // When guard goes out of scope, "assigned_val" is returned to pool as well
+    EXPECT_EQ(2u, pool.size());
+}
+
+/// @brief Test 7: Verifies that explicit operator T()&& disarms guard and updates checkout counter immediately
+TEST(resource_guard, explicit_operator_t_disarms_immediately)
+{
+    siddiqsoft::arrp::resource_pool<std::string> pool {};
+    pool.seed(std::string("test_resource"));
+
+    {
+        auto guard = pool.try_borrow();
+        EXPECT_TRUE(guard.has_value());
+        EXPECT_EQ(1, pool.to_json()["loans"]);
+
+        // Move out T value
+        std::string extracted = static_cast<std::string>(std::move(guard));
+        EXPECT_EQ("test_resource", extracted);
+
+        // Checkout counter should be decremented immediately when extracted
+        EXPECT_EQ(0, pool.to_json()["loans"]);
+    }
+
+    // After guard scope exit, checkout counter remains 0 (no double-decrement)
+    EXPECT_EQ(0, pool.to_json()["loans"]);
+}
+
+/// @brief Test 8: Verifies concurrent borrow and return does not cause checkout counter underflow
+TEST(resource_pool, concurrent_borrow_return_no_underflow)
+{
+    siddiqsoft::arrp::resource_pool<std::string> pool {};
+    for (int i = 0; i < 10; ++i) {
+        pool.seed(std::string("res_") + std::to_string(i));
+    }
+
+    std::atomic<bool> stop {false};
+    std::vector<std::thread> threads;
+
+    for (int i = 0; i < 8; ++i) {
+        threads.emplace_back([&]() {
+            while (!stop.load()) {
+                auto g = pool.try_borrow();
+                if (g.has_value()) {
+                    std::this_thread::yield();
+                }
+            }
+        });
+    }
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    stop.store(true);
+
+    for (auto& t : threads) {
+        t.join();
+    }
+
+    // All resources returned, loan counter must be 0 (no underflow/corruption)
+    EXPECT_EQ(0, pool.to_json()["loans"]);
+    EXPECT_EQ(10u, pool.size());
+}
+
 // NOLINTEND(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)

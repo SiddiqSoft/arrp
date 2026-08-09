@@ -214,17 +214,27 @@ namespace siddiqsoft::arrp
         ///
         /// @note The source's callback is cleared to prevent double-return
         /// @note The source is marked as invalid
+        /// @note This constructor is using new syntax for noexcept specification based on the move-constructibility
+        /// of T and the callback function.
         resource_guard(resource_guard&& src) noexcept(std::is_nothrow_move_constructible_v<T> &&
                                                       std::is_nothrow_move_constructible_v<PutbackCallbackFunc>)
+        try
             : m_rsrc(std::move(src.m_rsrc))
             , m_putback_callback(std::move(src.m_putback_callback))
             , m_is_valid(src.m_is_valid)
-            , m_error_code(src.m_error_code)
-        {
+            , m_error_code(src.m_error_code) {
             // Reset to ensure that the source does not double return or preserve stale error state.
             src.m_putback_callback = {};
             src.m_is_valid         = false;
             src.m_error_code       = pool_error::Ok;
+        }
+        catch (...) {
+            // Undo everything..
+            src.m_putback_callback = {};
+            src.m_is_valid         = false;
+            src.m_error_code       = pool_error::Ok;
+            // propogate back..
+            throw;
         }
 
         /// @brief Move assignment operator
@@ -263,16 +273,28 @@ namespace siddiqsoft::arrp
                     m_is_valid         = false;
                 }
 
-                // Take ownership of src's resource and callback.
-                m_rsrc             = std::move(src.m_rsrc);
-                m_putback_callback = std::move(src.m_putback_callback);
-                m_is_valid         = src.m_is_valid;
-                m_error_code       = src.m_error_code;
+                // Disarm src prior to moving m_rsrc to ensure exception safety:
+                // if T's move-assignment throws, src will not double-return its resource.
+                auto src_cb            = std::move(src.m_putback_callback);
+                bool src_valid         = src.m_is_valid;
+                auto src_err           = src.m_error_code;
 
-                // Disarm src so its destructor does nothing and stale error state is cleared.
                 src.m_putback_callback = {};
                 src.m_is_valid         = false;
                 src.m_error_code       = pool_error::Ok;
+
+                try {
+                    m_rsrc             = std::move(src.m_rsrc);
+                    m_putback_callback = std::move(src_cb);
+                    m_is_valid         = src_valid;
+                    m_error_code       = src_err;
+                }
+                catch (...) {
+                    m_putback_callback = {};
+                    m_is_valid         = false;
+                    m_error_code       = pool_error::Unknown;
+                    throw;
+                }
             }
             return *this;
         }
@@ -323,10 +345,17 @@ namespace siddiqsoft::arrp
 
         /// @brief Explicit conversion to resource value
         /// @return The wrapped resource, moved out of this wrapper.
-        /// @note Invalidates the guard so its destructor abandons rather than returns
-        ///       the moved-from resource.
+        /// @note Disarms the guard and notifies pool of completion so resource accounting stays accurate.
         explicit operator T() &&
         {
+            if (m_putback_callback) {
+                try {
+                    m_putback_callback(std::move(m_rsrc), false);
+                }
+                catch (...) {
+                }
+                m_putback_callback = {};
+            }
             m_is_valid = false;
             return std::move(m_rsrc);
         }
@@ -356,21 +385,24 @@ namespace siddiqsoft::arrp
 
         /// @brief Assignment operator for resource value
         ///
-        /// Replaces the held resource value in place. The guard retains ownership
-        /// and will return the new resource to the pool when destroyed.
+        /// Replaces the held resource value in place. The old resource is returned to
+        /// the pool, and the guard retains ownership of the new resource, which will be
+        /// returned to the pool when destroyed.
         ///
         /// @param src The new resource value (moved)
         /// @return Reference to this resource_guard
         ///
-        /// @note The replacement is marked valid.
-        /// @note Does NOT invoke the putback callback — doing so here would cause
-        ///       a double-return when the destructor subsequently fires.
+        /// @note Returns existing resource to pool before taking ownership of new resource.
         resource_guard& operator=(T&& src)
         {
-            // Replace the held value in place. The guard retains ownership via
-            // m_putback_callback and will return the new resource on destruction.
-            // Invoking the callback here would cause a double-return: once now
-            // and again when the destructor fires.
+            if (m_putback_callback) {
+                try {
+                    m_putback_callback(std::move(m_rsrc), m_is_valid);
+                }
+                catch (...) {
+                    std::print(std::cerr, "resource_guard operator=(T&&): exception while returning old resource to pool!\n");
+                }
+            }
             m_rsrc     = std::move(src);
             m_is_valid = true;
             return *this;

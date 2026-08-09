@@ -173,20 +173,41 @@ namespace siddiqsoft::arrp
         using lock_type        = std::scoped_lock<decltype(m_pool_lock)>;
         using unique_lock_type = std::unique_lock<decltype(m_pool_lock)>;
 
+        /// @brief Calculates difference between capacity and resources (unlocked internal helper)
+        inline int64_t deficit_size_unlocked() const
+        {
+            return static_cast<int64_t>(m_capacity) - (static_cast<int64_t>(m_pool.size()) + m_resources_checkedout.load());
+        }
+
+        /// @brief Checks whether total resources are below capacity (unlocked internal helper)
+        inline bool is_pool_starving_unlocked() const
+        {
+            return m_resources_checkedout.load() + m_pool.size() < m_capacity;
+        }
+
         /// @brief Checks whether total resources are below the configured capacity
         /// @return true when available plus checked-out resources is below capacity
-        inline bool is_pool_starving() const { return m_resources_checkedout.load() + m_pool.size() < m_capacity; }
+        inline bool is_pool_starving() const
+        {
+            std::scoped_lock l(m_pool_lock);
+            return is_pool_starving_unlocked();
+        }
 
         /// @brief Checks if there is a deficit between configured capacity and current resources
         /// @return true if deficit exists, false otherwise
-        inline auto is_there_a_pool_deficit() const { return deficit_size() != 0; }
+        inline auto is_there_a_pool_deficit() const
+        {
+            std::scoped_lock l(m_pool_lock);
+            return deficit_size_unlocked() != 0;
+        }
 
         /// @brief Calculates the difference between configured and current resources
         /// @return `capacity - (available resources + checked-out resources)`.
         ///         Negative values indicate that more resources were added than capacity.
         inline int64_t deficit_size() const
         {
-            return static_cast<int64_t>(m_capacity) - (static_cast<int64_t>(m_pool.size()) + m_resources_checkedout.load());
+            std::scoped_lock l(m_pool_lock);
+            return deficit_size_unlocked();
         }
 
         /// @brief Returns the number of resources currently checked out by clients.
@@ -351,32 +372,33 @@ namespace siddiqsoft::arrp
         {
             std::scoped_lock l(m_pool_lock);
 
-            try {
-                // Drain semaphore and pool together so their counts stay in sync.
-                // The cleanup callback, if set, runs under the lock per item.
-                //
-                // @note We MUST use try_acquire() here, not the blocking acquire().
-                // A concurrent borrow_impl() may have already claimed a permit via
-                // m_pool_semaphore.try_acquire()/try_acquire_for() and be waiting on
-                // m_pool_lock (which we currently hold) before it pops its item from
-                // m_pool. If we block here waiting for a permit that will only be
-                // released once that borrower runs — and it can't run until we
-                // release this lock — the pool deadlocks. When try_acquire() fails,
-                // every remaining permit is already claimed by such an in-flight
-                // borrower, so we stop draining and let those borrowers pop their
-                // own items once they acquire the lock after we release it.
-                while (!m_pool.empty() && m_pool_semaphore.try_acquire()) {
-                    auto item = std::move(m_pool.front());
-                    m_pool.pop_front();
-                    if (m_callback_on_resource_cleanup) {
-                        // delegate to the cleanup.
-                        // the delegate must not invoke any pool member to avoid deadlocks.
+            // Drain semaphore and pool together so their counts stay in sync.
+            // The cleanup callback, if set, runs under the lock per item.
+            //
+            // @note We MUST use try_acquire() here, not the blocking acquire().
+            // A concurrent borrow_impl() may have already claimed a permit via
+            // m_pool_semaphore.try_acquire()/try_acquire_for() and be waiting on
+            // m_pool_lock (which we currently hold) before it pops its item from
+            // m_pool. If we block here waiting for a permit that will only be
+            // released once that borrower runs — and it can't run until we
+            // release this lock — the pool deadlocks. When try_acquire() fails,
+            // every remaining permit is already claimed by such an in-flight
+            // borrower, so we stop draining and let those borrowers pop their
+            // own items once they acquire the lock after we release it.
+            while (!m_pool.empty() && m_pool_semaphore.try_acquire()) {
+                auto item = std::move(m_pool.front());
+                m_pool.pop_front();
+                if (m_callback_on_resource_cleanup) {
+                    try {
                         m_callback_on_resource_cleanup(item);
                     }
+                    catch (std::exception& ex) {
+                        std::print(std::cerr, "{} - exception while delegating to on_cleanup: {}\n", __func__, ex.what());
+                    }
+                    catch (...) {
+                        std::print(std::cerr, "{} - unknown exception while delegating to on_cleanup\n", __func__);
+                    }
                 }
-            }
-            catch (std::exception& ex) {
-                std::print(std::cerr, "{} - exception while delegating to on_cleanup: {}\n", __func__, ex.what());
             }
 
             return pool_error::Ok;
@@ -446,12 +468,13 @@ namespace siddiqsoft::arrp
                         // Remove from the deque.. only one client may have exclusive use..
                         m_pool.pop_front();
 
-                        // Release the lock before constructing the scoped wrapper
-                        // and updating the borrow counters.
-                        l.unlock();
-
+                        // Increment checkout and borrow counters under the lock to prevent
+                        // state accounting underflow / race conditions with concurrent return_to_pool()
                         m_resources_checkedout++;
                         m_counter_borrows++;
+
+                        l.unlock();
+
                         return borrowed;
                     }
                     else if (createIfEmptyTimeout && m_factory_callback) {
@@ -553,10 +576,10 @@ namespace siddiqsoft::arrp
                 if (current_size > m_peak_poolsize.load()) {
                     m_peak_poolsize = current_size;
                 }
-            }
 
-            // Signal the semaphore outside the lock to avoid potential deadlocks.
-            m_pool_semaphore.release(); // resource is available, increment semaphore
+                // Signal semaphore while holding the lock to maintain atomic visibility
+                m_pool_semaphore.release();
+            }
 
             return pool_error::Ok;
         }
@@ -585,10 +608,10 @@ namespace siddiqsoft::arrp
                 if (current_size > m_peak_poolsize.load()) {
                     m_peak_poolsize = current_size;
                 }
-            }
 
-            // Signal the semaphore outside the lock to avoid potential deadlocks.
-            m_pool_semaphore.release(); // resource is available, increment semaphore
+                // Signal semaphore while holding the lock to maintain atomic visibility
+                m_pool_semaphore.release();
+            }
 
             return pool_error::Ok;
         }
@@ -626,9 +649,8 @@ namespace siddiqsoft::arrp
                     m_peak_poolsize = current_size;
                 }
 
-                l.unlock();
-                // Signal the semaphore outside the lock to avoid potential deadlocks.
-                if (isvalid) m_pool_semaphore.release(); // resource is available, increment semaphore
+                // Signal semaphore while holding the lock to maintain atomic visibility
+                m_pool_semaphore.release();
             }
             else {
                 m_counter_abandons++;
@@ -676,7 +698,7 @@ namespace siddiqsoft::arrp
             // Update the pool statistics
             stats["_typver"]  = "siddiqsoft.arrp.resource_pool/0.0.0"; ///< Type and version number of the class
             stats["size"]     = m_pool.size();                         ///< Available resources in pool
-            stats["deficit"]  = deficit_size();                        ///< Resources needed to reach capacity
+            stats["deficit"]  = deficit_size_unlocked();               ///< Resources needed to reach capacity
             stats["capacity"] = m_capacity;                            ///< Maximum resources
             stats["peaksize"] = m_peak_poolsize.load();                ///< Peak pool size reached
             stats["abandons"] = m_counter_abandons.load();             ///< Invalidated resources
