@@ -655,7 +655,7 @@ TEST(counter_balance, mixed_operations_stress)
         pool.seed(std::format("resource-{}", i));
     }
 
-    EXPECT_EQ(0, get_borrow_count(pool));
+    EXPECT_EQ(0, get_borrow_count(pool)) << "Initial borrow count should be 0.";
 
     std::atomic_int borrows {0};
     std::atomic_int adds {0};
@@ -664,7 +664,7 @@ TEST(counter_balance, mixed_operations_stress)
     std::atomic_int sync_threads_ready {0};
 
     auto            sync_threads_point = [&] {
-#if defined(_WIN64)
+#if defined(_WIN64) || defined(_WIN32)
         sync_threads_ready++;
         while (sync_threads_ready.load() < EXPECTED_THREADS) {
             std::this_thread::yield();
@@ -736,10 +736,10 @@ TEST(counter_balance, mixed_operations_stress)
     threads.clear();
 
     // Final state: counter should be balanced
-    EXPECT_EQ(0, get_loan_count(pool));
-    EXPECT_GT(borrows.load(), 0);
-    EXPECT_GT(adds.load(), 0);
-    EXPECT_GT(invalidates.load(), 0);
+    EXPECT_EQ(0, get_loan_count(pool)) << "Final loan count should be 0 after all threads complete.";
+    EXPECT_GT(borrows.load(), 0) << "There should have been some successful borrows.";
+    EXPECT_GT(adds.load(), 0) << "There should have been some successful adds.";
+    EXPECT_GT(invalidates.load(), 0) << "There should have been some successful invalidations.";
 }
 
 
