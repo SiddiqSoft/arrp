@@ -214,15 +214,17 @@ namespace siddiqsoft::arrp
         ///
         /// @note The source's callback is cleared to prevent double-return
         /// @note The source is marked as invalid
-        /// @note This constructor is using new syntax for noexcept specification based on the move-constructibility
-        /// of T and the callback function.
-        resource_guard(resource_guard&& src) noexcept(std::is_nothrow_move_constructible_v<T> &&
-                                                      std::is_nothrow_move_constructible_v<PutbackCallbackFunc>)
+        /// @note This constructor is using new syntax for noexcept specification based
+        /// on the move-constructibility of T and the callback function.
+        resource_guard(resource_guard&& src) noexcept(false)
         try
             : m_rsrc(std::move(src.m_rsrc))
             , m_putback_callback(std::move(src.m_putback_callback))
             , m_is_valid(src.m_is_valid)
             , m_error_code(src.m_error_code) {
+            // This code is in the try block to ensure that if T's move constructor throws,
+            // we can still safely invalidate the source and prevent double-return.
+            // Its syntax is a bit unusual, but it is valid C++ and ensures exception safety.
             // Reset to ensure that the source does not double return or preserve stale error state.
             src.m_putback_callback = {};
             src.m_is_valid         = false;
