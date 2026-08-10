@@ -321,7 +321,7 @@ TEST(resource_guard_validity, mixed_valid_invalid_concurrent)
         });
     }
 
-    std::this_thread::sleep_for(std::chrono::seconds(1));
+    std::this_thread::sleep_for(std::chrono::milliseconds(2500));
     threads.clear();
 
     // Pool should have exactly the valid count

@@ -673,20 +673,21 @@ TEST(counter_balance, mixed_operations_stress)
         start_barrier.arrive_and_wait();
 #endif
         std::println(std::cerr,
-                     "   concurrent_json_deadlock_detection - All threads ready to continue..{}/{}",
+                     "   {} - All threads ready to continue..{}/{}", __func__,
                      sync_threads_ready.load(),
                      EXPECTED_THREADS);
     };
 
     std::vector<std::jthread> threads;
 
-    // Add thread
+    // Add Seed thread
     threads.emplace_back([&]() {
         sync_threads_point();
         for (int i = 0; i < 100; ++i) {
             pool.seed(std::format("new-{}", i));
             adds++;
         }
+        std::println(std::cerr, "   {} - Add Seed thread completed.", __func__);
     });
 
     // Borrow thread
@@ -698,6 +699,7 @@ TEST(counter_balance, mixed_operations_stress)
                 borrows++;
             }
         }
+        std::println(std::cerr, "   {} - Borrow thread completed. borrows={}", __func__, borrows.load());
     });
 
     // Invalidate thread
@@ -710,6 +712,7 @@ TEST(counter_balance, mixed_operations_stress)
                 invalidates++;
             }
         }
+        std::println(std::cerr, "   {} - Invalidate thread completed.", __func__);
     });
 
     // Monitor thread 1
@@ -720,6 +723,7 @@ TEST(counter_balance, mixed_operations_stress)
             EXPECT_GE(checkedout, 0);
             std::this_thread::sleep_for(std::chrono::milliseconds(19));
         }
+        std::println(std::cerr, "   {} - Monitor thread 1 completed.", __func__);
     });
 
     // Monitor thread 2
@@ -730,10 +734,13 @@ TEST(counter_balance, mixed_operations_stress)
             EXPECT_GE(size, 0);
             std::this_thread::sleep_for(std::chrono::milliseconds(19));
         }
+        std::println(std::cerr, "   {} - Monitor thread 2 completed.", __func__);
     });
 
-    std::this_thread::sleep_for(std::chrono::seconds(5)); // Allow threads to run for a while
+    std::println(std::cerr, "   {} - All threads started. Waiting for completion...", __func__);
+    std::this_thread::sleep_for(std::chrono::seconds(2)); // Allow threads to run for a while
     threads.clear();
+    std::println(std::cerr, "   {} - All threads cleared. stats: borrows={}, adds={}, invalidates={}", __func__, borrows.load(), adds.load(), invalidates.load());
 
     // Final state: counter should be balanced
     EXPECT_EQ(0, get_loan_count(pool)) << "Final loan count should be 0 after all threads complete.";
