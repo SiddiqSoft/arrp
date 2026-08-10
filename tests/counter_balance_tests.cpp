@@ -663,7 +663,8 @@ TEST(counter_balance, mixed_operations_stress)
     std::barrier    start_barrier {EXPECTED_THREADS};
     std::atomic_int sync_threads_ready {0};
 
-    auto            sync_threads_point = [&] {
+    auto            sync_threads_point = [&](const std::string& thread_name) {
+        std::println(std::cerr, "   {} - Thread ready to continue..{}/{}", thread_name, sync_threads_ready.load(), EXPECTED_THREADS);
 #if defined(_WIN64) || defined(_WIN32)
         sync_threads_ready++;
         while (sync_threads_ready.load() < EXPECTED_THREADS) {
@@ -673,7 +674,7 @@ TEST(counter_balance, mixed_operations_stress)
         start_barrier.arrive_and_wait();
 #endif
         std::println(std::cerr,
-                     "   {} - All threads ready to continue..{}/{}", __func__,
+                     "   {} - All threads ready to continue..{}/{}", thread_name,
                      sync_threads_ready.load(),
                      EXPECTED_THREADS);
     };
@@ -682,7 +683,7 @@ TEST(counter_balance, mixed_operations_stress)
 
     // Add Seed thread
     threads.emplace_back([&]() {
-        sync_threads_point();
+        sync_threads_point("Seed-Thread");
         for (int i = 0; i < 100; ++i) {
             pool.seed(std::format("new-{}", i));
             adds++;
@@ -692,7 +693,7 @@ TEST(counter_balance, mixed_operations_stress)
 
     // Borrow thread
     threads.emplace_back([&]() {
-        sync_threads_point();
+        sync_threads_point("Borrow-Thread");
         for (int i = 0; i < 500; ++i) {
             auto res = pool.try_borrow();
             if (res.has_value()) {
@@ -704,7 +705,8 @@ TEST(counter_balance, mixed_operations_stress)
 
     // Invalidate thread
     threads.emplace_back([&]() {
-        sync_threads_point();
+        sync_threads_point("Invalidate-Thread");
+        std::this_thread::sleep_for(std::chrono::milliseconds(100)); // Allow some borrows to happen first
         for (int i = 0; i < 100; ++i) {
             auto res = pool.try_borrow();
             if (res.has_value()) {
@@ -717,7 +719,7 @@ TEST(counter_balance, mixed_operations_stress)
 
     // Monitor thread 1
     threads.emplace_back([&]() {
-        sync_threads_point();
+        sync_threads_point("Monitor-Thread-1");
         for (int i = 0; i < 300; ++i) {
             int64_t checkedout = get_borrow_count(pool);
             EXPECT_GE(checkedout, 0);
@@ -728,7 +730,7 @@ TEST(counter_balance, mixed_operations_stress)
 
     // Monitor thread 2
     threads.emplace_back([&]() {
-        sync_threads_point();
+        sync_threads_point("Monitor-Thread-2");
         for (int i = 0; i < 300; ++i) {
             auto size = pool.size();
             EXPECT_GE(size, 0);
