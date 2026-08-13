@@ -444,7 +444,10 @@ namespace siddiqsoft::arrp
                         return borrowed;
                     }
                     else if (createIfEmptyTimeout && m_factory_callback) {
+#if defined(DEBUG_TRACE)
                         std::println(std::cerr, "{} - Empty pool; asked to create new if empty..", __func__);
+#endif
+
                         // Release the lock before invoking arbitrary user code to
                         // prevent deadlock if the factory calls back into the pool.
                         auto cb = m_factory_callback;
@@ -475,7 +478,11 @@ namespace siddiqsoft::arrp
                     if (!cb) {
                         return resource_guard<T> {siddiqsoft::arrp::pool_error::NoMoreResources};
                     }
+
+#if defined(DEBUG_TRACE)
                     std::println(std::cerr, "{} - We exhausted timeout; asked to create new if empty..", __func__);
+#endif
+
                     auto ondemand = create_from_callback(cb);
                     m_counter_ondemand_adds++;
                     m_resources_checkedout++;

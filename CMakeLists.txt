@@ -37,6 +37,11 @@ option(${PROJECT_NAME}_BUILD_TESTS "Build tests for ${PROJECT_NAME}" OFF)
 # This is enabled for DEBUG builds and disabled for RELEASE builds.
 option(${PROJECT_NAME}_USE_RECURSIVE_MUTEX "Use recursive_mutex in pool ${PROJECT_NAME}" OFF)
 option(CI_BUILDID "Build ID for CI builds" "0.0.0")
+option(${PROJECT_NAME}_DEBUG_TRACE "Enable debug trace in pool ${PROJECT_NAME}" OFF)
+
+if(${PROJECT_NAME}_DEBUG_TRACE)
+    add_compile_definitions(DEBUG_TRACE)
+endif()
 
 # Library definition
 add_library(${PROJECT_NAME} INTERFACE)
