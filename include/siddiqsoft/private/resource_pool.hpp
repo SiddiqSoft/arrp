@@ -444,7 +444,7 @@ namespace siddiqsoft::arrp
                         return borrowed;
                     }
                     else if (createIfEmptyTimeout && m_factory_callback) {
-#if defined(DEBUG_TRACE)
+#if defined(arrp_DEBUG_TRACE)
                         std::println(std::cerr, "{} - Empty pool; asked to create new if empty..", __func__);
 #endif
 
@@ -479,7 +479,7 @@ namespace siddiqsoft::arrp
                         return resource_guard<T> {siddiqsoft::arrp::pool_error::NoMoreResources};
                     }
 
-#if defined(DEBUG_TRACE)
+#if defined(arrp_DEBUG_TRACE)
                     std::println(std::cerr, "{} - We exhausted timeout; asked to create new if empty..", __func__);
 #endif
 

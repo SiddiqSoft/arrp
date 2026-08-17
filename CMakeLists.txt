@@ -40,7 +40,7 @@ option(CI_BUILDID "Build ID for CI builds" "0.0.0")
 option(${PROJECT_NAME}_DEBUG_TRACE "Enable debug trace in pool ${PROJECT_NAME}" OFF)
 
 if(${PROJECT_NAME}_DEBUG_TRACE)
-    add_compile_definitions(DEBUG_TRACE)
+    target_compile_definitions(${PROJECT_NAME} INTERFACE ${PROJECT_NAME}_DEBUG_TRACE=1)
 endif()
 
 # Library definition
