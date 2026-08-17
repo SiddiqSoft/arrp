@@ -2,66 +2,66 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://siddiqsoft.github.io/arrp/</loc>
-         <lastmod>2026-08-13</lastmod>
+         <lastmod>2026-08-17</lastmod>
     </url>
     <url>
          <loc>https://siddiqsoft.github.io/arrp/license/</loc>
-         <lastmod>2026-08-13</lastmod>
+         <lastmod>2026-08-17</lastmod>
     </url>
     <url>
          <loc>https://siddiqsoft.github.io/arrp/api/</loc>
-         <lastmod>2026-08-13</lastmod>
+         <lastmod>2026-08-17</lastmod>
     </url>
     <url>
          <loc>https://siddiqsoft.github.io/arrp/api/resource_guard/</loc>
-         <lastmod>2026-08-13</lastmod>
+         <lastmod>2026-08-17</lastmod>
     </url>
     <url>
          <loc>https://siddiqsoft.github.io/arrp/api/resource_pool/</loc>
-         <lastmod>2026-08-13</lastmod>
+         <lastmod>2026-08-17</lastmod>
     </url>
     <url>
          <loc>https://siddiqsoft.github.io/arrp/api/types/</loc>
-         <lastmod>2026-08-13</lastmod>
+         <lastmod>2026-08-17</lastmod>
     </url>
     <url>
          <loc>https://siddiqsoft.github.io/arrp/examples/</loc>
-         <lastmod>2026-08-13</lastmod>
+         <lastmod>2026-08-17</lastmod>
     </url>
     <url>
          <loc>https://siddiqsoft.github.io/arrp/examples/scoped_curl/</loc>
-         <lastmod>2026-08-13</lastmod>
+         <lastmod>2026-08-17</lastmod>
     </url>
     <url>
          <loc>https://siddiqsoft.github.io/arrp/examples/scoped_file/</loc>
-         <lastmod>2026-08-13</lastmod>
+         <lastmod>2026-08-17</lastmod>
     </url>
     <url>
          <loc>https://siddiqsoft.github.io/arrp/features/</loc>
-         <lastmod>2026-08-13</lastmod>
+         <lastmod>2026-08-17</lastmod>
     </url>
     <url>
          <loc>https://siddiqsoft.github.io/arrp/features/json-diagnostics/</loc>
-         <lastmod>2026-08-13</lastmod>
+         <lastmod>2026-08-17</lastmod>
     </url>
     <url>
          <loc>https://siddiqsoft.github.io/arrp/features/resource-management/</loc>
-         <lastmod>2026-08-13</lastmod>
+         <lastmod>2026-08-17</lastmod>
     </url>
     <url>
          <loc>https://siddiqsoft.github.io/arrp/features/threading-lifetime/</loc>
-         <lastmod>2026-08-13</lastmod>
+         <lastmod>2026-08-17</lastmod>
     </url>
     <url>
          <loc>https://siddiqsoft.github.io/arrp/integration/</loc>
-         <lastmod>2026-08-13</lastmod>
+         <lastmod>2026-08-17</lastmod>
     </url>
     <url>
          <loc>https://siddiqsoft.github.io/arrp/integration/cmake/</loc>
-         <lastmod>2026-08-13</lastmod>
+         <lastmod>2026-08-17</lastmod>
     </url>
     <url>
          <loc>https://siddiqsoft.github.io/arrp/integration/package-managers/</loc>
-         <lastmod>2026-08-13</lastmod>
+         <lastmod>2026-08-17</lastmod>
     </url>
 </urlset>
