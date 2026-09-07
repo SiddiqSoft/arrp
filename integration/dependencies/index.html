@@ -12,13 +12,13 @@
         <meta name="author" content="Siddiq Software LLC">
       
       
-        <link rel="canonical" href="https://siddiqsoft.github.io/arrp/integration/package-managers/">
+        <link rel="canonical" href="https://siddiqsoft.github.io/arrp/integration/dependencies/">
       
       
-        <link rel="prev" href="../cmake/">
+        <link rel="prev" href="../package-managers/">
       
       
-        <link rel="next" href="../dependencies/">
+        <link rel="next" href="../../examples/">
       
       
         
@@ -29,7 +29,7 @@
     
     
       
-        <title>Package Managers - arrp</title>
+        <title>Dependencies - arrp</title>
       
     
     
@@ -82,7 +82,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#package-managers-manual-integration" class="md-skip">
+        <a href="#project-dependencies" class="md-skip">
           Skip to content
         </a>
       
@@ -118,7 +118,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Package Managers
+              Dependencies
             
           </span>
         </div>
@@ -712,6 +712,34 @@
                 
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../package-managers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Package Managers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
     
   
   
@@ -731,7 +759,7 @@
   <span class="md-ellipsis">
     
   
-    Package Managers
+    Dependencies
   
 
     
@@ -749,7 +777,7 @@
   <span class="md-ellipsis">
     
   
-    Package Managers
+    Dependencies
   
 
     
@@ -775,49 +803,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#nuget-integration-windows-msbuild" class="md-nav__link">
+  <a href="#dependency-diagram" class="md-nav__link">
     <span class="md-ellipsis">
       
-        NuGet Integration (Windows / MSBuild)
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="NuGet Integration (Windows / MSBuild)">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#visual-studio-package-manager-console" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Visual Studio Package Manager Console
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#net-cli-nugetexe" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        .NET CLI / nuget.exe
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#manual-header-integration" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Manual Header Integration
+        Dependency Diagram
       
     </span>
   </a>
@@ -825,10 +814,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#optional-json-support-setup" class="md-nav__link">
+  <a href="#dependency-breakdown" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Optional JSON Support Setup
+        Dependency Breakdown
       
     </span>
   </a>
@@ -839,34 +828,6 @@
   
 </nav>
       
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../dependencies/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Dependencies
-  
-
-    
-  </span>
-  
-  
-
-      </a>
     </li>
   
 
@@ -1251,49 +1212,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#nuget-integration-windows-msbuild" class="md-nav__link">
+  <a href="#dependency-diagram" class="md-nav__link">
     <span class="md-ellipsis">
       
-        NuGet Integration (Windows / MSBuild)
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="NuGet Integration (Windows / MSBuild)">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#visual-studio-package-manager-console" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Visual Studio Package Manager Console
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#net-cli-nugetexe" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        .NET CLI / nuget.exe
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#manual-header-integration" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Manual Header Integration
+        Dependency Diagram
       
     </span>
   </a>
@@ -1301,10 +1223,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#optional-json-support-setup" class="md-nav__link">
+  <a href="#dependency-breakdown" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Optional JSON Support Setup
+        Dependency Breakdown
       
     </span>
   </a>
@@ -1379,41 +1301,59 @@
   
 
 
-<h1 id="package-managers-manual-integration">Package Managers &amp; Manual Integration<a class="headerlink" href="#package-managers-manual-integration" title="Permanent link">&para;</a></h1>
-<p><code>arrp</code> can be consumed through package managers such as NuGet or incorporated manually into any C++ project build pipeline.</p>
-<hr />
-<h2 id="nuget-integration-windows-msbuild">NuGet Integration (Windows / MSBuild)<a class="headerlink" href="#nuget-integration-windows-msbuild" title="Permanent link">&para;</a></h2>
-<p><code>arrp</code> is published as a NuGet package for MSBuild and Visual Studio users.</p>
-<h3 id="visual-studio-package-manager-console">Visual Studio Package Manager Console<a class="headerlink" href="#visual-studio-package-manager-console" title="Permanent link">&para;</a></h3>
-<div class="language-powershell highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nb">Install-Package</span> <span class="n">SiddiqSoft</span><span class="p">.</span><span class="n">arrp</span>
-</span></code></pre></div>
-<h3 id="net-cli-nugetexe">.NET CLI / nuget.exe<a class="headerlink" href="#net-cli-nugetexe" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>nuget<span class="w"> </span>install<span class="w"> </span>SiddiqSoft.arrp
-</span></code></pre></div>
-<blockquote>
-<p>[!TIP]
-The NuGet package automatically includes MSBuild targets that append the include path to your project settings and register the Visual Studio debugger Natvis visualizer (<code>SiddiqSoft.arrp.natvis</code>).</p>
-</blockquote>
-<hr />
-<h2 id="manual-header-integration">Manual Header Integration<a class="headerlink" href="#manual-header-integration" title="Permanent link">&para;</a></h2>
-<p>Since <code>arrp</code> is header-only, manual integration requires no compilation or static linking.</p>
-<ol>
-<li>Download or copy the <a href="https://github.com/SiddiqSoft/arrp/tree/main/include"><code>include/</code></a> directory into your project.</li>
-<li>Add <code>include/</code> to your compiler's include paths (<code>-Iinclude</code> or <code>/Iinclude</code>).</li>
-<li>Include the main header in your C++ source code:</li>
-</ol>
-<div class="language-cpp highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;siddiqsoft/arrp.hpp&gt;</span>
-</span></code></pre></div>
-<hr />
-<h2 id="optional-json-support-setup">Optional JSON Support Setup<a class="headerlink" href="#optional-json-support-setup" title="Permanent link">&para;</a></h2>
-<p>If you want to use the <code>to_json()</code> statistics functionality:</p>
-<ol>
-<li>Ensure <a href="https://github.com/nlohmann/json">nlohmann/json</a> is available in your include paths.</li>
-<li>Include <code>&lt;nlohmann/json.hpp&gt;</code> <strong>before</strong> <code>&lt;siddiqsoft/arrp.hpp&gt;</code>:</li>
-</ol>
-<div class="language-cpp highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;nlohmann/json.hpp&gt;</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;siddiqsoft/arrp.hpp&gt;</span>
-</span></code></pre></div>
+<h1 id="project-dependencies">Project Dependencies<a class="headerlink" href="#project-dependencies" title="Permanent link">&para;</a></h1>
+<p>This document is automatically generated from <code>CMakeLists.txt</code> files for <code>arrp</code>.</p>
+<h2 id="dependency-diagram">Dependency Diagram<a class="headerlink" href="#dependency-diagram" title="Permanent link">&para;</a></h2>
+<pre class="mermaid"><code>graph TD
+    arrp["arrp::arrp"]
+
+    subgraph Core["Core Dependencies (via CPM)"]
+        RUNONEND["RunOnEnd 1.4.5"]
+    end
+
+    subgraph Test["Test Dependencies (Optional)"]
+        GTEST["gtest v1.17.0"]
+        NLOHMANNJSON["nlohmann_json v3.12.0"]
+    end
+
+    arrp --&gt; RUNONEND
+    arrp -. "arrp_BUILD_TESTS=ON" .-&gt; GTEST
+    arrp -. "arrp_BUILD_TESTS=ON" .-&gt; NLOHMANNJSON</code></pre>
+<h2 id="dependency-breakdown">Dependency Breakdown<a class="headerlink" href="#dependency-breakdown" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Dependency</th>
+<th style="text-align: left;">Repository / Target</th>
+<th style="text-align: left;">Version</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Scope / Platform</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>RunOnEnd</strong></td>
+<td style="text-align: left;"><a href="https://github.com/siddiqsoft/RunOnEnd"><code>siddiqsoft/RunOnEnd</code></a></td>
+<td style="text-align: left;">1.4.5</td>
+<td style="text-align: left;"><code>CPM</code></td>
+<td style="text-align: left;">All Platforms (<code>INTERFACE</code>)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>gtest</strong></td>
+<td style="text-align: left;"><a href="https://github.com/google/googletest"><code>google/googletest</code></a></td>
+<td style="text-align: left;">v1.17.0</td>
+<td style="text-align: left;"><code>CPM</code></td>
+<td style="text-align: left;">Test Target Only (<code>arrp_BUILD_TESTS=ON</code>)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>nlohmann_json</strong></td>
+<td style="text-align: left;"><a href="https://github.com/nlohmann/json"><code>nlohmann/json</code></a></td>
+<td style="text-align: left;">v3.12.0</td>
+<td style="text-align: left;"><code>CPM</code></td>
+<td style="text-align: left;">Test Target Only (<code>arrp_BUILD_TESTS=ON</code>)</td>
+</tr>
+</tbody>
+</table>
 
 
 
@@ -1449,7 +1389,7 @@ The NuGet package automatically includes MSBuild targets that append the include
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../cmake/" class="md-footer__link md-footer__link--prev" aria-label="Previous: CMake">
+          <a href="../package-managers/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Package Managers">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -1459,20 +1399,20 @@ The NuGet package automatically includes MSBuild targets that append the include
                 Previous
               </span>
               <div class="md-ellipsis">
-                CMake
+                Package Managers
               </div>
             </div>
           </a>
         
         
           
-          <a href="../dependencies/" class="md-footer__link md-footer__link--next" aria-label="Next: Dependencies">
+          <a href="../../examples/" class="md-footer__link md-footer__link--next" aria-label="Next: Overview">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Dependencies
+                Overview
               </div>
             </div>
             <div class="md-footer__button md-icon">
