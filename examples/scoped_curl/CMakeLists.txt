@@ -2,7 +2,7 @@
 #   See LICENSE file
 #
 #   When building from our CI server, the following options must be set:
-#   - aarp_BUILD_TESTS=ON
+#   - arrp_BUILD_TESTS=ON
 #   - CI_BUILDID must be set to the gitversion
 #   The file project-base.json contains configuration elements
 # 

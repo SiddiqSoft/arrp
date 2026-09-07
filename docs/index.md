@@ -9,7 +9,7 @@
   </a>
   <img src="https://img.shields.io/badge/C%2B%2B-23-blue.svg" alt="C++23 Standard" />
   <img src="https://img.shields.io/badge/Header--Only-Yes-green.svg" alt="Header Only" />
-  <a href="https://www.nuget.org/packages/SiddiqSoft.aarp">
+  <a href="https://www.nuget.org/packages/SiddiqSoft.arrp">
     <img src="https://img.shields.io/nuget/v/SiddiqSoft.arrp" alt="nuget" />
   </a>
   <img src="https://img.shields.io/github/v/tag/SiddiqSoft/arrp" alt="version" />

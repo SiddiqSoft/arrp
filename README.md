@@ -1,13 +1,24 @@
 # Auto Returning Resource Pool
 
-[![Build Status](https://dev.azure.com/siddiqsoft/siddiqsoft/_apis/build/status%2FSiddiqSoft.arrp?branchName=master)](https://dev.azure.com/siddiqsoft/siddiqsoft/_build/latest?definitionId=33&branchName=master)
-![](https://img.shields.io/nuget/v/SiddiqSoft.arrp)
-![](https://img.shields.io/github/v/tag/SiddiqSoft/arrp)
-![](https://img.shields.io/azure-devops/tests/siddiqsoft/siddiqsoft/33)
+<!-- badges -->
+[![Build Status](https://dev.azure.com/siddiqsoft/siddiqsoft/_apis/build/status/SiddiqSoft.arrp?branchName=master)](https://dev.azure.com/siddiqsoft/siddiqsoft/_build/latest?definitionId=33&branchName=master)
+[![NuGet Version](https://img.shields.io/nuget/v/SiddiqSoft.arrp?logo=nuget)](https://www.nuget.org/packages/SiddiqSoft.arrp/)
+[![NuGet Downloads](https://img.shields.io/nuget/dt/SiddiqSoft.arrp?logo=nuget)](https://www.nuget.org/packages/SiddiqSoft.arrp/)
+[![GitHub Tag](https://img.shields.io/github/v/tag/SiddiqSoft/arrp)](https://github.com/SiddiqSoft/arrp/tags)
+[![Tests](https://img.shields.io/azure-devops/tests/siddiqsoft/siddiqsoft/33/master.svg)](https://dev.azure.com/siddiqsoft/siddiqsoft/_build/latest?definitionId=33&branchName=master)
+[![C++23](https://img.shields.io/badge/C%2B%2B-23-00599C?logo=cplusplus)](https://en.cppreference.com/w/cpp/23)
+[![License BSD-3](https://img.shields.io/badge/License-BSD--3--Clause-blue)](LICENSE)
+<!-- end badges -->
 
 `arrp` is a header-only C++23 resource pool. A `resource_pool<T>` owns available
 resources, while a move-only `resource_guard<T>` returns each borrowed resource
 when the guard is destroyed.
+
+## Documentation
+
+**[siddiqsoft.github.io/arrp](https://siddiqsoft.github.io/arrp/)**
+
+---
 
 ## Requirements
 
@@ -35,7 +46,7 @@ target_link_libraries(your_target PRIVATE arrp::arrp)
 ### NuGet
 
 ```bash
-nuget install SiddiqSoft.aarp
+nuget install SiddiqSoft.arrp
 ```
 
 ### Manual integration

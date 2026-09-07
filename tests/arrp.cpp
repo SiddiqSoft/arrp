@@ -1,5 +1,5 @@
 /*
-    aarp
+    arrp
     Auto returning resource pool
 
     BSD 3-Clause License

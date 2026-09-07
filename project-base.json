@@ -4,13 +4,14 @@
         {
             "name": "Project-Base",
             "displayName": "Project Base",
-            "description": "Base preset for all project configurations.",
+            "description": "Base preset containing project-specific configurations and cache variables.",
             "cacheVariables": {
-                "CMAKE_PROJECT_NAME": "aarp",
-                "CMAKE_PROJECT_DESCRIPTION": "Auto returning resource pool for modern C++",
-                "CMAKE_CXX_STANDARD": "23",
                 "arrp_BUILD_TESTS": "ON",
-                "CI_BUILDID": "0.0.0"
+                "CI_BUILDID": "0.0.0",
+                "CMAKE_CXX_STANDARD": "23",
+                "CMAKE_CXX_STANDARD_REQUIRED": "ON",
+                "CMAKE_CXX_EXTENSIONS": "OFF",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
             },
             "hidden": true
         }

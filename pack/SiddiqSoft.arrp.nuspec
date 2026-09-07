@@ -8,17 +8,17 @@
 	-->
 	<metadata>
 		<!-- required: -->
-		<id>SiddiqSoft.aarp</id>
+		<id>SiddiqSoft.arrp</id>
 		<version>$VERSION$</version>
 		<authors>SiddiqSoft</authors>
-		<description>Add auto-returning resource pool to your apps</description>
+		<description>Auto returning resource pool for modern C++23</description>
 		<tags>jthread thread pool deque cpp23 native nativepackage cpp</tags>
 		<projectUrl>https://github.com/SiddiqSoft/arrp</projectUrl>
 		<requireLicenseAcceptance>true</requireLicenseAcceptance>
 		<license type="expression">BSD-3-Clause</license>
 		<icon>docs\Siddiq-Software-Avatar.png</icon>
 		<readme>docs\README.md</readme>
-		<releaseNotes>Refer to the project repository for release notes. Documentation at https://siddiqsoft.github.io/aarp/</releaseNotes>
+		<releaseNotes>Refer to the project repository for release notes. Documentation at https://siddiqsoft.github.io/arrp/</releaseNotes>
 		<copyright>Copyright (c) 2026 Siddiq Software LLC</copyright>
 		<!-- Dependencies -->
 		<dependencies>
@@ -33,14 +33,14 @@
 		https://docs.microsoft.com/en-us/nuget/create-packages/creating-a-package#from-a-convention-based-working-directory
 	-->
 	<files>
-		<!-- includes -->
-		<file src="..\include\siddiqsoft\*.hpp" target="build\native\include\siddiqsoft\" />
-		<file src="..\include\siddiqsoft\private\**\*" target="build\native\include\siddiqsoft\private\" />
+		<!-- Use a single recursive glob for headers. Do NOT mix with redundant root-level globs as that causes duplicate destinations for root headers and triggers NuGet Error NU5050 -->
+		<file src="..\include\siddiqsoft\**\*.hpp" target="build\native\include\siddiqsoft\" />
 		<file src="Siddiq-Software-Avatar.png" target="docs\" />
 		<file src="..\README.md" target="docs\" />
+		<file src="..\docs\**\*.md" target="docs\" />
 
 		<!-- MSBuild .targets files -->
-		<file src="SiddiqSoft.aarp.targets" target="build\native" />
+		<file src="SiddiqSoft.arrp.targets" target="build\native" />
 
 		<!-- Natvis file for Visual Studio and VS Code debugger visualization -->
 		<file src="..\SiddiqSoft.arrp.natvis" target="build\native" />
