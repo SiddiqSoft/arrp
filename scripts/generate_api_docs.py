@@ -435,7 +435,7 @@ def generate_source_mapping_table(
 
 
 def generate_class_markdown(
-    cm: ClassMeta, project_name: str, github_org: str, uml_diagram: str
+    cm: ClassMeta, project_name: str, github_org: str
 ) -> str:
     """Generates complete reference markdown for a single class."""
     hdr = cm.header_file or f"include/siddiqsoft/{project_name}.hpp"
@@ -444,22 +444,26 @@ def generate_class_markdown(
     lines = [
         f"# {cm.name}",
         "",
-        "## Header",
-        "",
-        "```cpp",
-        f'#include "{hdr.replace("include/", "")}"',
-        "using namespace siddiqsoft;",
-        "```",
-        "",
-        "## Description",
+        '<div class="grid" markdown="1">',
+        '<div class="api-intro-col" markdown="1">',
+        '<div class="api-header-block">',
+        '  <div class="api-module-name">Namespace siddiqsoft</div>',
+        f'  <div class="api-header-file">#include &lt;{hdr.replace("include/", "")}&gt;</div>',
+        '</div>',
         "",
         cm.brief or f"`{cm.short_name}` component of `{project_name}`.",
         "",
-        "## Class Hierarchy & Inheritance",
+        '</div>',
+        '<div class="api-diag-col" markdown="1">',
         "",
-        f"The following UML class diagram highlights `{cm.name}` and its direct relationships. Click the node to navigate to its source file on GitHub:",
+        "**Class Hierarchy & Inheritance**",
         "",
-        uml_diagram,
+        f"The following UML class diagram highlights `{cm.name}` and its direct relationships. Click the node to navigate to its source file on GitHub.",
+        "",
+        f"<!-- @@uml-diag:{cm.short_name} -->",
+        "",
+        '</div>',
+        '</div>',
         "",
     ]
 
@@ -536,7 +540,7 @@ def generate_class_markdown(
 
 
 def generate_index_markdown(
-    classes: list, project_name: str, github_org: str, project_desc: str, sys_uml: str
+    classes: list, project_name: str, github_org: str, project_desc: str
 ) -> str:
     """Generates docs/api/index.md overview."""
     src_map = generate_source_mapping_table(
@@ -566,7 +570,7 @@ def generate_index_markdown(
         "",
         f"The following diagram illustrates the primary classes, inheritance, and relationships in `{project_name}`. Click any node to navigate to its GitHub source location:",
         "",
-        sys_uml,
+        "<!-- @@uml-diag:complete -->",
         "",
         src_map,
         "",
@@ -574,13 +578,7 @@ def generate_index_markdown(
     return "\n".join(lines)
 
 
-def update_maintainer_uml(
-    maintainer_file: Path,
-    classes: list,
-    project_name: str,
-    github_org: str,
-    sys_uml: str,
-):
+def update_maintainer_uml(maintainer_file: Path, classes: list, project_name: str, github_org: str, sys_uml: str):
     """Injects or updates the UML class diagram and source code mapping in docs/maintainers/pipelines.md."""
     if not maintainer_file.exists():
         return
@@ -596,7 +594,7 @@ def update_maintainer_uml(
     source_table = generate_source_mapping_table(
         classes, project_name, github_org, api_prefix="../api/"
     )
-    combined_content = f"{lead_text}{sys_uml}\n\n{source_table}"
+    combined_content = "The following UML class diagram illustrates the primary classes, relationships, and inheritance. The diagram is auto-generated from the C++ source AST via Doxygen XML. Each node in the diagram links directly to its source header file on GitHub.\n\n<!-- @@uml-diag:complete -->\n\n<!-- @@uml-diag:source-table -->"
     new_block = f"{start_tag}\n{combined_content}\n{end_tag}"
 
     if start_tag in text and end_tag in text:
@@ -636,7 +634,7 @@ def update_architecture_uml(
     source_table = generate_source_mapping_table(
         classes, project_name, github_org, api_prefix="../api/"
     )
-    combined_content = f"{sys_uml}\n\n{source_table}"
+    combined_content = "<!-- @@uml-diag:complete -->\n\n<!-- @@uml-diag:source-table -->"
     new_block = f"{start_tag}\n{combined_content}\n{end_tag}"
 
     if start_tag in text and end_tag in text:
@@ -696,17 +694,18 @@ def main():
         classes = [default_cm]
 
     sys_uml = generate_system_uml_diagram(classes, project_name, github_org)
+    (root_dir / "docs" / "snippets" / "system_uml_diagram.md").parent.mkdir(parents=True, exist_ok=True)
+    write_if_changed(root_dir / "docs" / "snippets" / "system_uml_diagram.md", sys_uml)
 
     # 1. Generate docs/api/index.md
     index_md = generate_index_markdown(
-        classes, project_name, github_org, project_desc, sys_uml
+        classes, project_name, github_org, project_desc
     )
     write_if_changed(root_dir / "docs" / "api" / "index.md", index_md)
 
     # 2. Generate per-class reference pages
     for cm in classes:
-        focused_uml = generate_class_uml_diagram(cm, project_name, github_org)
-        cls_md = generate_class_markdown(cm, project_name, github_org, focused_uml)
+        cls_md = generate_class_markdown(cm, project_name, github_org)
         write_if_changed(root_dir / "docs" / "api" / f"{cm.short_name}.md", cls_md)
 
     # 3. Update maintainer guide

@@ -22,33 +22,11 @@ The maintainer documentation is organized into modular topic guides:
 ## Codebase Architecture & UML Class Diagram
 
 <!-- UML_CLASS_DIAGRAM_START -->
-The following UML class diagram illustrates the primary classes, relationships, and inheritance in `arrp`. The diagram is auto-generated from the C++ source AST via Doxygen XML. Each node in the diagram links directly to its source header file on GitHub.
+The following UML class diagram illustrates the primary classes, relationships, and inheritance. The diagram is auto-generated from the C++ source AST via Doxygen XML. Each node in the diagram links directly to its source header file on GitHub.
 
-```mermaid
-classDiagram
-    direction TB
+<!-- @@uml-diag:complete -->
 
-    classDef coreClass fill:rgba(35,73,109,0.08),stroke:#23496d,stroke-width:2px;
-    classDef utilityClass fill:rgba(15,118,110,0.08),stroke:#0f766e,stroke-width:2px;
-    classDef exceptionClass fill:rgba(185,28,28,0.06),stroke:#b91c1c,stroke-width:1.5px;
-    classDef externalClass fill:rgba(100,116,139,0.06),stroke:#64748b,stroke-width:1.5px,stroke-dasharray: 4 3;
-    classDef highlightClass fill:rgba(2,132,199,0.18),stroke:#0284c7,stroke-width:3px;
-
-    class __PROJECT_NAME__["siddiqsoft::arrp"] {
-        +arrp() noexcept = default constexpr
-        +~arrp() = default
-    }
-    class __PROJECT_NAME__:::coreClass
-
-
-    link __PROJECT_NAME__ "https://github.com/SiddiqSoft/arrp/blob/master/include/siddiqsoft/arrp.hpp#L26" "Source: include/siddiqsoft/arrp.hpp"
-```
-
-### Source Code Mapping
-
-| Component / Class | Header File | Source Link | Purpose & Architectural Role |
-| :--- | :--- | :--- | :--- |
-| [`siddiqsoft::arrp`](../api/arrp.md) | <code><span class="filepath-dir">include/siddiqsoft/</span><wbr><span class="filepath-name">arrp.hpp</span></code> | [`arrp.hpp`](https://github.com/SiddiqSoft/arrp/blob/master/include/siddiqsoft/arrp.hpp#L26) | {{PROJECT_DESCRIPTION}} |
+<!-- @@uml-diag:source-table -->
 <!-- UML_CLASS_DIAGRAM_END -->
 
 ---

@@ -21,3 +21,12 @@ If `nlohmann/json` is available in your project, `arrp` provides `to_json` integ
 siddiqsoft::arrp::resource_pool<std::string> pool {4};
 nlohmann::json state = pool; // Invokes to_json(nlohmann::json& j, const resource_pool<T>& p)
 ```
+
+
+## UML Class Diagram
+
+<!-- UML_CLASS_DIAGRAM_START -->
+<!-- @@uml-diag:complete -->
+
+<!-- @@uml-diag:source-table -->
+<!-- UML_CLASS_DIAGRAM_END -->

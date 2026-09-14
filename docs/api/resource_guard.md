@@ -1,99 +1,299 @@
-# Class Template `resource_guard<T>`
+# siddiqsoft::arrp::resource_guard
 
-Defined in header `<siddiqsoft/arrp.hpp>` / `<siddiqsoft/private/resource_guard.hpp>`.
+<div class="grid" markdown="1">
+<div class="api-intro-col" markdown="1">
+<div class="api-header-block">
+  <div class="api-module-name">Namespace siddiqsoft</div>
+  <div class="api-header-file">#include &lt;siddiqsoft/private/resource_guard.hpp&gt;</div>
+</div>
 
-This is a helper class meant to allow your underlying resource to be automatically returned to the `resource_pool<T>`.
-- DO NOT extend or derive from this class. It should not be used to store data--use `T` as your data!
-- DO NOT share the resource_guard<T> across threads. It is NOT move-able or copy-able so you're supposed to use it in a scope.
-  You can use it across multiple functions but never store this class.
-- The `resource_pool<T>` must be in a parent scope or otherwise available to the `resource_guard<T>`
+`resource_guard` component of `arrp`.
+
+</div>
+<div class="api-diag-col" markdown="1">
+
+**Class Hierarchy & Inheritance**
+
+The following UML class diagram highlights `siddiqsoft::arrp::resource_guard` and its direct relationships. Click the node to navigate to its source file on GitHub.
+
+<!-- @@uml-diag:resource_guard -->
+
+</div>
+</div>
+
+## Member Functions Summary
+
+<table class="api-summary-table">
+  <tr>
+    <td class="memtype"><code>void</code></td>
+    <td class="memitemleft"><a href="#resource_guard"><strong>resource_guard</strong></a> ((const resource_guard &amp;)=delete)
+      <div class="mdesc">Copy constructor is deleted.</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="memtype"><code>resource_guard &amp;</code></td>
+    <td class="memitemleft"><a href="#operator="><strong>operator=</strong></a> ((const resource_guard &amp;)=delete)
+      <div class="mdesc">Copy assignment operator is deleted.</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="memtype"><code>void</code></td>
+    <td class="memitemleft"><a href="#resource_guard"><strong>resource_guard</strong></a> (const pool_error &amp;err)
+      <div class="mdesc">Constructs an invalid guard carrying a borrow error.</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="memtype"><code>void</code></td>
+    <td class="memitemleft"><a href="#resource_guard"><strong>resource_guard</strong></a> (resource_guard &amp;&amp;src)
+      <div class="mdesc">Move constructor.</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="memtype"><code>resource_guard &amp;</code></td>
+    <td class="memitemleft"><a href="#operator="><strong>operator=</strong></a> (resource_guard &amp;&amp;src)
+      <div class="mdesc">Move assignment operator.</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="memtype"><code>void</code></td>
+    <td class="memitemleft"><a href="#~resource_guard"><strong>~resource_guard</strong></a> (() noexcept)
+      <div class="mdesc">Destructor - invokes callback to handle resource return or abandonment.</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="memtype"><code>T &amp;</code></td>
+    <td class="memitemleft"><a href="#operator*"><strong>operator*</strong></a> ()
+      <div class="mdesc">Dereference operator to access the wrapped resource.</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="memtype"><code>T *</code></td>
+    <td class="memitemleft"><a href="#operator->"><strong>operator-></strong></a> ()
+      <div class="mdesc">Pointer-like access to the wrapped resource.</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="memtype"><code>const T *</code></td>
+    <td class="memitemleft"><a href="#operator->"><strong>operator-></strong></a> (() const)
+      <div class="mdesc">Provides const pointer-like access to the wrapped resource.</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="memtype"><code>void</code></td>
+    <td class="memitemleft"><a href="#operator t&"><strong>operator T&</strong></a> (() &amp;)
+      <div class="mdesc">Explicit conversion to resource reference.</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="memtype"><code>void</code></td>
+    <td class="memitemleft"><a href="#operator const t &"><strong>operator const T &</strong></a> (() const &amp;)
+      <div class="mdesc">Provides a const reference to the wrapped resource.</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="memtype"><code>void</code></td>
+    <td class="memitemleft"><a href="#operator bool"><strong>operator bool</strong></a> (() const noexcept)
+      <div class="mdesc">Tests whether the guard holds a resource eligible for return.</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="memtype"><code>void</code></td>
+    <td class="memitemleft"><a href="#operator innertype"><strong>operator InnerType</strong></a> (() const)
+      <div class="mdesc">Converts through a conversion supplied by the stored resource type.</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="memtype"><code>resource_guard &amp;</code></td>
+    <td class="memitemleft"><a href="#operator="><strong>operator=</strong></a> (T &amp;&amp;src)
+      <div class="mdesc">Assignment operator for resource value.</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="memtype"><code>void</code></td>
+    <td class="memitemleft"><a href="#invalidate"><strong>invalidate</strong></a> ()
+      <div class="mdesc">Member function.</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="memtype"><code>bool</code></td>
+    <td class="memitemleft"><a href="#is_valid"><strong>is_valid</strong></a> (() const)
+      <div class="mdesc">Checks if the resource is valid.</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="memtype"><code>auto &amp;</code></td>
+    <td class="memitemleft"><a href="#set_error"><strong>set_error</strong></a> (pool_error err)
+      <div class="mdesc">Sets the error reported by error().</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="memtype"><code>pool_error</code></td>
+    <td class="memitemleft"><a href="#error"><strong>error</strong></a> (() const)
+      <div class="mdesc">Gets the error associated with this guard.</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="memtype"><code>bool</code></td>
+    <td class="memitemleft"><a href="#has_value"><strong>has_value</strong></a> (() const)
+      <div class="mdesc">Tests whether the guard holds a valid resource.</div>
+    </td>
+  </tr>
+</table>
+
+## Member Function Details
+
+### <a id="resource_guard"></a>`resource_guard`
 
 ```cpp
-namespace siddiqsoft::arrp {
-    template <NonNumericMoveConstructible T>
-    class resource_guard final;
-}
+void resource_guard::resource_guard(const resource_guard &)=delete;
 ```
 
-`resource_guard<T>` is a move-only, `final` RAII handle wrapping a resource borrowed from a `resource_pool<T>`.
+Copy constructor is deleted.
 
----
-
-## Member Functions
-
-### Constructors & Destructor
+### <a id="operator="></a>`operator=`
 
 ```cpp
-resource_guard() noexcept;
-resource_guard(resource_guard&& source) noexcept;
-~resource_guard();
+resource_guard & resource_guard::operator=(const resource_guard &)=delete;
 ```
 
-- **Default Constructor**: Constructs an invalid guard (`error() == pool_error::NoMoreResources`).
-- **Move Constructor**: Transfers ownership of the borrowed resource and callback from `source`. Leaves `source` invalid.
-- **Destructor**: If valid, invokes the return callback to send the resource back to the pool (or discards it if marked abandoned/invalidated).
+Copy assignment operator is deleted.
 
----
-
-### Validity & Inspection
-
-#### `operator bool` / `has_value`
+### <a id="resource_guard"></a>`resource_guard`
 
 ```cpp
-explicit operator bool() const noexcept;
-bool has_value() const noexcept;
+void resource_guard::resource_guard(const pool_error &err);
 ```
 
-Returns `true` if the guard holds a valid, usable resource; `false` otherwise.
+Constructs an invalid guard carrying a borrow error.
 
-#### `is_valid`
+### <a id="resource_guard"></a>`resource_guard`
 
 ```cpp
-bool is_valid() const noexcept;
+void resource_guard::resource_guard(resource_guard &&src);
 ```
 
-Reports whether the destructor will return the resource back to the pool.
+Move constructor.
 
-#### `error`
+### <a id="operator="></a>`operator=`
 
 ```cpp
-pool_error error() const noexcept;
+resource_guard & resource_guard::operator=(resource_guard &&src);
 ```
 
-Returns the error code associated with an invalid guard (e.g. `pool_error::NoMoreResources`, `pool_error::Timeout`, `pool_error::ShutdownInitiated`).
+Move assignment operator.
 
----
-
-### Accessors & Conversion
-
-#### `operator*` & `operator->`
+### <a id="~resource_guard"></a>`~resource_guard`
 
 ```cpp
-T& operator*() &;
-const T& operator*() const&;
-T* operator->() noexcept;
-const T* operator->() const noexcept;
+void resource_guard::~resource_guard() noexcept;
 ```
 
-Accesses the underlying resource `T`.
-- **Precondition**: `operator bool()` must be `true`. `operator->()` returns `nullptr` if the guard is invalid.
+Destructor - invokes callback to handle resource return or abandonment.
 
----
-
-### Mutation & Invalidation
-
-#### `invalidate`
+### <a id="operator*"></a>`operator*`
 
 ```cpp
-void invalidate() noexcept;
+T & resource_guard::operator*();
 ```
 
-Marks the guard invalid/abandoned. When the guard's destructor runs, the resource will be discarded rather than returned to the pool.
+Dereference operator to access the wrapped resource.
 
-#### `to_json`
+### <a id="operator->"></a>`operator->`
 
 ```cpp
-nlohmann::json to_json() const;
+T * resource_guard::operator->();
 ```
 
-Returns a JSON representation of the guard's state. Only compiled when `nlohmann/json.hpp` is included prior to `arrp.hpp`.
+Pointer-like access to the wrapped resource.
+
+### <a id="operator->"></a>`operator->`
+
+```cpp
+const T * resource_guard::operator->() const;
+```
+
+Provides const pointer-like access to the wrapped resource.
+
+### <a id="operator t&"></a>`operator T&`
+
+```cpp
+void resource_guard::operator T&() &;
+```
+
+Explicit conversion to resource reference.
+
+### <a id="operator const t &"></a>`operator const T &`
+
+```cpp
+void resource_guard::operator const T &() const &;
+```
+
+Provides a const reference to the wrapped resource.
+
+### <a id="operator bool"></a>`operator bool`
+
+```cpp
+void resource_guard::operator bool() const noexcept;
+```
+
+Tests whether the guard holds a resource eligible for return.
+
+### <a id="operator innertype"></a>`operator InnerType`
+
+```cpp
+void resource_guard::operator InnerType() const;
+```
+
+Converts through a conversion supplied by the stored resource type.
+
+### <a id="operator="></a>`operator=`
+
+```cpp
+resource_guard & resource_guard::operator=(T &&src);
+```
+
+Assignment operator for resource value.
+
+### <a id="invalidate"></a>`invalidate`
+
+```cpp
+void resource_guard::invalidate();
+```
+
+Executes component operation.
+
+### <a id="is_valid"></a>`is_valid`
+
+```cpp
+bool resource_guard::is_valid() const;
+```
+
+Checks if the resource is valid.
+
+### <a id="set_error"></a>`set_error`
+
+```cpp
+auto & resource_guard::set_error(pool_error err);
+```
+
+Sets the error reported by error().
+
+### <a id="error"></a>`error`
+
+```cpp
+pool_error resource_guard::error() const;
+```
+
+Gets the error associated with this guard.
+
+### <a id="has_value"></a>`has_value`
+
+```cpp
+bool resource_guard::has_value() const;
+```
+
+Tests whether the guard holds a valid resource.
+
+## Source Code Reference
+
+- Header: [`include/siddiqsoft/private/resource_guard.hpp`](https://github.com/SiddiqSoft/arrp/blob/master/include/siddiqsoft/private/resource_guard.hpp#L118)

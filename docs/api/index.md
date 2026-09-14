@@ -1,50 +1,23 @@
-# API Reference Overview
+# API Reference
 
-All public types and concepts in `arrp` reside within the namespace `siddiqsoft::arrp`.
+All declarations in `arrp` reside in `namespace siddiqsoft`.
 
-Include the complete public API with:
+## Public API Overview
 
-```cpp
-#include <siddiqsoft/arrp.hpp>
-```
+| Component / Class | Header | Responsibility |
+| :--- | :--- | :--- |
+| [`siddiqsoft::resource_guard`](resource_guard.md) | <code><span class="filepath-dir">include/siddiqsoft/private/</span><wbr><span class="filepath-name">resource_guard.hpp</span></code> | Auto Returning Resource Pool for Modern C++23 |
+| [`siddiqsoft::resource_pool`](resource_pool.md) | <code><span class="filepath-dir">include/siddiqsoft/private/</span><wbr><span class="filepath-name">resource_pool.hpp</span></code> | Auto Returning Resource Pool for Modern C++23 |
 
----
+## System UML Class Diagram
 
-## Core API Elements
+The following diagram illustrates the primary classes, inheritance, and relationships in `arrp`. Click any node to navigate to its GitHub source location:
 
-<div class="grid">
-  <div class="card">
-    <h3><a href="resource_pool/">resource_pool&lt;T&gt;</a></h3>
-    <p>Thread-safe resource container template managing available resources, factory callbacks, timeouts, and JSON metrics.</p>
-  </div>
-  <div class="card">
-    <h3><a href="resource_guard/">resource_guard&lt;T&gt;</a></h3>
-    <p>Move-only RAII handle returned by borrowing. Automatically returns the resource on scope exit or discards it if invalidated.</p>
-  </div>
-  <div class="card">
-    <h3><a href="types/">Types & Enumerations</a></h3>
-    <p>Capacity limits, error codes (<code>pool_error</code>), release reasons (<code>release_reason</code>), and <code>std::formatter</code> specializations.</p>
-  </div>
-</div>
+<!-- @@uml-diag:complete -->
 
----
+### Source Code Mapping
 
-## Type Constraints: `NonNumericMoveConstructible` Concept
-
-`resource_pool<T>` and `resource_guard<T>` require that `T` satisfies the concept `NonNumericMoveConstructible`.
-
-```cpp
-template <typename T>
-concept NonNumericMoveConstructible = 
-    std::move_constructible<T> && 
-    std::is_move_assignable_v<T> && 
-    !std::is_arithmetic_v<T>;
-```
-
-### Type Requirements
-
-1. **Move Constructible**: `T` must be movable (`std::move_constructible<T>`).
-2. **Move Assignable**: `T` must be move assignable (`std::is_move_assignable_v<T>`).
-3. **Non-Arithmetic**: `T` cannot be a primitive numeric or boolean type (`!std::is_arithmetic_v<T>`).
-
-Suitable resource types include smart pointers (`std::unique_ptr`, `std::shared_ptr`), container objects (`std::string`, `std::vector`), network sockets, file handles, and custom database connection classes.
+| Component / Class | Header File | Source Link | Purpose & Architectural Role |
+| :--- | :--- | :--- | :--- |
+| [`siddiqsoft::arrp::resource_guard`](resource_guard.md) | <code><span class="filepath-dir">include/siddiqsoft/private/</span><wbr><span class="filepath-name">resource_guard.hpp</span></code> | [`resource_guard.hpp`](https://github.com/SiddiqSoft/arrp/blob/master/include/siddiqsoft/private/resource_guard.hpp#L118) | Core component implementation. |
+| [`siddiqsoft::arrp::resource_pool`](resource_pool.md) | <code><span class="filepath-dir">include/siddiqsoft/private/</span><wbr><span class="filepath-name">resource_pool.hpp</span></code> | [`resource_pool.hpp`](https://github.com/SiddiqSoft/arrp/blob/master/include/siddiqsoft/private/resource_pool.hpp#L88) | Core component implementation. |

@@ -113,3 +113,52 @@ code, kbd, pre {
 .md-typeset .headerlink {
   transition: opacity 0.2s ease;
 }
+
+/* GraphViz UML SVG styles */
+.uml-diagram-container.graphviz-uml {
+  margin: 1.5rem 0;
+  display: block;
+  text-align: center;
+}
+
+.uml-diagram-container.graphviz-uml .uml-diagram-figure {
+  margin: 0 auto;
+  display: inline-block;
+  max-width: 100%;
+}
+
+.uml-diagram-container.graphviz-uml .uml-diagram-viewport {
+  overflow-x: auto;
+  max-width: 100%;
+  padding: 1rem;
+  border-radius: 8px;
+  background-color: var(--api-bg-card, #ffffff);
+  border: 1px solid var(--api-border, #cbd5e1);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.uml-diagram-container.graphviz-uml svg.graphviz-uml-svg {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+.uml-diagram-container.graphviz-uml figcaption {
+  margin-top: 0.6rem;
+  font-size: 0.84rem;
+  color: var(--api-text-muted, #64748b);
+  font-style: italic;
+  text-align: center;
+}
+
+/* Dark mode palette adaptation for GraphViz SVGs */
+[data-md-color-scheme="slate"] .uml-diagram-container.graphviz-uml .uml-diagram-viewport {
+  background-color: var(--api-bg-card, #0f172a);
+  border-color: var(--api-border, #334155);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+}
+
+[data-md-color-scheme="slate"] .uml-diagram-container.graphviz-uml svg.graphviz-uml-svg {
+  filter: invert(0.88) hue-rotate(180deg);
+}

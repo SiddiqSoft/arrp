@@ -17,6 +17,12 @@ exclude_docs: |
   Doxyfile
   doxygen_xml/*
   doxygen_xml/**
+  doxygen_html/*
+  doxygen_html/**
+  snippets/*
+  snippets/**
+  doxygen_xml/*
+  doxygen_xml/**
   __pycache__/*
 
 extra:
@@ -92,26 +98,14 @@ extra_css:
 
 nav:
   - Home: index.md
-  - Getting Started:
-      - Overview: quickstart/index.md
-      - CMake: quickstart/cmake.md
-      - Package Managers: quickstart/package-managers.md
-      - Dependencies: quickstart/dependencies.md
+  - Getting Started: quickstart/index.md
   - API Reference:
       - Overview: api/index.md
       - resource_pool: api/resource_pool.md
       - resource_guard: api/resource_guard.md
       - Types & Enums: api/types.md
   - Related Pages:
-      - Architecture & Features:
-          - Overview: architecture/index.md
-          - Resource Management: architecture/resource-management.md
-          - Threading & Lifetime: architecture/threading-lifetime.md
-          - JSON & Diagnostics: architecture/json-diagnostics.md
-      - Examples:
-          - Overview: examples/index.md
-          - Scoped File: examples/scoped_file.md
-          - Scoped cURL: examples/scoped_curl.md
+      - Architecture & Diagnostics: architecture/index.md
       - Maintainer Guide:
           - Overview: maintainers/index.md
           - Maintainer Guide: maintainers/maintainer_guide.md

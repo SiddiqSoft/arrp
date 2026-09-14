@@ -1,0 +1,16 @@
+var annotated_dup =
+[
+    [ "siddiqsoft", "namespacesiddiqsoft.html", [
+      [ "arrp", "namespacesiddiqsoft_1_1arrp.html", [
+        [ "resource_guard", "classsiddiqsoft_1_1arrp_1_1resource__guard.html", "classsiddiqsoft_1_1arrp_1_1resource__guard" ],
+        [ "resource_pool", "classsiddiqsoft_1_1arrp_1_1resource__pool.html", "classsiddiqsoft_1_1arrp_1_1resource__pool" ]
+      ] ]
+    ] ],
+    [ "std", null, [
+      [ "formatter&lt; siddiqsoft::arrp::pool_error &gt;", "structstd_1_1formatter_3_01siddiqsoft_1_1arrp_1_1pool__error_01_4.html", "structstd_1_1formatter_3_01siddiqsoft_1_1arrp_1_1pool__error_01_4" ],
+      [ "formatter&lt; siddiqsoft::arrp::release_reason &gt;", "structstd_1_1formatter_3_01siddiqsoft_1_1arrp_1_1release__reason_01_4.html", "structstd_1_1formatter_3_01siddiqsoft_1_1arrp_1_1release__reason_01_4" ],
+      [ "formatter&lt; siddiqsoft::arrp::resource_guard&lt; T &gt; &gt;", "structstd_1_1formatter_3_01siddiqsoft_1_1arrp_1_1resource__guard_3_01_t_01_4_01_4.html", "structstd_1_1formatter_3_01siddiqsoft_1_1arrp_1_1resource__guard_3_01_t_01_4_01_4" ],
+      [ "formatter&lt; siddiqsoft::arrp::resource_pool&lt; T &gt; &gt;", "structstd_1_1formatter_3_01siddiqsoft_1_1arrp_1_1resource__pool_3_01_t_01_4_01_4.html", "structstd_1_1formatter_3_01siddiqsoft_1_1arrp_1_1resource__pool_3_01_t_01_4_01_4" ],
+      [ "formatter&lt; siddiqsoft::arrp::resource_pool_limits &gt;", "structstd_1_1formatter_3_01siddiqsoft_1_1arrp_1_1resource__pool__limits_01_4.html", "structstd_1_1formatter_3_01siddiqsoft_1_1arrp_1_1resource__pool__limits_01_4" ]
+    ] ]
+];

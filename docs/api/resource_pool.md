@@ -1,118 +1,229 @@
-# Class Template `resource_pool<T>`
+# siddiqsoft::arrp::resource_pool
 
-Defined in header `<siddiqsoft/arrp.hpp>` / `<siddiqsoft/private/resource_pool.hpp>`.
+<div class="grid" markdown="1">
+<div class="api-intro-col" markdown="1">
+<div class="api-header-block">
+  <div class="api-module-name">Namespace siddiqsoft</div>
+  <div class="api-header-file">#include &lt;siddiqsoft/private/resource_pool.hpp&gt;</div>
+</div>
+
+`resource_pool` component of `arrp`.
+
+</div>
+<div class="api-diag-col" markdown="1">
+
+**Class Hierarchy & Inheritance**
+
+The following UML class diagram highlights `siddiqsoft::arrp::resource_pool` and its direct relationships. Click the node to navigate to its source file on GitHub.
+
+<!-- @@uml-diag:resource_pool -->
+
+</div>
+</div>
+
+## Member Functions Summary
+
+<table class="api-summary-table">
+  <tr>
+    <td class="memtype"><code>void</code></td>
+    <td class="memitemleft"><a href="#resource_pool"><strong>resource_pool</strong></a> ((resource_pool &amp;)=delete)
+      <div class="mdesc">Copy constructor is deleted.</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="memtype"><code>void</code></td>
+    <td class="memitemleft"><a href="#resource_pool"><strong>resource_pool</strong></a> ((resource_pool &amp;&amp;src)=delete)
+      <div class="mdesc">Move constructor is deleted.</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="memtype"><code>resource_pool &amp;</code></td>
+    <td class="memitemleft"><a href="#operator="><strong>operator=</strong></a> ((resource_pool &amp;)=delete)
+      <div class="mdesc">Copy assignment operator is deleted.</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="memtype"><code>resource_pool &amp;</code></td>
+    <td class="memitemleft"><a href="#operator="><strong>operator=</strong></a> ((resource_pool &amp;&amp;src)=delete)
+      <div class="mdesc">Move assignment operator is deleted.</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="memtype"><code>void</code></td>
+    <td class="memitemleft"><a href="#resource_pool"><strong>resource_pool</strong></a> (<div class="param-wrap">uint8_t init_capacity=resource_pool_limits::DefaultCapacity,</div><div class="param-wrap">std::function&lt; void(T &amp;)&gt; &amp;&amp;on_shutdown_callback={}</div>)
+      <div class="mdesc">Constructs a resource pool with an optional cleanup callback.</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="memtype"><code>void</code></td>
+    <td class="memitemleft"><a href="#resource_pool"><strong>resource_pool</strong></a> (<div class="param-wrap">std::function&lt; void(T &amp;)&gt; &amp;&amp;on_shutdown_callback</div>)
+      <div class="mdesc">Constructs a resource pool with only cleanup callback.</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="memtype"><code>void</code></td>
+    <td class="memitemleft"><a href="#~resource_pool"><strong>~resource_pool</strong></a> ()
+      <div class="mdesc">Destructor - cleans up all resources in the pool.</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="memtype"><code>void</code></td>
+    <td class="memitemleft"><a href="#set_factory_callback"><strong>set_factory_callback</strong></a> (F &amp;&amp;f)
+      <div class="mdesc">Sets the factory used by try_borrow_create() when no resource is available.</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="memtype"><code>pool_error</code></td>
+    <td class="memitemleft"><a href="#clear"><strong>clear</strong></a> ()
+      <div class="mdesc">Clears all resources from the pool.</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="memtype"><code>auto</code></td>
+    <td class="memitemleft"><a href="#size"><strong>size</strong></a> (() const)
+      <div class="mdesc">Gets the current size of the pool.</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="memtype"><code>resource_guard&lt; T &gt;</code></td>
+    <td class="memitemleft"><a href="#try_borrow"><strong>try_borrow</strong></a> (<div class="param-wrap">std::chrono::nanoseconds timeout={}</div>)
+      <div class="mdesc">Borrows an available resource without creating one.</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="memtype"><code>resource_guard&lt; T &gt;</code></td>
+    <td class="memitemleft"><a href="#try_borrow_create"><strong>try_borrow_create</strong></a> (<div class="param-wrap">std::chrono::nanoseconds timeout={}</div>)
+      <div class="mdesc">Borrows an available resource or creates one through the factory.</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="memtype"><code>pool_error</code></td>
+    <td class="memitemleft"><a href="#seed"><strong>seed</strong></a> (Args &amp;&amp;... args)
+      <div class="mdesc">Adds a resource to the pool by constructing it in-place.</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="memtype"><code>pool_error</code></td>
+    <td class="memitemleft"><a href="#seed"><strong>seed</strong></a> (T &amp;&amp;item)
+      <div class="mdesc">Adds a resource to the pool by moving it.</div>
+    </td>
+  </tr>
+</table>
+
+## Member Function Details
+
+### <a id="resource_pool"></a>`resource_pool`
 
 ```cpp
-namespace siddiqsoft::arrp {
-    template <NonNumericMoveConstructible T>
-    class resource_pool;
-}
+void resource_pool::resource_pool(resource_pool &)=delete;
 ```
 
-`resource_pool<T>` is a thread-safe, non-copyable, non-movable class template that manages a pool of moveable resource instances of type `T`.
+Copy constructor is deleted.
 
----
-
-## Member Functions
-
-### Constructors & Destructor
+### <a id="resource_pool"></a>`resource_pool`
 
 ```cpp
-resource_pool(
-    uint8_t init_capacity = resource_pool_limits::DefaultCapacity,
-    std::function<void(T&)>&& on_shutdown_callback = {}
-);
-
-resource_pool(
-    std::function<void(T&)>&& on_shutdown_callback
-);
+void resource_pool::resource_pool(resource_pool &&src)=delete;
 ```
 
-- **`init_capacity`**: Initial capacity guidance. Clamped internally to `[resource_pool_limits::MinimumCapacity, resource_pool_limits::MaxCapacity]` (1 to 255).
-- **`on_shutdown_callback`**: Optional cleanup callback executed for every available resource during `clear()` or pool destruction. The callback executes under pool synchronization lock and must not call pool methods.
+Move constructor is deleted.
 
----
-
-### Borrowing Methods
-
-#### `try_borrow`
+### <a id="operator="></a>`operator=`
 
 ```cpp
-resource_guard<T> try_borrow(std::chrono::nanoseconds timeout = {});
+resource_pool & resource_pool::operator=(resource_pool &)=delete;
 ```
 
-Borrows the next available resource in FIFO order.
+Copy assignment operator is deleted.
 
-- **Parameters**: `timeout` - Duration to wait if no resource is available. A zero duration (`0ns`, default) returns immediately without blocking.
-- **Return Value**: A `resource_guard<T>`. If borrowing succeeded, `operator bool()` is `true`. If exhausted/timed out, returns an invalid guard where `.error()` is `pool_error::NoMoreResources` or `pool_error::Timeout`.
-
-#### `try_borrow_create`
+### <a id="operator="></a>`operator=`
 
 ```cpp
-resource_guard<T> try_borrow_create(std::chrono::nanoseconds timeout = {});
+resource_pool & resource_pool::operator=(resource_pool &&src)=delete;
 ```
 
-Borrows an available resource from the pool, or invokes the registered factory callback if no resource is available after the timeout.
+Move assignment operator is deleted.
 
-- **Parameters**: `timeout` - Duration to wait before invoking the factory.
-- **Return Value**: A valid `resource_guard<T>` containing a borrowed or factory-created resource, or an invalid guard if no factory callback was set or shutdown was initiated.
-
----
-
-### Configuration & Modification
-
-#### `set_factory_callback`
+### <a id="resource_pool"></a>`resource_pool`
 
 ```cpp
-template <class F>
-void set_factory_callback(F&& f);
+void resource_pool::resource_pool(uint8_t init_capacity=resource_pool_limits::DefaultCapacity, std::function< void(T &)> &&on_shutdown_callback={});
 ```
 
-Registers a factory callback used by `try_borrow_create()`.
+Constructs a resource pool with an optional cleanup callback.
 
-- **Parameters**: `f` - Callable taking no parameters and returning `T` or `resource_guard<T>`.
-
-#### `seed`
+### <a id="resource_pool"></a>`resource_pool`
 
 ```cpp
-template <class... Args>
-pool_error seed(Args&&... args);
-
-pool_error seed(T&& item);
+void resource_pool::resource_pool(std::function< void(T &)> &&on_shutdown_callback);
 ```
 
-Adds a new resource to the available pool.
+Constructs a resource pool with only cleanup callback.
 
-- **In-place construction**: Constructs `T(std::forward<Args>(args)...)` directly in pool storage.
-- **Move-seeding**: Moves an existing instance of `T` into pool storage.
-- **Return Value**: `pool_error::Ok` on success, or `pool_error::ShutdownInitiated` if the pool is shutting down.
-
-#### `clear`
+### <a id="~resource_pool"></a>`~resource_pool`
 
 ```cpp
-pool_error clear();
+void resource_pool::~resource_pool();
 ```
 
-Removes and destroys all resources currently available (idle) in the pool. If a shutdown callback was provided, it is invoked for each removed resource.
+Destructor - cleans up all resources in the pool.
 
-- **Return Value**: `pool_error::Ok`.
-
----
-
-### Inspection & Metrics
-
-#### `size`
+### <a id="set_factory_callback"></a>`set_factory_callback`
 
 ```cpp
-size_t size() const noexcept;
+void resource_pool::set_factory_callback(F &&f);
 ```
 
-Returns the current count of available (idle) resources in the pool.
+Sets the factory used by try_borrow_create() when no resource is available.
 
-#### `to_json`
+### <a id="clear"></a>`clear`
 
 ```cpp
-nlohmann::json to_json() const;
+pool_error resource_pool::clear();
 ```
 
-Returns a JSON object containing pool metrics (`capacity`, `size`, `borrows`, `returns`, `abandons`, `loans`, etc.). Only compiled when `nlohmann/json.hpp` is included prior to `arrp.hpp`.
+Clears all resources from the pool.
+
+### <a id="size"></a>`size`
+
+```cpp
+auto resource_pool::size() const;
+```
+
+Gets the current size of the pool.
+
+### <a id="try_borrow"></a>`try_borrow`
+
+```cpp
+resource_guard< T > resource_pool::try_borrow(std::chrono::nanoseconds timeout={});
+```
+
+Borrows an available resource without creating one.
+
+### <a id="try_borrow_create"></a>`try_borrow_create`
+
+```cpp
+resource_guard< T > resource_pool::try_borrow_create(std::chrono::nanoseconds timeout={});
+```
+
+Borrows an available resource or creates one through the factory.
+
+### <a id="seed"></a>`seed`
+
+```cpp
+pool_error resource_pool::seed(Args &&... args);
+```
+
+Adds a resource to the pool by constructing it in-place.
+
+### <a id="seed"></a>`seed`
+
+```cpp
+pool_error resource_pool::seed(T &&item);
+```
+
+Adds a resource to the pool by moving it.
+
+## Source Code Reference
+
+- Header: [`include/siddiqsoft/private/resource_pool.hpp`](https://github.com/SiddiqSoft/arrp/blob/master/include/siddiqsoft/private/resource_pool.hpp#L88)
