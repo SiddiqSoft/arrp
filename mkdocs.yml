@@ -92,23 +92,33 @@ extra_css:
 
 nav:
   - Home: index.md
-  - Features:
-      - Overview: features/index.md
-      - Resource Management: features/resource-management.md
-      - Threading & Lifetime: features/threading-lifetime.md
-      - JSON & Diagnostics: features/json-diagnostics.md
-  - Integration:
-      - Overview: integration/index.md
-      - CMake: integration/cmake.md
-      - Package Managers: integration/package-managers.md
-      - Dependencies: integration/dependencies.md
-  - Examples:
-      - Overview: examples/index.md
-      - Scoped File: examples/scoped_file.md
-      - Scoped cURL: examples/scoped_curl.md
+  - Getting Started:
+      - Overview: quickstart/index.md
+      - CMake: quickstart/cmake.md
+      - Package Managers: quickstart/package-managers.md
+      - Dependencies: quickstart/dependencies.md
   - API Reference:
       - Overview: api/index.md
       - resource_pool: api/resource_pool.md
       - resource_guard: api/resource_guard.md
       - Types & Enums: api/types.md
-  - License: license.md
+  - Related Pages:
+      - Architecture & Features:
+          - Overview: architecture/index.md
+          - Resource Management: architecture/resource-management.md
+          - Threading & Lifetime: architecture/threading-lifetime.md
+          - JSON & Diagnostics: architecture/json-diagnostics.md
+      - Examples:
+          - Overview: examples/index.md
+          - Scoped File: examples/scoped_file.md
+          - Scoped cURL: examples/scoped_curl.md
+      - Maintainer Guide:
+          - Overview: maintainers/index.md
+          - Maintainer Guide: maintainers/maintainer_guide.md
+          - CI/CD Pipelines: maintainers/pipelines.md
+          - CMake Presets: maintainers/cmake_presets.md
+          - Development Workflow: maintainers/workflow.md
+          - Build Agent Requirements: maintainers/build_agents.md
+          - Release Lifecycle: maintainers/releases.md
+          - Documentation Architecture: maintainers/documentation.md
+      - License: license.md
