@@ -376,10 +376,14 @@ def generate_system_uml_diagram(
         lines.append(f'    class {clean_id}["{cm.name}"] {{')
         for sm in cm.static_methods[:3]:
             ret = f" {sm['return_type']}" if sm["return_type"] else ""
-            lines.append(f"        +{sm['name']}{sm['args']}${ret}")
+            sanitized_args = re.sub(r'=[^,)]+', '', sm['args']).replace("<", "~").replace(">", "~").replace("{", "[").replace("}", "]")
+            sanitized_ret = ret.replace("<", "~").replace(">", "~")
+            lines.append(f"        +{sm['name']}{sanitized_args}${sanitized_ret}")
         for m in cm.methods[:5]:
             ret = f" {m['return_type']}" if m["return_type"] else ""
-            lines.append(f"        +{m['name']}{m['args']}{ret}")
+            sanitized_args = re.sub(r'=[^,)]+', '', m['args']).replace("<", "~").replace(">", "~").replace("{", "[").replace("}", "]")
+            sanitized_ret = ret.replace("<", "~").replace(">", "~")
+            lines.append(f"        +{m['name']}{sanitized_args}{sanitized_ret}")
         lines.append("    }")
         lines.append(f"    class {clean_id}:::{cls_style}")
         lines.append("")
