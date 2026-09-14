@@ -111,6 +111,12 @@ parameters:
     default: false
     displayName: "Publish documentation site (auto-enabled on main/master)"
 
+  - name: DocAgentOS
+    type: string
+    default: Linux
+    values: [ Linux, Darwin ]
+    displayName: "Agent OS for documentation site publication (Linux or Darwin)"
+
   # Cleanup
   - name: Cleanup
     type: boolean
@@ -210,7 +216,7 @@ stages:
         displayName: "Darwin Build and Test"
         platform: Darwin
         agentOS: Darwin
-        cmakePresetPrefix: Darwin-
+        cmakePresetPrefix: Apple-
         architectures: ${{ parameters.Architectures }}
         compilers: ${{ parameters.Compilers_Darwin }}
         buildTypes: ${{ parameters.BuildTypes }}
@@ -266,7 +272,7 @@ stages:
       - Windows
       - Linux
       - Darwin
-    condition: and(not(failed()), not(canceled()), or(eq('${{ parameters.PublishDocs }}', 'true'), eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(variables['Build.SourceBranch'], 'refs/heads/master')))
+    condition: and(not(failed()), not(canceled()), or(eq('${{ parameters.PublishDocs }}', 'true'), eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(variables['Build.SourceBranch'], 'refs/heads/master')), ${{ or(containsValue(parameters.Platforms, 'Linux'), containsValue(parameters.Platforms, 'Darwin')) }})
     jobs:
       - job: ApproveDocsRelease
         displayName: "Manual Approval - Documentation Site"
@@ -281,4 +287,5 @@ stages:
       - template: .azure/az-publish-docs.yml
         parameters:
           displayName: Publish Documentation Site
+          agentOS: ${{ parameters.DocAgentOS }}
           dependsOn: [ ApproveDocsRelease ]
