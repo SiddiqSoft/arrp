@@ -494,13 +494,51 @@ def generate_class_markdown(
             ])
         lines.extend(["</table>", ""])
 
-    if cm.methods:
+    constructors = []
+    normal_methods = []
+    for m in cm.methods:
+        if m["name"] == cm.short_name or m["name"] == f"~{cm.short_name}":
+            constructors.append(m)
+        else:
+            normal_methods.append(m)
+
+    lines.extend([
+        "## Member Functions Summary",
+        "",
+    ])
+
+    if constructors:
         lines.extend([
-            "## Member Functions Summary",
+            "### Constructors & Destructors",
             "",
             '<table class="api-summary-table">',
         ])
-        for m in cm.methods:
+        for m in constructors:
+            anchor = m["name"].lower()
+            formatted_params = format_summary_params(m["name"], anchor, m["args"])
+            ret_type = escape_html(m["return_type"] or "")
+            if not ret_type:
+                ret_html = ""
+            else:
+                ret_html = f'<code>{ret_type}</code>'
+            brief_desc = m["brief"] or "Lifecycle method."
+            lines.extend([
+                "  <tr>",
+                f'    <td class="memtype">{ret_html}</td>',
+                f'    <td class="memitemleft">{formatted_params}',
+                f'      <div class="mdesc">{brief_desc}</div>',
+                "    </td>",
+                "  </tr>",
+            ])
+        lines.extend(["</table>", ""])
+
+    if normal_methods:
+        lines.extend([
+            "### Core Accessors & Modifiers",
+            "",
+            '<table class="api-summary-table">',
+        ])
+        for m in normal_methods:
             anchor = m["name"].lower()
             formatted_params = format_summary_params(m["name"], anchor, m["args"])
             ret_type = escape_html(m["return_type"] or "void")
