@@ -1,4 +1,4 @@
-# siddiqsoft::arrp::resource_pool
+# siddiqsoft::arrp::resource_pool Class Reference
 
 <div class="grid" markdown="1">
 <div class="api-intro-col" markdown="1">

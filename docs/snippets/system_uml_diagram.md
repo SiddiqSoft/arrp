@@ -9,20 +9,20 @@ classDiagram
     classDef highlightClass fill:rgba(2,132,199,0.18),stroke:#0284c7,stroke-width:3px;
 
     class resource_guard["siddiqsoft::arrp::resource_guard"] {
-        +resource_guard(const resource_guard &)=delete void
-        +operator=(const resource_guard &)=delete resource_guard &
+        +resource_guard(const resource_guard &) void
+        +operator_assign(const resource_guard &) resource_guard &
         +resource_guard(const pool_error &err) void
         +resource_guard(resource_guard &&src) void
-        +operator=(resource_guard &&src) resource_guard &
+        +operator_assign(resource_guard &&src) resource_guard &
     }
     class resource_guard:::coreClass
 
     class resource_pool["siddiqsoft::arrp::resource_pool"] {
-        +resource_pool(resource_pool &)=delete void
-        +resource_pool(resource_pool &&src)=delete void
-        +operator=(resource_pool &)=delete resource_pool &
-        +operator=(resource_pool &&src)=delete resource_pool &
-        +resource_pool(uint8_t init_capacity=resource_pool_limits::DefaultCapacity, std::function< void(T &)> &&on_shutdown_callback={}) void
+        +resource_pool(resource_pool &) void
+        +resource_pool(resource_pool &&src) void
+        +operator_assign(resource_pool &) resource_pool &
+        +operator_assign(resource_pool &&src) resource_pool &
+        +resource_pool(uint8_t init_capacity, std::function~ void(T &)~ &&on_shutdown_callback) void
     }
     class resource_pool:::coreClass
 

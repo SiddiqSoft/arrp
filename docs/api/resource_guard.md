@@ -1,4 +1,4 @@
-# siddiqsoft::arrp::resource_guard
+# siddiqsoft::arrp::resource_guard Class Reference
 
 <div class="grid" markdown="1">
 <div class="api-intro-col" markdown="1">

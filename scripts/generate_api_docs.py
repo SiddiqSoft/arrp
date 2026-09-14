@@ -378,12 +378,14 @@ def generate_system_uml_diagram(
             ret = f" {sm['return_type']}" if sm["return_type"] else ""
             sanitized_args = re.sub(r'=[^,)]+', '', sm['args']).replace("<", "~").replace(">", "~").replace("{", "[").replace("}", "]")
             sanitized_ret = ret.replace("<", "~").replace(">", "~")
-            lines.append(f"        +{sm['name']}{sanitized_args}${sanitized_ret}")
+            clean_name = sm['name'].replace("operator=", "operator_assign")
+            lines.append(f"        +{clean_name}{sanitized_args}${sanitized_ret}")
         for m in cm.methods[:5]:
             ret = f" {m['return_type']}" if m["return_type"] else ""
             sanitized_args = re.sub(r'=[^,)]+', '', m['args']).replace("<", "~").replace(">", "~").replace("{", "[").replace("}", "]")
             sanitized_ret = ret.replace("<", "~").replace(">", "~")
-            lines.append(f"        +{m['name']}{sanitized_args}{sanitized_ret}")
+            clean_name = m['name'].replace("operator=", "operator_assign")
+            lines.append(f"        +{clean_name}{sanitized_args}{sanitized_ret}")
         lines.append("    }")
         lines.append(f"    class {clean_id}:::{cls_style}")
         lines.append("")
@@ -446,7 +448,7 @@ def generate_class_markdown(
     base_gh = f"https://github.com/{github_org}/{project_name}/blob/master"
 
     lines = [
-        f"# {cm.name}",
+        f"# {cm.name} Class Reference",
         "",
         '<div class="grid" markdown="1">',
         '<div class="api-intro-col" markdown="1">',
@@ -552,21 +554,42 @@ def generate_index_markdown(
     )
 
     lines = [
-        "# API Reference",
+        "# API Reference Overview",
         "",
-        f"All declarations in `{project_name}` reside in `namespace siddiqsoft`.",
+        '<div class="api-header-block">',
+        f'  <div class="api-module-name">{project_name} C++ Reference</div>',
+        '  <div class="api-header-file">Generated from intermediate Doxygen XML</div>',
+        '</div>',
         "",
-        "## Public API Overview",
+        f"The `siddiqsoft` namespace provides data structures and utilities for `{project_name}`.",
         "",
-        "| Component / Class | Header | Responsibility |",
-        "| :--- | :--- | :--- |",
+        "## Classes & Structures",
+        "",
+        '<table class="api-summary-table">',
     ]
 
     for cm in classes:
+        lines.extend([
+            '  <tr>',
+            '    <td class="memtype"><code>class</code></td>',
+            f'    <td class="memitemleft"><a href="{cm.short_name}.md"><strong>siddiqsoft::{cm.short_name}</strong></a><div class="mdesc">{cm.brief or f"Component of {project_name}"}</div></td>',
+            '  </tr>'
+        ])
+
+    lines.extend([
+        "</table>",
+        "",
+        "## Header Files",
+        "",
+        "| Header File | Include Path | Description |",
+        "| :--- | :--- | :--- |",
+    ])
+
+    for cm in classes:
         hdr = cm.header_file or f"include/siddiqsoft/{project_name}.hpp"
-        folded_hdr = fold_filepath_html(hdr)
-        brief = cm.brief or project_desc
-        lines.append(f"| [`siddiqsoft::{cm.short_name}`]({cm.short_name}.md) | {folded_hdr} | {brief} |")
+        fname = hdr.split("/")[-1]
+        brief = cm.brief or f'Definitions for {cm.short_name}'
+        lines.append(f"| **`{fname}`** | `#include &lt;{hdr}&gt;` | {brief} |")
 
     lines.extend([
         "",

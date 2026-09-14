@@ -1,13 +1,31 @@
-# API Reference
+# API Reference Overview
 
-All declarations in `arrp` reside in `namespace siddiqsoft`.
+<div class="api-header-block">
+  <div class="api-module-name">arrp C++ Reference</div>
+  <div class="api-header-file">Generated from intermediate Doxygen XML</div>
+</div>
 
-## Public API Overview
+The `siddiqsoft` namespace provides data structures and utilities for `arrp`.
 
-| Component / Class | Header | Responsibility |
+## Classes & Structures
+
+<table class="api-summary-table">
+  <tr>
+    <td class="memtype"><code>class</code></td>
+    <td class="memitemleft"><a href="resource_guard.md"><strong>siddiqsoft::resource_guard</strong></a><div class="mdesc">Component of arrp</div></td>
+  </tr>
+  <tr>
+    <td class="memtype"><code>class</code></td>
+    <td class="memitemleft"><a href="resource_pool.md"><strong>siddiqsoft::resource_pool</strong></a><div class="mdesc">Component of arrp</div></td>
+  </tr>
+</table>
+
+## Header Files
+
+| Header File | Include Path | Description |
 | :--- | :--- | :--- |
-| [`siddiqsoft::resource_guard`](resource_guard.md) | <code><span class="filepath-dir">include/siddiqsoft/private/</span><wbr><span class="filepath-name">resource_guard.hpp</span></code> | Auto Returning Resource Pool for Modern C++23 |
-| [`siddiqsoft::resource_pool`](resource_pool.md) | <code><span class="filepath-dir">include/siddiqsoft/private/</span><wbr><span class="filepath-name">resource_pool.hpp</span></code> | Auto Returning Resource Pool for Modern C++23 |
+| **`resource_guard.hpp`** | `#include &lt;include/siddiqsoft/private/resource_guard.hpp&gt;` | Definitions for resource_guard |
+| **`resource_pool.hpp`** | `#include &lt;include/siddiqsoft/private/resource_pool.hpp&gt;` | Definitions for resource_pool |
 
 ## System UML Class Diagram
 
