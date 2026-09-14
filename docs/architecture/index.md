@@ -1,32 +1,23 @@
-# Features Overview
+# Architecture & Diagnostics
 
-`arrp` provides a simple yet versatile set of tools for managing poolable resources in modern C++ applications.
+## Diagnostics & Natvis
 
----
+`arrp` integrates seamlessly with Visual Studio and VS Code debugging environments through the provided `.natvis` file.
 
-## Core Feature Areas
+When debugging, a `resource_pool<T>` will display:
+- Total capacity
+- Number of currently available items
+- In-flight borrow operations tracking
+- Total borrow operations performed
 
-<div class="grid">
-  <div class="card">
-    <h3><a href="resource-management/">Resource Management</a></h3>
-    <p>Learn about borrowing resources in FIFO order, seeding pre-allocated instances, factory callbacks for dynamic allocations, and invalidation mechanisms.</p>
-  </div>
-  <div class="card">
-    <h3><a href="threading-lifetime/">Threading & Lifetime Rules</a></h3>
-    <p>Understand the thread-safety semantics of <code>resource_pool&lt;T&gt;</code> versus <code>resource_guard&lt;T&gt;</code>, object destruction rules, and pool cleanup handlers.</p>
-  </div>
-  <div class="card">
-    <h3><a href="json-diagnostics/">JSON & Diagnostics</a></h3>
-    <p>Enable runtime statistics serialization via <code>nlohmann/json</code>, monitor metrics (loans, returns, abandons), and utilize native Visual Studio Natvis visualizers.</p>
-  </div>
-</div>
+## JSON Telemetry
 
----
+If `nlohmann/json` is available in your project, `arrp` provides `to_json` integration for runtime diagnostics and telemetry:
 
-## Summary of Capabilities
+```cpp
+#include <nlohmann/json.hpp>
+#include <siddiqsoft/arrp.hpp>
 
-- **Header-Only Library**: Just add `include/siddiqsoft/arrp.hpp` to your project—no build step required.
-- **Move-Only Guards**: Prevents accidental copying or multi-thread data races on borrowed handles.
-- **Explicit Invalidation**: Allows discarding corrupted or moved-out resources without returning them to pool rotation.
-- **Custom Shutdown Callbacks**: Register cleanup hooks to execute when available resources are cleared or during pool destruction.
-- **Zero-Allocation Operation**: When using pre-seeded resource pools, borrowing and returning perform no dynamic memory allocations.
+siddiqsoft::arrp::resource_pool<std::string> pool {4};
+nlohmann::json state = pool; // Invokes to_json(nlohmann::json& j, const resource_pool<T>& p)
+```

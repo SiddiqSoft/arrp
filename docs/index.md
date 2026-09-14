@@ -1,36 +1,35 @@
 # arrp
 
+<div class="hero-tagline">Thread-safe resource pool library.</div>
+
 <div class="badge-container" markdown="1">
   <a href="https://dev.azure.com/siddiqsoft/siddiqsoft/_build/latest?definitionId=33&branchName=main">
     <img src="https://dev.azure.com/siddiqsoft/siddiqsoft/_apis/build/status%2FSiddiqSoft.arrp?branchName=main" alt="Build Status" />
   </a>
+  <a href="https://www.nuget.org/packages/SiddiqSoft.arrp">
+    <img src="https://img.shields.io/nuget/v/SiddiqSoft.arrp" alt="Package Version" />
+  </a>
+  <a href="https://www.nuget.org/packages/SiddiqSoft.arrp">
+    <img src="https://img.shields.io/nuget/dt/SiddiqSoft.arrp" alt="Package Downloads" />
+  </a>
+  <a href="https://dev.azure.com/siddiqsoft/siddiqsoft/_build/latest?definitionId=33&branchName=main">
+    <img src="https://img.shields.io/azure-devops/tests/siddiqsoft/siddiqsoft/33" alt="Test Results" />
+  </a>
+  <img src="https://img.shields.io/badge/C%2B%2B-20-blue.svg" alt="C++20 Standard" />
   <a href="https://github.com/SiddiqSoft/arrp/blob/main/LICENSE">
     <img src="https://img.shields.io/badge/License-BSD_3--Clause-blue.svg" alt="License" />
   </a>
-  <img src="https://img.shields.io/badge/C%2B%2B-20-blue.svg" alt="C++20 Standard" />
-  <img src="https://img.shields.io/badge/Header--Only-Yes-green.svg" alt="Header Only" />
-  <a href="https://www.nuget.org/packages/SiddiqSoft.arrp">
-    <img src="https://img.shields.io/nuget/v/SiddiqSoft.arrp" alt="nuget" />
-  </a>
-  <img src="https://img.shields.io/github/v/tag/SiddiqSoft/arrp" alt="version" />
-  <img src="https://img.shields.io/azure-devops/tests/siddiqsoft/siddiqsoft/33" alt="tests" />
 </div>
 
 <div class="grid" markdown="1">
 
 <div class="feature-col-intro" markdown="1">
 
-**arrp** (`Auto Returning Resource Pool`) is a lightweight, thread-safe, header-only C++20 resource pool library. It allows applications to manage and reuse scarce, expensive, or moveable resources seamlessly using RAII semantics.
+**arrp** (`Auto Returning Resource Pool`) is a lightweight, thread-safe, header-only C++20 resource pool library.
 
-- Uses `std::deque` to store objects of type `T`.
-- Uses `std::mutex` to implement thread-safe access to the resources.
-- Uses lambdas to return the underlying resource to the pool.
-- A `resource_pool<T>` owns available resources, while borrowing returns a move-only `resource_guard<T>`.
-
-### Design Goals
-- **RAII Resource Management**: Resources return to the pool automatically when their guard is destroyed.
-- **Thread-Safe Pool Storage**: Borrowing, seeding, and capacity adjustments are synchronized.
-- **On-Demand Factory Fallback**: Register a factory callback for creating resources on-the-fly.
+- **Pool Storage**: Synchronized access to a collection of available resources.
+- **Automated Returns**: Resources return to the pool upon guard destruction.
+- **Factory Fallback**: Register a factory callback for creating resources on-the-fly.
 
 </div>
 
@@ -57,7 +56,7 @@
                 resource->append(" [active]");
                 std::cout << "Using resource: " << *resource << '\n';
             }
-        } // resource returns to the pool automatically
+        }
         
         return 0;
     }
@@ -86,24 +85,6 @@
         }
 
         return 0;
-    }
-    ```
-
-=== "Waiting with Timeout"
-
-    ```cpp
-    #include <siddiqsoft/arrp.hpp>
-    #include <chrono>
-
-    using namespace std::chrono_literals;
-
-    void process(siddiqsoft::arrp::resource_pool<std::string>& pool) {
-        auto guard = pool.try_borrow(250ms);
-        if (!guard) {
-            if (guard.error() == siddiqsoft::arrp::pool_error::Timeout) {
-                // Handle timeout
-            }
-        }
     }
     ```
 
