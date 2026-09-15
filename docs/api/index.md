@@ -9,14 +9,14 @@ The `siddiqsoft` namespace provides data structures and utilities for `arrp`.
 
 ## Classes & Structures
 
-<table class="api-summary-table">
+<table class="api-summary-table" markdown="1">
   <tr>
     <td class="memtype"><code>class</code></td>
-    <td class="memitemleft"><a href="resource_guard.md"><strong>siddiqsoft::resource_guard</strong></a><div class="mdesc">RAII wrapper for managing resource lifecycle in a resource pool.</div></td>
+    <td class="memitemleft"><a href="resource_guard/"><strong>siddiqsoft::resource_guard</strong></a><div class="mdesc">RAII wrapper for managing resource lifecycle in a resource pool.</div></td>
   </tr>
   <tr>
     <td class="memtype"><code>class</code></td>
-    <td class="memitemleft"><a href="resource_pool.md"><strong>siddiqsoft::resource_pool</strong></a><div class="mdesc">Thread-safe auto-returning resource pool.</div></td>
+    <td class="memitemleft"><a href="resource_pool/"><strong>siddiqsoft::resource_pool</strong></a><div class="mdesc">Thread-safe auto-returning resource pool.</div></td>
   </tr>
 </table>
 

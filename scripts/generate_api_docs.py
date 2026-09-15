@@ -566,7 +566,7 @@ def generate_class_markdown(
         lines.extend([
             "## Static Public Member Functions",
             "",
-            '<table class="api-summary-table">',
+            '<table class="api-summary-table" markdown="1">',
         ])
         for sm in cm.static_methods:
             anchor = sm.get("id", sm["name"].lower())
@@ -600,7 +600,7 @@ def generate_class_markdown(
         lines.extend([
             "### Constructors & Destructors",
             "",
-            '<table class="api-summary-table">',
+            '<table class="api-summary-table" markdown="1">',
         ])
         for m in constructors:
             anchor = m.get("id", m["name"].lower())
@@ -625,7 +625,7 @@ def generate_class_markdown(
         lines.extend([
             "### Core Accessors & Modifiers",
             "",
-            '<table class="api-summary-table">',
+            '<table class="api-summary-table" markdown="1">',
         ])
         for m in normal_methods:
             anchor = m.get("id", m["name"].lower())
@@ -718,14 +718,14 @@ def generate_index_markdown(
         "",
         "## Classes & Structures",
         "",
-        '<table class="api-summary-table">',
+        '<table class="api-summary-table" markdown="1">',
     ]
 
     for cm in classes:
         lines.extend([
             '  <tr>',
             '    <td class="memtype"><code>class</code></td>',
-            f'    <td class="memitemleft"><a href="{cm.short_name}.md"><strong>siddiqsoft::{cm.short_name}</strong></a><div class="mdesc">{cm.brief or f"Component of {project_name}"}</div></td>',
+            f'    <td class="memitemleft"><a href="{cm.short_name}/"><strong>siddiqsoft::{cm.short_name}</strong></a><div class="mdesc">{cm.brief or f"Component of {project_name}"}</div></td>',
             '  </tr>'
         ])
 
