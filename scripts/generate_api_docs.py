@@ -551,10 +551,6 @@ def generate_source_mapping_table(
 
 
 
-def get_cleaned_svg(html_dir, refid, aspect="coll"):
-    svg_path = html_dir / f"{refid}__{aspect}__graph.svg"
-    if not svg_path.exists():
-        return ""
     try:
         svg = svg_path.read_text(encoding="utf-8")
         # Strip xml and doctype
@@ -563,6 +559,62 @@ def get_cleaned_svg(html_dir, refid, aspect="coll"):
         # Strip trailing newlines
         svg = svg.strip()
         if not svg: return ""
+        aspect_title = "Collaboration" if aspect == "coll" else "Inheritance"
+        return f'''<div class="uml-diagram-container graphviz-uml" data-graph-type="{aspect}">
+<span class="uml-diagram-figure" style="display: block;">
+<span class="uml-diagram-viewport" style="display: block;">
+{svg}
+</span>
+<span class="uml-diagram-figcaption" style="display: block; text-align: center; font-style: italic; margin-top: 0.5em;">Figure: GraphViz UML {aspect_title} diagram</span>
+</span>
+</div>'''
+    except Exception:
+        return ""
+
+
+    try:
+        svg = svg_path.read_text(encoding="utf-8")
+        import re
+        svg = re.sub(r'<\?xml[^>]*>', '', svg)
+        svg = re.sub(r'<!DOCTYPE[^>]*>', '', svg)
+        svg = svg.strip()
+        if not svg: return ""
+        aspect_title = "Collaboration" if aspect == "coll" else "Inheritance"
+        return f'''<div class="uml-diagram-container graphviz-uml" data-graph-type="{aspect}">
+<span class="uml-diagram-figure" style="display: block;">
+<span class="uml-diagram-viewport" style="display: block;">
+{svg}
+</span>
+<span class="uml-diagram-figcaption" style="display: block; text-align: center; font-style: italic; margin-top: 0.5em;">Figure: GraphViz UML {aspect_title} diagram</span>
+</span>
+</div>'''
+    except Exception:
+        return ""
+
+
+def get_cleaned_svg(html_dir, refid, aspect="coll"):
+    svg_path = html_dir / f"{refid}__{aspect}__graph.svg"
+    if not svg_path.exists():
+        return ""
+    try:
+        import re
+        raw_svg = svg_path.read_text(encoding="utf-8")
+        
+        m = re.search(r'(<svg.*?</svg>)', raw_svg, flags=re.DOTALL)
+        if not m: return ""
+        svg = m.group(1)
+        
+        # Override hardcoded width/height to be responsive
+        def _adjust_svg_tag(match):
+            tag = match.group(0)
+            tag = re.sub(r'width="[^"]+"', 'width="100%"', tag)
+            tag = re.sub(r'height="[^"]+"', 'height="100%"', tag)
+            return tag
+        svg = re.sub(r'<svg[^>]*>', lambda m: _adjust_svg_tag(m).replace('<svg ', '<svg class="graphviz-uml-svg" '), svg)
+        
+        # Strip hardcoded font families so it inherits JetBrains Mono/Roboto from custom.css
+        svg = re.sub(r'font-family="[^"]+"', '', svg)
+        
         aspect_title = "Collaboration" if aspect == "coll" else "Inheritance"
         return f'''<div class="uml-diagram-container graphviz-uml" data-graph-type="{aspect}">
 <span class="uml-diagram-figure" style="display: block;">
@@ -599,9 +651,9 @@ def generate_class_markdown(
         "",
         "**Class Hierarchy & Inheritance**",
         "",
-        f"The following UML class diagram highlights `{cm.name}` and its direct relationships. Click the node to navigate to its source file on GitHub.",
+        f"The following UML class diagram highlights `{cm.name}` and its direct relationships.",
         "",
-        f"<!-- @@uml-diag:{cm.short_name} -->",
+        get_cleaned_svg(html_dir, cm.refid, "coll"),
         "",
         '</div>',
         '</div>',
@@ -745,7 +797,7 @@ def generate_class_markdown(
 
 
 def generate_index_markdown(
-    classes: list, project_name: str, github_org: str, project_desc: str, root_namespace: str, default_branch: str = "main"
+    classes: list, project_name: str, github_org: str, project_desc: str, root_namespace: str, sys_uml: str, default_branch: str = "main"
 ) -> str:
     """Generates docs/api/index.md overview."""
     src_map = generate_source_mapping_table(
@@ -796,7 +848,7 @@ def generate_index_markdown(
         "",
         f"The following diagram illustrates the primary classes, inheritance, and relationships in `{project_name}`. Click any node to navigate to its GitHub source location:",
         "",
-        "<!-- @@uml-diag:complete -->",
+        sys_uml,
         "",
         src_map,
         "",
@@ -927,7 +979,7 @@ def main():
 
     # 1. Generate docs/api/index.md
     index_md = generate_index_markdown(
-        classes, project_name, github_org, project_desc, root_namespace, default_branch
+        classes, project_name, github_org, project_desc, root_namespace, sys_uml, default_branch
     )
     write_if_changed(root_dir / "docs" / "api" / "index.md", index_md)
 
