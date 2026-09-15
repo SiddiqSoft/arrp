@@ -163,7 +163,94 @@ def split_params(args_str: str) -> list:
     return params
 
 
+
+def extract_detailed_desc(detail_node) -> str:
+    if detail_node is None:
+        return ""
+        
+    out = []
+    
+    # Simple recursive text extraction for mixed content
+    def get_text(node):
+        if node is None: return ""
+        res = (node.text or "")
+        for child in node:
+            if child.tag == "ref":
+                res += f"`{child.text or ''}`"
+            elif child.tag == "computeroutput":
+                res += f"<code>{get_text(child)}</code>"
+            else:
+                res += get_text(child)
+            res += (child.tail or "")
+        return res
+
+    for child in detail_node:
+        if child.tag == "para":
+            # Check if this para has a parameterlist or simplesect inside
+            has_special = False
+            for pchild in child:
+                if pchild.tag in ("parameterlist", "simplesect", "programlisting"):
+                    has_special = True
+                    break
+            
+            if not has_special:
+                txt = get_text(child).strip()
+                if txt:
+                    out.append(txt + "\n")
+            else:
+                # Handle mixed para content
+                if child.text and child.text.strip():
+                    out.append(child.text.strip() + "\n")
+                    
+                for pchild in child:
+                    if pchild.tag == "parameterlist":
+                        kind = pchild.get("kind", "")
+                        if kind == "param":
+                            out.append('<div class="memdoc-section-title">Parameters</div>\n')
+                            out.append('<ul>')
+                            for pitem in pchild.findall("parameteritem"):
+                                name = get_text(pitem.find("parameternamelist/parametername"))
+                                desc = get_text(pitem.find("parameterdescription/para"))
+                                out.append(f'  <li><code>{name}</code> &mdash; {desc}</li>')
+                            out.append('</ul>\n')
+                        elif kind == "templateparam":
+                            out.append('<div class="memdoc-section-title">Template Parameters</div>\n')
+                            out.append('<ul>')
+                            for pitem in pchild.findall("parameteritem"):
+                                name = get_text(pitem.find("parameternamelist/parametername"))
+                                desc = get_text(pitem.find("parameterdescription/para"))
+                                out.append(f'  <li><code>{name}</code> &mdash; {desc}</li>')
+                            out.append('</ul>\n')
+                    elif pchild.tag == "simplesect":
+                        kind = pchild.get("kind", "")
+                        if kind == "return":
+                            out.append('<div class="memdoc-section-title">Returns</div>\n')
+                            out.append(get_text(pchild.find("para")) + "\n")
+                        elif kind == "note":
+                            out.append('<div class="memdoc-section-title">Note</div>\n')
+                            out.append(get_text(pchild.find("para")) + "\n")
+                        elif kind == "par":
+                            title = get_text(pchild.find("title"))
+                            out.append(f'<div class="memdoc-section-title">{title}</div>\n')
+                            out.append(get_text(pchild.find("para")) + "\n")
+                    elif pchild.tag == "programlisting":
+                        code = "\n".join(get_text(line) for line in pchild.findall("codeline"))
+                        out.append(f"\n```cpp\n{code}\n```\n")
+                    else:
+                        txt = get_text(pchild).strip()
+                        if txt:
+                            out.append(txt)
+                        
+                if child.tail and child.tail.strip():
+                    out.append(child.tail.strip() + "\n")
+        elif child.tag == "programlisting":
+            code = "\n".join(get_text(line) for line in child.findall("codeline"))
+            out.append(f"\n```cpp\n{code}\n```\n")
+
+    return "\n".join(out)
+
 def escape_html(s: str) -> str:
+
     return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
 
 
@@ -263,6 +350,7 @@ def parse_classes_from_doxygen(xml_dir: Path) -> list:
                     "return_type": mtype or "void",
                     "args": args,
                     "brief": mbrief,
+                    "detailed": extract_detailed_desc(m.find("detaileddescription")),
                     "static": is_static,
                 }
                 if is_static:
@@ -556,20 +644,46 @@ def generate_class_markdown(
     all_methods = cm.static_methods + cm.methods
     if all_methods:
         lines.extend([
-            "## Member Function Details",
+            "## Member Function Documentation",
             "",
         ])
         for m in all_methods:
             anchor = m["name"].lower()
             qual = "static " if m.get("static") else ""
+            ret_type = m["return_type"]
+            args_str = m["args"]
+            
+            # Format the prototype block intelligently to handle multi-line params
+            proto_args = args_str
+            if "," in args_str and len(args_str) > 50:
+                # Basic multi-line formatting for long args
+                proto_args = args_str.replace("(", "(\n    ").replace(", ", ",\n    ").replace(")", "\n)")
+                
+            decl_str = f"{qual}{ret_type} {cm.short_name}::{m['name']}{proto_args};"
+            if not ret_type:
+                decl_str = f"{qual}{cm.short_name}::{m['name']}{proto_args};"
+            else:
+                decl_str = f"{qual}{ret_type} {cm.short_name}::{m['name']}{proto_args};"
+
             lines.extend([
-                f'### <a id="{anchor}"></a>`{m["name"]}`',
+                f'<div class="memitem" id="{anchor}" markdown="1">',
+                '<div class="memitem-header">',
+                '  <span class="memitem-diamond">&#9670;</span>',
+                f'  <h4 class="memitem-title">{m["name"]}()</h4>',
+                '</div>',
+                '<div class="memproto" markdown="1">',
                 "",
                 "```cpp",
-                f'{qual}{m["return_type"]} {cm.short_name}::{m["name"]}{m["args"]};',
+                decl_str,
                 "```",
                 "",
-                m["brief"] or "Executes component operation.",
+                "</div>",
+                '<div class="memdoc" markdown="1">',
+                "",
+                (m.get("brief", "") + "\n" + m.get("detailed", "")).strip() or "Executes component operation.",
+                "",
+                "</div>",
+                "</div>",
                 "",
             ])
 

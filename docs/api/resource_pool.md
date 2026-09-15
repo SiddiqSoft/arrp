@@ -23,6 +23,8 @@ The following UML class diagram highlights `siddiqsoft::arrp::resource_pool` and
 
 ## Member Functions Summary
 
+### Constructors & Destructors
+
 <table class="api-summary-table">
   <tr>
     <td class="memtype"><code>void</code></td>
@@ -34,18 +36,6 @@ The following UML class diagram highlights `siddiqsoft::arrp::resource_pool` and
     <td class="memtype"><code>void</code></td>
     <td class="memitemleft"><a href="#resource_pool"><strong>resource_pool</strong></a> ((resource_pool &amp;&amp;src)=delete)
       <div class="mdesc">Move constructor is deleted.</div>
-    </td>
-  </tr>
-  <tr>
-    <td class="memtype"><code>resource_pool &amp;</code></td>
-    <td class="memitemleft"><a href="#operator="><strong>operator=</strong></a> ((resource_pool &amp;)=delete)
-      <div class="mdesc">Copy assignment operator is deleted.</div>
-    </td>
-  </tr>
-  <tr>
-    <td class="memtype"><code>resource_pool &amp;</code></td>
-    <td class="memitemleft"><a href="#operator="><strong>operator=</strong></a> ((resource_pool &amp;&amp;src)=delete)
-      <div class="mdesc">Move assignment operator is deleted.</div>
     </td>
   </tr>
   <tr>
@@ -64,6 +54,23 @@ The following UML class diagram highlights `siddiqsoft::arrp::resource_pool` and
     <td class="memtype"><code>void</code></td>
     <td class="memitemleft"><a href="#~resource_pool"><strong>~resource_pool</strong></a> ()
       <div class="mdesc">Destructor - cleans up all resources in the pool.</div>
+    </td>
+  </tr>
+</table>
+
+### Core Accessors & Modifiers
+
+<table class="api-summary-table">
+  <tr>
+    <td class="memtype"><code>resource_pool &amp;</code></td>
+    <td class="memitemleft"><a href="#operator="><strong>operator=</strong></a> ((resource_pool &amp;)=delete)
+      <div class="mdesc">Copy assignment operator is deleted.</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="memtype"><code>resource_pool &amp;</code></td>
+    <td class="memitemleft"><a href="#operator="><strong>operator=</strong></a> ((resource_pool &amp;&amp;src)=delete)
+      <div class="mdesc">Move assignment operator is deleted.</div>
     </td>
   </tr>
   <tr>
@@ -110,119 +117,397 @@ The following UML class diagram highlights `siddiqsoft::arrp::resource_pool` and
   </tr>
 </table>
 
-## Member Function Details
+## Member Function Documentation
 
-### <a id="resource_pool"></a>`resource_pool`
+<div class="memitem" id="resource_pool" markdown="1">
+<div class="memitem-header">
+  <span class="memitem-diamond">&#9670;</span>
+  <h4 class="memitem-title">resource_pool()</h4>
+</div>
+<div class="memproto" markdown="1">
 
 ```cpp
 void resource_pool::resource_pool(resource_pool &)=delete;
 ```
 
-Copy constructor is deleted.
+</div>
+<div class="memdoc" markdown="1">
 
-### <a id="resource_pool"></a>`resource_pool`
+Copy constructor is deleted.
+`resource_pool` is not copyable to prevent resource duplication
+
+</div>
+</div>
+
+<div class="memitem" id="resource_pool" markdown="1">
+<div class="memitem-header">
+  <span class="memitem-diamond">&#9670;</span>
+  <h4 class="memitem-title">resource_pool()</h4>
+</div>
+<div class="memproto" markdown="1">
 
 ```cpp
 void resource_pool::resource_pool(resource_pool &&src)=delete;
 ```
 
-Move constructor is deleted.
+</div>
+<div class="memdoc" markdown="1">
 
-### <a id="operator="></a>`operator=`
+Move constructor is deleted.
+`resource_pool` is not movable to maintain resource ownership
+
+</div>
+</div>
+
+<div class="memitem" id="operator=" markdown="1">
+<div class="memitem-header">
+  <span class="memitem-diamond">&#9670;</span>
+  <h4 class="memitem-title">operator=()</h4>
+</div>
+<div class="memproto" markdown="1">
 
 ```cpp
 resource_pool & resource_pool::operator=(resource_pool &)=delete;
 ```
 
-Copy assignment operator is deleted.
+</div>
+<div class="memdoc" markdown="1">
 
-### <a id="operator="></a>`operator=`
+Copy assignment operator is deleted.
+`resource_pool` is not copyable to prevent resource duplication
+
+</div>
+</div>
+
+<div class="memitem" id="operator=" markdown="1">
+<div class="memitem-header">
+  <span class="memitem-diamond">&#9670;</span>
+  <h4 class="memitem-title">operator=()</h4>
+</div>
+<div class="memproto" markdown="1">
 
 ```cpp
 resource_pool & resource_pool::operator=(resource_pool &&src)=delete;
 ```
 
-Move assignment operator is deleted.
+</div>
+<div class="memdoc" markdown="1">
 
-### <a id="resource_pool"></a>`resource_pool`
+Move assignment operator is deleted.
+`resource_pool` is not movable to maintain resource ownership
+
+</div>
+</div>
+
+<div class="memitem" id="resource_pool" markdown="1">
+<div class="memitem-header">
+  <span class="memitem-diamond">&#9670;</span>
+  <h4 class="memitem-title">resource_pool()</h4>
+</div>
+<div class="memproto" markdown="1">
 
 ```cpp
-void resource_pool::resource_pool(uint8_t init_capacity=resource_pool_limits::DefaultCapacity, std::function< void(T &)> &&on_shutdown_callback={});
+void resource_pool::resource_pool(
+    uint8_t init_capacity=resource_pool_limits::DefaultCapacity,
+    std::function< void(
+    T &
+)> &&on_shutdown_callback={}
+);
 ```
 
-Constructs a resource pool with an optional cleanup callback.
+</div>
+<div class="memdoc" markdown="1">
 
-### <a id="resource_pool"></a>`resource_pool`
+Constructs a resource pool with an optional cleanup callback.
+<div class="memdoc-section-title">Parameters</div>
+
+<ul>
+  <li><code>init_capacity</code> &mdash; Initial capacity of the pool </li>
+  <li><code>on_shutdown_callback</code> &mdash; Optional cleanup callback invoked on destruction</li>
+</ul>
+
+<div class="memdoc-section-title">Note</div>
+
+Register a factory separately with `set_factory_callback()`. 
+
+<div class="memdoc-section-title">Note</div>
+
+Capacity is clamped to [MinimumCapacity, MaxCapacity] but does not enforce a maximum number of seeded or factory-created resources.
+
+</div>
+</div>
+
+<div class="memitem" id="resource_pool" markdown="1">
+<div class="memitem-header">
+  <span class="memitem-diamond">&#9670;</span>
+  <h4 class="memitem-title">resource_pool()</h4>
+</div>
+<div class="memproto" markdown="1">
 
 ```cpp
 void resource_pool::resource_pool(std::function< void(T &)> &&on_shutdown_callback);
 ```
 
-Constructs a resource pool with only cleanup callback.
+</div>
+<div class="memdoc" markdown="1">
 
-### <a id="~resource_pool"></a>`~resource_pool`
+Constructs a resource pool with only cleanup callback.
+<div class="memdoc-section-title">Parameters</div>
+
+<ul>
+  <li><code>on_shutdown_callback</code> &mdash; Cleanup callback invoked on destruction</li>
+</ul>
+
+<div class="memdoc-section-title">Note</div>
+
+Uses the default capacity. The cleanup callback is invoked for resources available during `clear()` or destruction.
+
+</div>
+</div>
+
+<div class="memitem" id="~resource_pool" markdown="1">
+<div class="memitem-header">
+  <span class="memitem-diamond">&#9670;</span>
+  <h4 class="memitem-title">~resource_pool()</h4>
+</div>
+<div class="memproto" markdown="1">
 
 ```cpp
 void resource_pool::~resource_pool();
 ```
 
-Destructor - cleans up all resources in the pool.
+</div>
+<div class="memdoc" markdown="1">
 
-### <a id="set_factory_callback"></a>`set_factory_callback`
+Destructor - cleans up all resources in the pool.
+Sets the shutdown flag and delegates to `clear()` to clean up resources. The cleanup callback (if provided) is invoked for each resource during cleanup.
+
+<div class="memdoc-section-title">Note</div>
+
+Exceptions derived from std::exception in the cleanup callback are caught and written to stderr.
+
+</div>
+</div>
+
+<div class="memitem" id="set_factory_callback" markdown="1">
+<div class="memitem-header">
+  <span class="memitem-diamond">&#9670;</span>
+  <h4 class="memitem-title">set_factory_callback()</h4>
+</div>
+<div class="memproto" markdown="1">
 
 ```cpp
 void resource_pool::set_factory_callback(F &&f);
 ```
 
-Sets the factory used by try_borrow_create() when no resource is available.
+</div>
+<div class="memdoc" markdown="1">
 
-### <a id="clear"></a>`clear`
+Sets the factory used by try_borrow_create() when no resource is available.
+<div class="memdoc-section-title">Template Parameters</div>
+
+<ul>
+  <li><code>F</code> &mdash; Callable type invokable with no arguments returning <code>`resource_guard`<T></code> or <code>T</code> </li>
+</ul>
+
+<div class="memdoc-section-title">Note</div>
+
+Safe to call concurrently with `borrow_impl()`: assignment is synchronized under m_pool_lock, matching the read sites in `borrow_impl()`. A borrow in flight may still use the factory that was registered just before or after this call (no ordering is guaranteed relative to a specific concurrent borrow), but the read/write of the underlying std::function is race-free.
+
+</div>
+</div>
+
+<div class="memitem" id="clear" markdown="1">
+<div class="memitem-header">
+  <span class="memitem-diamond">&#9670;</span>
+  <h4 class="memitem-title">clear()</h4>
+</div>
+<div class="memproto" markdown="1">
 
 ```cpp
 pool_error resource_pool::clear();
 ```
 
-Clears all resources from the pool.
+</div>
+<div class="memdoc" markdown="1">
 
-### <a id="size"></a>`size`
+Clears all resources from the pool.
+Removes currently available resources and invokes the cleanup callback for each. Borrowed resources can return after `clear()` completes.
+
+<div class="memdoc-section-title">Returns</div>
+
+`pool_error::Ok`
+
+<div class="memdoc-section-title">Note</div>
+
+The cleanup callback runs under the pool lock. Exceptions derived from std::exception are caught and written to stderr. 
+
+<div class="memdoc-section-title">Note</div>
+
+Non-blocking by design: if a concurrent borrow has already claimed a resource's semaphore permit but not yet popped it from the pool (it is waiting on the same lock `clear()` holds), that item is left in place for the borrower rather than drained here. This avoids a deadlock; it means a racing `clear()` call is not guaranteed to empty every resource that was visible to `size()` just before it ran.
+
+</div>
+</div>
+
+<div class="memitem" id="size" markdown="1">
+<div class="memitem-header">
+  <span class="memitem-diamond">&#9670;</span>
+  <h4 class="memitem-title">size()</h4>
+</div>
+<div class="memproto" markdown="1">
 
 ```cpp
 auto resource_pool::size() const;
 ```
 
-Gets the current size of the pool.
+</div>
+<div class="memdoc" markdown="1">
 
-### <a id="try_borrow"></a>`try_borrow`
+Gets the current size of the pool.
+<div class="memdoc-section-title">Returns</div>
+
+Number of currently available resources
+
+<div class="memdoc-section-title">Note</div>
+
+Does not include checked-out resources
+
+</div>
+</div>
+
+<div class="memitem" id="try_borrow" markdown="1">
+<div class="memitem-header">
+  <span class="memitem-diamond">&#9670;</span>
+  <h4 class="memitem-title">try_borrow()</h4>
+</div>
+<div class="memproto" markdown="1">
 
 ```cpp
 resource_guard< T > resource_pool::try_borrow(std::chrono::nanoseconds timeout={});
 ```
 
-Borrows an available resource without creating one.
+</div>
+<div class="memdoc" markdown="1">
 
-### <a id="try_borrow_create"></a>`try_borrow_create`
+Borrows an available resource without creating one.
+<div class="memdoc-section-title">Parameters</div>
+
+<ul>
+  <li><code>timeout</code> &mdash; Maximum time to wait; zero performs a non-blocking attempt. </li>
+</ul>
+
+<div class="memdoc-section-title">Returns</div>
+
+A valid scoped resource, or an invalid one with NoMoreResources, Timeout, ShutdownInitiated, or Unknown set as its error.
+
+</div>
+</div>
+
+<div class="memitem" id="try_borrow_create" markdown="1">
+<div class="memitem-header">
+  <span class="memitem-diamond">&#9670;</span>
+  <h4 class="memitem-title">try_borrow_create()</h4>
+</div>
+<div class="memproto" markdown="1">
 
 ```cpp
 resource_guard< T > resource_pool::try_borrow_create(std::chrono::nanoseconds timeout={});
 ```
 
-Borrows an available resource or creates one through the factory.
+</div>
+<div class="memdoc" markdown="1">
 
-### <a id="seed"></a>`seed`
+Borrows an available resource or creates one through the factory.
+<div class="memdoc-section-title">Parameters</div>
+
+<ul>
+  <li><code>timeout</code> &mdash; Maximum time to wait; zero performs a non-blocking attempt. </li>
+</ul>
+
+<div class="memdoc-section-title">Returns</div>
+
+A valid scoped resource, or an invalid one when shutdown or an implementation or factory error prevents borrowing.
+
+</div>
+</div>
+
+<div class="memitem" id="seed" markdown="1">
+<div class="memitem-header">
+  <span class="memitem-diamond">&#9670;</span>
+  <h4 class="memitem-title">seed()</h4>
+</div>
+<div class="memproto" markdown="1">
 
 ```cpp
 pool_error resource_pool::seed(Args &&... args);
 ```
 
-Adds a resource to the pool by constructing it in-place.
+</div>
+<div class="memdoc" markdown="1">
 
-### <a id="seed"></a>`seed`
+Adds a resource to the pool by constructing it in-place.
+<div class="memdoc-section-title">Template Parameters</div>
+
+<ul>
+  <li><code>Args</code> &mdash; Types of arguments to forward to T's constructor </li>
+</ul>
+
+<div class="memdoc-section-title">Parameters</div>
+
+<ul>
+  <li><code>args</code> &mdash; Arguments to forward to T's constructor for in-place construction </li>
+</ul>
+
+<div class="memdoc-section-title">Returns</div>
+
+`pool_error::Ok`, or `pool_error::ShutdownInitiated` during destruction
+
+<div class="memdoc-section-title">Note</div>
+
+Resource is constructed in-place 
+
+<div class="memdoc-section-title">Note</div>
+
+Does not enforce the configured capacity. Do not use this to return a borrowed resource; guards return resources automatically.
+
+</div>
+</div>
+
+<div class="memitem" id="seed" markdown="1">
+<div class="memitem-header">
+  <span class="memitem-diamond">&#9670;</span>
+  <h4 class="memitem-title">seed()</h4>
+</div>
+<div class="memproto" markdown="1">
 
 ```cpp
 pool_error resource_pool::seed(T &&item);
 ```
 
+</div>
+<div class="memdoc" markdown="1">
+
 Adds a resource to the pool by moving it.
+<div class="memdoc-section-title">Parameters</div>
+
+<ul>
+  <li><code>item</code> &mdash; The resource to add (moved) </li>
+</ul>
+
+<div class="memdoc-section-title">Returns</div>
+
+`pool_error::Ok`, or `pool_error::ShutdownInitiated` during destruction
+
+<div class="memdoc-section-title">Note</div>
+
+Resource is moved into the pool 
+
+<div class="memdoc-section-title">Note</div>
+
+Does not enforce the configured capacity. Do not use this to return a borrowed resource; guards return resources automatically.
+
+</div>
+</div>
 
 ## Source Code Reference
 
