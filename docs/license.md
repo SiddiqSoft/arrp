@@ -1,11 +1,11 @@
 # License
 
-`arrp` is distributed under the BSD 3-Clause License.
+`sip2json` is licensed under the terms of the BSD 3-Clause License:
 
 ```text
 BSD 3-Clause License
 
-Copyright (c) 2026, Abdulkareem Siddiq
+Copyright (c) 2003-2024, Abdelkareem Siddiq
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without

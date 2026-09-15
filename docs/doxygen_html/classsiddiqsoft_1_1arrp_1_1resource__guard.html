@@ -114,6 +114,11 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('classsiddiqsof
 <div class="contents">
 
 <p><code>#include &lt;<a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>&gt;</code></p>
+<div class="dynheader">
+Collaboration diagram for siddiqsoft::arrp::resource_guard&lt; T &gt;:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="classsiddiqsoft_1_1arrp_1_1resource__guard__coll__graph.svg" width="166" height="316"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-types" class="groupheader"><a id="pub-types" name="pub-types"></a>
 Public Types</h2></td></tr>
@@ -161,6 +166,8 @@ requires std::convertible_to&lt;const T&amp;, InnerType&gt;</td></tr>
 <tr class="memdesc:ab806fff0061d73685a71ee835fe22b49"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the error associated with this guard.  <br /></td></tr>
 <tr class="memitem:aaaa62a004ab8cecaa5be5406b58ba2ff" id="r_aaaa62a004ab8cecaa5be5406b58ba2ff"><td class="memItemLeft">virtual bool&#160;</td><td class="memItemRight"><a class="el" href="#aaaa62a004ab8cecaa5be5406b58ba2ff">has_value</a> () const</td></tr>
 <tr class="memdesc:aaaa62a004ab8cecaa5be5406b58ba2ff"><td class="mdescLeft">&#160;</td><td class="mdescRight">Tests whether the guard holds a valid resource.  <br /></td></tr>
+<tr class="memitem:a169de596197570ae4cf3d0b590081097" id="r_a169de596197570ae4cf3d0b590081097"><td class="memItemLeft">nlohmann::json&#160;</td><td class="memItemRight"><a class="el" href="#a169de596197570ae4cf3d0b590081097">to_json</a> () const</td></tr>
+<tr class="memdesc:a169de596197570ae4cf3d0b590081097"><td class="mdescLeft">&#160;</td><td class="mdescRight">Serializes the <a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__guard.html">resource_guard</a> to JSON.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pro-methods" class="groupheader"><a id="pro-methods" name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
@@ -180,7 +187,7 @@ Friends</h2></td></tr>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><div class="compoundTemplParams">template&lt;typename T&gt;<br />
 requires NonNumericMoveConstructible&lt;T&gt;<br />
-class siddiqsoft::arrp::resource_guard&lt; T &gt;</div><dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2_users_2maas_2source_2repos_2siddiqsoft_2arrp_2include_2siddiqsoft_2private_2resource_guard_8hpp-example.html#_a16">/Users/maas/source/repos/siddiqsoft/arrp/include/siddiqsoft/private/resource_guard.hpp</a>.</dd>
+class siddiqsoft::arrp::resource_guard&lt; T &gt;</div><dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2_users_2maas_2source_2repos_2siddiqsoft_2arrp_2include_2siddiqsoft_2private_2resource_guard_8hpp-example.html#_a17">/Users/maas/source/repos/siddiqsoft/arrp/include/siddiqsoft/private/resource_guard.hpp</a>.</dd>
 </dl>
 </div><a name="doc-typedef-members" id="doc-typedef-members"></a><h2 id="header-doc-typedef-members" class="groupheader">Member Typedef Documentation</h2>
 <a id="a764da98af690ef5faf0ca546f772e243" name="a764da98af690ef5faf0ca546f772e243"></a>
@@ -896,6 +903,53 @@ template&lt;typename T&gt; </div>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>This guard. </dd></dl>
 <dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2_users_2maas_2source_2repos_2siddiqsoft_2arrp_2include_2siddiqsoft_2private_2resource_guard_8hpp-example.html#a13">/Users/maas/source/repos/siddiqsoft/arrp/include/siddiqsoft/private/resource_guard.hpp</a>.</dd>
+</dl>
+
+</div>
+</div>
+<a id="a169de596197570ae4cf3d0b590081097" name="a169de596197570ae4cf3d0b590081097"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a169de596197570ae4cf3d0b590081097">&#9670;&#160;</a></span>to_json()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">nlohmann::json <a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__guard.html">siddiqsoft::arrp::resource_guard</a>&lt; T &gt;::to_json </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Serializes the <a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__guard.html">resource_guard</a> to JSON. </p>
+<p>Returns a JSON object containing the resource state and validity. Only available if nlohmann/json.hpp is included before this header.</p>
+<dl class="section return"><dt>Returns</dt><dd>JSON object with:<ul>
+<li>_typver: Type and version string ("siddiqsoft.arrp.resource_guard/1.0.0")</li>
+<li>valid: Whether the resource is valid (boolean)</li>
+<li>value: The resource value (if serializable, otherwise "-noserializer-")</li>
+</ul>
+</dd></dl>
+<dl class="section note"><dt>Note</dt><dd>Available only when nlohmann/json.hpp was included before this header. </dd>
+<dd>
+If T is not serializable, value is set to "-noserializer-"</dd></dl>
+<dl class="section user"><dt>JSON Schema:</dt><dd><div class="fragment"><div class="line">{</div>
+<div class="line">  &quot;_typver&quot;: &quot;siddiqsoft.arrp.resource_guard/1.0.0&quot;,</div>
+<div class="line">  &quot;valid&quot;: true,</div>
+<div class="line">  &quot;value&quot;: &lt;resource_value&gt;</div>
+<div class="line">}</div>
+</div><!-- fragment --> </dd></dl>
+<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2_users_2maas_2source_2repos_2siddiqsoft_2arrp_2include_2siddiqsoft_2private_2resource_guard_8hpp-example.html#a16">/Users/maas/source/repos/siddiqsoft/arrp/include/siddiqsoft/private/resource_guard.hpp</a>.</dd>
 </dl>
 
 </div>

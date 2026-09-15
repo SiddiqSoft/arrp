@@ -145,6 +145,12 @@ The following UML class diagram highlights `siddiqsoft::arrp::resource_guard` an
       <div class="mdesc">Tests whether the guard holds a valid resource.</div>
     </td>
   </tr>
+  <tr>
+    <td class="memtype"><code>nlohmann::json</code></td>
+    <td class="memitemleft"><a href="#to_json"><strong>to_json</strong></a> (() const)
+      <div class="mdesc">Serializes the resource_guard to JSON.</div>
+    </td>
+  </tr>
 </table>
 
 ## Member Function Documentation
@@ -653,6 +659,51 @@ Tests whether the guard holds a valid resource.
 <div class="memdoc-section-title">Returns</div>
 
 true when `is_valid()` would return true.
+
+</div>
+</div>
+
+<div class="memitem" id="to_json" markdown="1">
+<div class="memitem-header">
+  <span class="memitem-diamond">&#9670;</span>
+  <h4 class="memitem-title">to_json()</h4>
+</div>
+<div class="memproto" markdown="1">
+
+```cpp
+nlohmann::json resource_guard::to_json() const;
+```
+
+</div>
+<div class="memdoc" markdown="1">
+
+Serializes the resource_guard to JSON.
+Returns a JSON object containing the resource state and validity. Only available if nlohmann/json.hpp is included before this header.
+
+<div class="memdoc-section-title">Returns</div>
+
+JSON object with:
+_typver: Type and version string ("siddiqsoft.arrp.resource_guard/1.0.0")
+valid: Whether the resource is valid (boolean)
+value: The resource value (if serializable, otherwise "-noserializer-")
+
+
+
+<div class="memdoc-section-title">Note</div>
+
+Available only when nlohmann/json.hpp was included before this header. 
+
+<div class="memdoc-section-title">Note</div>
+
+If T is not serializable, value is set to "-noserializer-"
+
+<div class="memdoc-section-title">JSON Schema:</div>
+
+{
+"_typver":"siddiqsoft.arrp.resource_guard/1.0.0",
+"valid":true,
+"value":<resource_value>
+}
 
 </div>
 </div>

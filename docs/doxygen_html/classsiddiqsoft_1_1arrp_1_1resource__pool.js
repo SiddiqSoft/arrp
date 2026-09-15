@@ -17,6 +17,7 @@ var classsiddiqsoft_1_1arrp_1_1resource__pool =
     [ "seed", "classsiddiqsoft_1_1arrp_1_1resource__pool.html#aeb57311374cb1d1369b6c0fc8f7f4916", null ],
     [ "set_factory_callback", "classsiddiqsoft_1_1arrp_1_1resource__pool.html#ae19dc46cd16d9f9594d74ffd14f9881c", null ],
     [ "size", "classsiddiqsoft_1_1arrp_1_1resource__pool.html#a5711ec0d9ded4266a521f54a62830189", null ],
+    [ "to_json", "classsiddiqsoft_1_1arrp_1_1resource__pool.html#abb45bf3587651539bf8d5bf8dbb00d0d", null ],
     [ "try_borrow", "classsiddiqsoft_1_1arrp_1_1resource__pool.html#a68145b72a23eb91af6ed2bdce3cf980f", null ],
     [ "try_borrow_create", "classsiddiqsoft_1_1arrp_1_1resource__pool.html#a4e42d634ae61df8943c91fc444c5d2b2", null ]
 ];

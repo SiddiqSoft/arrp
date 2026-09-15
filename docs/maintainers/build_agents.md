@@ -24,7 +24,7 @@ flowchart LR
 * **Operating System**: macOS Sonoma (14+) on Apple Silicon (`arm64`) or Intel (`x64`).
 * **Toolchain**: Xcode 15+ / Command Line Tools (`AppleClang 15+`). Presets and build files automatically resolve direct compiler binaries, coexisting seamlessly with any `xcode-select` setting.
 * **Utilities**:
-  * CMake 3.31+
+  * CMake 3.29+
   * Ninja 1.11+
   * Python 3.10+
   * Doxygen (for XML generation)
@@ -41,7 +41,7 @@ flowchart LR
   * GCC 13+ (`/usr/bin/gcc`, `/usr/bin/g++`)
   * Clang 17+ (`/usr/bin/clang`, `/usr/bin/clang++`)
 * **Utilities**:
-  * CMake 3.31+
+  * CMake 3.29+
   * Ninja 1.11+
   * Python 3.10+
   * `gcovr` (for test coverage reports)
@@ -57,11 +57,13 @@ flowchart LR
 * **Operating System**: Windows 11 or Windows Server 2022 (`x64` or `arm64`).
 * **Toolchain**: Visual Studio 2022 (MSVC v143+), Windows 11 SDK.
 * **Prerequisites**:
-  Configure long path support:
+  Execute [`scripts/prep_windows_machine.ps1`](https://github.com/SiddiqSoft/sip2json/blob/master/scripts/prep_windows_machine.ps1) as Administrator to configure long path support:
   ```powershell
   Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" -Name "LongPathsEnabled" -Value 1
   git config --system core.longpaths true
   ```
+* **Environment Helper**:
+  For local command-line shells, initialize MSVC tools via [`scripts/init_msvc_env.ps1`](https://github.com/SiddiqSoft/sip2json/blob/master/scripts/init_msvc_env.ps1) or [`scripts/init_msvc_env.bat`](https://github.com/SiddiqSoft/sip2json/blob/master/scripts/init_msvc_env.bat).
 
 ---
 
@@ -69,4 +71,4 @@ flowchart LR
 
 * [**CI/CD Pipelines**](pipelines.md): Pipeline stages and trigger matrix
 * [**CMake Presets**](cmake_presets.md): Presets executed on each agent
-* [**Release & Publication**](releases.md): Package and documentation publication flow
+* release guidelines: Package and documentation publication flow

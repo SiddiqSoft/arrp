@@ -385,7 +385,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_2_users_2maas
 <div class="line"> </div>
 <div class="line"><span class="preprocessor">#if defined(NLOHMANN_JSON_VERSION_MAJOR)</span></div>
 <div class="line">    <span class="keyword">public</span>:</div>
-<div class="line">        nlohmann::json to_json()<span class="keyword"> const</span></div>
+<div class="line">        nlohmann::json <a id="a16" name="a16"></a><a class="code hl_function" href="classsiddiqsoft_1_1arrp_1_1resource__guard.html#a169de596197570ae4cf3d0b590081097">to_json</a>()<span class="keyword"> const</span></div>
 <div class="line"><span class="keyword">        </span>{</div>
 <div class="line">            <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (std::is_same_v&lt;T, std::string&gt; || std::is_arithmetic_v&lt;T&gt;)</div>
 <div class="line">                <span class="keywordflow">return</span> {{<span class="stringliteral">&quot;_typver&quot;</span>, <span class="stringliteral">&quot;siddiqsoft.arrp.resource_guard/1.0.0&quot;</span>}, {<span class="stringliteral">&quot;valid&quot;</span>, m_is_valid}, {<span class="stringliteral">&quot;value&quot;</span>, <a class="code hl_variable" href="classsiddiqsoft_1_1arrp_1_1resource__guard.html#a7600c8ff2d732a961725aeeea1b77049">m_rsrc</a>}};</div>
@@ -404,7 +404,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_2_users_2maas
 <div class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
 <div class="line"><span class="keyword">struct </span>std::formatter&lt;<a class="code hl_namespace" href="namespacesiddiqsoft.html">siddiqsoft</a>::arrp::resource_guard&lt;T&gt;&gt; : std::formatter&lt;std::string&gt;</div>
 <div class="line">{</div>
-<div class="line">    <span class="keyword">auto</span> format(<span class="keyword">const</span> <a id="_a16" name="_a16"></a><a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1resource__guard.html">siddiqsoft::arrp::resource_guard&lt;T&gt;</a>&amp; sr, <span class="keyword">auto</span>&amp; ctx)<span class="keyword"> const</span></div>
+<div class="line">    <span class="keyword">auto</span> format(<span class="keyword">const</span> <a id="_a17" name="_a17"></a><a class="code hl_class" href="classsiddiqsoft_1_1arrp_1_1resource__guard.html">siddiqsoft::arrp::resource_guard&lt;T&gt;</a>&amp; sr, <span class="keyword">auto</span>&amp; ctx)<span class="keyword"> const</span></div>
 <div class="line"><span class="keyword">    </span>{</div>
 <div class="line">        <span class="comment">// Use consistent format across all TUs to avoid ODR violations</span></div>
 <div class="line">        <span class="comment">// Format: resource_guard&lt;T&gt;{valid: &lt;bool&gt;}</span></div>
@@ -414,6 +414,7 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('_2_users_2maas
 <div class="line"> </div>
 <div class="line"><span class="preprocessor">#endif</span></div>
 <div class="ttc" id="aclasssiddiqsoft_1_1arrp_1_1resource__guard_html"><div class="ttname"><a href="classsiddiqsoft_1_1arrp_1_1resource__guard.html">siddiqsoft::arrp::resource_guard</a></div><div class="ttdef"><b>Definition</b> resource_guard.hpp:119</div></div>
+<div class="ttc" id="aclasssiddiqsoft_1_1arrp_1_1resource__guard_html_a169de596197570ae4cf3d0b590081097"><div class="ttname"><a href="classsiddiqsoft_1_1arrp_1_1resource__guard.html#a169de596197570ae4cf3d0b590081097">siddiqsoft::arrp::resource_guard::to_json</a></div><div class="ttdeci">nlohmann::json to_json() const</div><div class="ttdoc">Serializes the resource_guard to JSON.</div><div class="ttdef"><b>Definition</b> resource_guard.hpp:469</div></div>
 <div class="ttc" id="aclasssiddiqsoft_1_1arrp_1_1resource__guard_html_a19fa5028409bbd0e300ac9265d530456"><div class="ttname"><a href="classsiddiqsoft_1_1arrp_1_1resource__guard.html#a19fa5028409bbd0e300ac9265d530456">siddiqsoft::arrp::resource_guard::set_error</a></div><div class="ttdeci">auto &amp; set_error(pool_error err)</div><div class="ttdoc">Sets the error reported by error().</div><div class="ttdef"><b>Definition</b> resource_guard.hpp:432</div></div>
 <div class="ttc" id="aclasssiddiqsoft_1_1arrp_1_1resource__guard_html_a3495caae58e003881e976318559ba06e"><div class="ttname"><a href="classsiddiqsoft_1_1arrp_1_1resource__guard.html#a3495caae58e003881e976318559ba06e">siddiqsoft::arrp::resource_guard::resource_guard</a></div><div class="ttdeci">resource_guard()</div><div class="ttdoc">Default constructor.</div><div class="ttdef"><b>Definition</b> resource_guard.hpp:158</div></div>
 <div class="ttc" id="aclasssiddiqsoft_1_1arrp_1_1resource__guard_html_a5beb4b3b5eff536c0ef213e8625818c5"><div class="ttname"><a href="classsiddiqsoft_1_1arrp_1_1resource__guard.html#a5beb4b3b5eff536c0ef213e8625818c5">siddiqsoft::arrp::resource_guard::resource_pool</a></div><div class="ttdeci">friend class resource_pool</div><div class="ttdef"><b>Definition</b> resource_guard.hpp:139</div></div>

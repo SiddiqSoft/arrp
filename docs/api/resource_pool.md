@@ -115,6 +115,12 @@ The following UML class diagram highlights `siddiqsoft::arrp::resource_pool` and
       <div class="mdesc">Adds a resource to the pool by moving it.</div>
     </td>
   </tr>
+  <tr>
+    <td class="memtype"><code>nlohmann::json</code></td>
+    <td class="memitemleft"><a href="#to_json"><strong>to_json</strong></a> (() const)
+      <div class="mdesc">Member function.</div>
+    </td>
+  </tr>
 </table>
 
 ## Member Function Documentation
@@ -505,6 +511,25 @@ Resource is moved into the pool
 <div class="memdoc-section-title">Note</div>
 
 Does not enforce the configured capacity. Do not use this to return a borrowed resource; guards return resources automatically.
+
+</div>
+</div>
+
+<div class="memitem" id="to_json" markdown="1">
+<div class="memitem-header">
+  <span class="memitem-diamond">&#9670;</span>
+  <h4 class="memitem-title">to_json()</h4>
+</div>
+<div class="memproto" markdown="1">
+
+```cpp
+nlohmann::json resource_pool::to_json() const;
+```
+
+</div>
+<div class="memdoc" markdown="1">
+
+Executes component operation.
 
 </div>
 </div>

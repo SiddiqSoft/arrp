@@ -1,6 +1,6 @@
 # CMake Presets Architecture
 
-CMake Presets organization, separation of concerns, and comprehensive reference for `siddiqsoft::arrp`.
+CMake Presets organization, separation of concerns, and comprehensive reference for `siddiqsoft::sip2json`.
 
 ---
 
@@ -11,7 +11,7 @@ The repository employs a decoupled, highly reusable CMake Presets structure sepa
 ```mermaid
 flowchart TD
     subgraph PB["project-base.json (Project-Specific)"]
-        PBase["Project-Base<br/>- arrp_BUILD_TESTS=ON<br/>- CMAKE_CXX_STANDARD=20<br/>- CI_BUILDID=0.0.0"]
+        PBase["Project-Base<br/>- sip2json_BUILD_TESTS=ON<br/>- sip2json_BUILD_BENCHMARKS=OFF<br/>- CMAKE_CXX_STANDARD=20<br/>- CI_BUILDID=0.0.0"]
     end
 
     subgraph CP["CMakePresets.json (Generic / Portable)"]
@@ -66,13 +66,13 @@ flowchart TD
 
 ## Architectural Separation of Concerns
 
-1. **[`project-base.json`](https://github.com/SiddiqSoft/arrp/blob/master/project-base.json)**:
-   - Holds all **per-project settings** (e.g. `arrp_BUILD_TESTS`, `CMAKE_CXX_STANDARD: 20`, `CI_BUILDID: 0.0.0`).
+1. **[`project-base.json`](https://github.com/SiddiqSoft/sip2json/blob/master/project-base.json)**:
+   - Holds all **per-project settings** (e.g. `sip2json_BUILD_TESTS`, `CMAKE_CXX_STANDARD: 20`, `CI_BUILDID: 0.0.0`).
    - Project maintainers configure project-specific variables here without altering toolchain presets.
 
-2. **[`CMakePresets.json`](https://github.com/SiddiqSoft/arrp/blob/master/CMakePresets.json)**:
+2. **[`CMakePresets.json`](https://github.com/SiddiqSoft/sip2json/blob/master/CMakePresets.json)**:
    - Contains **zero project-specific names or flags**.
-   - Fully portable and reusable across any C++20 library or service repository.
+   - Fully portable and reusable across any C++20/23 library or service repository.
    - Defines platform bases (`Apple-Base`, `Linux-Base`, `Windows-Base`) and standardized `Test-Base` execution rules.
 
 ---
@@ -119,5 +119,5 @@ ctest --preset Apple-Clang-Release -j 4 --output-on-failure
 ## Related Topics
 
 * [**Maintainer Guide**](maintainer_guide.md): Codebase architecture, source mapping, and bulk formatting
-* [**Development Workflow**](workflow.md): Step-by-step local workflow and macOS toolchain configuration
+* development workflow: Step-by-step local workflow and macOS toolchain configuration
 * [**CI/CD Pipelines**](pipelines.md): Automated CI builds using these presets

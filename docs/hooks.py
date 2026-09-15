@@ -304,6 +304,9 @@ class DoxygenGraphvizCatalog:
                 if p.exists():
                     return p.read_text(encoding="utf-8").strip()
 
+        if target in ("errors", "exceptions"):
+            # Map directly to sip2json_exception
+            target = "sip2json_exception"
 
         # 4. Lookup entity in AST compounds or members
         norm_key = target.lower()

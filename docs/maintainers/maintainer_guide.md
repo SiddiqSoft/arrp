@@ -1,6 +1,6 @@
 # Maintainer Guide
 
-Codebase architecture, development guidelines, formatting standards, and maintainer documentation index for `siddiqsoft::arrp`.
+Codebase architecture, development guidelines, formatting standards, and maintainer documentation index for `siddiqsoft::sip2json`.
 
 ---
 
@@ -12,34 +12,59 @@ The maintainer documentation is organized into modular topic guides:
 | :--- | :--- |
 | [**CI/CD Pipelines**](pipelines.md) | Azure Pipelines architecture, build matrix, platform triggers, and parameters |
 | [**CMake Presets**](cmake_presets.md) | Decoupled presets hierarchy, `project-base.json`, and preset reference |
-| [**Development Workflow**](workflow.md) | Local building, testing, and macOS toolchain management |
+| development workflow | Local building, testing, standalone validation subproject, and macOS toolchain |
 | [**Build Agent Requirements**](build_agents.md) | Prerequisites and configuration for macOS, Linux, and Windows self-hosted agents |
-| [**Release & Publication**](releases.md) | GitVersion, SemVer tagging, GitHub Releases, and NuGet package publishing |
-| [**Documentation Architecture**](documentation.md) | MkDocs Material, Doxygen XML, custom CSS tokens, hooks, and local preview |
+| release guidelines | GitVersion, SemVer tagging, GitHub Releases, and NuGet package publishing |
+| documentation guidelines | MkDocs Material, Doxygen XML, custom CSS tokens, hooks, and local preview |
 
 ---
 
 ## Codebase Architecture & UML Class Diagram
 
-<!-- UML_CLASS_DIAGRAM_START -->
-The following UML class diagram illustrates the primary classes, relationships, and inheritance. The diagram is auto-generated from the C++ source AST via Doxygen XML. Each node in the diagram links directly to its source header file on GitHub.
+The following UML class diagram illustrates the primary classes, relationships, and exception hierarchy in `siddiqsoft::sip2json`. The diagram is auto-generated from the C++ source AST via Doxygen XML. Each node in the diagram links directly to its source header file on GitHub.
 
 <!-- @@uml-diag:complete -->
 
 <!-- @@uml-diag:source-table -->
-<!-- UML_CLASS_DIAGRAM_END -->
+
+---
+
+### Referencing UML Diagrams in Documentation (`@@uml-diag:` Grammar)
+
+To keep all documentation Markdown files clean, human-editable, and version-controlled, diagrams and tables are **never** hard-coded or directly pasted as raw Mermaid code blocks. Instead, maintainers embed lightweight, semantic `@@uml-diag:` or `@@uml-diagram:` directives.
+
+To ensure **100% Markdown and HTML compatibility** (avoiding any GitHub Pages, Jekyll Liquid syntax errors, W3C HTML5 validator warnings, or interference with adjacent Markdown elements), the canonical syntax wraps the directive inside standard HTML comments `<!-- @@uml-diagram:... -->` or `<!-- @@uml-diag:... -->`:
+
+| Canonical Directive Syntax | Alternative Syntax | Target Description | Example Target |
+| :--- | :--- | :--- | :--- |
+| `<!-- @@uml-diag:complete -->` | `@@uml-diag:complete` | Full system UML class diagram | System architecture, maintainer guide |
+| `<!-- @@uml-diagram:namespace -->` | `@@uml-diagram:namespace` | Namespace package architecture & boundary diagram | Architecture namespace section |
+| `<!-- @@uml-diagram:namespace:<name> -->` | `@@uml-diagram:namespace:<name>` | Specific namespace package (e.g. `siddiqsoft`) | Specific package mapping |
+| `<!-- @@uml-diag:<class-name> -->` | `@@uml-diag:<class-name>` | Targeted class UML diagram (e.g. `sip2json`, `sipmessage`, `HeaderKeySet`) | Class reference API pages |
+| `<!-- @@uml-diag:class:<class-name> -->` | `@@uml-diag:class:<class-name>` | Explicit class specifier | Class reference API pages |
+| `<!-- @@uml-diag:structure -->` | `@@uml-diag:structure` | Subsystem topology & layered architecture flowchart | Subsystem structure overview |
+| `<!-- @@uml-diag:control-flow -->` | `@@uml-diag:control-flow` | Stream parsing linear control-flow sequence diagram | Stream mechanics & async parsing |
+| `<!-- @@uml-diag:source-table -->` | `@@uml-diag:source-table` | Source code mapping table with GitHub links | Mapping tables |
+| `<!-- @@uml-diag:errors -->` | `@@uml-diag:errors` | Diagnostic exceptions & error code hierarchy | Error handling reference |
+
+#### Markdown & HTML Compatibility Guarantees:
+* **HTML & CommonMark Compliant**: Wrapping in `<!-- ... -->` represents an isolated HTML block per CommonMark 0.30+ specification, preventing conflicts with Markdown headers, list indentation, tables, or emphasis.
+* **GitHub Pages & Jekyll Safe**: Unlike template curly braces `{{ ... }}` which trigger Jekyll Liquid parse errors on GitHub Pages, HTML comments pass through cleanly without causing build failures.
+* **Clean Web Repository Browsing**: On github.com, HTML comments remain hidden, preventing raw directive text from displaying on unrendered Markdown pages.
+* **Flexible Parser**: The hook (documentation guidelines`, HTML tags `<div class="uml-diagram" data-diagram="..."></div>`, and bare `@@uml-diag:...` lines.
+* **Automated Clickable Source Links**: All generated diagrams automatically include clickable GitHub source links (`link ClassName "https://github.com/..."`).
 
 ---
 
 ## Source Code Formatting (Clang-Format)
 
-All C++ source code (`include/` and `tests/`) adheres to the formatting rules defined in [`.clang-format`](https://github.com/SiddiqSoft/arrp/blob/master/.clang-format) at the repository root.
+All C++ source code (`include/`, `tests/`, and `benchmarks/`) adheres to the formatting rules defined in [`.clang-format`](https://github.com/SiddiqSoft/sip2json/blob/master/.clang-format) at the repository root.
 
 The configuration is based on the **WebKit** style with modern C++20 conventions:
 * **Column Limit**: 132 characters
 * **Indentation**: 4 spaces (tabs are never used)
 * **Brace Style**: WebKit (braces break before functions, classes, and catch/else blocks)
-* **Pointer Alignment**: Left (`const arrp& item`, `std::string_view* ptr`)
+* **Pointer Alignment**: Left (`const sipmessage& msg`, `std::string_view* ptr`)
 * **Standard**: C++20
 
 ---
@@ -61,22 +86,22 @@ cmake --build build/Apple-Clang-Debug --target format
 ```
 
 > [!TIP]
-> **Automatic Debug Formatting**: On non-CI local builds, CMake enables `arrp_ENABLE_CLANG_FORMAT=ON` by default in `Debug` configuration. Formatting runs automatically prior to every local Debug compilation whenever a compatible `clang-format` executable is detected.
+> **Automatic Debug Formatting**: On non-CI local builds, CMake enables `sip2json_ENABLE_CLANG_FORMAT=ON` by default in `Debug` configuration. Formatting runs automatically prior to every local Debug compilation whenever a compatible `clang-format` executable is detected.
 
 ---
 
 #### Option 2: Bulk Command-Line via Find (macOS & Linux)
 
-To reformat all C++ header and source files across `include/` and `tests/` in one command:
+To reformat all C++ header and source files across `include/`, `tests/`, and `benchmarks/` in one command:
 
 ```bash
-find include tests -type f \( -name "*.hpp" -o -name "*.cpp" -o -name "*.h" \) -exec clang-format -i --style=file {} +
+find include tests benchmarks -type f \( -name "*.hpp" -o -name "*.cpp" -o -name "*.h" \) -exec clang-format -i --style=file {} +
 ```
 
 To verify formatting without modifying files, pass `--dry-run --Werror`:
 
 ```bash
-find include tests -type f \( -name "*.hpp" -o -name "*.cpp" -o -name "*.h" \) -exec clang-format --dry-run --Werror --style=file {} +
+find include tests benchmarks -type f \( -name "*.hpp" -o -name "*.cpp" -o -name "*.h" \) -exec clang-format --dry-run --Werror --style=file {} +
 ```
 
 ---
@@ -102,7 +127,7 @@ Format all tracked C++ files in the repository using `git ls-files`:
 On Windows systems without Git bash, run the following PowerShell one-liner:
 
 ```powershell
-Get-ChildItem -Path include, tests -Include *.hpp, *.cpp, *.h -Recurse | ForEach-Object {
+Get-ChildItem -Path include, tests, benchmarks -Include *.hpp, *.cpp, *.h -Recurse | ForEach-Object {
     clang-format -i --style=file $_.FullName
 }
 ```
@@ -140,4 +165,15 @@ Before submitting a pull request or pushing to `master`:
    ```bash
    mkdocs build --strict
    ```
-5. **Major Version Updates**: When introducing breaking API changes or preparing a major version release, manually update the `next-version:` entry in [`GitVersion.yml`](https://github.com/SiddiqSoft/arrp/blob/master/GitVersion.yml) (e.g. `next-version: 2.0.0`) so GitVersion establishes the new major version baseline.
+5. **Major Version Updates**: When introducing breaking API changes or preparing a major version release, manually update the `next-version:` entry in [`GitVersion.yml`](https://github.com/SiddiqSoft/sip2json/blob/master/GitVersion.yml) (e.g. `next-version: 4.0.0`) so GitVersion establishes the new major version baseline.
+
+
+## Codebase Architecture & UML Class Diagram
+
+<!-- UML_CLASS_DIAGRAM_START -->
+The following UML class diagram illustrates the primary classes, relationships, and inheritance. The diagram is auto-generated from the C++ source AST via Doxygen XML. Each node in the diagram links directly to its source header file on GitHub.
+
+<!-- @@uml-diag:complete -->
+
+<!-- @@uml-diag:source-table -->
+<!-- UML_CLASS_DIAGRAM_END -->

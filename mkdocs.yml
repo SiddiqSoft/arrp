@@ -1,9 +1,9 @@
-site_name: "arrp"
-site_description: "Auto Returning Resource Pool for Modern C++23"
+site_name: arrp
+site_description: Asynchronous Resource Reusable Pool
 site_author: Siddiq Software LLC
-site_url: "https://siddiqsoft.github.io/arrp/"
-repo_url: "https://github.com/SiddiqSoft/arrp"
-repo_name: "SiddiqSoft/arrp"
+site_url: https://siddiqsoft.github.io/arrp/
+repo_url: https://github.com/SiddiqSoft/arrp
+repo_name: SiddiqSoft/arrp
 edit_uri: edit/main/docs/
 
 hooks:
@@ -21,8 +21,6 @@ exclude_docs: |
   doxygen_html/**
   snippets/*
   snippets/**
-  doxygen_xml/*
-  doxygen_xml/**
   __pycache__/*
 
 extra:
@@ -34,6 +32,7 @@ theme:
   logo: assets/Siddiq-Software-Avatar.png
   favicon: assets/Siddiq-Software-Avatar.png
   palette:
+    # Palette toggle for light mode
     - media: "(prefers-color-scheme: light)"
       scheme: default
       primary: indigo
@@ -41,6 +40,7 @@ theme:
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
+    # Palette toggle for dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
       primary: indigo
@@ -48,12 +48,15 @@ theme:
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
+  # Typography: Primary text and code font families (loaded via Google Fonts)
+  # Modify these values to customize typeface across cxxtemplate projects.
+  # Sizing, retina scaling, and system fallbacks are configured in docs/css/custom.css.
   font:
     text: Roboto
     code: JetBrains Mono
   features:
     - navigation.tabs
-    - toc.integrate
+    - toc.integrate # everything in the left side nav bar, but not great for large docs
     - navigation.tabs.sticky
     - navigation.sections
     - navigation.expand
@@ -103,16 +106,11 @@ nav:
       - Overview: api/index.md
       - resource_pool: api/resource_pool.md
       - resource_guard: api/resource_guard.md
-      - Types & Enums: api/types.md
   - Related Pages:
-      - Architecture & Diagnostics: architecture/index.md
+      - Architecture: architecture/index.md
       - Maintainer Guide:
-          - Overview: maintainers/index.md
           - Maintainer Guide: maintainers/maintainer_guide.md
           - CI/CD Pipelines: maintainers/pipelines.md
           - CMake Presets: maintainers/cmake_presets.md
-          - Development Workflow: maintainers/workflow.md
           - Build Agent Requirements: maintainers/build_agents.md
-          - Release Lifecycle: maintainers/releases.md
-          - Documentation Architecture: maintainers/documentation.md
       - License: license.md
