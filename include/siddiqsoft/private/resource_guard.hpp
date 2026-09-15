@@ -437,14 +437,6 @@ namespace siddiqsoft::arrp
         /// @note Available only when nlohmann/json.hpp was included before this header.
         /// @note If T is not serializable, value is set to "-noserializer-"
         ///
-        /// @par JSON Schema:
-        /// @code{.json}
-        /// {
-        ///   "_typver": "siddiqsoft.arrp.resource_guard/1.0.0",
-        ///   "valid": true,
-        ///   "value": <resource_value>
-        /// }
-        /// @endcode
         nlohmann::json to_json() const
         {
             if constexpr (std::is_same_v<T, std::string> || std::is_arithmetic_v<T>)

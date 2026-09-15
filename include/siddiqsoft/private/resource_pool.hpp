@@ -638,23 +638,6 @@ namespace siddiqsoft::arrp
         ///
         /// @note Available only when nlohmann/json.hpp was included before this header.
         ///
-        /// @par JSON Schema:
-        /// @code{.json}
-        /// {
-        ///   "_typver": "siddiqsoft.arrp.resource_pool/0.0.0",
-        ///   "capacity": <configured_capacity>,
-        ///   "size": <available_resources>,
-        ///   "peaksize": <peak_size_reached>,
-        ///   "abandons": <invalidated_resources>,
-        ///   "seeds": <resources_added_via_seed>,
-        ///   "autoadds": <resources_created_ondemand>,
-        ///   "returns": <resources_returned>,
-        ///   "borrows": <resources_borrowed>,
-        ///   "loans": <currently_borrowed>
-        /// }
-        /// @endcode
-        ///
-        
         auto to_json() const -> nlohmann::json
         {
             nlohmann::json   stats;

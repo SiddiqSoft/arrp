@@ -69,6 +69,7 @@ def run_doxygen(root_dir: Path) -> bool:
 
 
 def detect_project_info(root_dir: Path):
+    default_branch = "main"
     """Detects project name and GitHub org from CMakeLists.txt or mkdocs.yml."""
     project_name = "{{PROJECT_NAME}}"
     github_org = "{{GITHUB_ORG}}"
@@ -94,7 +95,7 @@ def detect_project_info(root_dir: Path):
         if m_desc and not m_desc.group(1).startswith("{{"):
             project_desc = m_desc.group(1).strip()
 
-    return project_name, github_org, project_desc
+    return project_name, github_org, project_desc, default_branch
 
 
 def xml_text(elem) -> str:
@@ -391,7 +392,7 @@ def generate_class_uml_diagram(
     Generates a focused, per-class Mermaid UML diagram displaying only the target class
     highlighted with its public methods and immediate inheritance/usage relationships.
     """
-    base_src_url = f"https://github.com/{github_org}/{project_name}/blob/master"
+    base_src_url = f"https://github.com/{github_org}/{project_name}/blob/{default_branch}"
     clean_id = re.sub(r"[^A-Za-z0-9_]", "_", target_class.short_name)
 
     lines = [
@@ -433,7 +434,7 @@ def generate_class_uml_diagram(
         lines.append(f"    {drv_id} --|> {clean_id} : specializes")
 
     lines.append("")
-    hdr = target_class.header_file or f"include/siddiqsoft/{project_name}.hpp"
+    hdr = target_class.header_file or f"include/{root_namespace}/{project_name}.hpp"
     line_num = f"#L{target_class.line}" if target_class.line else ""
     lines.append(f'    link {clean_id} "{base_src_url}/{hdr}{line_num}" "Source: {hdr}"')
     for base in target_class.bases:
@@ -446,12 +447,12 @@ def generate_class_uml_diagram(
 
 
 def generate_system_uml_diagram(
-    classes: list, project_name: str, github_org: str
+    classes: list, project_name: str, github_org: str, default_branch: str = "main"
 ) -> str:
     """
     Generates a full-system Mermaid UML class diagram of all classes in the library.
     """
-    base_src_url = f"https://github.com/{github_org}/{project_name}/blob/master"
+    base_src_url = f"https://github.com/{github_org}/{project_name}/blob/{default_branch}"
 
     lines = [
         "```mermaid",
@@ -508,7 +509,7 @@ def generate_system_uml_diagram(
     lines.append("")
     for cm in classes:
         clean_id = re.sub(r"[^A-Za-z0-9_]", "_", cm.short_name)
-        hdr = cm.header_file or f"include/siddiqsoft/{project_name}.hpp"
+        hdr = cm.header_file or f"include/{root_namespace}/{project_name}.hpp"
         line_num = f"#L{cm.line}" if cm.line else ""
         lines.append(f'    link {clean_id} "{base_src_url}/{hdr}{line_num}" "Source: {hdr}"')
 
@@ -522,13 +523,13 @@ def generate_system_uml_diagram(
 
 
 def generate_source_mapping_table(
-    classes: list, project_name: str, github_org: str, api_prefix: str = ""
+    classes: list, project_name: str, github_org: str, default_branch: str = "main", api_prefix: str = ""
 ) -> str:
     """
     Generate markdown source code mapping table linking classes, headers,
     GitHub source files, and API documentation.
     """
-    base_gh = f"https://github.com/{github_org}/{project_name}/blob/master"
+    base_gh = f"https://github.com/{github_org}/{project_name}/blob/{default_branch}"
 
     lines = [
         "### Source Code Mapping",
@@ -538,7 +539,7 @@ def generate_source_mapping_table(
     ]
 
     for cm in classes:
-        hdr = cm.header_file or f"include/siddiqsoft/{project_name}.hpp"
+        hdr = cm.header_file or f"include/{root_namespace}/{project_name}.hpp"
         line_num = f"#L{cm.line}" if cm.line else ""
         gh_link = f"[`{Path(hdr).name}`]({base_gh}/{hdr}{line_num})"
         doc_link = f"[`{cm.name}`]({api_prefix}{cm.short_name}.md)"
@@ -549,12 +550,37 @@ def generate_source_mapping_table(
     return "\n".join(lines)
 
 
+
+def get_cleaned_svg(html_dir, refid, aspect="coll"):
+    svg_path = html_dir / f"{refid}__{aspect}__graph.svg"
+    if not svg_path.exists():
+        return ""
+    try:
+        svg = svg_path.read_text(encoding="utf-8")
+        # Strip xml and doctype
+        svg = re.sub(r'<\?xml[^>]*>', '', svg)
+        svg = re.sub(r'<!DOCTYPE[^>]*>', '', svg)
+        # Strip trailing newlines
+        svg = svg.strip()
+        if not svg: return ""
+        aspect_title = "Collaboration" if aspect == "coll" else "Inheritance"
+        return f'''<div class="uml-diagram-container graphviz-uml" data-graph-type="{aspect}">
+<span class="uml-diagram-figure" style="display: block;">
+<span class="uml-diagram-viewport" style="display: block;">
+{svg}
+</span>
+<span class="uml-diagram-figcaption" style="display: block; text-align: center; font-style: italic; margin-top: 0.5em;">Figure: GraphViz UML {aspect_title} diagram</span>
+</span>
+</div>'''
+    except Exception:
+        return ""
+
 def generate_class_markdown(
-    cm: ClassMeta, project_name: str, github_org: str
+    cm: ClassMeta, project_name: str, github_org: str, root_namespace: str, default_branch: str = "main", html_dir = None
 ) -> str:
     """Generates complete reference markdown for a single class."""
-    hdr = cm.header_file or f"include/siddiqsoft/{project_name}.hpp"
-    base_gh = f"https://github.com/{github_org}/{project_name}/blob/master"
+    hdr = cm.header_file or f"include/{root_namespace}/{project_name}.hpp"
+    base_gh = f"https://github.com/{github_org}/{project_name}/blob/{default_branch}"
 
     lines = [
         f"# {cm.name} Class Reference",
@@ -562,7 +588,7 @@ def generate_class_markdown(
         '<div class="grid" markdown="1">',
         '<div class="api-intro-col" markdown="1">',
         '<div class="api-header-block">',
-        '  <div class="api-module-name">Namespace siddiqsoft</div>',
+        '  <div class="api-module-name">Namespace {root_namespace}</div>',
         f'  <div class="api-header-file">#include &lt;{hdr.replace("include/", "")}&gt;</div>',
         '</div>',
         "",
@@ -719,7 +745,7 @@ def generate_class_markdown(
 
 
 def generate_index_markdown(
-    classes: list, project_name: str, github_org: str, project_desc: str
+    classes: list, project_name: str, github_org: str, project_desc: str, root_namespace: str, default_branch: str = "main"
 ) -> str:
     """Generates docs/api/index.md overview."""
     src_map = generate_source_mapping_table(
@@ -734,7 +760,7 @@ def generate_index_markdown(
         '  <div class="api-header-file">Generated from intermediate Doxygen XML</div>',
         '</div>',
         "",
-        f"The `siddiqsoft` namespace provides data structures and utilities for `{project_name}`.",
+        f"The `{root_namespace}` namespace provides data structures and utilities for `{project_name}`.",
         "",
         "## Classes & Structures",
         "",
@@ -745,7 +771,7 @@ def generate_index_markdown(
         lines.extend([
             '  <tr>',
             '    <td class="memtype"><code>class</code></td>',
-            f'    <td class="memitemleft"><a href="{cm.short_name}/"><strong>siddiqsoft::{cm.short_name}</strong></a><div class="mdesc">{cm.brief or f"Component of {project_name}"}</div></td>',
+            f'    <td class="memitemleft"><a href="{cm.short_name}/"><strong>{root_namespace}::{cm.short_name}</strong></a><div class="mdesc">{cm.brief or f"Component of {project_name}"}</div></td>',
             '  </tr>'
         ])
 
@@ -759,7 +785,7 @@ def generate_index_markdown(
     ])
 
     for cm in classes:
-        hdr = cm.header_file or f"include/siddiqsoft/{project_name}.hpp"
+        hdr = cm.header_file or f"include/{root_namespace}/{project_name}.hpp"
         fname = hdr.split("/")[-1]
         brief = cm.brief or f'Definitions for {cm.short_name}'
         lines.append(f"| **`{fname}`** | `#include <{hdr.replace("include/", "")}>` | {brief} |")
@@ -778,7 +804,7 @@ def generate_index_markdown(
     return "\n".join(lines)
 
 
-def update_maintainer_uml(maintainer_file: Path, classes: list, project_name: str, github_org: str, sys_uml: str):
+def update_maintainer_uml(maintainer_file: Path, classes: list, project_name: str, github_org: str, sys_uml: str, default_branch: str = "main"):
     """Injects or updates the UML class diagram and source code mapping in docs/maintainers/pipelines.md."""
     if not maintainer_file.exists():
         return
@@ -823,6 +849,7 @@ def update_architecture_uml(
     project_name: str,
     github_org: str,
     sys_uml: str,
+    default_branch: str = "main",
 ):
     """Injects or updates the UML class diagram in docs/architecture/index.md."""
     if not arch_file.exists():
@@ -861,7 +888,8 @@ def write_if_changed(file_path: Path, content: str):
 
 def main():
     root_dir = Path(__file__).resolve().parent.parent
-    project_name, github_org, project_desc = detect_project_info(root_dir)
+    project_name, github_org, project_desc, default_branch = detect_project_info(root_dir)
+    root_namespace = github_org.lower()
 
     xml_dir = root_dir / "docs" / "doxygen_xml"
     run_doxygen(root_dir)
@@ -871,9 +899,9 @@ def main():
     # If no classes discovered from Doxygen XML (e.g. un-instantiated template or fresh clone),
     # construct the baseline class for {{PROJECT_NAME}}
     if not classes:
-        default_cm = ClassMeta(f"siddiqsoft::{project_name}")
+        default_cm = ClassMeta(f"{root_namespace}::{project_name}")
         default_cm.brief = project_desc
-        default_cm.header_file = f"include/siddiqsoft/{project_name}.hpp"
+        default_cm.header_file = f"include/{root_namespace}/{project_name}.hpp"
         default_cm.line = 26
         default_cm.methods = [
             {
@@ -893,19 +921,20 @@ def main():
         ]
         classes = [default_cm]
 
-    sys_uml = generate_system_uml_diagram(classes, project_name, github_org)
+    sys_uml = generate_system_uml_diagram(classes, project_name, github_org, default_branch)
     (root_dir / "docs" / "snippets" / "system_uml_diagram.md").parent.mkdir(parents=True, exist_ok=True)
     write_if_changed(root_dir / "docs" / "snippets" / "system_uml_diagram.md", sys_uml)
 
     # 1. Generate docs/api/index.md
     index_md = generate_index_markdown(
-        classes, project_name, github_org, project_desc
+        classes, project_name, github_org, project_desc, root_namespace, default_branch
     )
     write_if_changed(root_dir / "docs" / "api" / "index.md", index_md)
 
     # 2. Generate per-class reference pages
     for cm in classes:
-        cls_md = generate_class_markdown(cm, project_name, github_org)
+        html_dir = root_dir / "docs" / "doxygen_html"
+        cls_md = generate_class_markdown(cm, project_name, github_org, root_namespace, default_branch, html_dir)
         write_if_changed(root_dir / "docs" / "api" / f"{cm.short_name}.md", cls_md)
 
     # 3. Update maintainer guide
