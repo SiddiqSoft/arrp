@@ -28,6 +28,8 @@ PREDEFINED             = "NLOHMANN_JSON_VERSION_MAJOR=3"
 MACRO_EXPANSION        = YES
 SEARCH_INCLUDES        = YES
 BUILTIN_STL_SUPPORT    = YES
+EXAMPLE_PATH           = ../tests
+
 
 QUIET                  = YES
 WARNINGS               = YES

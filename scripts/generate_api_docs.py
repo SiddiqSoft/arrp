@@ -347,6 +347,7 @@ def parse_classes_from_doxygen(xml_dir: Path) -> list:
                 mbrief = xml_text(m.find("briefdescription"))
                 entry = {
                     "name": mname,
+                    "id": m.get("id", mname.lower()),
                     "return_type": mtype or "void",
                     "args": args,
                     "brief": mbrief,
@@ -568,7 +569,7 @@ def generate_class_markdown(
             '<table class="api-summary-table">',
         ])
         for sm in cm.static_methods:
-            anchor = sm["name"].lower()
+            anchor = sm.get("id", sm["name"].lower())
             formatted_params = format_summary_params(sm["name"], anchor, sm["args"])
             ret_type = escape_html(sm["return_type"] or "void")
             brief_desc = sm["brief"] or "Static member function."
@@ -602,7 +603,7 @@ def generate_class_markdown(
             '<table class="api-summary-table">',
         ])
         for m in constructors:
-            anchor = m["name"].lower()
+            anchor = m.get("id", m["name"].lower())
             formatted_params = format_summary_params(m["name"], anchor, m["args"])
             ret_type = escape_html(m["return_type"] or "")
             if not ret_type:
@@ -627,7 +628,7 @@ def generate_class_markdown(
             '<table class="api-summary-table">',
         ])
         for m in normal_methods:
-            anchor = m["name"].lower()
+            anchor = m.get("id", m["name"].lower())
             formatted_params = format_summary_params(m["name"], anchor, m["args"])
             ret_type = escape_html(m["return_type"] or "void")
             brief_desc = m["brief"] or "Member function."
@@ -648,7 +649,7 @@ def generate_class_markdown(
             "",
         ])
         for m in all_methods:
-            anchor = m["name"].lower()
+            anchor = m.get("id", m["name"].lower())
             qual = "static " if m.get("static") else ""
             ret_type = m["return_type"]
             args_str = m["args"]
@@ -741,7 +742,7 @@ def generate_index_markdown(
         hdr = cm.header_file or f"include/siddiqsoft/{project_name}.hpp"
         fname = hdr.split("/")[-1]
         brief = cm.brief or f'Definitions for {cm.short_name}'
-        lines.append(f"| **`{fname}`** | `#include &lt;{hdr}&gt;` | {brief} |")
+        lines.append(f"| **`{fname}`** | `#include <{hdr.replace("include/", "")}>` | {brief} |")
 
     lines.extend([
         "",

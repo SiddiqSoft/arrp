@@ -7,7 +7,7 @@
   <div class="api-header-file">#include &lt;siddiqsoft/private/resource_pool.hpp&gt;</div>
 </div>
 
-`resource_pool` component of `arrp`.
+Thread-safe auto-returning resource pool.
 
 </div>
 <div class="api-diag-col" markdown="1">
@@ -28,31 +28,31 @@ The following UML class diagram highlights `siddiqsoft::arrp::resource_pool` and
 <table class="api-summary-table">
   <tr>
     <td class="memtype"><code>void</code></td>
-    <td class="memitemleft"><a href="#resource_pool"><strong>resource_pool</strong></a> ((resource_pool &amp;)=delete)
+    <td class="memitemleft"><a href="#classsiddiqsoft_1_1arrp_1_1resource__pool_1a0909de3000c0be9da4fd96f120f8b9e7"><strong>resource_pool</strong></a> ((resource_pool &amp;)=delete)
       <div class="mdesc">Copy constructor is deleted.</div>
     </td>
   </tr>
   <tr>
     <td class="memtype"><code>void</code></td>
-    <td class="memitemleft"><a href="#resource_pool"><strong>resource_pool</strong></a> ((resource_pool &amp;&amp;src)=delete)
+    <td class="memitemleft"><a href="#classsiddiqsoft_1_1arrp_1_1resource__pool_1a3e13115fd9102b69c57df805675f8572"><strong>resource_pool</strong></a> ((resource_pool &amp;&amp;src)=delete)
       <div class="mdesc">Move constructor is deleted.</div>
     </td>
   </tr>
   <tr>
     <td class="memtype"><code>void</code></td>
-    <td class="memitemleft"><a href="#resource_pool"><strong>resource_pool</strong></a> (<div class="param-wrap">uint8_t init_capacity=resource_pool_limits::DefaultCapacity,</div><div class="param-wrap">std::function&lt; void(T &amp;)&gt; &amp;&amp;on_shutdown_callback={}</div>)
+    <td class="memitemleft"><a href="#classsiddiqsoft_1_1arrp_1_1resource__pool_1a1ad6399df589bfd554f3e32078e06512"><strong>resource_pool</strong></a> (<div class="param-wrap">uint8_t init_capacity=resource_pool_limits::DefaultCapacity,</div><div class="param-wrap">std::function&lt; void(T &amp;)&gt; &amp;&amp;on_shutdown_callback={}</div>)
       <div class="mdesc">Constructs a resource pool with an optional cleanup callback.</div>
     </td>
   </tr>
   <tr>
     <td class="memtype"><code>void</code></td>
-    <td class="memitemleft"><a href="#resource_pool"><strong>resource_pool</strong></a> (<div class="param-wrap">std::function&lt; void(T &amp;)&gt; &amp;&amp;on_shutdown_callback</div>)
+    <td class="memitemleft"><a href="#classsiddiqsoft_1_1arrp_1_1resource__pool_1aec9b588016ce92d69bd21688c74b5bdb"><strong>resource_pool</strong></a> (<div class="param-wrap">std::function&lt; void(T &amp;)&gt; &amp;&amp;on_shutdown_callback</div>)
       <div class="mdesc">Constructs a resource pool with only cleanup callback.</div>
     </td>
   </tr>
   <tr>
     <td class="memtype"><code>void</code></td>
-    <td class="memitemleft"><a href="#~resource_pool"><strong>~resource_pool</strong></a> ()
+    <td class="memitemleft"><a href="#classsiddiqsoft_1_1arrp_1_1resource__pool_1aae9455993d18cc191173f87ed435ee38"><strong>~resource_pool</strong></a> ()
       <div class="mdesc">Destructor - cleans up all resources in the pool.</div>
     </td>
   </tr>
@@ -63,69 +63,69 @@ The following UML class diagram highlights `siddiqsoft::arrp::resource_pool` and
 <table class="api-summary-table">
   <tr>
     <td class="memtype"><code>resource_pool &amp;</code></td>
-    <td class="memitemleft"><a href="#operator="><strong>operator=</strong></a> ((resource_pool &amp;)=delete)
+    <td class="memitemleft"><a href="#classsiddiqsoft_1_1arrp_1_1resource__pool_1af0e172abce0481219076b29c6b9610a9"><strong>operator=</strong></a> ((resource_pool &amp;)=delete)
       <div class="mdesc">Copy assignment operator is deleted.</div>
     </td>
   </tr>
   <tr>
     <td class="memtype"><code>resource_pool &amp;</code></td>
-    <td class="memitemleft"><a href="#operator="><strong>operator=</strong></a> ((resource_pool &amp;&amp;src)=delete)
+    <td class="memitemleft"><a href="#classsiddiqsoft_1_1arrp_1_1resource__pool_1a17f548e5e73a6e6a2926cf4555742d89"><strong>operator=</strong></a> ((resource_pool &amp;&amp;src)=delete)
       <div class="mdesc">Move assignment operator is deleted.</div>
     </td>
   </tr>
   <tr>
     <td class="memtype"><code>void</code></td>
-    <td class="memitemleft"><a href="#set_factory_callback"><strong>set_factory_callback</strong></a> (F &amp;&amp;f)
+    <td class="memitemleft"><a href="#classsiddiqsoft_1_1arrp_1_1resource__pool_1ae19dc46cd16d9f9594d74ffd14f9881c"><strong>set_factory_callback</strong></a> (F &amp;&amp;f)
       <div class="mdesc">Sets the factory used by try_borrow_create() when no resource is available.</div>
     </td>
   </tr>
   <tr>
     <td class="memtype"><code>pool_error</code></td>
-    <td class="memitemleft"><a href="#clear"><strong>clear</strong></a> ()
+    <td class="memitemleft"><a href="#classsiddiqsoft_1_1arrp_1_1resource__pool_1ad2d417ee4983a95c3a365d2b5fec377b"><strong>clear</strong></a> ()
       <div class="mdesc">Clears all resources from the pool.</div>
     </td>
   </tr>
   <tr>
     <td class="memtype"><code>auto</code></td>
-    <td class="memitemleft"><a href="#size"><strong>size</strong></a> (() const)
+    <td class="memitemleft"><a href="#classsiddiqsoft_1_1arrp_1_1resource__pool_1a5711ec0d9ded4266a521f54a62830189"><strong>size</strong></a> (() const)
       <div class="mdesc">Gets the current size of the pool.</div>
     </td>
   </tr>
   <tr>
     <td class="memtype"><code>resource_guard&lt; T &gt;</code></td>
-    <td class="memitemleft"><a href="#try_borrow"><strong>try_borrow</strong></a> (<div class="param-wrap">std::chrono::nanoseconds timeout={}</div>)
+    <td class="memitemleft"><a href="#classsiddiqsoft_1_1arrp_1_1resource__pool_1a68145b72a23eb91af6ed2bdce3cf980f"><strong>try_borrow</strong></a> (<div class="param-wrap">std::chrono::nanoseconds timeout={}</div>)
       <div class="mdesc">Borrows an available resource without creating one.</div>
     </td>
   </tr>
   <tr>
     <td class="memtype"><code>resource_guard&lt; T &gt;</code></td>
-    <td class="memitemleft"><a href="#try_borrow_create"><strong>try_borrow_create</strong></a> (<div class="param-wrap">std::chrono::nanoseconds timeout={}</div>)
+    <td class="memitemleft"><a href="#classsiddiqsoft_1_1arrp_1_1resource__pool_1a4e42d634ae61df8943c91fc444c5d2b2"><strong>try_borrow_create</strong></a> (<div class="param-wrap">std::chrono::nanoseconds timeout={}</div>)
       <div class="mdesc">Borrows an available resource or creates one through the factory.</div>
     </td>
   </tr>
   <tr>
     <td class="memtype"><code>pool_error</code></td>
-    <td class="memitemleft"><a href="#seed"><strong>seed</strong></a> (Args &amp;&amp;... args)
+    <td class="memitemleft"><a href="#classsiddiqsoft_1_1arrp_1_1resource__pool_1a694d99ee21becce11d5d01f5eda13aa9"><strong>seed</strong></a> (Args &amp;&amp;... args)
       <div class="mdesc">Adds a resource to the pool by constructing it in-place.</div>
     </td>
   </tr>
   <tr>
     <td class="memtype"><code>pool_error</code></td>
-    <td class="memitemleft"><a href="#seed"><strong>seed</strong></a> (T &amp;&amp;item)
+    <td class="memitemleft"><a href="#classsiddiqsoft_1_1arrp_1_1resource__pool_1aeb57311374cb1d1369b6c0fc8f7f4916"><strong>seed</strong></a> (T &amp;&amp;item)
       <div class="mdesc">Adds a resource to the pool by moving it.</div>
     </td>
   </tr>
   <tr>
     <td class="memtype"><code>nlohmann::json</code></td>
-    <td class="memitemleft"><a href="#to_json"><strong>to_json</strong></a> (() const)
-      <div class="mdesc">Member function.</div>
+    <td class="memitemleft"><a href="#classsiddiqsoft_1_1arrp_1_1resource__pool_1abb45bf3587651539bf8d5bf8dbb00d0d"><strong>to_json</strong></a> (() const)
+      <div class="mdesc">Serializes pool statistics to JSON.</div>
     </td>
   </tr>
 </table>
 
 ## Member Function Documentation
 
-<div class="memitem" id="resource_pool" markdown="1">
+<div class="memitem" id="classsiddiqsoft_1_1arrp_1_1resource__pool_1a0909de3000c0be9da4fd96f120f8b9e7" markdown="1">
 <div class="memitem-header">
   <span class="memitem-diamond">&#9670;</span>
   <h4 class="memitem-title">resource_pool()</h4>
@@ -145,7 +145,7 @@ Copy constructor is deleted.
 </div>
 </div>
 
-<div class="memitem" id="resource_pool" markdown="1">
+<div class="memitem" id="classsiddiqsoft_1_1arrp_1_1resource__pool_1a3e13115fd9102b69c57df805675f8572" markdown="1">
 <div class="memitem-header">
   <span class="memitem-diamond">&#9670;</span>
   <h4 class="memitem-title">resource_pool()</h4>
@@ -165,7 +165,7 @@ Move constructor is deleted.
 </div>
 </div>
 
-<div class="memitem" id="operator=" markdown="1">
+<div class="memitem" id="classsiddiqsoft_1_1arrp_1_1resource__pool_1af0e172abce0481219076b29c6b9610a9" markdown="1">
 <div class="memitem-header">
   <span class="memitem-diamond">&#9670;</span>
   <h4 class="memitem-title">operator=()</h4>
@@ -185,7 +185,7 @@ Copy assignment operator is deleted.
 </div>
 </div>
 
-<div class="memitem" id="operator=" markdown="1">
+<div class="memitem" id="classsiddiqsoft_1_1arrp_1_1resource__pool_1a17f548e5e73a6e6a2926cf4555742d89" markdown="1">
 <div class="memitem-header">
   <span class="memitem-diamond">&#9670;</span>
   <h4 class="memitem-title">operator=()</h4>
@@ -205,7 +205,7 @@ Move assignment operator is deleted.
 </div>
 </div>
 
-<div class="memitem" id="resource_pool" markdown="1">
+<div class="memitem" id="classsiddiqsoft_1_1arrp_1_1resource__pool_1a1ad6399df589bfd554f3e32078e06512" markdown="1">
 <div class="memitem-header">
   <span class="memitem-diamond">&#9670;</span>
   <h4 class="memitem-title">resource_pool()</h4>
@@ -243,7 +243,7 @@ Capacity is clamped to [MinimumCapacity, MaxCapacity] but does not enforce a max
 </div>
 </div>
 
-<div class="memitem" id="resource_pool" markdown="1">
+<div class="memitem" id="classsiddiqsoft_1_1arrp_1_1resource__pool_1aec9b588016ce92d69bd21688c74b5bdb" markdown="1">
 <div class="memitem-header">
   <span class="memitem-diamond">&#9670;</span>
   <h4 class="memitem-title">resource_pool()</h4>
@@ -271,7 +271,7 @@ Uses the default capacity. The cleanup callback is invoked for resources availab
 </div>
 </div>
 
-<div class="memitem" id="~resource_pool" markdown="1">
+<div class="memitem" id="classsiddiqsoft_1_1arrp_1_1resource__pool_1aae9455993d18cc191173f87ed435ee38" markdown="1">
 <div class="memitem-header">
   <span class="memitem-diamond">&#9670;</span>
   <h4 class="memitem-title">~resource_pool()</h4>
@@ -295,7 +295,7 @@ Exceptions derived from std::exception in the cleanup callback are caught and wr
 </div>
 </div>
 
-<div class="memitem" id="set_factory_callback" markdown="1">
+<div class="memitem" id="classsiddiqsoft_1_1arrp_1_1resource__pool_1ae19dc46cd16d9f9594d74ffd14f9881c" markdown="1">
 <div class="memitem-header">
   <span class="memitem-diamond">&#9670;</span>
   <h4 class="memitem-title">set_factory_callback()</h4>
@@ -323,7 +323,7 @@ Safe to call concurrently with `borrow_impl()`: assignment is synchronized under
 </div>
 </div>
 
-<div class="memitem" id="clear" markdown="1">
+<div class="memitem" id="classsiddiqsoft_1_1arrp_1_1resource__pool_1ad2d417ee4983a95c3a365d2b5fec377b" markdown="1">
 <div class="memitem-header">
   <span class="memitem-diamond">&#9670;</span>
   <h4 class="memitem-title">clear()</h4>
@@ -338,8 +338,11 @@ pool_error resource_pool::clear();
 <div class="memdoc" markdown="1">
 
 Clears all resources from the pool.
-Removes currently available resources and invokes the cleanup callback for each. Borrowed resources can return after `clear()` completes.
+<div class="memdoc-section-title">Example:</div>
 
+
+
+clear()
 <div class="memdoc-section-title">Returns</div>
 
 `pool_error::Ok`
@@ -355,7 +358,7 @@ Non-blocking by design: if a concurrent borrow has already claimed a resource's 
 </div>
 </div>
 
-<div class="memitem" id="size" markdown="1">
+<div class="memitem" id="classsiddiqsoft_1_1arrp_1_1resource__pool_1a5711ec0d9ded4266a521f54a62830189" markdown="1">
 <div class="memitem-header">
   <span class="memitem-diamond">&#9670;</span>
   <h4 class="memitem-title">size()</h4>
@@ -370,6 +373,10 @@ auto resource_pool::size() const;
 <div class="memdoc" markdown="1">
 
 Gets the current size of the pool.
+<div class="memdoc-section-title">Example:</div>
+
+
+
 <div class="memdoc-section-title">Returns</div>
 
 Number of currently available resources
@@ -381,7 +388,7 @@ Does not include checked-out resources
 </div>
 </div>
 
-<div class="memitem" id="try_borrow" markdown="1">
+<div class="memitem" id="classsiddiqsoft_1_1arrp_1_1resource__pool_1a68145b72a23eb91af6ed2bdce3cf980f" markdown="1">
 <div class="memitem-header">
   <span class="memitem-diamond">&#9670;</span>
   <h4 class="memitem-title">try_borrow()</h4>
@@ -396,6 +403,10 @@ resource_guard< T > resource_pool::try_borrow(std::chrono::nanoseconds timeout={
 <div class="memdoc" markdown="1">
 
 Borrows an available resource without creating one.
+<div class="memdoc-section-title">Example:</div>
+
+ 
+
 <div class="memdoc-section-title">Parameters</div>
 
 <ul>
@@ -409,7 +420,7 @@ A valid scoped resource, or an invalid one with NoMoreResources, Timeout, Shutdo
 </div>
 </div>
 
-<div class="memitem" id="try_borrow_create" markdown="1">
+<div class="memitem" id="classsiddiqsoft_1_1arrp_1_1resource__pool_1a4e42d634ae61df8943c91fc444c5d2b2" markdown="1">
 <div class="memitem-header">
   <span class="memitem-diamond">&#9670;</span>
   <h4 class="memitem-title">try_borrow_create()</h4>
@@ -424,6 +435,10 @@ resource_guard< T > resource_pool::try_borrow_create(std::chrono::nanoseconds ti
 <div class="memdoc" markdown="1">
 
 Borrows an available resource or creates one through the factory.
+<div class="memdoc-section-title">Example:</div>
+
+ 
+
 <div class="memdoc-section-title">Parameters</div>
 
 <ul>
@@ -437,7 +452,7 @@ A valid scoped resource, or an invalid one when shutdown or an implementation or
 </div>
 </div>
 
-<div class="memitem" id="seed" markdown="1">
+<div class="memitem" id="classsiddiqsoft_1_1arrp_1_1resource__pool_1a694d99ee21becce11d5d01f5eda13aa9" markdown="1">
 <div class="memitem-header">
   <span class="memitem-diamond">&#9670;</span>
   <h4 class="memitem-title">seed()</h4>
@@ -452,6 +467,10 @@ pool_error resource_pool::seed(Args &&... args);
 <div class="memdoc" markdown="1">
 
 Adds a resource to the pool by constructing it in-place.
+<div class="memdoc-section-title">Example:</div>
+
+
+
 <div class="memdoc-section-title">Template Parameters</div>
 
 <ul>
@@ -479,7 +498,7 @@ Does not enforce the configured capacity. Do not use this to return a borrowed r
 </div>
 </div>
 
-<div class="memitem" id="seed" markdown="1">
+<div class="memitem" id="classsiddiqsoft_1_1arrp_1_1resource__pool_1aeb57311374cb1d1369b6c0fc8f7f4916" markdown="1">
 <div class="memitem-header">
   <span class="memitem-diamond">&#9670;</span>
   <h4 class="memitem-title">seed()</h4>
@@ -515,7 +534,7 @@ Does not enforce the configured capacity. Do not use this to return a borrowed r
 </div>
 </div>
 
-<div class="memitem" id="to_json" markdown="1">
+<div class="memitem" id="classsiddiqsoft_1_1arrp_1_1resource__pool_1abb45bf3587651539bf8d5bf8dbb00d0d" markdown="1">
 <div class="memitem-header">
   <span class="memitem-diamond">&#9670;</span>
   <h4 class="memitem-title">to_json()</h4>
@@ -529,11 +548,37 @@ nlohmann::json resource_pool::to_json() const;
 </div>
 <div class="memdoc" markdown="1">
 
-Executes component operation.
+Serializes pool statistics to JSON.
+<div class="memdoc-section-title">Example:</div>
+
+
+
+<div class="memdoc-section-title">Returns</div>
+
+A JSON object containing a snapshot of pool statistics
+
+<div class="memdoc-section-title">Note</div>
+
+Available only when nlohmann/json.hpp was included before this header.
+
+<div class="memdoc-section-title">JSON Schema:</div>
+
+{
+"_typver":"siddiqsoft.arrp.resource_pool/0.0.0",
+"capacity":<configured_capacity>,
+"size":<available_resources>,
+"peaksize":<peak_size_reached>,
+"abandons":<invalidated_resources>,
+"seeds":<resources_added_via_seed>,
+"autoadds":<resources_created_ondemand>,
+"returns":<resources_returned>,
+"borrows":<resources_borrowed>,
+"loans":<currently_borrowed>
+}
 
 </div>
 </div>
 
 ## Source Code Reference
 
-- Header: [`include/siddiqsoft/private/resource_pool.hpp`](https://github.com/SiddiqSoft/arrp/blob/master/include/siddiqsoft/private/resource_pool.hpp#L88)
+- Header: [`include/siddiqsoft/private/resource_pool.hpp`](https://github.com/SiddiqSoft/arrp/blob/master/include/siddiqsoft/private/resource_pool.hpp#L77)

@@ -71,18 +71,7 @@ namespace siddiqsoft::arrp
     /// @note Statistics: Tracks borrow/return operations and resource counts via atomic counters
     /// @note Move-only: Uses move semantics exclusively to prevent resource ownership ambiguity
     ///
-    /// @example
-    /// @code
-    /// siddiqsoft::arrp::resource_pool<MyResource> pool(10);
-    /// pool.seed(MyResource {});
-    ///
-    /// // Borrow a resource
-    /// auto resource = pool.try_borrow();
-    /// if (resource) {
-    ///     resource->doSomething();
-    /// }
-    /// // Resource automatically returned to pool when resource_guard is destroyed
-    /// @endcode
+    
     template <typename T>
         requires NonNumericMoveConstructible<T>
     class resource_pool final
@@ -321,6 +310,9 @@ namespace siddiqsoft::arrp
 
         /// @brief Clears all resources from the pool
         ///
+        /// @par Example:
+        /// @snippet doxygen_examples.cpp clear_example
+        ///
         /// Removes currently available resources and invokes the cleanup callback for each.
         /// Borrowed resources can return after clear() completes.
         ///
@@ -372,6 +364,9 @@ namespace siddiqsoft::arrp
 
         /// @brief Gets the current size of the pool
         ///
+        /// @par Example:
+        /// @snippet doxygen_examples.cpp size_example
+        ///
         /// @return Number of currently available resources
         ///
         /// @note Does not include checked-out resources
@@ -392,17 +387,7 @@ namespace siddiqsoft::arrp
         /// @note A positive timeout waits for the availability semaphore; zero does
         ///       not wait. The factory must not call pool methods.
         ///
-        /// @example
-        /// @code
-        /// auto resource = pool.try_borrow();
-        /// if (resource) {
-        ///     // Use resource
-        ///     resource->doSomething();
-        /// } else {
-        ///     // Handle error
-        ///     std::print(std::cerr, "Failed to borrow resource\n");
-        /// }
-        /// @endcode
+        
         [[nodiscard]] auto borrow_impl(std::chrono::nanoseconds timeout = {}, bool createIfEmptyTimeout = false)
                 -> resource_guard<T>
         {
@@ -509,12 +494,18 @@ namespace siddiqsoft::arrp
 
     public:
         /// @brief Borrows an available resource without creating one.
+        ///
+        /// @par Example:
+        /// @snippet doxygen_examples.cpp try_borrow_example
         /// @param timeout Maximum time to wait; zero performs a non-blocking attempt.
         /// @return A valid scoped resource, or an invalid one with NoMoreResources,
         ///         Timeout, ShutdownInitiated, or Unknown set as its error.
         [[nodiscard]] auto try_borrow(std::chrono::nanoseconds timeout = {}) -> resource_guard<T> { return borrow_impl(timeout); }
 
         /// @brief Borrows an available resource or creates one through the factory.
+        ///
+        /// @par Example:
+        /// @snippet doxygen_examples.cpp try_borrow_create_example
         /// @param timeout Maximum time to wait; zero performs a non-blocking attempt.
         /// @return A valid scoped resource, or an invalid one when shutdown or an
         ///         implementation or factory error prevents borrowing.
@@ -524,6 +515,9 @@ namespace siddiqsoft::arrp
         }
 
         /// @brief Adds a resource to the pool by constructing it in-place
+        ///
+        /// @par Example:
+        /// @snippet doxygen_examples.cpp seed_example
         ///
         /// @tparam Args Types of arguments to forward to T's constructor
         /// @param args Arguments to forward to T's constructor for in-place construction
@@ -634,6 +628,9 @@ namespace siddiqsoft::arrp
     public:
         /// @brief Serializes pool statistics to JSON
         ///
+        /// @par Example:
+        /// @snippet doxygen_examples.cpp to_json_example
+        ///
         /// Returns a JSON object containing pool statistics and configuration.
         /// Only available if nlohmann/json.hpp is included before this header file.
         ///
@@ -657,11 +654,7 @@ namespace siddiqsoft::arrp
         /// }
         /// @endcode
         ///
-        /// @example
-        /// @code
-        /// auto stats = pool.to_json();
-        /// std::cout << stats.dump(2) << '\n';
-        /// @endcode
+        
         auto to_json() const -> nlohmann::json
         {
             nlohmann::json   stats;

@@ -66,17 +66,7 @@ namespace siddiqsoft::arrp
     /// This prevents wrapping primitive types which would be inefficient and
     /// defeats the purpose of resource pooling.
     ///
-    /// @example
-    /// @code
-    /// // Valid types
-    /// class MyResource { ... };
-    /// std::unique_ptr<int> ptr;
-    /// std::shared_ptr<MyResource> shared;
-    ///
-    /// // Invalid types
-    /// int x;                    // Arithmetic type
-    /// double d;                 // Arithmetic type
-    /// @endcode
+    
     template <typename T>
     concept NonNumericMoveConstructible =
             std::is_move_constructible_v<T> && std::is_move_assignable_v<T> && !std::is_arithmetic_v<T>;
@@ -103,16 +93,7 @@ namespace siddiqsoft::arrp
     /// @note Pool-created guards carry the callback that returns their resource.
     /// @note Validity tracking: Tracks whether resource is valid and should be returned to pool
     ///
-    /// @example
-    /// @code
-    /// // Typically obtained from resource_pool::try_borrow()
-    /// auto resource = pool.try_borrow();
-    /// if (resource) {
-    ///     // Use resource
-    ///     resource->doSomething();
-    /// }
-    /// // Resource automatically returned to pool when resource_guard is destroyed
-    /// @endcode
+    
     template <typename T>
         requires NonNumericMoveConstructible<T>
     class resource_guard final
@@ -337,6 +318,9 @@ namespace siddiqsoft::arrp
         auto operator*() -> T& { return m_rsrc; }
 
         /// @brief Pointer-like access to the wrapped resource
+        ///
+        /// @par Example:
+        /// @snippet doxygen_examples.cpp get_example
         /// @return Pointer to the wrapped resource, or nullptr if invalid
         /// @note Returns nullptr if resource is invalid
         auto operator->() -> T* { return m_is_valid ? &m_rsrc : nullptr; }
@@ -396,6 +380,9 @@ namespace siddiqsoft::arrp
     public:
         /// @brief Marks the resource as invalid (abandoned)
         ///
+        /// @par Example:
+        /// @snippet doxygen_examples.cpp invalidate_example
+        ///
         /// Sets the validity flag to false. When the resource is destroyed, the callback
         /// will be invoked with isvalid=false, allowing the pool to discard the resource
         /// rather than returning it for reuse. This is appropriate when the resource has
@@ -406,15 +393,7 @@ namespace siddiqsoft::arrp
         /// @note The callback is still invoked; only the validity flag changes
         /// @note Typically called when the resource is corrupted, moved out, or consumed
         ///
-        /// @example
-        /// @code
-        /// auto resource = pool.try_borrow();
-        /// if (resource) {
-        ///     auto extracted = std::move(*resource);
-        ///     resource.invalidate();  // Mark as invalid so pool discards it
-        ///     // Use extracted resource elsewhere
-        /// }
-        /// @endcode
+        
         virtual void invalidate() { m_is_valid = false; }
 
         /// @brief Checks if the resource is valid
