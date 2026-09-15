@@ -305,8 +305,8 @@ class DoxygenGraphvizCatalog:
                     return p.read_text(encoding="utf-8").strip()
 
         if target in ("errors", "exceptions"):
-            # Map directly to sip2json_exception
-            target = "sip2json_exception"
+            # Map directly to pool_error
+            target = "pool_error"
 
         # 4. Lookup entity in AST compounds or members
         norm_key = target.lower()
@@ -420,7 +420,7 @@ def replace_uml_tags(markdown: str, root_dir: Path) -> str:
     """
     Dynamically expands UML diagram references in markdown files:
       <!-- @@uml-diag:complete -->
-      <!-- @@uml-diag:<class-name> -->  (e.g., sip2json, sipmessage, HeaderKeySet)
+      <!-- @@uml-diag:<class-name> -->  (e.g., arrp, sipmessage, HeaderKeySet)
       <!-- @@uml-diag:inheritance:<class-name> -->
       <!-- @@uml-diag:collaboration:<class-name> -->
       <!-- @@uml-diag:file:<file-name> -->

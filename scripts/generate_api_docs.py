@@ -164,7 +164,8 @@ def split_params(args_str: str) -> list:
 
 
 
-def extract_detailed_desc(detail_node) -> str:
+def extract_detailed_desc(detail_node, params_map=None) -> str:
+    if params_map is None: params_map = {}
     if detail_node is None:
         return ""
         
@@ -176,9 +177,11 @@ def extract_detailed_desc(detail_node) -> str:
         res = (node.text or "")
         for child in node:
             if child.tag == "ref":
-                res += f"`{child.text or ''}`"
+                res += f"{child.text or ''}"
             elif child.tag == "computeroutput":
                 res += f"<code>{get_text(child)}</code>"
+            elif child.tag == "sp":
+                res += " "
             else:
                 res += get_text(child)
             res += (child.tail or "")
@@ -215,12 +218,16 @@ def extract_detailed_desc(detail_node) -> str:
                             out.append('</ul>\n')
                         elif kind == "templateparam":
                             out.append('<div class="memdoc-section-title">Template Parameters</div>\n')
-                            out.append('<ul>')
+                            out.append('<table class="params" markdown="0">\n')
                             for pitem in pchild.findall("parameteritem"):
                                 name = get_text(pitem.find("parameternamelist/parametername"))
                                 desc = get_text(pitem.find("parameterdescription/para"))
-                                out.append(f'  <li><code>{name}</code> &mdash; {desc}</li>')
-                            out.append('</ul>\n')
+                                out.append(f'  <tr>\n')
+                                out.append(f'    <td class="paramtype"><code>typename</code></td>\n')
+                                out.append(f'    <td class="paramname">{name}</td>\n')
+                                out.append(f'    <td class="paramdesc">{desc}</td>\n')
+                                out.append(f'  </tr>\n')
+                            out.append('</table>\n')
                     elif pchild.tag == "simplesect":
                         kind = pchild.get("kind", "")
                         if kind == "return":
@@ -234,8 +241,11 @@ def extract_detailed_desc(detail_node) -> str:
                             out.append(f'<div class="memdoc-section-title">{title}</div>\n')
                             out.append(get_text(pchild.find("para")) + "\n")
                     elif pchild.tag == "programlisting":
+                        filename = pchild.get("filename")
                         code = "\n".join(get_text(line) for line in pchild.findall("codeline"))
                         out.append(f"\n```cpp\n{code}\n```\n")
+                        if filename:
+                            out.append(f'<div class="mdesc">Source reference: <code>{filename}</code></div>\n')
                     else:
                         txt = get_text(pchild).strip()
                         if txt:
@@ -244,8 +254,11 @@ def extract_detailed_desc(detail_node) -> str:
                 if child.tail and child.tail.strip():
                     out.append(child.tail.strip() + "\n")
         elif child.tag == "programlisting":
+            filename = child.get("filename")
             code = "\n".join(get_text(line) for line in child.findall("codeline"))
             out.append(f"\n```cpp\n{code}\n```\n")
+            if filename:
+                out.append(f'<div class="mdesc">Source reference: <code>{filename}</code></div>\n')
 
     return "\n".join(out)
 
@@ -345,13 +358,20 @@ def parse_classes_from_doxygen(xml_dir: Path) -> list:
                 mtype = xml_text(m.find("type"))
                 args = m.findtext("argsstring", "()")
                 mbrief = xml_text(m.find("briefdescription"))
+                params_map = {}
+                for p in m.findall("param"):
+                    pname = p.findtext("declname")
+                    ptype = xml_text(p.find("type"))
+                    if pname and ptype:
+                        params_map[pname] = ptype
+
                 entry = {
                     "name": mname,
                     "id": m.get("id", mname.lower()),
                     "return_type": mtype or "void",
                     "args": args,
                     "brief": mbrief,
-                    "detailed": extract_detailed_desc(m.find("detaileddescription")),
+                    "detailed": extract_detailed_desc(m.find("detaileddescription"), params_map),
                     "static": is_static,
                 }
                 if is_static:
