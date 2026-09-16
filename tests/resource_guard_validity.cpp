@@ -336,7 +336,7 @@ TEST(resource_guard_validity, valid_resource_returned_2)
 
     // Set the callback that will create the resource for us on demand..
     pool.set_factory_callback([] {
-        std::println(" - Invoked the factory callback; creates a `resource`..");
+        std::cout << " - Invoked the factory callback; creates a `resource`..\n";
         return std::string("42");
     });
 
@@ -365,6 +365,6 @@ TEST(resource_guard_validity, valid_resource_returned_2)
     auto stats = pool.to_json();
     EXPECT_TRUE(stats.is_object());
     EXPECT_EQ(1, stats.value("autoadds", -1));
-    std::println(std::cerr, "{} - stats: {}", __func__, stats.dump());
+    std::cerr << std::format("{} - stats: {}\n", __func__, stats.dump());
 }
 // NOLINTEND(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)

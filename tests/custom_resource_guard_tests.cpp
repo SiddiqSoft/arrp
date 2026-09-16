@@ -98,13 +98,13 @@ TEST(custom_resource_guard, basic_file_pool_creation)
 {
     std::string temp_file = create_temp_file();
 
-    std::print(std::cerr, "{} - using temp_file:{}\n", __func__, temp_file);
+    std::cerr << std::format("{} - using temp_file:{}\n", __func__, temp_file);
 
     try {
         siddiqsoft::arrp::resource_pool<FILE*> pool {[temp_file](FILE*& fh) {
-            std::print(std::cerr, "{} - invoked for filehandle:{:p}\n", __func__, (void*)fh);
+            std::cerr << std::format("{} - invoked for filehandle:{:p}\n", __func__, (void*)fh);
             if (fh != nullptr) {
-                std::print(std::cerr, "{} - closing `{}` filehandle:{:p}\n", __func__, temp_file, (void*)fh);
+                std::cerr << std::format("{} - closing `{}` filehandle:{:p}\n", __func__, temp_file, (void*)fh);
                 fclose(fh);
             }
         }};
@@ -112,18 +112,18 @@ TEST(custom_resource_guard, basic_file_pool_creation)
         FILE*                                  file = std::fopen(temp_file.c_str(), "w+");
         ASSERT_NE(nullptr, file);
 
-        // std::print( std::cerr, "about to add to pool: {}\n", pool.to_json().dump());
+        // std::cerr << std::format("about to add to pool: {}\n", pool.to_json().dump());
         pool.seed(std::move(file));
         EXPECT_EQ(1u, pool.size());
-        // std::print( std::cerr, "after add to pool: {}\n", pool.to_json().dump());
+        // std::cerr << std::format("after add to pool: {}\n", pool.to_json().dump());
 
         {
             auto file_result = pool.try_borrow();
             EXPECT_TRUE(file_result.has_value());
-            // std::print( std::cerr, "after borrow to pool: {}\n", pool.to_json().dump());
+            // std::cerr << std::format("after borrow to pool: {}\n", pool.to_json().dump());
         }
 
-        std::print(std::cerr, "after auto-return to pool: {}\n", pool.to_json().dump());
+        std::cerr << std::format("after auto-return to pool: {}\n", pool.to_json().dump());
 
         EXPECT_EQ(1u, pool.size());
     }
@@ -145,7 +145,7 @@ TEST(custom_resource_guard, write_to_file)
     try {
         siddiqsoft::arrp::resource_pool<FILE*> pool {[temp_file](FILE*& fh) {
             if (fh != nullptr) {
-                std::print(std::cerr, "{} - closing `{}` filehandle:{:p}\n", __func__, temp_file, (void*)fh);
+                std::cerr << std::format("{} - closing `{}` filehandle:{:p}\n", __func__, temp_file, (void*)fh);
                 fclose(fh);
             }
         }};
@@ -194,7 +194,7 @@ TEST(custom_resource_guard, multiple_file_resources)
     try {
         siddiqsoft::arrp::resource_pool<FILE*> pool {[](auto& fh) {
             if (fh != nullptr) {
-                std::print(std::cerr, "{} - closing filehandle:{:p}\n", __func__, (void*)fh);
+                std::cerr << std::format("{} - closing filehandle:{:p}\n", __func__, (void*)fh);
                 fclose(fh);
             }
         }};
@@ -213,9 +213,9 @@ TEST(custom_resource_guard, multiple_file_resources)
 
             EXPECT_EQ(0u, pool.size());
 
-            if (res1.has_value()) std::print(*res1, "File 1");
-            if (res2.has_value()) std::print(*res2, "File 2");
-            if (res3.has_value()) std::print(*res3, "File 3");
+            if (res1.has_value()) fprintf(*res1, "File 1");
+            if (res2.has_value()) fprintf(*res2, "File 2");
+            if (res3.has_value()) fprintf(*res3, "File 3");
 
             if (res1.has_value()) std::fflush(*res1);
             if (res2.has_value()) std::fflush(*res2);
@@ -247,7 +247,7 @@ TEST(custom_resource_guard, file_persistence_across_cycles)
     try {
         siddiqsoft::arrp::resource_pool<FILE*> pool {[temp_file](auto& fh) {
             if (fh != nullptr) {
-                std::print(std::cerr, "{} - closing `{}` filehandle:{:p}\n", __func__, temp_file, (void*)fh);
+                std::cerr << std::format("{} - closing `{}` filehandle:{:p}\n", __func__, temp_file, (void*)fh);
                 fclose(fh);
             }
         }};
@@ -262,7 +262,7 @@ TEST(custom_resource_guard, file_persistence_across_cycles)
                 auto fp = *file_result;
                 // FIX 2: Explicit file pointer positioning
                 std::fseek(fp, 0, SEEK_END);
-                std::print(fp, "First write\n");
+                fprintf(fp, "First write\n");
                 std::fflush(fp);
             }
         }
@@ -274,7 +274,7 @@ TEST(custom_resource_guard, file_persistence_across_cycles)
                 auto fp = *file_result;
                 // FIX 2: Explicit file pointer positioning
                 std::fseek(fp, 0, SEEK_END);
-                std::print(fp, "Second write\n");
+                fprintf(fp, "Second write\n");
                 std::fflush(fp);
             }
         }
@@ -312,7 +312,7 @@ TEST(custom_resource_guard, concurrent_file_writes)
     try {
         siddiqsoft::arrp::resource_pool<FILE*> pool {[temp_file](FILE*& fh) {
             if (fh != nullptr) {
-                std::print(std::cerr, "{} - closing `{}` filehandle:{:p}\n", __func__, temp_file, (void*)fh);
+                std::cerr << std::format("{} - closing `{}` filehandle:{:p}\n", __func__, temp_file, (void*)fh);
                 fclose(fh);
             }
         }};
@@ -367,7 +367,7 @@ TEST(custom_resource_guard, file_resource_invalidation)
     try {
         siddiqsoft::arrp::resource_pool<FILE*> pool {[temp_file](FILE*& fh) {
             if (fh != nullptr) {
-                std::print(std::cerr, "{} - closing `{}` filehandle:{:p}\n", __func__, temp_file, (void*)fh);
+                std::cerr << std::format("{} - closing `{}` filehandle:{:p}\n", __func__, temp_file, (void*)fh);
                 fclose(fh);
             }
         }};
@@ -407,7 +407,7 @@ TEST(custom_resource_guard, file_resource_move_semantics)
     try {
         siddiqsoft::arrp::resource_pool<FILE*> pool {[temp_file](FILE*& fh) {
             if (fh != nullptr) {
-                std::print(std::cerr, "{} - closing `{}` filehandle:{:p}\n", __func__, temp_file, (void*)fh);
+                std::cerr << std::format("{} - closing `{}` filehandle:{:p}\n", __func__, temp_file, (void*)fh);
                 fclose(fh);
             }
         }};
@@ -444,7 +444,7 @@ TEST(custom_resource_guard, json_serialization)
     try {
         siddiqsoft::arrp::resource_pool<FILE*> pool {[temp_file](FILE*& fh) {
             if (fh != nullptr) {
-                std::print(std::cerr, "{} - closing `{}` filehandle:{:p}\n", __func__, temp_file, (void*)fh);
+                std::cerr << std::format("{} - closing `{}` filehandle:{:p}\n", __func__, temp_file, (void*)fh);
                 fclose(fh);
             }
         }};
@@ -456,7 +456,7 @@ TEST(custom_resource_guard, json_serialization)
             auto res = pool.try_borrow();
             if (res.has_value()) {
                 auto fp = *res;
-                std::print(fp, "test data");
+                fprintf(fp, "test data");
                 std::fflush(fp);
             }
         }
@@ -492,7 +492,7 @@ TEST(custom_resource_guard, high_throughput_file_ops)
     try {
         siddiqsoft::arrp::resource_pool<FILE*> pool {[temp_file](FILE*& fh) {
             if (fh != nullptr) {
-                std::print(std::cerr, "{} - closing `{}` filehandle:{:p}\n", __func__, temp_file, (void*)fh);
+                std::cerr << std::format("{} - closing `{}` filehandle:{:p}\n", __func__, temp_file, (void*)fh);
                 fclose(fh);
             }
         }};
@@ -545,7 +545,7 @@ TEST(custom_resource_guard, exception_safety)
     try {
         siddiqsoft::arrp::resource_pool<FILE*> pool {[temp_file](FILE*& fh) {
             if (fh != nullptr) {
-                std::print(std::cerr, "{} - closing `{}` filehandle:{:p}\n", __func__, temp_file, (void*)fh);
+                std::cerr << std::format("{} - closing `{}` filehandle:{:p}\n", __func__, temp_file, (void*)fh);
                 fclose(fh);
             }
         }};
@@ -556,7 +556,7 @@ TEST(custom_resource_guard, exception_safety)
             auto res = pool.try_borrow();
             if (res.has_value()) {
                 auto fp = *res;
-                std::print(fp, "Before exception");
+                fprintf(fp, "Before exception");
             }
             throw std::runtime_error("Test exception");
         }
@@ -586,7 +586,7 @@ TEST(custom_resource_guard, capacity_limits)
         siddiqsoft::arrp::resource_pool<FILE*> pool {
                 2, [temp_file](FILE*& fh) {
                     if (fh != nullptr) {
-                        std::print(std::cerr, "{} - closing `{}` filehandle:{:p}\n", __func__, temp_file, (void*)fh);
+                        std::cerr << std::format("{} - closing `{}` filehandle:{:p}\n", __func__, temp_file, (void*)fh);
                         fclose(fh);
                     }
                 }};
@@ -624,7 +624,7 @@ TEST(custom_resource_guard, rapid_file_cycles)
     try {
         siddiqsoft::arrp::resource_pool<FILE*> pool {[temp_file](FILE*& fh) {
             if (fh != nullptr) {
-                std::print(std::cerr, "{} - closing `{}` filehandle:{:p}\n", __func__, temp_file, (void*)fh);
+                std::cerr << std::format("{} - closing `{}` filehandle:{:p}\n", __func__, temp_file, (void*)fh);
                 fclose(fh);
             }
         }};
@@ -662,9 +662,9 @@ TEST(custom_resource_guard, clear_operation)
 
     try {
         siddiqsoft::arrp::resource_pool<FILE*> pool {[temp_file](FILE*& fh) {
-            std::print(std::cerr, "{} - invoked  filehandle:{:p}\n", __func__, reinterpret_cast<void*>(fh));
+            std::cerr << std::format("{} - invoked  filehandle:{:p}\n", __func__, reinterpret_cast<void*>(fh));
             if (fh != nullptr) {
-                std::print(std::cerr, "{} - closing `{}` filehandle:{:p}\n", __func__, temp_file, reinterpret_cast<void*>(fh));
+                std::cerr << std::format("{} - closing `{}` filehandle:{:p}\n", __func__, temp_file, reinterpret_cast<void*>(fh));
                 fclose(fh);
             }
         }};
@@ -703,7 +703,7 @@ TEST(custom_resource_guard, fifo_ordering)
     try {
         siddiqsoft::arrp::resource_pool<FILE*> pool {[](FILE*& fh) {
             if (fh != nullptr) {
-                std::print(std::cerr, "{} - closing filehandle:{:p}\n", __func__, reinterpret_cast<void*>(fh));
+                std::cerr << std::format("{} - closing filehandle:{:p}\n", __func__, reinterpret_cast<void*>(fh));
                 fclose(fh);
             }
         }};
@@ -718,9 +718,9 @@ TEST(custom_resource_guard, fifo_ordering)
         ASSERT_NE(nullptr, file3);
 
         // Write different markers to each file
-        std::print(file1, "FILE1");
-        std::print(file2, "FILE2");
-        std::print(file3, "FILE3");
+        fprintf(file1, "FILE1");
+        fprintf(file2, "FILE2");
+        fprintf(file3, "FILE3");
 
         std::fflush(file1);
         std::fflush(file2);

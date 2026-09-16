@@ -1,4 +1,3 @@
-#include <print>
 #include <format>
 
 #include <cerrno>
@@ -34,10 +33,10 @@ public:
         : m_curlhandle(curl_easy_init())
     {
         if (m_curlhandle != nullptr) {
-            std::println(std::cerr, "{} - Successfully initialized curl handle", __func__);
+            std::cerr << std::format("{} - Successfully initialized curl handle\n", __func__);
         }
         else {
-            std::println(std::cerr, "{} - Failed to initialize curl handle", __func__);
+            std::cerr << std::format("{} - Failed to initialize curl handle\n", __func__);
             throw std::runtime_error("Failed to initialize curl handle");
         }
     }
@@ -77,7 +76,7 @@ public:
     ~ScopedCurl()
     {
         if (m_curlhandle != nullptr) {
-            std::println(std::cerr, "{} - Closing the handle", __func__);
+            std::cerr << std::format("{} - Closing the handle\n", __func__);
             curl_easy_cleanup(m_curlhandle);
 
             m_curlhandle = nullptr;
@@ -97,25 +96,21 @@ void            do_request(siddiqsoft::arrp::resource_pool<ScopedCurl>& pool, co
 
         // Setup the curl options for the request
         if (auto rc = curl_easy_setopt(sc, CURLOPT_URL, url); rc != CURLE_OK) {
-            std::println(std::cerr, "{} - Failed to set URL:{} -- {}", __func__, url, curl_easy_strerror(rc));
+            std::cerr << std::format("{} - Failed to set URL:{} -- {}\n", __func__, url, curl_easy_strerror(rc));
         }
 
         // Do the curl request and check for errors
         if (auto rc = curl_easy_perform(sc); rc != CURLE_OK) {
-            std::println(std::cerr, "{} - Failed to perform curl request: {}", __func__, curl_easy_strerror(rc));
+            std::cerr << std::format("{} - Failed to perform curl request: {}\n", __func__, curl_easy_strerror(rc));
         }
         else {
-            std::println(
-                    std::cerr,
-                    "\n{} - Successfully performed curl request...ttx: "
-                    "{}\n\n---=---=---=---=---=---=---=---=---=---=---=---=---=---=---=---=---=---=---=---=---=---=---=---\n\n",
-                    __func__,
-                    duration_cast<std::chrono::milliseconds>(ttx.elapsed()).count());
+            std::cerr << std::format("\n{} - Successfully performed curl request...ttx: "
+                    "{}\n\n---=---=---=---=---=---=---=---=---=---=---=---=---=---=---=---=---=---=---=---=---=---=---=---\n\n\n", __func__, duration_cast<std::chrono::milliseconds>(ttx.elapsed()).count());
             g_request_count++;
         }
     }
     else {
-        std::println(std::cerr, "{} - Failed to borrow resource from pool. sc:{}", __func__, sc.error());
+        std::cerr << std::format("{} - Failed to borrow resource from pool. sc:{}\n", __func__, sc.error());
     }
 }
 
@@ -124,7 +119,7 @@ int main(int argc, char** argv)
     if (auto rc = curl_global_init(CURL_GLOBAL_ALL); rc == CURLE_OK) {
         siddiqsoft::arrp::resource_pool<ScopedCurl> pool {};
         pool.set_factory_callback([&] {
-            std::println("  - About to create new ScopedCurl instance.. stats: {}", pool.to_json().dump());
+            std::cout << std::format("  - About to create new ScopedCurl instance.. stats: {}\n", pool.to_json().dump());
             return ScopedCurl {};
         });
 
@@ -139,17 +134,17 @@ int main(int argc, char** argv)
 
         // The main thread will wait here for the tasks to complete.
         f2.get();
-        // std::println(std::cerr, "\n{} - Post test stats:{}", __func__, pool.to_json().dump());
+        // std::cerr << std::format("\n{} - Post test stats:{}\n", __func__, pool.to_json().dump());
         // std::this_thread::sleep_for(std::chrono::seconds(1));
         f1.get();
-        // std::println(std::cerr, "\n{} - Post test stats:{}", __func__, pool.to_json().dump());
+        // std::cerr << std::format("\n{} - Post test stats:{}\n", __func__, pool.to_json().dump());
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
-        std::println(std::cerr, "\n\n{} - Final test stats:{}", __func__, pool.to_json().dump());
+        std::cerr << std::format("\n\n{} - Final test stats:{}\n", __func__, pool.to_json().dump());
         return g_request_count.load() == 2 ? EXIT_SUCCESS : EXIT_FAILURE;
     }
     else {
-        std::println(std::cerr, "{} - Failed to initialize curl global state.", __func__);
+        std::cerr << std::format("{} - Failed to initialize curl global state.\n", __func__);
         return rc;
     }
 }

@@ -43,7 +43,6 @@
 #include <format>
 #include <functional>
 #include <iostream>
-#include <print>
 #include <string>
 #include <type_traits>
 
@@ -248,8 +247,7 @@ namespace siddiqsoft::arrp
                         m_putback_callback(std::move(m_rsrc), m_is_valid);
                     }
                     catch (...) {
-                        std::print(std::cerr,
-                                   "resource_guard move-assignment: exception while returning current resource to pool!\n");
+                        std::cerr << "resource_guard move-assignment: exception while returning current resource to pool!\n";
                     }
                     // Clear the old callback and validity now that the resource has been handed back.
                     m_putback_callback = {};
@@ -304,7 +302,7 @@ namespace siddiqsoft::arrp
                     m_putback_callback(std::move(m_rsrc), m_is_valid);
                 }
                 catch (...) {
-                    std::print(std::cerr, "resource_guard destructor: exception while invoking putback callback!\n");
+                    std::cerr << "resource_guard destructor: exception while invoking putback callback!\n";
                 }
                 m_is_valid         = false;
                 m_putback_callback = {};
@@ -369,7 +367,7 @@ namespace siddiqsoft::arrp
                     m_putback_callback(std::move(m_rsrc), m_is_valid);
                 }
                 catch (...) {
-                    std::print(std::cerr, "resource_guard operator=(T&&): exception while returning old resource to pool!\n");
+                    std::cerr << "resource_guard operator=(T&&): exception while returning old resource to pool!\n";
                 }
             }
             m_rsrc     = std::move(src);

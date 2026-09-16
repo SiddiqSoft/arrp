@@ -233,7 +233,7 @@ namespace siddiqsoft::arrp
                 m_is_shutdown = true;
             }
 #if defined(DEBUG)
-            std::print(std::cerr, "{} - invoked; shutdown set; now delegating to clear..\n", __func__);
+            std::cerr << std::format("{} - invoked; shutdown set; now delegating to clear..\n", __func__);
 #endif
             // Delegate to the clear() method which itself acquires a lock
             // so we should make sure we clear the lock to set the shutdown flag.
@@ -351,10 +351,10 @@ namespace siddiqsoft::arrp
                         m_callback_on_resource_cleanup(item);
                     }
                     catch (std::exception& ex) {
-                        std::print(std::cerr, "{} - exception while delegating to on_cleanup: {}\n", __func__, ex.what());
+                        std::cerr << std::format("{} - exception while delegating to on_cleanup: {}\n", __func__, ex.what());
                     }
                     catch (...) {
-                        std::print(std::cerr, "{} - unknown exception while delegating to on_cleanup\n", __func__);
+                        std::cerr << std::format("{} - unknown exception while delegating to on_cleanup\n", __func__);
                     }
                 }
             }
@@ -430,7 +430,7 @@ namespace siddiqsoft::arrp
                     }
                     else if (createIfEmptyTimeout && m_factory_callback) {
 #if defined(arrp_DEBUG_TRACE)
-                        std::println(std::cerr, "{} - Empty pool; asked to create new if empty..", __func__);
+                        std::cerr << std::format("{} - Empty pool; asked to create new if empty..\n", __func__);
 #endif
 
                         // Release the lock before invoking arbitrary user code to
@@ -465,7 +465,7 @@ namespace siddiqsoft::arrp
                     }
 
 #if defined(arrp_DEBUG_TRACE)
-                    std::println(std::cerr, "{} - We exhausted timeout; asked to create new if empty..", __func__);
+                    std::cerr << std::format("{} - We exhausted timeout; asked to create new if empty..\n", __func__);
 #endif
 
                     auto ondemand = create_from_callback(cb);
@@ -485,7 +485,7 @@ namespace siddiqsoft::arrp
                 return resource_guard<T> {siddiqsoft::arrp::pool_error::Unknown};
             }
             catch (...) {
-                std::println(std::cerr, "UNKNOWN Error in borrow");
+                std::cerr << "UNKNOWN Error in borrow\n";
                 return resource_guard<T> {siddiqsoft::arrp::pool_error::Unknown};
             }
 

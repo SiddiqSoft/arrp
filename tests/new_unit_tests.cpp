@@ -120,10 +120,7 @@ TEST(resource_pool, concurrent_json_no_deadlock)
 #else
         start_barrier.arrive_and_wait();
 #endif
-        std::println(std::cerr,
-                     "   concurrent_json_deadlock_detection - All threads ready to continue..{}/{}",
-                     sync_threads_ready.load(),
-                     EXPECTED_THREADS);
+        std::cerr << std::format("   concurrent_json_deadlock_detection - All threads ready to continue..{}/{}\n", sync_threads_ready.load(), EXPECTED_THREADS);
     };
 
     // Thread 1: Continuously borrow/return

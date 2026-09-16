@@ -58,7 +58,7 @@ TEST(resource_pool, T_string)
 
     EXPECT_NO_THROW({
         siddiqsoft::arrp::resource_pool<std::string> rp {};
-        std::print(std::cerr, "{} - Capacity:{}\n", __func__, rp.size());
+        std::cerr << std::format("{} - Capacity:{}\n", __func__, rp.size());
         passTest = true;
     });
 
@@ -76,7 +76,7 @@ TEST(resource_pool, T_shared_ptr_string)
         rp.seed(std::shared_ptr<std::string>(new std::string(__TIME__)));
         EXPECT_EQ(1, rp.size()) << "Pool must have only one item";
 
-        std::print(std::cerr, "{} - 0 - {}\n", __func__, rp.to_json().dump());
+        std::cerr << std::format("{} - 0 - {}\n", __func__, rp.to_json().dump());
 
         {
             auto item_result = rp.try_borrow();
@@ -86,7 +86,7 @@ TEST(resource_pool, T_shared_ptr_string)
             EXPECT_EQ(__TIME__, **item);
             (*item)->append("-ok");
 
-            std::print(std::cerr, "{} - 1 -  {}\n", __func__, rp.to_json().dump());
+            std::cerr << std::format("{} - 1 -  {}\n", __func__, rp.to_json().dump());
         }
 
         // item is automatically returned to pool when it goes out of scope
@@ -105,7 +105,7 @@ TEST(resource_pool, T_shared_ptr_string)
         passTest = true;
     });
 
-    std::print(std::cerr, "{} - Completed: {}\n", __func__, passTest);
+    std::cerr << std::format("{} - Completed: {}\n", __func__, passTest);
 
     EXPECT_TRUE(passTest);
 }
@@ -308,27 +308,27 @@ TEST(resource_pool, json_type)
     siddiqsoft::arrp::resource_pool<nlohmann::json> rp {};
     nlohmann::json                                  dummy = {{"key", "value"}, {"age", 101}, {"something", "nothing"}};
 
-    std::print(std::cerr, "{}\n", dummy.dump());
+    std::cerr << std::format("{}\n", dummy.dump());
 
     rp.seed(nlohmann::json::object({{"name", "surname"}, {"lift", 909}, {"everything", "nothing"}}));
     rp.seed(std::move(dummy));
     EXPECT_TRUE(dummy.is_null());
     EXPECT_EQ(2u, rp.size());
 
-    std::print(std::cerr, "{}\n", rp.to_json().dump());
+    std::cerr << std::format("{}\n", rp.to_json().dump());
 
     try {
         auto item_result = rp.try_borrow();
         EXPECT_TRUE(item_result.has_value());
         auto item = *(item_result);
 
-        std::print(std::cerr, "{}\n", item.dump());
+        std::cerr << std::format("{}\n", item.dump());
         EXPECT_EQ("nothing", item["everything"]);
         EXPECT_EQ(1u, rp.size());
         passTest = true;
     }
     catch (std::exception& ex) {
-        std::print(std::cerr, "{}\n", ex.what());
+        std::cerr << std::format("{}\n", ex.what());
         passTest = false;
     }
 
@@ -353,13 +353,13 @@ TEST(resource_pool, pair_type)
 
         EXPECT_EQ(99, item.first);
         EXPECT_EQ("hello", item.second);
-        std::print(std::cerr, "contents of the item: <{},{}>\n", item.first, item.second);
+        std::cerr << std::format("contents of the item: <{},{}>\n", item.first, item.second);
 
         EXPECT_EQ(0u, rp.size());
         passTest = true;
     }
     catch (std::exception& ex) {
-        std::print(std::cerr, "{}\n", ex.what());
+        std::cerr << std::format("{}\n", ex.what());
         passTest = false;
     }
 
@@ -924,7 +924,7 @@ TEST(resource_pool, rapid_cycles)
     pool.seed(std::vector<int> {1, 2, 3, 4, 5});
 
     for (int cycle = 0; cycle < 100; ++cycle) {
-        std::print(std::cerr, "  >> Working on cycle: {}\n", cycle);
+        std::cerr << std::format("  >> Working on cycle: {}\n", cycle);
         {
             auto vec_result = pool.try_borrow();
             EXPECT_TRUE(vec_result.has_value());
@@ -934,7 +934,7 @@ TEST(resource_pool, rapid_cycles)
     }
 
     // After all that.. we should still be back at one item in the pool.
-    std::print(std::cerr, "  >> Post completion: {}", pool.to_json().dump(2));
+    std::cerr << std::format("  >> Post completion: {}", pool.to_json().dump(2));
     EXPECT_EQ(1u, pool.size());
 }
 
@@ -1422,11 +1422,11 @@ TEST(resource_pool_adversarial, concurrent_clear_rapid_ops_FIXED)
     std::vector<std::jthread> workers;
     for (int t = 0; t < 4; ++t) {
         workers.emplace_back([&]() {
-            std::println(std::cerr, "   concurrent_clear_rapid_ops_FIXED - Thread starting.");
+            std::cerr << "   concurrent_clear_rapid_ops_FIXED - Thread starting.\n";
             for (int i = 0; i < 200; ++i) {
                 // DEADLOCK FIX: Check for timeout
                 if (std::chrono::steady_clock::now() - start_time > TEST_TIMEOUT) {
-                    std::println(std::cerr, "   concurrent_clear_rapid_ops_FIXED - Thread exiting due to timeout.");
+                    std::cerr << "   concurrent_clear_rapid_ops_FIXED - Thread exiting due to timeout.\n";
                     break;
                 }
 
@@ -1437,13 +1437,10 @@ TEST(resource_pool_adversarial, concurrent_clear_rapid_ops_FIXED)
                     std::this_thread::sleep_for(std::chrono::milliseconds(50));
                 }
 
-                std::println(std::cerr,
-                             "   concurrent_clear_rapid_ops_FIXED - Worker thread pool. borrows: {}. pool: {}",
-                             borrows.load(),
-                             pool.size());
+                std::cerr << std::format("   concurrent_clear_rapid_ops_FIXED - Worker thread pool. borrows: {}. pool: {}\n", borrows.load(), pool.size());
             }
 
-            std::println(std::cerr, "   concurrent_clear_rapid_ops_FIXED - Worker thread ending. borrows: {}", borrows.load());
+            std::cerr << std::format("   concurrent_clear_rapid_ops_FIXED - Worker thread ending. borrows: {}\n", borrows.load());
         });
     }
 
@@ -1452,7 +1449,7 @@ TEST(resource_pool_adversarial, concurrent_clear_rapid_ops_FIXED)
         while (!st.stop_requested() && !stop.load()) {
             // DEADLOCK FIX: Check for timeout
             if (std::chrono::steady_clock::now() - start_time > TEST_TIMEOUT) {
-                std::println(std::cerr, "   concurrent_clear_rapid_ops_FIXED - Clearer thread exiting due to timeout.");
+                std::cerr << "   concurrent_clear_rapid_ops_FIXED - Clearer thread exiting due to timeout.\n";
                 break;
             }
 
@@ -1464,12 +1461,9 @@ TEST(resource_pool_adversarial, concurrent_clear_rapid_ops_FIXED)
             for (int i = 0; i < 10; ++i) {
                 pool.seed(std::format("resource-{}", i));
             }
-            std::println(std::cerr,
-                         "   concurrent_clear_rapid_ops_FIXED - Clearer thread repopulated pool. clears: {}. pool: {}",
-                         clears.load(),
-                         pool.size());
+            std::cerr << std::format("   concurrent_clear_rapid_ops_FIXED - Clearer thread repopulated pool. clears: {}. pool: {}\n", clears.load(), pool.size());
         }
-        std::println(std::cerr, "   concurrent_clear_rapid_ops_FIXED - Clearer thread ending. clears: {}", clears.load());
+        std::cerr << std::format("   concurrent_clear_rapid_ops_FIXED - Clearer thread ending. clears: {}\n", clears.load());
     });
 
 
@@ -1510,10 +1504,7 @@ TEST(resource_pool, concurrent_clear_deadlock_detection)
 #else
         start_barrier.arrive_and_wait();
 #endif
-        std::println(std::cerr,
-                     "   concurrent_clear_deadlock_detection - All threads ready to continue..{}/{}",
-                     sync_threads_ready.load(),
-                     EXPECTED_THREADS);
+        std::cerr << std::format("   concurrent_clear_deadlock_detection - All threads ready to continue..{}/{}\n", sync_threads_ready.load(), EXPECTED_THREADS);
     };
 
 
@@ -1570,9 +1561,9 @@ TEST(resource_pool, concurrent_clear_deadlock_detection)
     EXPECT_EQ(std::future_status::ready, clearer.wait_for(timeout));
 
     // consume the results..
-    std::print(std::cerr, "  results... {}", worker1.get());
-    std::print(std::cerr, "  results... {}", worker2.get());
-    std::print(std::cerr, "  results... {}", clearer.get());
+    std::cerr << std::format("  results... {}", worker1.get());
+    std::cerr << std::format("  results... {}", worker2.get());
+    std::cerr << std::format("  results... {}", clearer.get());
 
     EXPECT_GT(borrow_cycles.load(), 0);
     EXPECT_GT(clear_cycles.load(), 0);
@@ -1600,10 +1591,7 @@ TEST(resource_pool, concurrent_json_deadlock_detection)
 #else
         start_barrier.arrive_and_wait();
 #endif
-        std::println(std::cerr,
-                     "   concurrent_json_deadlock_detection - All threads ready to continue..{}/{}",
-                     sync_threads_ready.load(),
-                     EXPECTED_THREADS);
+        std::cerr << std::format("   concurrent_json_deadlock_detection - All threads ready to continue..{}/{}\n", sync_threads_ready.load(), EXPECTED_THREADS);
     };
 
     auto borrow_fn = [&]() {

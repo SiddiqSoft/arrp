@@ -83,7 +83,7 @@ project(arrp
         DESCRIPTION     "Auto Returning Resource Pool for Modern C++23")
 
 if(NOT CMAKE_CXX_STANDARD)
-    set(CMAKE_CXX_STANDARD 23)
+    set(CMAKE_CXX_STANDARD 20)
 endif()
 
 # ____________________________________

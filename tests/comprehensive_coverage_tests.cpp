@@ -144,7 +144,7 @@ public:
         v = s;
         return *this;
     }
-    ~custom_masp() { std::print(std::cerr, "{} - destroyed: {}\n", __func__, v); }
+    ~custom_masp() { std::cerr << std::format("{} - destroyed: {}\n", __func__, v); }
     bool                 operator==(const std::string& src) const { return v == src; }
     bool                 operator==(const char* src) const { return v == src; }
     std::strong_ordering operator<=>(const std::string& src) const { return v <=> src; }
@@ -221,7 +221,7 @@ TEST(resource_pool_constructors, cleanup_callback_only)
     {
         siddiqsoft::arrp::resource_pool<std::string> pool {[&cleanup_count](auto&& item) {
             cleanup_count++;
-            std::print(std::cerr, "Cleanup called for: {}\n", item);
+            std::cerr << std::format("Cleanup called for: {}\n", item);
         }};
 
         pool.seed(std::string("item1"));
@@ -252,13 +252,13 @@ TEST(resource_pool_size, concurrent_size_accuracy)
     threads.emplace_back([&]() {
         start_barrier.arrive_and_wait();
 
-        std::println(std::cerr, "Adding 50 resources to the pool...");
+        std::cerr << "Adding 50 resources to the pool...\n";
         for (int i = 0; i < 50; ++i) {
             EXPECT_EQ(siddiqsoft::arrp::pool_error::Ok, pool.seed(std::format("resource-{}", i)));
             add_count++;
         }
 
-        std::println(std::cerr, "Finished Adding 50 resources to the pool...{}", pool.to_json().dump());
+        std::cerr << std::format("Finished Adding 50 resources to the pool...{}\n", pool.to_json().dump());
         EXPECT_GE(pool.size(), 50);
     });
 
@@ -556,7 +556,7 @@ TEST(resource_pool_clear, concurrent_with_borrow)
     worker.join();
     clearer.join();
 
-    std::println(std::cerr, "borrows:{}. borrow_fails:{}. clears:{}", borrows.load(), borrow_fails.load(), clears.load());
+    std::cerr << std::format("borrows:{}. borrow_fails:{}. clears:{}\n", borrows.load(), borrow_fails.load(), clears.load());
     EXPECT_GT(clears.load(), 0);
     EXPECT_GT(borrows.load(), 0);
 }
@@ -689,7 +689,7 @@ TEST(resource_pool_json, empty_pool_serialization)
 
     auto                                         j = pool.to_json();
     EXPECT_TRUE(j.is_object());
-    std::println(std::cerr, "{} - Contents: {}", __func__, j.dump());
+    std::cerr << std::format("{} - Contents: {}\n", __func__, j.dump());
     EXPECT_TRUE(j.contains("_typver"));
     EXPECT_TRUE(j.contains("capacity"));
     EXPECT_TRUE(j.contains("size"));
@@ -731,7 +731,7 @@ TEST(resource_pool_json, counter_tracking)
     auto j = pool.to_json();
     EXPECT_TRUE(j.is_object());
 
-    std::print(std::cerr, "contents of the stats:{}\n", j.dump());
+    std::cerr << std::format("contents of the stats:{}\n", j.dump());
     EXPECT_EQ(5u, j["returns"].get<uint64_t>());
 }
 
@@ -1139,7 +1139,7 @@ TEST(formatters, resource_guard_format)
     {
         auto res = pool.try_borrow();
         if (res.has_value()) {
-            std::print(std::cerr, "{}\n", *res);
+            std::cerr << std::format("{}\n", *res);
             std::string formatted = std::format("{}", *res);
             EXPECT_FALSE(formatted.empty());
         }

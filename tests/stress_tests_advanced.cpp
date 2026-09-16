@@ -380,7 +380,7 @@ TEST(stress_memory, variable_size_objects)
         }
     }
 
-    std::print(std::cerr, "post test stats: {}\n", pool.to_json().dump());
+    std::cerr << std::format("post test stats: {}\n", pool.to_json().dump());
     EXPECT_EQ(1u, pool.size());
 }
 
@@ -724,7 +724,7 @@ TEST(stress_capacity, capacity_enforcement_concurrent)
         }
     }
 
-    std::print(std::cerr, "After invalidating one..: {}\n", pool.to_json().dump());
+    std::cerr << std::format("After invalidating one..: {}\n", pool.to_json().dump());
 
     std::vector<std::jthread> threads;
     for (int t = 0; t < CAPACITY + 1; ++t) {
@@ -747,7 +747,7 @@ TEST(stress_capacity, capacity_enforcement_concurrent)
     std::this_thread::sleep_for(std::chrono::seconds(2));
     threads.clear();
 
-    std::print(std::cerr, "Post test: {}\n", pool.to_json().dump());
+    std::cerr << std::format("Post test: {}\n", pool.to_json().dump());
 
     EXPECT_GT(successes.load(), 0);
     EXPECT_GT(failures.load(), 0);

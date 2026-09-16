@@ -58,7 +58,7 @@ TEST(resource_guard, T_string)
 
     EXPECT_NO_THROW({
         auto sr = rp.wrap_as_resource_guard("ﷵ");
-        std::print(std::cerr, "stat: {}\n", sr.to_json().dump());
+        std::cerr << std::format("stat: {}\n", sr.to_json().dump());
         passTest = true;
     });
 
@@ -79,7 +79,7 @@ TEST(resource_guard, T_struct)
     siddiqsoft::arrp::resource_pool<custom1> rp;
     EXPECT_NO_THROW({
         auto sr = rp.wrap_as_resource_guard(custom1 {99, "ﷵ", true, {1, 2, 3}});
-        std::print(std::cerr, "stat: {}\n", sr.to_json().dump());
+        std::cerr << std::format("stat: {}\n", sr.to_json().dump());
         sr.invalidate();
         passTest = true;
     });
@@ -113,7 +113,7 @@ TEST(resource_guard, T_class1)
 
     EXPECT_NO_THROW({
         auto sr = rp.wrap_as_resource_guard(99, std::string("ﷵ"), true, std::vector<int> {1, 1, 2, 3});
-        std::print(std::cerr, "stat: {}\n", sr.to_json().dump());
+        std::cerr << std::format("stat: {}\n", sr.to_json().dump());
         sr.invalidate();
         passTest = true;
     });
@@ -148,7 +148,7 @@ TEST(resource_guard, T_class2)
         auto sr =
                 rp.wrap_as_resource_guard(custom2 {99, "ﷵ", true, {1, 1, 2, 3}}); // this approach allows the compiler to deduce the
                                                                                   // proper arguments and perform copy/move elision
-        std::print(std::cerr, "stat: {}\n", sr.to_json().dump());
+        std::cerr << std::format("stat: {}\n", sr.to_json().dump());
         sr.invalidate();
         passTest = true;
     });
@@ -166,7 +166,7 @@ TEST(resource_guard, T_pair)
     EXPECT_NO_THROW({
         auto sr = rp.wrap_as_resource_guard(custom2 {99, "ﷵ"});
         // sr.invalidate();
-        std::print(std::cerr, "stat: {}\n", sr.to_json().dump());
+        std::cerr << std::format("stat: {}\n", sr.to_json().dump());
         passTest = true;
     });
 
@@ -185,7 +185,7 @@ TEST(resource_pool, serializer_1)
         rp.seed("ﷵ");
 
         EXPECT_EQ(2, rp.size());
-        std::print(std::cerr, "resource_pool::serializer_1 - after adding      stats:{}\n", rp);
+        std::cerr << std::format("resource_pool::serializer_1 - after adding      stats:{}\n", rp);
 
         auto p1 = rp.try_borrow();
         if (p1.has_value()) {
@@ -206,7 +206,7 @@ TEST(resource_pool, serializer_1)
     // All the items should've been returned..
     EXPECT_EQ(2, rp.size());
 
-    std::print(std::cerr, "resource_pool::serializer_1 - post test      stats:{}\n", rp);
+    std::cerr << std::format("resource_pool::serializer_1 - post test      stats:{}\n", rp);
 
     EXPECT_TRUE(passTest);
 }
@@ -230,14 +230,14 @@ TEST(resource_pool, serializer_pair)
             p2.invalidate(); // This resource will not be returned to the pool
         }
 
-        std::print(std::cerr, "resource_pool::serializer_pair -    stats:{}\n", rp);
+        std::cerr << std::format("resource_pool::serializer_pair -    stats:{}\n", rp);
 
         EXPECT_EQ(0, rp.size());
 
         passTest = true;
     });
 
-    std::print(std::cerr, "resource_pool::serializer_pair -    stats:{}\n", rp);
+    std::cerr << std::format("resource_pool::serializer_pair -    stats:{}\n", rp);
     // All the items should've been returned..
     // one was invalidated
     EXPECT_EQ(1, rp.size());

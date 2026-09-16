@@ -1,4 +1,3 @@
-#include <print>
 #include <format>
 
 #include <cerrno>
@@ -32,11 +31,10 @@ public:
         , m_filehandle(std::fopen(filename, mode))
     {
         if (m_filehandle != nullptr) {
-            std::println(std::cerr, "{} - Successfully opened file: {} mode:{}", __func__, m_filename, mode);
+            std::cerr << std::format("{} - Successfully opened file: {} mode:{}\n", __func__, m_filename, mode);
         }
         else {
-            std::println(
-                    std::cerr, "{} - Failed to open file: {} mode:{}. err:{}", __func__, m_filename, mode, std::strerror(errno));
+            std::cerr << std::format("{} - Failed to open file: {} mode:{}. err:{}\n", __func__, m_filename, mode, std::strerror(errno));
         }
     }
 
@@ -77,7 +75,7 @@ public:
     ~ScopedFile()
     {
         if (m_filehandle != nullptr) {
-            std::println(std::cerr, "{} - Closing the file: {}", __func__, m_filename);
+            std::cerr << std::format("{} - Closing the file: {}\n", __func__, m_filename);
             std::fflush(m_filehandle);
             fclose(m_filehandle);
             m_filehandle = nullptr;
@@ -95,7 +93,7 @@ int main(int argc, char** argv)
     pool.seed("/tmp/example_scoped_file.txt", "w+");
     auto myfile = pool.try_borrow();
     if (myfile.has_value()) {
-        std::println(std::cerr, "{} - Successfully borrowed resource from pool.", __func__);
+        std::cerr << std::format("{} - Successfully borrowed resource from pool.\n", __func__);
         auto ct = std::chrono::system_clock::now();
 
 #if defined(WIN32)
@@ -106,7 +104,7 @@ int main(int argc, char** argv)
         fflush(myfile);
     }
     else {
-        std::println(std::cerr, "{} - Failed to borrow resource from pool.", __func__);
+        std::cerr << std::format("{} - Failed to borrow resource from pool.\n", __func__);
     }
     return 0;
 }

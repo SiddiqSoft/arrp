@@ -238,7 +238,7 @@ public:
         v = s;
         return *this;
     }
-    ~custom_mr() { std::print(std::cerr, "{} - destroyed: {}\n", __func__, v); }
+    ~custom_mr() { std::cerr << std::format("{} - destroyed: {}\n", __func__, v); }
     bool                 operator==(const std::string& src) const { return v == src; }
     bool                 operator==(const char* src) const { return v == src; }
     std::strong_ordering operator<=>(const std::string& src) const { return v <=> src; }
@@ -270,7 +270,7 @@ TEST(counter_balance, moved_resources)
         EXPECT_EQ(2, get_borrow_count(pool)); // Still 2 checked out
     }
 
-    std::print(std::cerr, "Stats: {}\n", pool.to_json().dump());
+    std::cerr << std::format("Stats: {}\n", pool.to_json().dump());
 
     // After scope: both should be decremented
     // The custom resource cleans up properly!
@@ -355,7 +355,7 @@ TEST(counter_balance, nested_exception_handling)
         // Exception caught
     }
 
-    std::print(std::cerr, "Stats: {}\n", pool.to_json().dump());
+    std::cerr << std::format("Stats: {}\n", pool.to_json().dump());
 
     // Counter should be balanced
     EXPECT_EQ(0, get_loan_count(pool));
@@ -638,7 +638,7 @@ TEST(counter_balance, high_concurrency_stress)
 
     threads.clear();
 
-    std::print(std::cerr, "Stats: {}\n", pool.to_json().dump());
+    std::cerr << std::format("Stats: {}\n", pool.to_json().dump());
 
     // Final state: counter should be balanced
     EXPECT_EQ(0, get_loan_count(pool));
@@ -664,7 +664,7 @@ TEST(counter_balance, mixed_operations_stress)
     std::atomic_int sync_threads_ready {0};
 
     auto            sync_threads_point = [&](const std::string& thread_name) {
-        std::println(std::cerr, "   {} - Thread ready to continue..{}/{}", thread_name, sync_threads_ready.load(), EXPECTED_THREADS);
+        std::cerr << std::format("   {} - Thread ready to continue..{}/{}\n", thread_name, sync_threads_ready.load(), EXPECTED_THREADS);
 #if defined(_WIN64) || defined(_WIN32)
         sync_threads_ready++;
         while (sync_threads_ready.load() < EXPECTED_THREADS) {
@@ -673,10 +673,7 @@ TEST(counter_balance, mixed_operations_stress)
 #else
         start_barrier.arrive_and_wait();
 #endif
-        std::println(std::cerr,
-                     "   {} - All threads ready to continue..{}/{}", thread_name,
-                     sync_threads_ready.load(),
-                     EXPECTED_THREADS);
+        std::cerr << std::format("   {} - All threads ready to continue..{}/{}\n", thread_name, sync_threads_ready.load(), EXPECTED_THREADS);
     };
 
     std::vector<std::jthread> threads;
@@ -688,7 +685,7 @@ TEST(counter_balance, mixed_operations_stress)
             pool.seed(std::format("new-{}", i));
             adds++;
         }
-        std::println(std::cerr, "   {} - Add Seed thread completed.", __func__);
+        std::cerr << std::format("   {} - Add Seed thread completed.\n", __func__);
     });
 
     // Borrow thread
@@ -700,7 +697,7 @@ TEST(counter_balance, mixed_operations_stress)
                 borrows++;
             }
         }
-        std::println(std::cerr, "   {} - Borrow thread completed. borrows={}", __func__, borrows.load());
+        std::cerr << std::format("   {} - Borrow thread completed. borrows={}\n", __func__, borrows.load());
     });
 
     // Invalidate thread
@@ -714,7 +711,7 @@ TEST(counter_balance, mixed_operations_stress)
                 invalidates++;
             }
         }
-        std::println(std::cerr, "   {} - Invalidate thread completed.", __func__);
+        std::cerr << std::format("   {} - Invalidate thread completed.\n", __func__);
     });
 
     // Monitor thread 1
@@ -725,7 +722,7 @@ TEST(counter_balance, mixed_operations_stress)
             EXPECT_GE(checkedout, 0);
             std::this_thread::sleep_for(std::chrono::milliseconds(19));
         }
-        std::println(std::cerr, "   {} - Monitor thread 1 completed.", __func__);
+        std::cerr << std::format("   {} - Monitor thread 1 completed.\n", __func__);
     });
 
     // Monitor thread 2
@@ -736,13 +733,13 @@ TEST(counter_balance, mixed_operations_stress)
             EXPECT_GE(size, 0);
             std::this_thread::sleep_for(std::chrono::milliseconds(19));
         }
-        std::println(std::cerr, "   {} - Monitor thread 2 completed.", __func__);
+        std::cerr << std::format("   {} - Monitor thread 2 completed.\n", __func__);
     });
 
-    std::println(std::cerr, "   {} - All threads started. Waiting for completion...", __func__);
+    std::cerr << std::format("   {} - All threads started. Waiting for completion...\n", __func__);
     std::this_thread::sleep_for(std::chrono::seconds(2)); // Allow threads to run for a while
     threads.clear();
-    std::println(std::cerr, "   {} - All threads cleared. stats: borrows={}, adds={}, invalidates={}", __func__, borrows.load(), adds.load(), invalidates.load());
+    std::cerr << std::format("   {} - All threads cleared. stats: borrows={}, adds={}, invalidates={}\n", __func__, borrows.load(), adds.load(), invalidates.load());
 
     // Final state: counter should be balanced
     EXPECT_EQ(0, get_loan_count(pool)) << "Final loan count should be 0 after all threads complete.";
@@ -850,23 +847,14 @@ TEST(counter_balance, counter_size_consistency)
                 EXPECT_EQ(5, get_borrow_count(pool));
                 EXPECT_EQ(5, pool.size());
 
-                std::println(std::cerr,
-                             "....before returning 3... resources: {}. stats: {}",
-                             0, // resources.size(),
-                             pool.to_json().dump());
+                std::cerr << std::format("....before returning 3... resources: {}. stats: {}\n", 0 /* resources.size() */, pool.to_json().dump());
             }
             EXPECT_EQ(2, get_loan_count(pool));
             EXPECT_EQ(8, pool.size());
-            std::println(std::cerr,
-                         ".....after returning 3...resources:{}. stats: {}",
-                         0, // resources.size(),
-                         pool.to_json().dump());
+            std::cerr << std::format(".....after returning 3...resources:{}. stats: {}\n", 0 /* resources.size() */, pool.to_json().dump());
         }
     } // release all five..
-    std::println(std::cerr,
-                 ".....after returning all borrowed...resources:{}. stats: {}",
-                 0, // resources.size(),
-                 pool.to_json().dump());
+    std::cerr << std::format(".....after returning all borrowed...resources:{}. stats: {}\n", 0 /* resources.size() */, pool.to_json().dump());
 
     EXPECT_EQ(0, get_loan_count(pool));
     EXPECT_EQ(10, pool.size());
@@ -894,10 +882,7 @@ TEST(counter_balance, counter_size_consistency_2)
         EXPECT_EQ(5, get_borrow_count(pool));
         EXPECT_EQ(5, pool.size());
 
-        std::println(std::cerr,
-                     "....before returning 3... resources: {}. stats: {}",
-                     0, // resources.size(),
-                     pool.to_json().dump());
+        std::cerr << std::format("....before returning 3... resources: {}. stats: {}\n", 0 /* resources.size() */, pool.to_json().dump());
         // Release three resources only...
         auto _ = holdResources.erase(holdResources.begin(), holdResources.begin() + 3);
         // This is important for std::vector!
@@ -905,9 +890,9 @@ TEST(counter_balance, counter_size_consistency_2)
 
         EXPECT_EQ(2, get_loan_count(pool));
         EXPECT_EQ(8, pool.size());
-        std::println(std::cerr, ".....after returning 3...resources:{}. stats: {}", holdResources.size(), pool.to_json().dump());
+        std::cerr << std::format(".....after returning 3...resources:{}. stats: {}\n", holdResources.size(), pool.to_json().dump());
     } // release all five..
-    std::println(std::cerr, ".....after returning all borrowed... stats: {}", pool.to_json().dump());
+    std::cerr << std::format(".....after returning all borrowed... stats: {}\n", pool.to_json().dump());
 
     EXPECT_EQ(0, get_loan_count(pool));
     EXPECT_EQ(10, pool.size());
