@@ -386,3 +386,4 @@ build/**
 /test/validation_tests/test.nativecodeanalysis.xml
 *.filters
 docs/doxygen_xml/
+docs/doxygen_html/
