@@ -3,7 +3,7 @@
 <div class="grid" markdown="1">
 <div class="api-intro-col" markdown="1">
 <div class="api-header-block">
-  <div class="api-module-name">Namespace siddiqsoft</div>
+  <div class="api-module-name">Namespace {root_namespace}</div>
   <div class="api-header-file">#include &lt;siddiqsoft/private/resource_guard.hpp&gt;</div>
 </div>
 
@@ -14,9 +14,60 @@ RAII wrapper for managing resource lifecycle in a resource pool.
 
 **Class Hierarchy & Inheritance**
 
-The following UML class diagram highlights `siddiqsoft::arrp::resource_guard` and its direct relationships. Click the node to navigate to its source file on GitHub.
+The following UML class diagram highlights `siddiqsoft::arrp::resource_guard` and its direct relationships.
 
-<!-- @@uml-diag:resource_guard -->
+<div class="uml-diagram-container graphviz-uml" data-graph-type="coll">
+<span class="uml-diagram-figure" style="display: block;">
+<span class="uml-diagram-viewport" style="display: block;">
+<svg class="graphviz-uml-svg" style="max-width: 100%; height: auto;" width="124pt" height="237pt"
+ viewBox="0.00 0.00 124.00 237.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 232.75)">
+<title>siddiqsoft::arrp::resource_guard&lt; T &gt;</title>
+<!-- Node1 -->
+<g id="Node000001" class="node">
+<title>Node1</title>
+<g id="a_Node000001"><a xlink:title="RAII wrapper for managing resource lifecycle in a resource pool.">
+<polygon fill="#999999" stroke="none" points="116,-228.75 0,-228.75 0,0 116,0 116,-228.75"/>
+<polygon fill="#666666" stroke="#666666" points="0,-200.25 0,-200.25 116,-200.25 116,-200.25 0,-200.25"/>
+<polygon fill="#666666" stroke="#666666" points="0,-185 0,-185 21.62,-185 21.62,-185 0,-185"/>
+<polygon fill="#666666" stroke="#666666" points="21.62,-185 21.62,-185 116,-185 116,-185 21.62,-185"/>
+<polygon fill="none" stroke="#666666" points="0,0 0,-228.75 116,-228.75 116,0 0,0"/>
+<text xml:space="preserve" text-anchor="start" x="4" y="-216.5"  font-size="10.00">siddiqsoft::arrp::resource</text>
+<text xml:space="preserve" text-anchor="start" x="31.38" y="-205.25"  font-size="10.00">_guard&lt; T &gt;</text>
+<text xml:space="preserve" text-anchor="start" x="9.19" y="-190"  font-size="10.00">#</text>
+<text xml:space="preserve" text-anchor="start" x="23.62" y="-190"  font-size="10.00">m_rsrc</text>
+<text xml:space="preserve" text-anchor="start" x="8.81" y="-174.75"  font-size="10.00">+</text>
+<text xml:space="preserve" text-anchor="start" x="23.62" y="-174.75"  font-size="10.00">resource_guard()</text>
+<text xml:space="preserve" text-anchor="start" x="8.81" y="-159.5"  font-size="10.00">+</text>
+<text xml:space="preserve" text-anchor="start" x="23.62" y="-159.5"  font-size="10.00">operator=()</text>
+<text xml:space="preserve" text-anchor="start" x="8.81" y="-144.25"  font-size="10.00">+</text>
+<text xml:space="preserve" text-anchor="start" x="23.62" y="-144.25"  font-size="10.00">resource_guard()</text>
+<text xml:space="preserve" text-anchor="start" x="8.81" y="-129"  font-size="10.00">+</text>
+<text xml:space="preserve" text-anchor="start" x="23.62" y="-129"  font-size="10.00">resource_guard()</text>
+<text xml:space="preserve" text-anchor="start" x="8.81" y="-113.75"  font-size="10.00">+</text>
+<text xml:space="preserve" text-anchor="start" x="23.62" y="-113.75"  font-size="10.00">operator=()</text>
+<text xml:space="preserve" text-anchor="start" x="8.81" y="-98.5"  font-size="10.00">+</text>
+<text xml:space="preserve" text-anchor="start" x="23.62" y="-98.5"  font-size="10.00">~resource_guard()</text>
+<text xml:space="preserve" text-anchor="start" x="8.81" y="-83.25"  font-size="10.00">+</text>
+<text xml:space="preserve" text-anchor="start" x="23.62" y="-83.25"  font-size="10.00">operator*()</text>
+<text xml:space="preserve" text-anchor="start" x="8.81" y="-68"  font-size="10.00">+</text>
+<text xml:space="preserve" text-anchor="start" x="23.62" y="-68"  font-size="10.00">operator&#45;&gt;()</text>
+<text xml:space="preserve" text-anchor="start" x="8.81" y="-52.75"  font-size="10.00">+</text>
+<text xml:space="preserve" text-anchor="start" x="23.62" y="-52.75"  font-size="10.00">operator&#45;&gt;()</text>
+<text xml:space="preserve" text-anchor="start" x="8.81" y="-37.5"  font-size="10.00">+</text>
+<text xml:space="preserve" text-anchor="start" x="23.62" y="-37.5"  font-size="10.00">operator T&amp;()</text>
+<text xml:space="preserve" text-anchor="start" x="23.62" y="-22.25"  font-size="10.00">and 10 more...</text>
+<text xml:space="preserve" text-anchor="start" x="9.19" y="-7"  font-size="10.00">#</text>
+<text xml:space="preserve" text-anchor="start" x="23.62" y="-7"  font-size="10.00">resource_guard()</text>
+</a>
+</g>
+</g>
+</g>
+</svg>
+</span>
+<span class="uml-diagram-figcaption" style="display: block; text-align: center; font-style: italic; margin-top: 0.5em;">Figure: GraphViz UML Collaboration diagram</span>
+</span>
+</div>
 
 </div>
 </div>
@@ -25,7 +76,7 @@ The following UML class diagram highlights `siddiqsoft::arrp::resource_guard` an
 
 ### Constructors & Destructors
 
-<table class="api-summary-table">
+<table class="api-summary-table" markdown="1">
   <tr>
     <td class="memtype"><code>void</code></td>
     <td class="memitemleft"><a href="#classsiddiqsoft_1_1arrp_1_1resource__guard_1af5949392e4dac60ef492b5585d4ac35b"><strong>resource_guard</strong></a> ((const resource_guard &amp;)=delete)
@@ -54,7 +105,7 @@ The following UML class diagram highlights `siddiqsoft::arrp::resource_guard` an
 
 ### Core Accessors & Modifiers
 
-<table class="api-summary-table">
+<table class="api-summary-table" markdown="1">
   <tr>
     <td class="memtype"><code>resource_guard &amp;</code></td>
     <td class="memitemleft"><a href="#classsiddiqsoft_1_1arrp_1_1resource__guard_1acb1054fba7fd688648f517925b1d6219"><strong>operator=</strong></a> ((const resource_guard &amp;)=delete)
@@ -211,10 +262,13 @@ void resource_guard::resource_guard(const pool_error &err);
 
 Constructs an invalid guard carrying a borrow error.
 <div class="memdoc-section-title">Parameters</div>
-
-<ul>
-  <li><code>err</code> &mdash; Error reported by `error()` </li>
-</ul>
+<table class="params" markdown="0">
+  <tr>
+    <td class="paramtype"><code>const pool_error &</code></td>
+    <td class="paramname">err</td>
+    <td class="paramdesc">Error reported by `error()` </td>
+  </tr>
+</table>
 
 </div>
 </div>
@@ -237,22 +291,16 @@ Move constructor.
 Transfers ownership from another `resource_guard` to this one. The source is invalidated to prevent double-return.
 
 <div class="memdoc-section-title">Parameters</div>
+<table class="params" markdown="0">
+  <tr>
+    <td class="paramtype"><code>resource_guard &&</code></td>
+    <td class="paramname">src</td>
+    <td class="paramdesc">The source `resource_guard` to move from</td>
+  </tr>
+</table>
 
-<ul>
-  <li><code>src</code> &mdash; The source `resource_guard` to move from</li>
-</ul>
-
-<div class="memdoc-section-title">Note</div>
-
-The source's callback is cleared to prevent double-return 
-
-<div class="memdoc-section-title">Note</div>
-
-The source is marked as invalid 
-
-<div class="memdoc-section-title">Note</div>
-
-This constructor is using new syntax for noexcept specification based on the move-constructibility of T and the callback function.
+!!! note
+    The source's callback is cleared to prevent double-return The source is marked as invalid This constructor is using new syntax for noexcept specification based on the move-constructibility of T and the callback function.
 
 </div>
 </div>
@@ -275,34 +323,19 @@ Move assignment operator.
 Transfers ownership from another `resource_guard` to this one. Before taking ownership, the currently-held resource (if valid) is returned to the pool via the putback callback. The source is then invalidated to prevent double-return.
 
 <div class="memdoc-section-title">Parameters</div>
-
-<ul>
-  <li><code>src</code> &mdash; The source `resource_guard` to move from </li>
-</ul>
-
+<table class="params" markdown="0">
+  <tr>
+    <td class="paramtype"><code>resource_guard &&</code></td>
+    <td class="paramname">src</td>
+    <td class="paramdesc">The source `resource_guard` to move from </td>
+  </tr>
+</table>
 <div class="memdoc-section-title">Returns</div>
-
 Reference to this `resource_guard`
 
-<div class="memdoc-section-title">Note</div>
 
-Self-assignment is checked via pointer comparison 
-
-<div class="memdoc-section-title">Note</div>
-
-The currently-held resource is returned to the pool before overwrite 
-
-<div class="memdoc-section-title">Note</div>
-
-The source's callback is cleared to prevent double-return 
-
-<div class="memdoc-section-title">Note</div>
-
-The source is marked as invalid after the move 
-
-<div class="memdoc-section-title">Note</div>
-
-NOT noexcept: T's move-assignment may throw; declaring noexcept here would call std::terminate if T::operator=(T&&) throws after the putback callback has already fired (state would be inconsistent).
+!!! note
+    Self-assignment is checked via pointer comparison The currently-held resource is returned to the pool before overwrite The source's callback is cleared to prevent double-return The source is marked as invalid after the move NOT noexcept: T's move-assignment may throw; declaring noexcept here would call std::terminate if T::operator=(T&&) throws after the putback callback has already fired (state would be inconsistent).
 
 </div>
 </div>
@@ -324,25 +357,9 @@ void resource_guard::~resource_guard() noexcept;
 Destructor - invokes callback to handle resource return or abandonment.
 Invokes the putback callback if one exists, passing the resource and its validity status. The callback is responsible for deciding whether to return the resource to the pool (if valid) or discard it (if invalid). Exceptions from the callback are caught and logged to stderr.
 
-<div class="memdoc-section-title">Note</div>
 
-Noexcept: Exceptions are caught and logged, not propagated 
-
-<div class="memdoc-section-title">Note</div>
-
-The callback is always invoked if set, regardless of validity 
-
-<div class="memdoc-section-title">Note</div>
-
-The callback receives the validity flag to make the appropriate decision 
-
-<div class="memdoc-section-title">Note</div>
-
-The callback is cleared after invocation 
-
-<div class="memdoc-section-title">Note</div>
-
-The resource is marked as invalid after callback invocation
+!!! note
+    Noexcept: Exceptions are caught and logged, not propagated The callback is always invoked if set, regardless of validity The callback receives the validity flag to make the appropriate decision The callback is cleared after invocation The resource is marked as invalid after callback invocation
 
 </div>
 </div>
@@ -363,8 +380,11 @@ T & resource_guard::operator*();
 
 Dereference operator to access the wrapped resource.
 <div class="memdoc-section-title">Returns</div>
-
 Reference to the wrapped resource
+
+
+!!! warning
+    Does not check validity; do not use after invalidation or move-out.
 
 </div>
 </div>
@@ -386,15 +406,24 @@ T * resource_guard::operator->();
 Pointer-like access to the wrapped resource.
 <div class="memdoc-section-title">Example:</div>
 
- 
+```cpp
+// Source: tests/doxygen_examples.cpp:L58-L65
+    siddiqsoft::arrp::resource_pool<std::string> pool;
+    pool.seed("Hello");
+    
+    auto guard = pool.try_borrow();
+    if (guard.is_valid()) {
+        // Access the underlying resource
+        guard.get() += " World";
+    }
+```
 
 <div class="memdoc-section-title">Returns</div>
+Pointer to the wrapped resource, or nullptr if invalid
 
-Pointer to the wrapped resource, or nullptr if invalid 
 
-<div class="memdoc-section-title">Note</div>
-
-Returns nullptr if resource is invalid
+!!! note
+    Returns nullptr if resource is invalid
 
 </div>
 </div>
@@ -415,7 +444,6 @@ const T * resource_guard::operator->() const;
 
 Provides const pointer-like access to the wrapped resource.
 <div class="memdoc-section-title">Returns</div>
-
 The resource address, or nullptr if the guard is invalid.
 
 </div>
@@ -437,8 +465,11 @@ void resource_guard::operator T&() &;
 
 Explicit conversion to resource reference.
 <div class="memdoc-section-title">Returns</div>
-
 Reference to the wrapped resource
+
+
+!!! warning
+    Does not check validity; do not use after invalidation or move-out.
 
 </div>
 </div>
@@ -459,6 +490,9 @@ void resource_guard::operator const T &() const &;
 
 Provides a const reference to the wrapped resource.
 
+!!! warning
+    Does not check validity; do not use after invalidation or move-out.
+
 </div>
 </div>
 
@@ -478,7 +512,6 @@ void resource_guard::operator bool() const noexcept;
 
 Tests whether the guard holds a resource eligible for return.
 <div class="memdoc-section-title">Returns</div>
-
 true when the guard is valid
 
 </div>
@@ -500,13 +533,13 @@ void resource_guard::operator InnerType() const;
 
 Converts through a conversion supplied by the stored resource type.
 <div class="memdoc-section-title">Template Parameters</div>
-
-<ul>
-  <li><code>InnerType</code> &mdash; Requested conversion target. </li>
-</ul>
-
+<table class="params" markdown="0">
+  <tr>
+    <td class="paramname">InnerType</td>
+    <td class="paramdesc">Requested conversion target. </td>
+  </tr>
+</table>
 <div class="memdoc-section-title">Returns</div>
-
 The result of converting the stored resource to InnerType.
 
 </div>
@@ -530,18 +563,19 @@ Assignment operator for resource value.
 Replaces the held resource value in place. The old resource is returned to the pool, and the guard retains ownership of the new resource, which will be returned to the pool when destroyed.
 
 <div class="memdoc-section-title">Parameters</div>
-
-<ul>
-  <li><code>src</code> &mdash; The new resource value (moved) </li>
-</ul>
-
+<table class="params" markdown="0">
+  <tr>
+    <td class="paramtype"><code>T &&</code></td>
+    <td class="paramname">src</td>
+    <td class="paramdesc">The new resource value (moved) </td>
+  </tr>
+</table>
 <div class="memdoc-section-title">Returns</div>
-
 Reference to this `resource_guard`
 
-<div class="memdoc-section-title">Note</div>
 
-Returns existing resource to pool before taking ownership of new resource.
+!!! note
+    Returns existing resource to pool before taking ownership of new resource.
 
 </div>
 </div>
@@ -563,19 +597,26 @@ void resource_guard::invalidate();
 Marks the resource as invalid (abandoned).
 <div class="memdoc-section-title">Example:</div>
 
+```cpp
+// Source: tests/doxygen_examples.cpp:L23-L33
+    siddiqsoft::arrp::resource_pool<int> pool;
+    pool.seed(42);
+    
+    {
+        auto guard = pool.try_borrow();
+        if (guard.get() == 42) {
+            // Resource is corrupted or no longer needed.
+            // Invalidate the guard so the resource is destroyed instead of returning to the pool.
+            guard.invalidate();
+        }
+    }
+```
+
+Sets the validity flag to false. When the resource is destroyed, the callback will be invoked with isvalid=false, allowing the pool to discard the resource rather than returning it for reuse. This is appropriate when the resource has been moved out, corrupted, or otherwise rendered unusable.
 
 
-<div class="memdoc-section-title">Note</div>
-
-Virtual for interface consistency, but `resource_guard` is <code>final</code>, so there is currently no derived class to override this. 
-
-<div class="memdoc-section-title">Note</div>
-
-The callback is still invoked; only the validity flag changes 
-
-<div class="memdoc-section-title">Note</div>
-
-Typically called when the resource is corrupted, moved out, or consumed
+!!! note
+    Virtual for interface consistency, but `resource_guard` is <code>final</code>, so there is currently no derived class to override this. The callback is still invoked; only the validity flag changes Typically called when the resource is corrupted, moved out, or consumed
 
 </div>
 </div>
@@ -596,16 +637,11 @@ bool resource_guard::is_valid() const;
 
 Checks if the resource is valid.
 <div class="memdoc-section-title">Returns</div>
-
 true if the resource is valid and will be returned to pool, false otherwise
 
-<div class="memdoc-section-title">Note</div>
 
-Virtual for interface consistency, but `resource_guard` is <code>final</code>, so there is currently no derived class to override this. 
-
-<div class="memdoc-section-title">Note</div>
-
-Const: Does not modify the resource
+!!! note
+    Virtual for interface consistency, but `resource_guard` is <code>final</code>, so there is currently no derived class to override this. Const: Does not modify the resource
 
 </div>
 </div>
@@ -626,13 +662,14 @@ auto & resource_guard::set_error(pool_error err);
 
 Sets the error reported by error().
 <div class="memdoc-section-title">Parameters</div>
-
-<ul>
-  <li><code>err</code> &mdash; Error code to store. </li>
-</ul>
-
+<table class="params" markdown="0">
+  <tr>
+    <td class="paramtype"><code>pool_error</code></td>
+    <td class="paramname">err</td>
+    <td class="paramdesc">Error code to store. </td>
+  </tr>
+</table>
 <div class="memdoc-section-title">Returns</div>
-
 This guard.
 
 </div>
@@ -654,7 +691,6 @@ pool_error resource_guard::error() const;
 
 Gets the error associated with this guard.
 <div class="memdoc-section-title">Returns</div>
-
 The stored error code; valid guards normally report `pool_error::Ok`.
 
 </div>
@@ -676,7 +712,6 @@ bool resource_guard::has_value() const;
 
 Tests whether the guard holds a valid resource.
 <div class="memdoc-section-title">Returns</div>
-
 true when `is_valid()` would return true.
 
 </div>
@@ -700,33 +735,18 @@ Serializes the resource_guard to JSON.
 Returns a JSON object containing the resource state and validity. Only available if nlohmann/json.hpp is included before this header.
 
 <div class="memdoc-section-title">Returns</div>
-
 JSON object with:
 _typver: Type and version string ("siddiqsoft.arrp.resource_guard/1.0.0")
 valid: Whether the resource is valid (boolean)
 value: The resource value (if serializable, otherwise "-noserializer-")
 
 
-
-<div class="memdoc-section-title">Note</div>
-
-Available only when nlohmann/json.hpp was included before this header. 
-
-<div class="memdoc-section-title">Note</div>
-
-If T is not serializable, value is set to "-noserializer-"
-
-<div class="memdoc-section-title">JSON Schema:</div>
-
-{
-"_typver":"siddiqsoft.arrp.resource_guard/1.0.0",
-"valid":true,
-"value":<resource_value>
-}
+!!! note
+    Available only when nlohmann/json.hpp was included before this header. If T is not serializable, value is set to "-noserializer-"
 
 </div>
 </div>
 
 ## Source Code Reference
 
-- Header: [`include/siddiqsoft/private/resource_guard.hpp`](https://github.com/SiddiqSoft/arrp/blob/master/include/siddiqsoft/private/resource_guard.hpp#L99)
+- Header: [`include/siddiqsoft/private/resource_guard.hpp`](https://github.com/SiddiqSoft/arrp/blob/main/include/siddiqsoft/private/resource_guard.hpp#L99)

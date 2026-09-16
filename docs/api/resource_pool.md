@@ -3,7 +3,7 @@
 <div class="grid" markdown="1">
 <div class="api-intro-col" markdown="1">
 <div class="api-header-block">
-  <div class="api-module-name">Namespace siddiqsoft</div>
+  <div class="api-module-name">Namespace {root_namespace}</div>
   <div class="api-header-file">#include &lt;siddiqsoft/private/resource_pool.hpp&gt;</div>
 </div>
 
@@ -14,9 +14,73 @@ Thread-safe auto-returning resource pool.
 
 **Class Hierarchy & Inheritance**
 
-The following UML class diagram highlights `siddiqsoft::arrp::resource_pool` and its direct relationships. Click the node to navigate to its source file on GitHub.
+The following UML class diagram highlights `siddiqsoft::arrp::resource_pool` and its direct relationships.
 
-<!-- @@uml-diag:resource_pool -->
+<div class="uml-diagram-container graphviz-uml" data-graph-type="coll">
+<span class="uml-diagram-figure" style="display: block;">
+<span class="uml-diagram-viewport" style="display: block;">
+<svg class="graphviz-uml-svg" style="max-width: 100%; height: auto;" width="128pt" height="344pt"
+ viewBox="0.00 0.00 128.00 344.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 339.5)">
+<title>siddiqsoft::arrp::resource_pool&lt; T &gt;</title>
+<!-- Node1 -->
+<g id="Node000001" class="node">
+<title>Node1</title>
+<g id="a_Node000001"><a xlink:title="Thread&#45;safe auto&#45;returning resource pool.">
+<polygon fill="#999999" stroke="none" points="120,-335.5 0,-335.5 0,0 120,0 120,-335.5"/>
+<polygon fill="#666666" stroke="#666666" points="0,-307 0,-307 120,-307 120,-307 0,-307"/>
+<polygon fill="#666666" stroke="#666666" points="0,-291.75 0,-291.75 120,-291.75 120,-291.75 0,-291.75"/>
+<polygon fill="none" stroke="#666666" points="0,0 0,-335.5 120,-335.5 120,0 0,0"/>
+<text xml:space="preserve" text-anchor="start" x="6" y="-323.25"  font-size="10.00">siddiqsoft::arrp::resource</text>
+<text xml:space="preserve" text-anchor="start" x="36.38" y="-312"  font-size="10.00">_pool&lt; T &gt;</text>
+<text xml:space="preserve" text-anchor="start" x="58.5" y="-296.75"  font-size="10.00"> </text>
+<text xml:space="preserve" text-anchor="start" x="4" y="-281.5"  font-size="10.00">+</text>
+<text xml:space="preserve" text-anchor="start" x="14" y="-281.5"  font-size="10.00">resource_pool()</text>
+<text xml:space="preserve" text-anchor="start" x="4" y="-266.25"  font-size="10.00">+</text>
+<text xml:space="preserve" text-anchor="start" x="14" y="-266.25"  font-size="10.00">resource_pool()</text>
+<text xml:space="preserve" text-anchor="start" x="4" y="-251"  font-size="10.00">+</text>
+<text xml:space="preserve" text-anchor="start" x="14" y="-251"  font-size="10.00">operator=()</text>
+<text xml:space="preserve" text-anchor="start" x="4" y="-235.75"  font-size="10.00">+</text>
+<text xml:space="preserve" text-anchor="start" x="14" y="-235.75"  font-size="10.00">operator=()</text>
+<text xml:space="preserve" text-anchor="start" x="4" y="-220.5"  font-size="10.00">+</text>
+<text xml:space="preserve" text-anchor="start" x="14" y="-220.5"  font-size="10.00">resource_pool()</text>
+<text xml:space="preserve" text-anchor="start" x="4" y="-205.25"  font-size="10.00">+</text>
+<text xml:space="preserve" text-anchor="start" x="14" y="-205.25"  font-size="10.00">resource_pool()</text>
+<text xml:space="preserve" text-anchor="start" x="4" y="-190"  font-size="10.00">+</text>
+<text xml:space="preserve" text-anchor="start" x="14" y="-190"  font-size="10.00">~resource_pool()</text>
+<text xml:space="preserve" text-anchor="start" x="4" y="-174.75"  font-size="10.00">+</text>
+<text xml:space="preserve" text-anchor="start" x="14" y="-174.75"  font-size="10.00">set_factory_callback()</text>
+<text xml:space="preserve" text-anchor="start" x="4" y="-159.5"  font-size="10.00">+</text>
+<text xml:space="preserve" text-anchor="start" x="14" y="-159.5"  font-size="10.00">clear()</text>
+<text xml:space="preserve" text-anchor="start" x="4" y="-144.25"  font-size="10.00">+</text>
+<text xml:space="preserve" text-anchor="start" x="14" y="-144.25"  font-size="10.00">size()</text>
+<text xml:space="preserve" text-anchor="start" x="4" y="-129"  font-size="10.00">+</text>
+<text xml:space="preserve" text-anchor="start" x="14" y="-129"  font-size="10.00">try_borrow()</text>
+<text xml:space="preserve" text-anchor="start" x="4" y="-113.75"  font-size="10.00">+</text>
+<text xml:space="preserve" text-anchor="start" x="14" y="-113.75"  font-size="10.00">try_borrow_create()</text>
+<text xml:space="preserve" text-anchor="start" x="4" y="-98.5"  font-size="10.00">+</text>
+<text xml:space="preserve" text-anchor="start" x="14" y="-98.5"  font-size="10.00">seed()</text>
+<text xml:space="preserve" text-anchor="start" x="4" y="-83.25"  font-size="10.00">+</text>
+<text xml:space="preserve" text-anchor="start" x="14" y="-83.25"  font-size="10.00">seed()</text>
+<text xml:space="preserve" text-anchor="start" x="4" y="-68"  font-size="10.00">+</text>
+<text xml:space="preserve" text-anchor="start" x="14" y="-68"  font-size="10.00">to_json()</text>
+<text xml:space="preserve" text-anchor="start" x="4.38" y="-52.75"  font-size="10.00">#</text>
+<text xml:space="preserve" text-anchor="start" x="14" y="-52.75"  font-size="10.00">make_resource_guard()</text>
+<text xml:space="preserve" text-anchor="start" x="4.38" y="-37.5"  font-size="10.00">#</text>
+<text xml:space="preserve" text-anchor="start" x="14" y="-37.5"  font-size="10.00">create_from_callback()</text>
+<text xml:space="preserve" text-anchor="start" x="4.38" y="-22.25"  font-size="10.00">#</text>
+<text xml:space="preserve" text-anchor="start" x="14" y="-22.25"  font-size="10.00">borrow_impl()</text>
+<text xml:space="preserve" text-anchor="start" x="4.38" y="-7"  font-size="10.00">#</text>
+<text xml:space="preserve" text-anchor="start" x="14" y="-7"  font-size="10.00">return_to_pool()</text>
+</a>
+</g>
+</g>
+</g>
+</svg>
+</span>
+<span class="uml-diagram-figcaption" style="display: block; text-align: center; font-style: italic; margin-top: 0.5em;">Figure: GraphViz UML Collaboration diagram</span>
+</span>
+</div>
 
 </div>
 </div>
@@ -25,7 +89,7 @@ The following UML class diagram highlights `siddiqsoft::arrp::resource_pool` and
 
 ### Constructors & Destructors
 
-<table class="api-summary-table">
+<table class="api-summary-table" markdown="1">
   <tr>
     <td class="memtype"><code>void</code></td>
     <td class="memitemleft"><a href="#classsiddiqsoft_1_1arrp_1_1resource__pool_1a0909de3000c0be9da4fd96f120f8b9e7"><strong>resource_pool</strong></a> ((resource_pool &amp;)=delete)
@@ -60,7 +124,7 @@ The following UML class diagram highlights `siddiqsoft::arrp::resource_pool` and
 
 ### Core Accessors & Modifiers
 
-<table class="api-summary-table">
+<table class="api-summary-table" markdown="1">
   <tr>
     <td class="memtype"><code>resource_pool &amp;</code></td>
     <td class="memitemleft"><a href="#classsiddiqsoft_1_1arrp_1_1resource__pool_1af0e172abce0481219076b29c6b9610a9"><strong>operator=</strong></a> ((resource_pool &amp;)=delete)
@@ -226,19 +290,21 @@ void resource_pool::resource_pool(
 
 Constructs a resource pool with an optional cleanup callback.
 <div class="memdoc-section-title">Parameters</div>
+<table class="params" markdown="0">
+  <tr>
+    <td class="paramtype"><code>uint8_t</code></td>
+    <td class="paramname">init_capacity</td>
+    <td class="paramdesc">Initial capacity of the pool </td>
+  </tr>
+  <tr>
+    <td class="paramtype"><code>std::function< void(T &)> &&</code></td>
+    <td class="paramname">on_shutdown_callback</td>
+    <td class="paramdesc">Optional cleanup callback invoked on destruction</td>
+  </tr>
+</table>
 
-<ul>
-  <li><code>init_capacity</code> &mdash; Initial capacity of the pool </li>
-  <li><code>on_shutdown_callback</code> &mdash; Optional cleanup callback invoked on destruction</li>
-</ul>
-
-<div class="memdoc-section-title">Note</div>
-
-Register a factory separately with `set_factory_callback()`. 
-
-<div class="memdoc-section-title">Note</div>
-
-Capacity is clamped to [MinimumCapacity, MaxCapacity] but does not enforce a maximum number of seeded or factory-created resources.
+!!! note
+    Register a factory separately with `set_factory_callback()`. Capacity is clamped to [MinimumCapacity, MaxCapacity] but does not enforce a maximum number of seeded or factory-created resources.
 
 </div>
 </div>
@@ -259,14 +325,16 @@ void resource_pool::resource_pool(std::function< void(T &)> &&on_shutdown_callba
 
 Constructs a resource pool with only cleanup callback.
 <div class="memdoc-section-title">Parameters</div>
+<table class="params" markdown="0">
+  <tr>
+    <td class="paramtype"><code>std::function< void(T &)> &&</code></td>
+    <td class="paramname">on_shutdown_callback</td>
+    <td class="paramdesc">Cleanup callback invoked on destruction</td>
+  </tr>
+</table>
 
-<ul>
-  <li><code>on_shutdown_callback</code> &mdash; Cleanup callback invoked on destruction</li>
-</ul>
-
-<div class="memdoc-section-title">Note</div>
-
-Uses the default capacity. The cleanup callback is invoked for resources available during `clear()` or destruction.
+!!! note
+    Uses the default capacity. The cleanup callback is invoked for resources available during `clear()` or destruction.
 
 </div>
 </div>
@@ -288,9 +356,13 @@ void resource_pool::~resource_pool();
 Destructor - cleans up all resources in the pool.
 Sets the shutdown flag and delegates to `clear()` to clean up resources. The cleanup callback (if provided) is invoked for each resource during cleanup.
 
-<div class="memdoc-section-title">Note</div>
 
-Exceptions derived from std::exception in the cleanup callback are caught and written to stderr.
+!!! note
+    Exceptions derived from std::exception in the cleanup callback are caught and written to stderr.
+
+
+!!! warning
+    Guards borrowed from this pool must be destroyed before the pool.
 
 </div>
 </div>
@@ -311,14 +383,19 @@ void resource_pool::set_factory_callback(F &&f);
 
 Sets the factory used by try_borrow_create() when no resource is available.
 <div class="memdoc-section-title">Template Parameters</div>
+<table class="params" markdown="0">
+  <tr>
+    <td class="paramname">F</td>
+    <td class="paramdesc">Callable type invokable with no arguments returning <code>`resource_guard`<T></code> or <code>T</code> </td>
+  </tr>
+</table>
 
-<ul>
-  <li><code>F</code> &mdash; Callable type invokable with no arguments returning <code>`resource_guard`<T></code> or <code>T</code> </li>
-</ul>
+!!! note
+    Safe to call concurrently with `borrow_impl()`: assignment is synchronized under m_pool_lock, matching the read sites in `borrow_impl()`. A borrow in flight may still use the factory that was registered just before or after this call (no ordering is guaranteed relative to a specific concurrent borrow), but the read/write of the underlying std::function is race-free.
 
-<div class="memdoc-section-title">Note</div>
 
-Safe to call concurrently with `borrow_impl()`: assignment is synchronized under m_pool_lock, matching the read sites in `borrow_impl()`. A borrow in flight may still use the factory that was registered just before or after this call (no ordering is guaranteed relative to a specific concurrent borrow), but the read/write of the underlying std::function is race-free.
+!!! warning
+    The callback must not call methods on this pool.
 
 </div>
 </div>
@@ -340,20 +417,25 @@ pool_error resource_pool::clear();
 Clears all resources from the pool.
 <div class="memdoc-section-title">Example:</div>
 
+```cpp
+// Source: tests/doxygen_examples.cpp:L58-L64
+    siddiqsoft::arrp::resource_pool<std::string> pool;
+    pool.seed("A");
+    pool.seed("B");
+    
+    // Empties the pool completely. Any resources currently borrowed by guards 
+    // will be destroyed rather than returned upon guard destruction.
+    pool.clear();
+```
 
+Removes currently available resources and invokes the cleanup callback for each. Borrowed resources can return after `clear()` completes.
 
-clear()
 <div class="memdoc-section-title">Returns</div>
-
 `pool_error::Ok`
 
-<div class="memdoc-section-title">Note</div>
 
-The cleanup callback runs under the pool lock. Exceptions derived from std::exception are caught and written to stderr. 
-
-<div class="memdoc-section-title">Note</div>
-
-Non-blocking by design: if a concurrent borrow has already claimed a resource's semaphore permit but not yet popped it from the pool (it is waiting on the same lock `clear()` holds), that item is left in place for the borrower rather than drained here. This avoids a deadlock; it means a racing `clear()` call is not guaranteed to empty every resource that was visible to `size()` just before it ran.
+!!! note
+    The cleanup callback runs under the pool lock. Exceptions derived from std::exception are caught and written to stderr. Non-blocking by design: if a concurrent borrow has already claimed a resource's semaphore permit but not yet popped it from the pool (it is waiting on the same lock `clear()` holds), that item is left in place for the borrower rather than drained here. This avoids a deadlock; it means a racing `clear()` call is not guaranteed to empty every resource that was visible to `size()` just before it ran.
 
 </div>
 </div>
@@ -375,15 +457,22 @@ auto resource_pool::size() const;
 Gets the current size of the pool.
 <div class="memdoc-section-title">Example:</div>
 
-
+```cpp
+// Source: tests/doxygen_examples.cpp:L71-L76
+    siddiqsoft::arrp::resource_pool<int> pool(10);
+    pool.seed(1);
+    pool.seed(2);
+    
+    // size() returns the total number of resources (both idle in queue and currently borrowed)
+    std::cout << "Total resources tracked: " << pool.size() << std::endl; // Outputs 2
+```
 
 <div class="memdoc-section-title">Returns</div>
-
 Number of currently available resources
 
-<div class="memdoc-section-title">Note</div>
 
-Does not include checked-out resources
+!!! note
+    Does not include checked-out resources
 
 </div>
 </div>
@@ -405,16 +494,30 @@ resource_guard< T > resource_pool::try_borrow(std::chrono::nanoseconds timeout={
 Borrows an available resource without creating one.
 <div class="memdoc-section-title">Example:</div>
 
- 
+```cpp
+// Source: tests/doxygen_examples.cpp:L23-L33
+    siddiqsoft::arrp::resource_pool<int> pool;
+    pool.seed(42);
+    
+    {
+        // Borrow the resource. It is removed from the pool queue.
+        auto guard = pool.try_borrow();
+        if (guard.is_valid()) {
+            std::cout << "Borrowed: " << guard.get() << std::endl;
+        }
+        // When 'guard' goes out of scope, the resource is automatically returned to the pool.
+    }
+```
 
 <div class="memdoc-section-title">Parameters</div>
-
-<ul>
-  <li><code>timeout</code> &mdash; Maximum time to wait; zero performs a non-blocking attempt. </li>
-</ul>
-
+<table class="params" markdown="0">
+  <tr>
+    <td class="paramtype"><code>std::chrono::nanoseconds</code></td>
+    <td class="paramname">timeout</td>
+    <td class="paramdesc">Maximum time to wait; zero performs a non-blocking attempt. </td>
+  </tr>
+</table>
 <div class="memdoc-section-title">Returns</div>
-
 A valid scoped resource, or an invalid one with NoMoreResources, Timeout, ShutdownInitiated, or Unknown set as its error.
 
 </div>
@@ -437,16 +540,31 @@ resource_guard< T > resource_pool::try_borrow_create(std::chrono::nanoseconds ti
 Borrows an available resource or creates one through the factory.
 <div class="memdoc-section-title">Example:</div>
 
- 
+```cpp
+// Source: tests/doxygen_examples.cpp:L40-L51
+    siddiqsoft::arrp::resource_pool<int> pool(5);
+    
+    // Set a factory callback to generate missing resources
+    pool.set_factory_callback([](auto& p) {
+        return std::make_unique<int>(99);
+    });
+    
+    // The pool is currently empty, so try_borrow_create will invoke the factory
+    auto guard = pool.try_borrow_create();
+    if (guard.is_valid()) {
+        std::cout << "Created on demand: " << guard.get() << std::endl;
+    }
+```
 
 <div class="memdoc-section-title">Parameters</div>
-
-<ul>
-  <li><code>timeout</code> &mdash; Maximum time to wait; zero performs a non-blocking attempt. </li>
-</ul>
-
+<table class="params" markdown="0">
+  <tr>
+    <td class="paramtype"><code>std::chrono::nanoseconds</code></td>
+    <td class="paramname">timeout</td>
+    <td class="paramdesc">Maximum time to wait; zero performs a non-blocking attempt. </td>
+  </tr>
+</table>
 <div class="memdoc-section-title">Returns</div>
-
 A valid scoped resource, or an invalid one when shutdown or an implementation or factory error prevents borrowing.
 
 </div>
@@ -469,31 +587,39 @@ pool_error resource_pool::seed(Args &&... args);
 Adds a resource to the pool by constructing it in-place.
 <div class="memdoc-section-title">Example:</div>
 
-
+```cpp
+// Source: tests/doxygen_examples.cpp:L9-L16
+    siddiqsoft::arrp::resource_pool<std::string> pool(10);
+    
+    // Seed by constructing in-place
+    pool.seed(5, 'A'); // "AAAAA"
+    
+    // Seed by moving an existing object
+    std::string existing = "Hello";
+    pool.seed(std::move(existing));
+```
 
 <div class="memdoc-section-title">Template Parameters</div>
-
-<ul>
-  <li><code>Args</code> &mdash; Types of arguments to forward to T's constructor </li>
-</ul>
-
+<table class="params" markdown="0">
+  <tr>
+    <td class="paramname">Args</td>
+    <td class="paramdesc">Types of arguments to forward to T's constructor </td>
+  </tr>
+</table>
 <div class="memdoc-section-title">Parameters</div>
-
-<ul>
-  <li><code>args</code> &mdash; Arguments to forward to T's constructor for in-place construction </li>
-</ul>
-
+<table class="params" markdown="0">
+  <tr>
+    <td class="paramtype"><code>Args &&...</code></td>
+    <td class="paramname">args</td>
+    <td class="paramdesc">Arguments to forward to T's constructor for in-place construction </td>
+  </tr>
+</table>
 <div class="memdoc-section-title">Returns</div>
-
 `pool_error::Ok`, or `pool_error::ShutdownInitiated` during destruction
 
-<div class="memdoc-section-title">Note</div>
 
-Resource is constructed in-place 
-
-<div class="memdoc-section-title">Note</div>
-
-Does not enforce the configured capacity. Do not use this to return a borrowed resource; guards return resources automatically.
+!!! note
+    Resource is constructed in-place Does not enforce the configured capacity. Do not use this to return a borrowed resource; guards return resources automatically.
 
 </div>
 </div>
@@ -514,22 +640,19 @@ pool_error resource_pool::seed(T &&item);
 
 Adds a resource to the pool by moving it.
 <div class="memdoc-section-title">Parameters</div>
-
-<ul>
-  <li><code>item</code> &mdash; The resource to add (moved) </li>
-</ul>
-
+<table class="params" markdown="0">
+  <tr>
+    <td class="paramtype"><code>T &&</code></td>
+    <td class="paramname">item</td>
+    <td class="paramdesc">The resource to add (moved) </td>
+  </tr>
+</table>
 <div class="memdoc-section-title">Returns</div>
-
 `pool_error::Ok`, or `pool_error::ShutdownInitiated` during destruction
 
-<div class="memdoc-section-title">Note</div>
 
-Resource is moved into the pool 
-
-<div class="memdoc-section-title">Note</div>
-
-Does not enforce the configured capacity. Do not use this to return a borrowed resource; guards return resources automatically.
+!!! note
+    Resource is moved into the pool Does not enforce the configured capacity. Do not use this to return a borrowed resource; guards return resources automatically.
 
 </div>
 </div>
@@ -551,34 +674,31 @@ nlohmann::json resource_pool::to_json() const;
 Serializes pool statistics to JSON.
 <div class="memdoc-section-title">Example:</div>
 
+```cpp
+// Source: tests/doxygen_examples.cpp:L71-L79
+    siddiqsoft::arrp::resource_pool<int> pool(10);
+    pool.seed(1);
+    pool.seed(2);
+    
+    auto borrowed = pool.try_borrow();
+    
+    // Export telemetry statistics to a JSON object
+    nlohmann::json stats = pool.to_json();
+    std::cout << stats.dump(4) << std::endl;
+```
 
+Returns a JSON object containing pool statistics and configuration. Only available if nlohmann/json.hpp is included before this header file.
 
 <div class="memdoc-section-title">Returns</div>
-
 A JSON object containing a snapshot of pool statistics
 
-<div class="memdoc-section-title">Note</div>
 
-Available only when nlohmann/json.hpp was included before this header.
-
-<div class="memdoc-section-title">JSON Schema:</div>
-
-{
-"_typver":"siddiqsoft.arrp.resource_pool/0.0.0",
-"capacity":<configured_capacity>,
-"size":<available_resources>,
-"peaksize":<peak_size_reached>,
-"abandons":<invalidated_resources>,
-"seeds":<resources_added_via_seed>,
-"autoadds":<resources_created_ondemand>,
-"returns":<resources_returned>,
-"borrows":<resources_borrowed>,
-"loans":<currently_borrowed>
-}
+!!! note
+    Available only when nlohmann/json.hpp was included before this header.
 
 </div>
 </div>
 
 ## Source Code Reference
 
-- Header: [`include/siddiqsoft/private/resource_pool.hpp`](https://github.com/SiddiqSoft/arrp/blob/master/include/siddiqsoft/private/resource_pool.hpp#L77)
+- Header: [`include/siddiqsoft/private/resource_pool.hpp`](https://github.com/SiddiqSoft/arrp/blob/main/include/siddiqsoft/private/resource_pool.hpp#L77)

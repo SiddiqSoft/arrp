@@ -116,12 +116,15 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('namespacesiddi
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:resource_5Fguard" id="r_resource_5Fguard"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__guard.html">resource_guard</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">RAII wrapper for managing resource lifecycle in a resource pool.  <a href="classsiddiqsoft_1_1arrp_1_1resource__guard.html#details">More...</a><br /></td></tr>
 <tr class="memitem:resource_5Fpool" id="r_resource_5Fpool"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">resource_pool</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Thread-safe auto-returning resource pool.  <a href="classsiddiqsoft_1_1arrp_1_1resource__pool.html#details">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-concepts" class="groupheader"><a id="concepts" name="concepts"></a>
 Concepts</h2></td></tr>
 <tr class="memitem:HasStdToStringImpl" id="r_HasStdToStringImpl"><td class="memItemLeft">concept &#160;</td><td class="memItemRight"><a class="el" href="conceptsiddiqsoft_1_1arrp_1_1_has_std_to_string_impl.html">HasStdToStringImpl</a></td></tr>
 <tr class="memitem:NonNumericMoveConstructible" id="r_NonNumericMoveConstructible"><td class="memItemLeft">concept &#160;</td><td class="memItemRight"><a class="el" href="conceptsiddiqsoft_1_1arrp_1_1_non_numeric_move_constructible.html">NonNumericMoveConstructible</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Concept for types that are move-constructible but not arithmetic. <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-enum-members" class="groupheader"><a id="enum-members" name="enum-members"></a>
 Enumerations</h2></td></tr>
@@ -151,7 +154,7 @@ Functions</h2></td></tr>
 <tr class="memitem:ad9a2574ff7fd5d7a5c15fa03f18c946c" id="r_ad9a2574ff7fd5d7a5c15fa03f18c946c"><td class="memTemplParams" colspan="2">template&lt;typename T&gt; <br />
 requires NonNumericMoveConstructible&lt;T&gt;</td></tr>
 <tr class="memitem:ad9a2574ff7fd5d7a5c15fa03f18c946c template"><td class="memItemLeft">static void&#160;</td><td class="memItemRight"><a class="el" href="#ad9a2574ff7fd5d7a5c15fa03f18c946c">to_json</a> (nlohmann::json &amp;dest, const <a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">siddiqsoft::arrp::resource_pool</a>&lt; T &gt; &amp;src)</td></tr>
-<tr class="memdesc:ad9a2574ff7fd5d7a5c15fa03f18c946c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Converts <a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">resource_pool</a> to JSON.  <br /></td></tr>
+<tr class="memdesc:ad9a2574ff7fd5d7a5c15fa03f18c946c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Converts <a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html" title="Thread-safe auto-returning resource pool.">resource_pool</a> to JSON.  <br /></td></tr>
 </table>
 <a name="doc-enum-members" id="doc-enum-members"></a><h2 id="header-doc-enum-members" class="groupheader">Enumeration Type Documentation</h2>
 <a id="a1d5ac9f3fd9663ad7f90384feda116a1" name="a1d5ac9f3fd9663ad7f90384feda116a1"></a>
@@ -188,8 +191,6 @@ requires NonNumericMoveConstructible&lt;T&gt;</td></tr>
 <tr><td class="fieldname"><a id="a1d5ac9f3fd9663ad7f90384feda116a1a88183b946cc5f0e8c96b2e66e1c74a7e" name="a1d5ac9f3fd9663ad7f90384feda116a1a88183b946cc5f0e8c96b2e66e1c74a7e"></a>Unknown&#160;</td><td class="fielddoc"><p>Unknown error. </p>
 </td></tr>
 </table>
-<dl class="section examples"><dt>Examples</dt><dd><a class="el" href="_2_users_2maas_2source_2repos_2siddiqsoft_2arrp_2include_2siddiqsoft_2private_2resource_guard_8hpp-example.html#a3">/Users/maas/source/repos/siddiqsoft/arrp/include/siddiqsoft/private/resource_guard.hpp</a>, and <a class="el" href="_2_users_2maas_2source_2repos_2siddiqsoft_2arrp_2include_2siddiqsoft_2private_2resource_pool_8hpp-example.html#a13">/Users/maas/source/repos/siddiqsoft/arrp/include/siddiqsoft/private/resource_pool.hpp</a>.</dd>
-</dl>
 
 </div>
 </div>
@@ -286,7 +287,7 @@ requires NonNumericMoveConstructible&lt;T&gt;</div>
 </table>
 </div><div class="memdoc">
 
-<p>Converts <a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">resource_pool</a> to JSON. </p>
+<p>Converts <a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html" title="Thread-safe auto-returning resource pool.">resource_pool</a> to JSON. </p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">T</td><td>The resource type </td></tr>
@@ -296,7 +297,7 @@ requires NonNumericMoveConstructible&lt;T&gt;</div>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">dest</td><td>Destination JSON object </td></tr>
-    <tr><td class="paramname">src</td><td>Source <a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html">resource_pool</a> </td></tr>
+    <tr><td class="paramname">src</td><td>Source <a class="el" href="classsiddiqsoft_1_1arrp_1_1resource__pool.html" title="Thread-safe auto-returning resource pool.">resource_pool</a> </td></tr>
   </table>
   </dd>
 </dl>

@@ -66,10 +66,10 @@ namespace siddiqsoft::arrp
     /// @note Pool storage, including the factory callback, is synchronized with a
     ///       mutex, so set_factory_callback() may be called concurrently with
     ///       borrowing methods.
-    /// @note RAII pattern: Resources are automatically returned to pool on destruction
-    /// @note Callback-based: Supports factory, cleanup, and return callbacks
-    /// @note Statistics: Tracks borrow/return operations and resource counts via atomic counters
-    /// @note Move-only: Uses move semantics exclusively to prevent resource ownership ambiguity
+    ///   RAII pattern: Resources are automatically returned to pool on destruction
+    ///       Callback-based: Supports factory, cleanup, and return callbacks
+    ///       Statistics: Tracks borrow/return operations and resource counts via atomic counters
+    ///       Move-only: Uses move semantics exclusively to prevent resource ownership ambiguity
     ///
     
     template <typename T>
@@ -196,7 +196,7 @@ namespace siddiqsoft::arrp
         /// @param on_shutdown_callback Optional cleanup callback invoked on destruction
         ///
         /// @note Register a factory separately with set_factory_callback().
-        /// @note Capacity is clamped to [MinimumCapacity, MaxCapacity] but does not
+        ///       Capacity is clamped to [MinimumCapacity, MaxCapacity] but does not
         ///       enforce a maximum number of seeded or factory-created resources.
         resource_pool(uint8_t                   init_capacity        = resource_pool_limits::DefaultCapacity,
                       std::function<void(T&)>&& on_shutdown_callback = {})
@@ -320,7 +320,7 @@ namespace siddiqsoft::arrp
         ///
         /// @note The cleanup callback runs under the pool lock. Exceptions derived
         ///       from std::exception are caught and written to stderr.
-        /// @note Non-blocking by design: if a concurrent borrow has already claimed
+        ///       Non-blocking by design: if a concurrent borrow has already claimed
         ///       a resource's semaphore permit but not yet popped it from the pool
         ///       (it is waiting on the same lock clear() holds), that item is left
         ///       in place for the borrower rather than drained here. This avoids a
@@ -524,7 +524,7 @@ namespace siddiqsoft::arrp
         /// @return pool_error::Ok, or pool_error::ShutdownInitiated during destruction
         ///
         /// @note Resource is constructed in-place
-        /// @note Does not enforce the configured capacity. Do not use this to return
+        ///       Does not enforce the configured capacity. Do not use this to return
         ///       a borrowed resource; guards return resources automatically.
         template <typename... Args>
         auto seed(Args&&... args) -> pool_error
@@ -557,7 +557,7 @@ namespace siddiqsoft::arrp
         /// @return pool_error::Ok, or pool_error::ShutdownInitiated during destruction
         ///
         /// @note Resource is moved into the pool
-        /// @note Does not enforce the configured capacity. Do not use this to return
+        ///       Does not enforce the configured capacity. Do not use this to return
         ///       a borrowed resource; guards return resources automatically.
         auto seed(T&& item) -> pool_error
         {

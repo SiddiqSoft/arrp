@@ -11,7 +11,7 @@
 <!-- Node0 -->
 <g id="Node000000" class="node">
 <title>Node0</title>
-<g id="a_Node000000"><a xlink:href="classsiddiqsoft_1_1arrp_1_1resource__pool.html" target="_top" xlink:title=" ">
+<g id="a_Node000000"><a xlink:href="classsiddiqsoft_1_1arrp_1_1resource__pool.html" target="_top" xlink:title="Thread&#45;safe auto&#45;returning resource pool.">
 <polygon fill="white" stroke="#666666" points="124,-30.5 0,-30.5 0,0 124,0 124,-30.5"/>
 <text xml:space="preserve" text-anchor="start" x="8" y="-17" font-family="Helvetica,sans-Serif" font-size="10.00">siddiqsoft::arrp::resource</text>
 <text xml:space="preserve" text-anchor="middle" x="62" y="-5.75" font-family="Helvetica,sans-Serif" font-size="10.00">_pool&lt; T &gt;</text>

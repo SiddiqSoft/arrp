@@ -113,13 +113,24 @@ document.addEventListener('DOMContentLoaded',() => { initNavTree('conceptsiddiqs
 </div><!--header-->
 <div class="contents">
 
+<p>Concept for types that are move-constructible but not arithmetic.  
+<a href="#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="resource__guard_8hpp_source.html">resource_guard.hpp</a>&gt;</code></p>
 <h2 id="header-conceptdef" class="groupheader">Concept definition</h2>
 <div class="fragment"><div class="line">    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
 <div class="line">    <span class="keyword">concept </span><a class="code hl_concept" href="conceptsiddiqsoft_1_1arrp_1_1_non_numeric_move_constructible.html">NonNumericMoveConstructible</a> =</div>
 <div class="line">            std::is_move_constructible_v&lt;T&gt; &amp;&amp; std::is_move_assignable_v&lt;T&gt; &amp;&amp; !std::is_arithmetic_v&lt;T&gt;</div>
-<div class="ttc" id="aconceptsiddiqsoft_1_1arrp_1_1_non_numeric_move_constructible_html"><div class="ttname"><a href="conceptsiddiqsoft_1_1arrp_1_1_non_numeric_move_constructible.html">siddiqsoft::arrp::NonNumericMoveConstructible</a></div><div class="ttdef"><b>Definition</b> resource_guard.hpp:81</div></div>
-</div><!-- fragment --></div><!-- contents -->
+<div class="ttc" id="aconceptsiddiqsoft_1_1arrp_1_1_non_numeric_move_constructible_html"><div class="ttname"><a href="conceptsiddiqsoft_1_1arrp_1_1_non_numeric_move_constructible.html">siddiqsoft::arrp::NonNumericMoveConstructible</a></div><div class="ttdoc">Concept for types that are move-constructible but not arithmetic.</div><div class="ttdef"><b>Definition</b> resource_guard.hpp:71</div></div>
+</div><!-- fragment --><a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Concept for types that are move-constructible but not arithmetic. </p>
+<p>This concept ensures that a type T satisfies two requirements:</p><ol type="1">
+<li>T is move-constructible (std::move_constructible&lt;T&gt;)</li>
+<li>T is move-assignable (std::move_assignable&lt;T&gt;)</li>
+<li>T is not an arithmetic type (integers, floats, etc.)</li>
+</ol>
+<p>This prevents wrapping primitive types which would be inefficient and defeats the purpose of resource pooling. </p>
+</div></div><!-- contents -->
 </div><!-- doc-content -->
 </div><!-- container -->
 <!-- start footer part -->

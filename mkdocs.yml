@@ -4,7 +4,7 @@ site_author: Siddiq Software LLC
 site_url: https://siddiqsoft.github.io/arrp/
 repo_url: https://github.com/SiddiqSoft/arrp
 repo_name: SiddiqSoft/arrp
-edit_uri: edit/main/docs/
+edit_uri: edit/master/docs/
 
 hooks:
   - docs/hooks.py

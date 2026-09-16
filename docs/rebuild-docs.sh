@@ -16,9 +16,16 @@ elif [ -x "$ROOT_DIR/venv/bin/mkdocs" ]; then
 fi
 
 if [ -z "$MKDOCS_CMD" ]; then
-  echo "mkdocs is not installed; skipping MkDocs site build."
-  exit 0
+  echo "mkdocs is not installed; please install it (e.g., pip install mkdocs-material) to build the site."
+  exit 1
 fi
 
-echo "Building MkDocs Material site using $MKDOCS_CMD..."
-"$MKDOCS_CMD" build --config-file "$ROOT_DIR/mkdocs.yml"
+if [ "$1" == "serve" ]; then
+    echo "Starting local live-reload MkDocs server..."
+    cd "$ROOT_DIR"
+    "$MKDOCS_CMD" serve
+else
+    echo "Building MkDocs Material site using $MKDOCS_CMD..."
+    cd "$ROOT_DIR"
+    "$MKDOCS_CMD" build --strict
+fi

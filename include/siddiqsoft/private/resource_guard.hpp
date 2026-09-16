@@ -66,7 +66,7 @@ namespace siddiqsoft::arrp
     /// This prevents wrapping primitive types which would be inefficient and
     /// defeats the purpose of resource pooling.
     ///
-    
+
     template <typename T>
     concept NonNumericMoveConstructible =
             std::is_move_constructible_v<T> && std::is_move_assignable_v<T> && !std::is_arithmetic_v<T>;
@@ -88,12 +88,12 @@ namespace siddiqsoft::arrp
     /// are not.
     ///
     /// @note Move-only semantics: Copy operations are deleted to prevent resource ownership ambiguity
-    /// @note RAII pattern: Resource is automatically returned to pool on destruction
-    /// @note Callback-based: Uses std::function callback to return resource to pool
-    /// @note Pool-created guards carry the callback that returns their resource.
-    /// @note Validity tracking: Tracks whether resource is valid and should be returned to pool
+    ///       RAII pattern: Resource is automatically returned to pool on destruction
+    ///       Callback-based: Uses std::function callback to return resource to pool
+    ///       Pool-created guards carry the callback that returns their resource.
+    ///       Validity tracking: Tracks whether resource is valid and should be returned to pool
     ///
-    
+
     template <typename T>
         requires NonNumericMoveConstructible<T>
     class resource_guard final
@@ -194,8 +194,8 @@ namespace siddiqsoft::arrp
         /// @param src The source resource_guard to move from
         ///
         /// @note The source's callback is cleared to prevent double-return
-        /// @note The source is marked as invalid
-        /// @note This constructor is using new syntax for noexcept specification based
+        ///       The source is marked as invalid
+        ///       This constructor is using new syntax for noexcept specification based
         /// on the move-constructibility of T and the callback function.
         resource_guard(resource_guard&& src) noexcept(false)
         try
@@ -231,10 +231,10 @@ namespace siddiqsoft::arrp
         /// @return Reference to this resource_guard
         ///
         /// @note Self-assignment is checked via pointer comparison
-        /// @note The currently-held resource is returned to the pool before overwrite
-        /// @note The source's callback is cleared to prevent double-return
-        /// @note The source is marked as invalid after the move
-        /// @note NOT noexcept: T's move-assignment may throw; declaring noexcept here
+        ///       The currently-held resource is returned to the pool before overwrite
+        ///       The source's callback is cleared to prevent double-return
+        ///       The source is marked as invalid after the move
+        ///       NOT noexcept: T's move-assignment may throw; declaring noexcept here
         ///       would call std::terminate if T::operator=(T&&) throws after the
         ///       putback callback has already fired (state would be inconsistent).
         resource_guard& operator=(resource_guard&& src)
@@ -290,10 +290,10 @@ namespace siddiqsoft::arrp
         /// or discard it (if invalid). Exceptions from the callback are caught and logged to stderr.
         ///
         /// @note Noexcept: Exceptions are caught and logged, not propagated
-        /// @note The callback is always invoked if set, regardless of validity
-        /// @note The callback receives the validity flag to make the appropriate decision
-        /// @note The callback is cleared after invocation
-        /// @note The resource is marked as invalid after callback invocation
+        ///       The callback is always invoked if set, regardless of validity
+        ///       The callback receives the validity flag to make the appropriate decision
+        ///       The callback is cleared after invocation
+        ///       The resource is marked as invalid after callback invocation
         ~resource_guard() noexcept
         {
             // Invoke callback if it exists, passing the resource and validity status
@@ -390,10 +390,10 @@ namespace siddiqsoft::arrp
         ///
         /// @note Virtual for interface consistency, but resource_guard is `final`,
         ///       so there is currently no derived class to override this.
-        /// @note The callback is still invoked; only the validity flag changes
-        /// @note Typically called when the resource is corrupted, moved out, or consumed
+        ///       The callback is still invoked; only the validity flag changes
+        ///       Typically called when the resource is corrupted, moved out, or consumed
         ///
-        
+
         virtual void invalidate() { m_is_valid = false; }
 
         /// @brief Checks if the resource is valid
@@ -402,7 +402,7 @@ namespace siddiqsoft::arrp
         ///
         /// @note Virtual for interface consistency, but resource_guard is `final`,
         ///       so there is currently no derived class to override this.
-        /// @note Const: Does not modify the resource
+        ///       Const: Does not modify the resource
         virtual bool is_valid() const { return m_is_valid; }
 
         /// @brief Sets the error reported by error().
@@ -435,7 +435,7 @@ namespace siddiqsoft::arrp
         ///   - value: The resource value (if serializable, otherwise "-noserializer-")
         ///
         /// @note Available only when nlohmann/json.hpp was included before this header.
-        /// @note If T is not serializable, value is set to "-noserializer-"
+        ///   If T is not serializable, value is set to "-noserializer-"
         ///
         nlohmann::json to_json() const
         {

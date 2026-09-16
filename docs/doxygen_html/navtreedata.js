@@ -53,14 +53,13 @@ var NAVTREE =
         [ "All", "globals.html", null ],
         [ "Macros", "globals_defs.html", null ]
       ] ]
-    ] ],
-    [ "Examples", "examples.html", "examples" ]
+    ] ]
   ] ]
 ];
 
 var NAVTREEINDEX =
 [
-"_2_users_2maas_2source_2repos_2siddiqsoft_2arrp_2include_2siddiqsoft_2private_2resource_guard_8hpp-example.html"
+"annotated.html"
 ];
 
 const SYNCONMSG = 'click to disable panel synchronization';

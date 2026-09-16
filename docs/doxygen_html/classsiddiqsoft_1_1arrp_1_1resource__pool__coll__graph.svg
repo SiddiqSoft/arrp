@@ -11,7 +11,7 @@
 <!-- Node1 -->
 <g id="Node000001" class="node">
 <title>Node1</title>
-<g id="a_Node000001"><a xlink:title=" ">
+<g id="a_Node000001"><a xlink:title="Thread&#45;safe auto&#45;returning resource pool.">
 <polygon fill="#999999" stroke="none" points="120,-335.5 0,-335.5 0,0 120,0 120,-335.5"/>
 <polygon fill="#666666" stroke="#666666" points="0,-307 0,-307 120,-307 120,-307 0,-307"/>
 <polygon fill="#666666" stroke="#666666" points="0,-291.75 0,-291.75 120,-291.75 120,-291.75 0,-291.75"/>

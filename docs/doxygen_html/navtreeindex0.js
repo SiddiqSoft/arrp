@@ -1,7 +1,5 @@
 var NAVTREEINDEX0 =
 {
-"_2_users_2maas_2source_2repos_2siddiqsoft_2arrp_2include_2siddiqsoft_2private_2resource_guard_8hpp-example.html":[4,0],
-"_2_users_2maas_2source_2repos_2siddiqsoft_2arrp_2include_2siddiqsoft_2private_2resource_pool_8hpp-example.html":[4,1],
 "annotated.html":[2,0],
 "arrp_8hpp.html":[3,0,0,0,1],
 "arrp_8hpp_source.html":[3,0,0,0,1],
@@ -109,7 +107,6 @@ var NAVTREEINDEX0 =
 "dir_39d393ae7f1f3252f33dc70abf57e07d.html":[3,0,0,0],
 "dir_bc9d62d05f27ce8ba4bbf896ef707e46.html":[3,0,0,0,0],
 "dir_d44c64559bbebec7f509842c48db8b23.html":[3,0,0],
-"examples.html":[4],
 "files.html":[3,0],
 "functions.html":[2,3,0],
 "functions_func.html":[2,3,1],
