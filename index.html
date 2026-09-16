@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Auto Returning Resource Pool for Modern C++23">
+        <meta name="description" content="Asynchronous Resource Reusable Pool">
       
       
         <meta name="author" content="Siddiq Software LLC">
@@ -16,7 +16,7 @@
       
       
       
-        <link rel="next" href="features/">
+        <link rel="next" href="quickstart/">
       
       
         
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#arrp-auto-returning-resource-pool" class="md-skip">
+        <a href="#about-arrp" class="md-skip">
           Skip to content
         </a>
       
@@ -251,58 +251,17 @@
   
   
   
-    
-    
-      <li class="md-tabs__item">
-        <a href="features/" class="md-tabs__link">
-          
-  
-  
-  Features
-
-        </a>
-      </li>
-    
-  
-
-      
+    <li class="md-tabs__item">
+      <a href="quickstart/" class="md-tabs__link">
         
   
   
-  
-  
     
-    
-      <li class="md-tabs__item">
-        <a href="integration/" class="md-tabs__link">
-          
   
-  
-  Integration
+  Getting Started
 
-        </a>
-      </li>
-    
-  
-
-      
-        
-  
-  
-  
-  
-    
-    
-      <li class="md-tabs__item">
-        <a href="examples/" class="md-tabs__link">
-          
-  
-  
-  Examples
-
-        </a>
-      </li>
-    
+      </a>
+    </li>
   
 
       
@@ -331,17 +290,18 @@
   
   
   
-    <li class="md-tabs__item">
-      <a href="license/" class="md-tabs__link">
-        
-  
-  
     
+    
+      <li class="md-tabs__item">
+        <a href="architecture/" class="md-tabs__link">
+          
   
-  License
+  
+  Related Pages
 
-      </a>
-    </li>
+        </a>
+      </li>
+    
   
 
       
@@ -464,10 +424,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#key-features-design-goals" class="md-nav__link">
+  <a href="#thread-safe-lock-aware" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Key Features &amp; Design Goals
+        Thread-Safe &amp; Lock-Aware
       
     </span>
   </a>
@@ -475,10 +435,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#quick-start-examples" class="md-nav__link">
+  <a href="#exception-safe-guards" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Quick Start Examples
+        Exception-Safe Guards
       
     </span>
   </a>
@@ -486,10 +446,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#system-requirements" class="md-nav__link">
+  <a href="#zero-copy-moves" class="md-nav__link">
     <span class="md-ellipsis">
       
-        System Requirements
+        Zero-Copy Moves
       
     </span>
   </a>
@@ -497,13 +457,102 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#documentation-navigation" class="md-nav__link">
+  <a href="#json-diagnostics" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Documentation Navigation
+        JSON Diagnostics
       
     </span>
   </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-facts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick Facts
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Quick Facts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#usage-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Usage Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture-component-relationships" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture &amp; Component Relationships
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#documentation-sections" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation Sections
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Documentation Sections">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#getting-started" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Getting Started
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API Reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#related-pages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Related Pages
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -521,69 +570,15 @@
   
   
   
-    
-    
-    
-    
-      
-      
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-          
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
-        
-          
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Features
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_2">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Features
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
     <li class="md-nav__item">
-      <a href="features/" class="md-nav__link">
+      <a href="quickstart/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Overview
+    Getting Started
   
 
     
@@ -592,98 +587,6 @@
   
 
       </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="features/resource-management/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Resource Management
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="features/threading-lifetime/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Threading & Lifetime
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="features/json-diagnostics/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    JSON & Diagnostics
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
     </li>
   
 
@@ -720,7 +623,7 @@
   <span class="md-ellipsis">
     
   
-    Integration
+    API Reference
   
 
     
@@ -733,324 +636,6 @@
         
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Integration
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="integration/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Overview
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="integration/cmake/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    CMake
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="integration/package-managers/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Package Managers
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="integration/dependencies/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Dependencies
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
-    
-    
-      
-      
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-          
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
-        
-          
-          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Examples
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Examples
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="examples/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Overview
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="examples/scoped_file/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Scoped File
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="examples/scoped_curl/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Scoped cURL
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
-    
-    
-      
-      
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-          
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
-        
-          
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    API Reference
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1144,6 +729,67 @@
 
               
             
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Related Pages
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Related Pages
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
               
                 
   
@@ -1151,14 +797,180 @@
   
   
     <li class="md-nav__item">
-      <a href="api/types/" class="md-nav__link">
+      <a href="architecture/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Types & Enums
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_2" id="__nav_4_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Maintainer Guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Maintainer Guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="maintainers/maintainer_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Maintainer Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="maintainers/pipelines/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CI/CD Pipelines
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="maintainers/cmake_presets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CMake Presets
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="maintainers/build_agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Build Agent Requirements
   
 
     
@@ -1178,9 +990,10 @@
     </li>
   
 
-    
-      
-      
+              
+            
+              
+                
   
   
   
@@ -1202,6 +1015,14 @@
   
 
       </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
     </li>
   
 
@@ -1234,163 +1055,210 @@
   
 
 
-<h1 id="arrp-auto-returning-resource-pool">arrp - Auto Returning Resource Pool<a class="headerlink" href="#arrp-auto-returning-resource-pool" title="Permanent link">&para;</a></h1>
-<div class="badge-container">
-  <a href="https://dev.azure.com/siddiqsoft/siddiqsoft/_build/latest?definitionId=33&branchName=master">
-    <img src="https://dev.azure.com/siddiqsoft/siddiqsoft/_apis/build/status%2FSiddiqSoft.arrp?branchName=master" alt="Build Status" />
-  </a>
-  <a href="https://github.com/SiddiqSoft/arrp/blob/main/LICENSE">
-    <img src="https://img.shields.io/badge/License-BSD_3--Clause-blue.svg" alt="License" />
-  </a>
-  <img src="https://img.shields.io/badge/C%2B%2B-23-blue.svg" alt="C++23 Standard" />
-  <img src="https://img.shields.io/badge/Header--Only-Yes-green.svg" alt="Header Only" />
-  <a href="https://www.nuget.org/packages/SiddiqSoft.arrp">
-    <img src="https://img.shields.io/nuget/v/SiddiqSoft.arrp" alt="nuget" />
-  </a>
-  <img src="https://img.shields.io/github/v/tag/SiddiqSoft/arrp" alt="version" />
-  <img src="https://img.shields.io/azure-devops/tests/siddiqsoft/siddiqsoft/33" alt="tests" />
-</div>
-
-<p><strong>arrp</strong> (<code>Auto Returning Resource Pool</code>) is a lightweight, thread-safe, header-only C++23 resource pool library. It allows applications to manage and reuse scarce, expensive, or moveable resources seamlessly using RAII semantics.</p>
-<ul>
-<li>Uses std::deque to store objects of type <code>T</code>.</li>
-<li>Uses std::mutex to implement thread-safe access to the resources.</li>
-<li>Uses lambdas to return the underlying resource to the std::deque.</li>
-<li>A <code>resource_pool&lt;T&gt;</code> owns available resources, while borrowing returns a move-only <code>resource_guard&lt;T&gt;</code>.</li>
-<li>Uses RAII via a helper class. When the guard goes out of scope or is destroyed, the borrowed resource is automatically returned to the pool for immediate reuse by other components or threads.</li>
-</ul>
-<hr />
-<h2 id="key-features-design-goals">Key Features &amp; Design Goals<a class="headerlink" href="#key-features-design-goals" title="Permanent link">&para;</a></h2>
+<h1 id="about-arrp">About arrp<a class="headerlink" href="#about-arrp" title="Permanent link">&para;</a></h1>
+<p><strong>arrp (Asynchronous Resource Reusable Pool)</strong> is a lightweight, thread-safe, generic resource pool library for Modern C++20. It provides a robust, lock-aware, exception-safe mechanism to manage, limit, borrow, and loan expensive objects such as database connections, sockets, and heavy compute buffers.</p>
 <div class="grid">
-  <div class="card">
-    <h3>RAII Resource Management</h3>
-    <p>Resources return to the pool automatically when their <code>resource_guard&lt;T&gt;</code> is destroyed, eliminating leak vectors and manual cleanup logic.</p>
-  </div>
-  <div class="card">
-    <h3>Thread-Safe Pool Storage</h3>
-    <p>Borrowing, seeding, clearing, capacity adjustments, and statistics gathering are thread-safe and internally synchronized via mutex locks.</p>
-  </div>
-  <div class="card">
-    <h3>On-Demand Factory Fallback</h3>
-    <p>Register a factory callback to create resources on demand via <code>try_borrow_create()</code> whenever the pool runs dry.</p>
-  </div>
-  <div class="card">
-    <h3>JSON Diagnostics & Natvis</h3>
-    <p>Integrates with <code>nlohmann/json</code> for detailed runtime pool statistics and includes native Natvis visualizers for Visual Studio and VS Code debugging.</p>
-  </div>
+<div class="card">
+<h3 id="thread-safe-lock-aware">Thread-Safe &amp; Lock-Aware<a class="headerlink" href="#thread-safe-lock-aware" title="Permanent link">&para;</a></h3>
+<p>Leverages <code>std::mutex</code> and <code>std::counting_semaphore</code> for atomic visibility and efficient concurrency without data races.</p>
 </div>
-
-<hr />
-<h2 id="quick-start-examples">Quick Start Examples<a class="headerlink" href="#quick-start-examples" title="Permanent link">&para;</a></h2>
-<div class="tabbed-set tabbed-alternate" data-tabs="1:3"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><input id="__tabbed_1_3" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Seeded Pool Borrowing</label><label for="__tabbed_1_2">On-Demand Factory Creation</label><label for="__tabbed_1_3">Waiting with Timeout</label></div>
+<div class="card">
+<h3 id="exception-safe-guards">Exception-Safe Guards<a class="headerlink" href="#exception-safe-guards" title="Permanent link">&para;</a></h3>
+<p>Implements <code>resource_guard&lt;T&gt;</code>, providing RAII-based lifecycle management to ensure borrowed resources are automatically returned to the pool, even if exceptions are thrown.</p>
+</div>
+<div class="card">
+<h3 id="zero-copy-moves">Zero-Copy Moves<a class="headerlink" href="#zero-copy-moves" title="Permanent link">&para;</a></h3>
+<p>Moves expensive resources directly in and out of the pool memory structures without triggering copy semantics, drastically reducing latency.</p>
+</div>
+<div class="card">
+<h3 id="json-diagnostics">JSON Diagnostics<a class="headerlink" href="#json-diagnostics" title="Permanent link">&para;</a></h3>
+<p>Optional built-in integration with <code>nlohmann::json</code> to instantly dump detailed operational pool statistics for production telemetry.</p>
+</div>
+</div>
+<h2 id="quick-facts">Quick Facts<a class="headerlink" href="#quick-facts" title="Permanent link">&para;</a></h2>
+<div class="md-typeset__scrollwrap">
+<table class="api-summary-table">
+<tbody>
+    <tr>
+      <td class="memitemleft" style="width:25%"><strong>Language Standard</strong></td>
+      <td>C++20 (requires Concepts and Coroutines support)</td>
+    </tr>
+    <tr>
+      <td class="memitemleft"><strong>Design Pattern</strong></td>
+      <td>Generic Resource Pool / Object Pool</td>
+    </tr>
+    <tr>
+      <td class="memitemleft"><strong>Integration</strong></td>
+      <td>Header-only (<code><span class="filepath-dir">#include &lt;siddiqsoft/</span><wbr><span class="filepath-name">arrp.hpp&gt;</span></code>)</td>
+    </tr>
+    <tr>
+      <td class="memitemleft"><strong>Core Dependency</strong></td>
+      <td><code>nlohmann/json</code> (optional, for telemetry)</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<div class="feature-span-all">
+<h3 id="usage-examples">Usage Examples<a class="headerlink" href="#usage-examples" title="Permanent link">&para;</a></h3>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:4"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><input id="__tabbed_1_3" name="__tabbed_1" type="radio" /><input id="__tabbed_1_4" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Basic Resource Borrowing</label><label for="__tabbed_1_2">Factory-Backed On-Demand Creation</label><label for="__tabbed_1_3">Validation &amp; Abandonment</label><label for="__tabbed_1_4">Telemetry JSON Output</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<div class="language-cpp highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;siddiqsoft/arrp.hpp&gt;</span>
+<div class="language-cpp highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;string&gt;</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;siddiqsoft/arrp.hpp&gt;</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="p">{</span>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="c1">// Construct a pool with an initial capacity of 8</span>
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">    </span><span class="n">siddiqsoft</span><span class="o">::</span><span class="n">arrp</span><span class="o">::</span><span class="n">resource_pool</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="w"> </span><span class="n">pool</span><span class="w"> </span><span class="p">{</span><span class="mi">8</span><span class="p">};</span>
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">    </span><span class="c1">// Seed available resources into the pool</span>
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">    </span><span class="n">pool</span><span class="p">.</span><span class="n">seed</span><span class="p">(</span><span class="s">"connection-1"</span><span class="p">);</span>
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">    </span><span class="n">pool</span><span class="p">.</span><span class="n">seed</span><span class="p">(</span><span class="s">"connection-2"</span><span class="p">);</span>
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">    </span><span class="p">{</span>
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">        </span><span class="c1">// Borrow a resource from the pool (FIFO order)</span>
-</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="n">resource</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pool</span><span class="p">.</span><span class="n">try_borrow</span><span class="p">();</span>
-</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">resource</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">            </span><span class="n">resource</span><span class="o">-&gt;</span><span class="n">append</span><span class="p">(</span><span class="s">" [active]"</span><span class="p">);</span>
-</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">            </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">"Using resource: "</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="o">*</span><span class="n">resource</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="sc">'\n'</span><span class="p">;</span>
-</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">        </span><span class="p">}</span>
-</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="c1">// 'resource' goes out of scope here; connection-1 returns to the pool automatically!</span>
-</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>
-</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
-</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="p">}</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="c1">// 1. Create a pool with a max capacity of 10 std::strings</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="n">siddiqsoft</span><span class="o">::</span><span class="n">arrp</span><span class="o">::</span><span class="n">resource_pool</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="w"> </span><span class="n">pool</span><span class="p">(</span><span class="mi">10</span><span class="p">);</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">    </span><span class="c1">// 2. Seed the pool with an object</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">    </span><span class="n">pool</span><span class="p">.</span><span class="n">seed</span><span class="p">(</span><span class="s">"Pre-allocated Connection String"</span><span class="p">);</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">    </span><span class="c1">// 3. Borrow the object using RAII guard</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">guard</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pool</span><span class="p">.</span><span class="n">try_borrow</span><span class="p">();</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">guard</span><span class="p">.</span><span class="n">is_valid</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">        </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">"Borrowed: "</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">guard</span><span class="p">.</span><span class="n">get</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">"</span><span class="se">\n</span><span class="s">"</span><span class="p">;</span>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">        </span><span class="c1">// Object is automatically returned to the pool when 'guard' goes out of scope</span>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="p">}</span>
 </span></code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="language-cpp highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;siddiqsoft/arrp.hpp&gt;</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;memory&gt;</span>
+<div class="language-cpp highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;siddiqsoft/arrp.hpp&gt;</span>
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="k">struct</span><span class="w"> </span><span class="nc">DatabaseConnection</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">query</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">sql</span><span class="p">)</span><span class="w"> </span><span class="p">{}</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="k">struct</span><span class="w"> </span><span class="nc">ExpensiveConnection</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="n">ExpensiveConnection</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">"Connected!</span><span class="se">\n</span><span class="s">"</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
 </span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="p">};</span>
 </span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>
-</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span>
-</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="p">{</span>
-</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">    </span><span class="n">siddiqsoft</span><span class="o">::</span><span class="n">arrp</span><span class="o">::</span><span class="n">resource_pool</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">DatabaseConnection</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">pool</span><span class="w"> </span><span class="p">{</span><span class="mi">4</span><span class="p">};</span>
-</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>
-</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">    </span><span class="c1">// Register a factory callback for creating resources when pool is empty</span>
-</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">    </span><span class="n">pool</span><span class="p">.</span><span class="n">set_factory_callback</span><span class="p">([]()</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">make_unique</span><span class="o">&lt;</span><span class="n">DatabaseConnection</span><span class="o">&gt;</span><span class="p">();</span>
-</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">    </span><span class="p">});</span>
-</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>
-</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="w">    </span><span class="c1">// Tries to borrow existing resource, or creates a new one via factory</span>
-</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">conn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pool</span><span class="p">.</span><span class="n">try_borrow_create</span><span class="p">();</span>
-</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">conn</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="w">        </span><span class="n">conn</span><span class="o">-&gt;</span><span class="n">get</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">query</span><span class="p">(</span><span class="s">"SELECT 1;"</span><span class="p">);</span>
-</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="w">    </span><span class="p">}</span>
-</span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a>
-</span><span id="__span-1-23"><a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
-</span><span id="__span-1-24"><a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a><span class="p">}</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">    </span><span class="n">siddiqsoft</span><span class="o">::</span><span class="n">arrp</span><span class="o">::</span><span class="n">resource_pool</span><span class="o">&lt;</span><span class="n">ExpensiveConnection</span><span class="o">&gt;</span><span class="w"> </span><span class="n">pool</span><span class="p">(</span><span class="mi">5</span><span class="p">);</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">    </span><span class="c1">// Register a factory callback for on-demand resource creation</span>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">    </span><span class="n">pool</span><span class="p">.</span><span class="n">set_factory_callback</span><span class="p">([](</span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">p</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">make_unique</span><span class="o">&lt;</span><span class="n">ExpensiveConnection</span><span class="o">&gt;</span><span class="p">();</span>
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">    </span><span class="p">});</span>
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>
+</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="w">    </span><span class="c1">// Since the pool is empty, try_borrow_create() automatically invokes the factory</span>
+</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">conn_guard</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pool</span><span class="p">.</span><span class="n">try_borrow_create</span><span class="p">();</span>
+</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="p">}</span>
 </span></code></pre></div>
 </div>
 <div class="tabbed-block">
 <div class="language-cpp highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;siddiqsoft/arrp.hpp&gt;</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;chrono&gt;</span>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">std</span><span class="o">::</span><span class="nn">chrono_literals</span><span class="p">;</span>
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="kt">void</span><span class="w"> </span><span class="nf">process</span><span class="p">(</span><span class="n">siddiqsoft</span><span class="o">::</span><span class="n">arrp</span><span class="o">::</span><span class="n">resource_pool</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;&amp;</span><span class="w"> </span><span class="n">pool</span><span class="p">)</span>
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="p">{</span>
-</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">    </span><span class="c1">// Wait up to 250 milliseconds for a resource to become available</span>
-</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">guard</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pool</span><span class="p">.</span><span class="n">try_borrow</span><span class="p">(</span><span class="mi">250</span><span class="n">ms</span><span class="p">);</span>
-</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">guard</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">guard</span><span class="p">.</span><span class="n">error</span><span class="p">()</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">siddiqsoft</span><span class="o">::</span><span class="n">arrp</span><span class="o">::</span><span class="n">pool_error</span><span class="o">::</span><span class="n">Timeout</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="w">            </span><span class="c1">// Handle timeout gracefully</span>
-</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="w">        </span><span class="p">}</span>
-</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="w">    </span><span class="p">}</span>
-</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="p">}</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="n">siddiqsoft</span><span class="o">::</span><span class="n">arrp</span><span class="o">::</span><span class="n">resource_pool</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">pool</span><span class="p">(</span><span class="mi">5</span><span class="p">);</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span><span class="n">pool</span><span class="p">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">42</span><span class="p">);</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">    </span><span class="p">{</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="n">guard</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pool</span><span class="p">.</span><span class="n">try_borrow</span><span class="p">();</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">        </span><span class="c1">// Oh no, the resource is corrupted! Invalidate it so it is destroyed</span>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">        </span><span class="c1">// and NOT returned to the pool upon guard destruction.</span>
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="w">        </span><span class="n">guard</span><span class="p">.</span><span class="n">invalidate</span><span class="p">();</span>
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="p">}</span>
+</span></code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="language-cpp highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;nlohmann/json.hpp&gt;</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;siddiqsoft/arrp.hpp&gt;</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">    </span><span class="n">siddiqsoft</span><span class="o">::</span><span class="n">arrp</span><span class="o">::</span><span class="n">resource_pool</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">pool</span><span class="p">(</span><span class="mi">10</span><span class="p">);</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">    </span><span class="n">pool</span><span class="p">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">    </span><span class="n">pool</span><span class="p">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">2</span><span class="p">);</span>
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">borrowed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pool</span><span class="p">.</span><span class="n">try_borrow</span><span class="p">();</span>
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">    </span><span class="c1">// Generates diagnostic statistics if nlohmann/json is included FIRST</span>
+</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">stats</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pool</span><span class="p">.</span><span class="n">to_json</span><span class="p">();</span>
+</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">stats</span><span class="p">.</span><span class="n">dump</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">"</span><span class="se">\n</span><span class="s">"</span><span class="p">;</span>
+</span><span id="__span-3-15"><a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="p">}</span>
 </span></code></pre></div>
 </div>
 </div>
 </div>
-<hr />
-<h2 id="system-requirements">System Requirements<a class="headerlink" href="#system-requirements" title="Permanent link">&para;</a></h2>
+</div>
+<h2 id="architecture-component-relationships">Architecture &amp; Component Relationships<a class="headerlink" href="#architecture-component-relationships" title="Permanent link">&para;</a></h2>
+<p>Relationship topology connecting public API entry points and domain models:</p>
+<pre class="mermaid"><code>flowchart TD
+    subgraph External["External Dependencies"]
+        NLOHMANN["nlohmann::json&lt;br/&gt;(Optional)"]
+        STDLIB["C++20 Standard Library&lt;br/&gt;mutex, semaphore, concepts"]
+    end
+
+    subgraph PublicAPI["Public API Headers &amp; Classes"]
+        ARRP_H["&lt;b&gt;siddiqsoft/arrp.hpp&lt;/b&gt;&lt;br/&gt;Primary Entry Point"]
+
+        C_POOL["siddiqsoft::arrp::resource_pool&amp;lt;T&amp;gt;&lt;br/&gt;- seed()&lt;br/&gt;- try_borrow()&lt;br/&gt;- try_borrow_create()&lt;br/&gt;- clear()"]
+        C_GUARD["siddiqsoft::arrp::resource_guard&amp;lt;T&amp;gt;&lt;br/&gt;- get()&lt;br/&gt;- invalidate()&lt;br/&gt;- release()"]
+    end
+
+    subgraph PrivateData["Internal Engine (private/)"]
+        P_POOL["&lt;b&gt;resource_pool.hpp&lt;/b&gt;"]
+        P_GUARD["&lt;b&gt;resource_guard.hpp&lt;/b&gt;"]
+        P_CONCEPTS["&lt;b&gt;concepts.hpp&lt;/b&gt;&lt;br/&gt;NonNumericMoveConstructible"]
+    end
+
+    ARRP_H --&gt; P_POOL
+    ARRP_H --&gt; P_GUARD
+    ARRP_H --&gt; P_CONCEPTS
+
+    P_POOL --&gt; C_POOL
+    P_GUARD --&gt; C_GUARD
+
+    C_POOL -. "creates" .-&gt; C_GUARD
+    C_GUARD -. "returns to" .-&gt; C_POOL
+
+    C_POOL -- "optionally depends" --&gt; NLOHMANN
+    C_POOL -- "depends" --&gt; STDLIB</code></pre>
 <table>
 <thead>
 <tr>
-<th>Requirement</th>
-<th>Details</th>
+<th style="text-align: left;">Component</th>
+<th style="text-align: left;">File Path</th>
+<th style="text-align: left;">Class / Responsibility</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><strong>C++ Standard</strong></td>
-<td>C++23 compiler (MSVC 2022+, GCC 13+, Clang 16+)</td>
+<td style="text-align: left;"><strong>Resource Pool</strong></td>
+<td style="text-align: left;"><code><span class="filepath-dir">include/siddiqsoft/private/</span><wbr><span class="filepath-name">resource_pool.hpp</span></code></td>
+<td style="text-align: left;">The <code>resource_pool&lt;T&gt;</code> handles tracking, counters, locking, and the core lifecycle queue.</td>
 </tr>
 <tr>
-<td><strong>Resource Type (<code>T</code>)</strong></td>
-<td>Must satisfy <code>NonNumericMoveConstructible</code>: move-constructible, move-assignable, non-arithmetic type.</td>
+<td style="text-align: left;"><strong>RAII Guard</strong></td>
+<td style="text-align: left;"><code><span class="filepath-dir">include/siddiqsoft/private/</span><wbr><span class="filepath-name">resource_guard.hpp</span></code></td>
+<td style="text-align: left;">The <code>resource_guard&lt;T&gt;</code> borrows the underlying <code>T</code> and guarantees return-or-destroy on scope exit.</td>
 </tr>
 <tr>
-<td><strong>Optional Dependencies</strong></td>
-<td><a href="https://github.com/nlohmann/json">nlohmann/json</a> (required only when JSON statistics are enabled via <code>to_json()</code>).</td>
+<td style="text-align: left;"><strong>Concepts constraints</strong></td>
+<td style="text-align: left;"><code><span class="filepath-dir">include/siddiqsoft/private/</span><wbr><span class="filepath-name">concepts.hpp</span></code></td>
+<td style="text-align: left;">Ensures type <code>T</code> is valid for pooling (<code>NonNumericMoveConstructible</code>).</td>
 </tr>
 </tbody>
 </table>
-<hr />
-<h2 id="documentation-navigation">Documentation Navigation<a class="headerlink" href="#documentation-navigation" title="Permanent link">&para;</a></h2>
-<ul>
-<li><strong><a href="features/">Features Overview</a></strong>: Explore resource lifecycle management, thread-safety, and JSON diagnostics.</li>
-<li><strong><a href="integration/">Integration Guide</a></strong>: Learn how to add <code>arrp</code> using CMake FetchContent, NuGet, or direct headers.</li>
-<li><strong><a href="examples/">Examples Overview</a></strong>: Explore complete runnable examples in the repository <a href="https://github.com/SiddiqSoft/arrp/tree/master/examples"><code>examples/</code></a> directory.</li>
-<li><strong><a href="api/">API Reference</a></strong>: Complete detailed documentation of all classes, methods, enums, and concept constraints.</li>
-<li><strong><a href="license/">License</a></strong>: Project license details (BSD 3-Clause).</li>
-</ul>
+<h2 id="documentation-sections">Documentation Sections<a class="headerlink" href="#documentation-sections" title="Permanent link">&para;</a></h2>
+<div class="grid">
+<div class="card">
+<h3 id="getting-started"><a href="quickstart/">Getting Started</a><a class="headerlink" href="#getting-started" title="Permanent link">&para;</a></h3>
+<p>Integration instructions for CMake FetchContent. Includes verified system requirements, compiler targets, and dependencies breakdown.</p>
+<p><a href="quickstart/">Go to Getting Started <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13.22 19.03a.75.75 0 0 1 0-1.06L18.19 13H3.75a.75.75 0 0 1 0-1.5h14.44l-4.97-4.97a.749.749 0 0 1 .326-1.275.75.75 0 0 1 .734.215l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0"/></svg></span></a></p>
+</div>
+<div class="card">
+<h3 id="api-reference"><a href="api/">API Reference</a><a class="headerlink" href="#api-reference" title="Permanent link">&para;</a></h3>
+<p>Complete Doxygen-derived API reference for <code>resource_pool</code> and <code>resource_guard</code>.</p>
+<p><a href="api/">Go to API Reference <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13.22 19.03a.75.75 0 0 1 0-1.06L18.19 13H3.75a.75.75 0 0 1 0-1.5h14.44l-4.97-4.97a.749.749 0 0 1 .326-1.275.75.75 0 0 1 .734.215l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0"/></svg></span></a></p>
+</div>
+<div class="card">
+<h3 id="related-pages"><a href="architecture/">Related Pages</a><a class="headerlink" href="#related-pages" title="Permanent link">&para;</a></h3>
+<p>Project architecture, maintainer guide, and technical details.</p>
+<p><a href="architecture/">Go to Related Pages <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13.22 19.03a.75.75 0 0 1 0-1.06L18.19 13H3.75a.75.75 0 0 1 0-1.5h14.44l-4.97-4.97a.749.749 0 0 1 .326-1.275.75.75 0 0 1 .734.215l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0"/></svg></span></a></p>
+</div>
+</div>
 
 
 
@@ -1427,13 +1295,13 @@
         
         
           
-          <a href="features/" class="md-footer__link md-footer__link--next" aria-label="Next: Overview">
+          <a href="quickstart/" class="md-footer__link md-footer__link--next" aria-label="Next: Getting Started">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Overview
+                Getting Started
               </div>
             </div>
             <div class="md-footer__button md-icon">
@@ -1470,7 +1338,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["navigation.tabs", "toc.integrate", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.path", "navigation.top", "navigation.footer", "navigation.tracking", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate"], "search": "assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "1.3.1-docs-update.1"}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["navigation.tabs", "toc.integrate", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.path", "navigation.top", "navigation.footer", "navigation.tracking", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate"], "search": "assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "1.4.0-34"}</script>
     
     
       <script src="assets/javascripts/bundle.d7400e89.min.js"></script>

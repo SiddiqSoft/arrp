@@ -1,0 +1,1470 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Asynchronous Resource Reusable Pool">
+      
+      
+        <meta name="author" content="Siddiq Software LLC">
+      
+      
+        <link rel="canonical" href="https://siddiqsoft.github.io/arrp/maintainers/maintainer_guide/">
+      
+      
+        <link rel="prev" href="../../architecture/">
+      
+      
+        <link rel="next" href="../pipelines/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/Siddiq-Software-Avatar.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Maintainer Guide - arrp</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../css/custom.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#maintainer-guide" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="arrp" class="md-header__button md-logo" aria-label="arrp" data-md-component="logo">
+      
+  <img src="../../assets/Siddiq-Software-Avatar.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            arrp
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Maintainer Guide
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/SiddiqSoft/arrp" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    SiddiqSoft/arrp
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../quickstart/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Getting Started
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../api/" class="md-tabs__link">
+          
+  
+  
+  API Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../../architecture/" class="md-tabs__link">
+          
+  
+  
+  Related Pages
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="arrp" class="md-nav__button md-logo" aria-label="arrp" data-md-component="logo">
+      
+  <img src="../../assets/Siddiq-Software-Avatar.png" alt="logo">
+
+    </a>
+    arrp
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/SiddiqSoft/arrp" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    SiddiqSoft/arrp
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/resource_pool/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    resource_pool
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/resource_guard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    resource_guard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Related Pages
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Related Pages
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4_2" id="__nav_4_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Maintainer Guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Maintainer Guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Maintainer Guide
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Maintainer Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#documentation-index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation Index
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#codebase-architecture-uml-class-diagram" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Codebase Architecture &amp; UML Class Diagram
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Codebase Architecture &amp; UML Class Diagram">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#generating-previewing-documentation-locally" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generating &amp; Previewing Documentation Locally
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#source-code-formatting-clang-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Source Code Formatting (Clang-Format)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Source Code Formatting (Clang-Format)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-to-bulk-clang-format-the-source-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to Bulk Clang-Format the Source Code
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="How to Bulk Clang-Format the Source Code">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#option-1-via-cmake-build-target-recommended" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option 1: Via CMake Build Target (Recommended)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-2-bulk-command-line-via-find-macos-linux" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option 2: Bulk Command-Line via Find (macOS &amp; Linux)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-3-bulk-command-line-via-git-cross-platform" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option 3: Bulk Command-Line via Git (Cross-Platform)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-4-bulk-powershell-script-windows" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option 4: Bulk PowerShell Script (Windows)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-5-editor-ide-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option 5: Editor &amp; IDE Integration
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#maintainer-pre-flight-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Maintainer Pre-Flight Checklist
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#codebase-architecture-uml-class-diagram_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Codebase Architecture &amp; UML Class Diagram
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Codebase Architecture &amp; UML Class Diagram">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#source-code-mapping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Source Code Mapping
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pipelines/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CI/CD Pipelines
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cmake_presets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CMake Presets
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../build_agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Build Agent Requirements
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../license/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    License
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+  <nav class="md-path" aria-label="Navigation" >
+    <ol class="md-path__list">
+      
+        
+  
+  
+    <li class="md-path__item">
+      <a href="../.." class="md-path__link">
+        
+  <span class="md-ellipsis">
+    Home
+  </span>
+
+      </a>
+    </li>
+  
+
+      
+      
+        
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="../../architecture/" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    Related Pages
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="./" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    Maintainer Guide
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ol>
+  </nav>
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="maintainer-guide">Maintainer Guide<a class="headerlink" href="#maintainer-guide" title="Permanent link">&para;</a></h1>
+<p>Codebase architecture, development guidelines, formatting standards, and maintainer documentation index for <code>siddiqsoft::sip2json</code>.</p>
+<hr />
+<h2 id="documentation-index">Documentation Index<a class="headerlink" href="#documentation-index" title="Permanent link">&para;</a></h2>
+<p>The maintainer documentation is organized into modular topic guides:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Topic Guide</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><a href="../pipelines/"><strong>CI/CD Pipelines</strong></a></td>
+<td style="text-align: left;">Azure Pipelines architecture, build matrix, platform triggers, and parameters</td>
+</tr>
+<tr>
+<td style="text-align: left;"><a href="../cmake_presets/"><strong>CMake Presets</strong></a></td>
+<td style="text-align: left;">Decoupled presets hierarchy, <code>project-base.json</code>, and preset reference</td>
+</tr>
+<tr>
+<td style="text-align: left;">development workflow</td>
+<td style="text-align: left;">Local building, testing, standalone validation subproject, and macOS toolchain</td>
+</tr>
+<tr>
+<td style="text-align: left;"><a href="../build_agents/"><strong>Build Agent Requirements</strong></a></td>
+<td style="text-align: left;">Prerequisites and configuration for macOS, Linux, and Windows self-hosted agents</td>
+</tr>
+<tr>
+<td style="text-align: left;">release guidelines</td>
+<td style="text-align: left;">GitVersion, SemVer tagging, GitHub Releases, and NuGet package publishing</td>
+</tr>
+<tr>
+<td style="text-align: left;">documentation guidelines</td>
+<td style="text-align: left;">MkDocs Material, Doxygen XML, custom CSS tokens, hooks, and local preview</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="codebase-architecture-uml-class-diagram">Codebase Architecture &amp; UML Class Diagram<a class="headerlink" href="#codebase-architecture-uml-class-diagram" title="Permanent link">&para;</a></h2>
+<p>The following UML class diagram illustrates the primary classes, relationships, and exception hierarchy in <code>siddiqsoft::sip2json</code>. The diagram is auto-generated from the C++ source AST via Doxygen XML. Each node in the diagram links directly to its source header file on GitHub.</p>
+<!-- @@uml-diag:complete -->
+
+<!-- @@uml-diag:source-table -->
+
+<hr />
+<h3 id="generating-previewing-documentation-locally">Generating &amp; Previewing Documentation Locally<a class="headerlink" href="#generating-previewing-documentation-locally" title="Permanent link">&para;</a></h3>
+<p>The API documentation, inheritance graphs, and structural markdown are entirely auto-generated from the Doxygen XML output, guaranteeing that the <code>docs/</code> folder accurately reflects the latest C++ headers.</p>
+<p>To build the documentation and spin up a live-reloading preview server locally:</p>
+<ol>
+<li>
+<p><strong>Install Prerequisites</strong>: Ensure you have Python 3 and the <code>mkdocs-material</code> stack installed (along with <code>doxygen</code> and <code>graphviz</code> for AST generation).
+   <div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pip<span class="w"> </span>install<span class="w"> </span>mkdocs-material<span class="w"> </span>mkdocs-git-revision-date-localized-plugin
+</span></code></pre></div></p>
+</li>
+<li>
+<p><strong>Run the Rebuild &amp; Serve Script</strong>: Use the unified shell script which orchestrates Doxygen generation, the Python API generator, and the MkDocs live server.
+   <div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>./docs/rebuild-docs.sh<span class="w"> </span>serve
+</span></code></pre></div>
+   <em>The documentation site will be served locally at <code>http://127.0.0.1:8000</code> and will auto-reload when you edit any Markdown files or modify the C++ headers.</em></p>
+</li>
+<li>
+<p><strong>Verify Build Health</strong>: Before submitting a Pull Request, ensure that the build emits zero dead links or schema errors by running:
+   <div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>./docs/rebuild-docs.sh
+</span></code></pre></div>
+   <em>This executes <code>mkdocs build --strict</code> which treats warnings (like broken links) as fatal errors.</em></p>
+</li>
+</ol>
+<hr />
+<h2 id="source-code-formatting-clang-format">Source Code Formatting (Clang-Format)<a class="headerlink" href="#source-code-formatting-clang-format" title="Permanent link">&para;</a></h2>
+<p>All C++ source code (<code>include/</code>, <code>tests/</code>, and <code>benchmarks/</code>) adheres to the formatting rules defined in <a href="https://github.com/SiddiqSoft/sip2json/blob/master/.clang-format"><code>.clang-format</code></a> at the repository root.</p>
+<p>The configuration is based on the <strong>WebKit</strong> style with modern C++20 conventions:
+* <strong>Column Limit</strong>: 132 characters
+* <strong>Indentation</strong>: 4 spaces (tabs are never used)
+* <strong>Brace Style</strong>: WebKit (braces break before functions, classes, and catch/else blocks)
+* <strong>Pointer Alignment</strong>: Left (<code>const sipmessage&amp; msg</code>, <code>std::string_view* ptr</code>)
+* <strong>Standard</strong>: C++20</p>
+<hr />
+<h3 id="how-to-bulk-clang-format-the-source-code">How to Bulk Clang-Format the Source Code<a class="headerlink" href="#how-to-bulk-clang-format-the-source-code" title="Permanent link">&para;</a></h3>
+<p>Maintainers have multiple ways to format the entire codebase in bulk:</p>
+<h4 id="option-1-via-cmake-build-target-recommended">Option 1: Via CMake Build Target (Recommended)<a class="headerlink" href="#option-1-via-cmake-build-target-recommended" title="Permanent link">&para;</a></h4>
+<p>When configured locally, CMake generates a dedicated <code>format</code> (and <code>clang-format</code>) target:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Format using an active preset build directory:</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>cmake<span class="w"> </span>--build<span class="w"> </span>--preset<span class="w"> </span>Apple-Clang-Debug<span class="w"> </span>--target<span class="w"> </span>format
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1"># Or format directly against any existing build folder:</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>cmake<span class="w"> </span>--build<span class="w"> </span>build/Apple-Clang-Debug<span class="w"> </span>--target<span class="w"> </span>format
+</span></code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p><strong>Automatic Debug Formatting</strong>: On non-CI local builds, CMake enables <code>sip2json_ENABLE_CLANG_FORMAT=ON</code> by default in <code>Debug</code> configuration. Formatting runs automatically prior to every local Debug compilation whenever a compatible <code>clang-format</code> executable is detected.</p>
+</div>
+<hr />
+<h4 id="option-2-bulk-command-line-via-find-macos-linux">Option 2: Bulk Command-Line via Find (macOS &amp; Linux)<a class="headerlink" href="#option-2-bulk-command-line-via-find-macos-linux" title="Permanent link">&para;</a></h4>
+<p>To reformat all C++ header and source files across <code>include/</code>, <code>tests/</code>, and <code>benchmarks/</code> in one command:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>find<span class="w"> </span>include<span class="w"> </span>tests<span class="w"> </span>benchmarks<span class="w"> </span>-type<span class="w"> </span>f<span class="w"> </span><span class="se">\(</span><span class="w"> </span>-name<span class="w"> </span><span class="s2">"*.hpp"</span><span class="w"> </span>-o<span class="w"> </span>-name<span class="w"> </span><span class="s2">"*.cpp"</span><span class="w"> </span>-o<span class="w"> </span>-name<span class="w"> </span><span class="s2">"*.h"</span><span class="w"> </span><span class="se">\)</span><span class="w"> </span>-exec<span class="w"> </span>clang-format<span class="w"> </span>-i<span class="w"> </span>--style<span class="o">=</span>file<span class="w"> </span><span class="o">{}</span><span class="w"> </span>+
+</span></code></pre></div>
+<p>To verify formatting without modifying files, pass <code>--dry-run --Werror</code>:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>find<span class="w"> </span>include<span class="w"> </span>tests<span class="w"> </span>benchmarks<span class="w"> </span>-type<span class="w"> </span>f<span class="w"> </span><span class="se">\(</span><span class="w"> </span>-name<span class="w"> </span><span class="s2">"*.hpp"</span><span class="w"> </span>-o<span class="w"> </span>-name<span class="w"> </span><span class="s2">"*.cpp"</span><span class="w"> </span>-o<span class="w"> </span>-name<span class="w"> </span><span class="s2">"*.h"</span><span class="w"> </span><span class="se">\)</span><span class="w"> </span>-exec<span class="w"> </span>clang-format<span class="w"> </span>--dry-run<span class="w"> </span>--Werror<span class="w"> </span>--style<span class="o">=</span>file<span class="w"> </span><span class="o">{}</span><span class="w"> </span>+
+</span></code></pre></div>
+<hr />
+<h4 id="option-3-bulk-command-line-via-git-cross-platform">Option 3: Bulk Command-Line via Git (Cross-Platform)<a class="headerlink" href="#option-3-bulk-command-line-via-git-cross-platform" title="Permanent link">&para;</a></h4>
+<p>Format all tracked C++ files in the repository using <code>git ls-files</code>:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">macOS &amp; Linux (bash / zsh)</label><label for="__tabbed_1_2">Windows (PowerShell)</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>git<span class="w"> </span>ls-files<span class="w"> </span><span class="s1">'*.hpp'</span><span class="w"> </span><span class="s1">'*.cpp'</span><span class="w"> </span><span class="s1">'*.h'</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>xargs<span class="w"> </span>clang-format<span class="w"> </span>-i<span class="w"> </span>--style<span class="o">=</span>file
+</span></code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="language-powershell highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">git</span> <span class="n">ls-files</span> <span class="s1">'*.hpp'</span><span class="p">,</span> <span class="s1">'*.cpp'</span><span class="p">,</span> <span class="s1">'*.h'</span> <span class="p">|</span> <span class="k">ForEach</span><span class="n">-Object</span> <span class="p">{</span> <span class="n">clang-format</span> <span class="n">-i</span> <span class="p">-</span><span class="n">-style</span><span class="p">=</span><span class="n">file</span> <span class="nv">$_</span> <span class="p">}</span>
+</span></code></pre></div>
+</div>
+</div>
+</div>
+<hr />
+<h4 id="option-4-bulk-powershell-script-windows">Option 4: Bulk PowerShell Script (Windows)<a class="headerlink" href="#option-4-bulk-powershell-script-windows" title="Permanent link">&para;</a></h4>
+<p>On Windows systems without Git bash, run the following PowerShell one-liner:</p>
+<div class="language-powershell highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nb">Get-ChildItem</span> <span class="n">-Path</span> <span class="n">include</span><span class="p">,</span> <span class="n">tests</span><span class="p">,</span> <span class="n">benchmarks</span> <span class="n">-Include</span> <span class="p">*.</span><span class="n">hpp</span><span class="p">,</span> <span class="p">*.</span><span class="n">cpp</span><span class="p">,</span> <span class="p">*.</span><span class="nb">h </span><span class="n">-Recurse</span> <span class="p">|</span> <span class="k">ForEach</span><span class="n">-Object</span> <span class="p">{</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>    <span class="n">clang-format</span> <span class="n">-i</span> <span class="p">-</span><span class="n">-style</span><span class="p">=</span><span class="n">file</span> <span class="nv">$_</span><span class="p">.</span><span class="n">FullName</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="p">}</span>
+</span></code></pre></div>
+<hr />
+<h4 id="option-5-editor-ide-integration">Option 5: Editor &amp; IDE Integration<a class="headerlink" href="#option-5-editor-ide-integration" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Visual Studio 2022</strong>: Visual Studio automatically detects <code>.clang-format</code> at the repository root. Press <code>Ctrl+K, Ctrl+D</code> to format the active document, or <code>Ctrl+K, Ctrl+F</code> to format a selection.</li>
+<li><strong>Visual Studio Code</strong>: Ensure the <a href="https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools">C/C++ Extension</a> is installed. In <code><span class="filepath-dir">.vscode/</span><wbr><span class="filepath-name">settings.json</span></code>:
+  <div class="language-json highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="p">{</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span><span class="nt">"C_Cpp.clang_format_style"</span><span class="p">:</span><span class="w"> </span><span class="s2">"file"</span><span class="p">,</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">  </span><span class="nt">"editor.formatOnSave"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="p">}</span>
+</span></code></pre></div></li>
+<li><strong>CLion</strong>: Navigate to <strong>Settings &gt; Editor &gt; Code Style &gt; C/C++</strong> and verify <strong>Enable ClangFormat</strong> is checked. Press <code>Ctrl+Alt+L</code> (<code>Cmd+Alt+L</code> on macOS) to format.</li>
+</ul>
+<hr />
+<h2 id="maintainer-pre-flight-checklist">Maintainer Pre-Flight Checklist<a class="headerlink" href="#maintainer-pre-flight-checklist" title="Permanent link">&para;</a></h2>
+<p>Before submitting a pull request or pushing to <code>master</code>:</p>
+<ol>
+<li><strong>Format Code</strong>: Run the bulk clang-format command or <code>cmake --build &lt;preset&gt; --target format</code>.</li>
+<li><strong>Build Cleanly</strong>: Compile with zero compiler warnings using your platform preset:
+   <div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>cmake<span class="w"> </span>--build<span class="w"> </span>--preset<span class="w"> </span>&lt;preset-name&gt;
+</span></code></pre></div></li>
+<li><strong>Execute All Tests</strong>: Ensure 100% of tests pass:
+   <div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>ctest<span class="w"> </span>--preset<span class="w"> </span>&lt;preset-name&gt;<span class="w"> </span>--output-on-failure
+</span></code></pre></div></li>
+<li><strong>Validate Documentation</strong>: Verify zero broken links or markdown syntax errors:
+   <div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>mkdocs<span class="w"> </span>build<span class="w"> </span>--strict
+</span></code></pre></div></li>
+<li><strong>Major Version Updates</strong>: When introducing breaking API changes or preparing a major version release, manually update the <code>next-version:</code> entry in <a href="https://github.com/SiddiqSoft/sip2json/blob/master/GitVersion.yml"><code>GitVersion.yml</code></a> (e.g. <code>next-version: 4.0.0</code>) so GitVersion establishes the new major version baseline.</li>
+</ol>
+<h2 id="codebase-architecture-uml-class-diagram_1">Codebase Architecture &amp; UML Class Diagram<a class="headerlink" href="#codebase-architecture-uml-class-diagram_1" title="Permanent link">&para;</a></h2>
+<!-- UML_CLASS_DIAGRAM_START -->
+<p>The following UML class diagram illustrates the primary classes, relationships, and inheritance. The diagram is auto-generated from the C++ source AST via Doxygen XML. Each node in the diagram links directly to its source header file on GitHub.</p>
+<pre class="mermaid"><code>classDiagram
+    direction TB
+
+    classDef coreClass fill:rgba(35,73,109,0.08),stroke:#23496d,stroke-width:2px;
+    classDef utilityClass fill:rgba(15,118,110,0.08),stroke:#0f766e,stroke-width:2px;
+    classDef exceptionClass fill:rgba(185,28,28,0.06),stroke:#b91c1c,stroke-width:1.5px;
+    classDef externalClass fill:rgba(100,116,139,0.06),stroke:#64748b,stroke-width:1.5px,stroke-dasharray: 4 3;
+    classDef highlightClass fill:rgba(2,132,199,0.18),stroke:#0284c7,stroke-width:3px;
+
+    class resource_guard["siddiqsoft::arrp::resource_guard"] {
+        +resource_guard(const resource_guard &amp;) void
+        +operator_assign(const resource_guard &amp;) resource_guard &amp;
+        +resource_guard(const pool_error &amp;err) void
+        +resource_guard(resource_guard &amp;&amp;src) void
+        +operator_assign(resource_guard &amp;&amp;src) resource_guard &amp;
+    }
+    class resource_guard:::coreClass
+
+    class resource_pool["siddiqsoft::arrp::resource_pool"] {
+        +resource_pool(resource_pool &amp;) void
+        +resource_pool(resource_pool &amp;&amp;src) void
+        +operator_assign(resource_pool &amp;) resource_pool &amp;
+        +operator_assign(resource_pool &amp;&amp;src) resource_pool &amp;
+        +resource_pool(uint8_t init_capacity, std::function~ void(T &amp;)~ &amp;&amp;on_shutdown_callback) void
+    }
+    class resource_pool:::coreClass
+
+
+    link resource_guard "https://github.com/SiddiqSoft/arrp/blob/master/include/siddiqsoft/private/resource_guard.hpp#L99" "Source: include/siddiqsoft/private/resource_guard.hpp"
+    link resource_pool "https://github.com/SiddiqSoft/arrp/blob/master/include/siddiqsoft/private/resource_pool.hpp#L77" "Source: include/siddiqsoft/private/resource_pool.hpp"</code></pre>
+<h3 id="source-code-mapping">Source Code Mapping<a class="headerlink" href="#source-code-mapping" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Component / Class</th>
+<th style="text-align: left;">Header File</th>
+<th style="text-align: left;">Source Link</th>
+<th style="text-align: left;">Purpose &amp; Architectural Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><a href="../../api/resource_guard/"><code>siddiqsoft::arrp::resource_guard</code></a></td>
+<td style="text-align: left;"><code><span class="filepath-dir">include/siddiqsoft/private/</span><wbr><span class="filepath-name">resource_guard.hpp</span></code></td>
+<td style="text-align: left;"><a href="https://github.com/SiddiqSoft/arrp/blob/main/include/siddiqsoft/private/resource_guard.hpp#L99"><code>resource_guard.hpp</code></a></td>
+<td style="text-align: left;">RAII wrapper for managing resource lifecycle in a resource pool.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><a href="../../api/resource_pool/"><code>siddiqsoft::arrp::resource_pool</code></a></td>
+<td style="text-align: left;"><code><span class="filepath-dir">include/siddiqsoft/private/</span><wbr><span class="filepath-name">resource_pool.hpp</span></code></td>
+<td style="text-align: left;"><a href="https://github.com/SiddiqSoft/arrp/blob/main/include/siddiqsoft/private/resource_pool.hpp#L77"><code>resource_pool.hpp</code></a></td>
+<td style="text-align: left;">Thread-safe auto-returning resource pool.</td>
+</tr>
+</tbody>
+</table>
+<!-- UML_CLASS_DIAGRAM_END -->
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../../architecture/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Architecture">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Architecture
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../pipelines/" class="md-footer__link md-footer__link--next" aria-label="Next: CI/CD Pipelines">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                CI/CD Pipelines
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "toc.integrate", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.path", "navigation.top", "navigation.footer", "navigation.tracking", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "1.4.0-34"}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
