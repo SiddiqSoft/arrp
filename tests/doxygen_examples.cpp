@@ -1,3 +1,4 @@
+#include <nlohmann/json.hpp>
 #include <gtest/gtest.h>
 #include <siddiqsoft/arrp.hpp>
 #include <string>
@@ -20,14 +21,14 @@ TEST(doxygen_examples, seed)
 TEST(doxygen_examples, try_borrow)
 {
 // [try_borrow_example]
-    siddiqsoft::arrp::resource_pool<int> pool;
-    pool.seed(42);
+    siddiqsoft::arrp::resource_pool<std::string> pool;
+    pool.seed("42");
     
     {
         // Borrow the resource. It is removed from the pool queue.
         auto guard = pool.try_borrow();
         if (guard.is_valid()) {
-            std::cout << "Borrowed: " << guard.get() << std::endl;
+            std::cout << "Borrowed: " << (*guard) << std::endl;
         }
         // When 'guard' goes out of scope, the resource is automatically returned to the pool.
     }
@@ -37,17 +38,17 @@ TEST(doxygen_examples, try_borrow)
 TEST(doxygen_examples, try_borrow_create)
 {
 // [try_borrow_create_example]
-    siddiqsoft::arrp::resource_pool<int> pool(5);
+    siddiqsoft::arrp::resource_pool<std::string> pool(5);
     
     // Set a factory callback to generate missing resources
-    pool.set_factory_callback([](auto& p) {
-        return std::make_unique<int>(99);
+    pool.set_factory_callback([]() {
+        return std::string("99");
     });
     
     // The pool is currently empty, so try_borrow_create will invoke the factory
     auto guard = pool.try_borrow_create();
     if (guard.is_valid()) {
-        std::cout << "Created on demand: " << guard.get() << std::endl;
+        std::cout << "Created on demand: " << (*guard) << std::endl;
     }
 // [try_borrow_create_example]
 }
@@ -68,9 +69,9 @@ TEST(doxygen_examples, clear)
 TEST(doxygen_examples, to_json)
 {
 // [to_json_example]
-    siddiqsoft::arrp::resource_pool<int> pool(10);
-    pool.seed(1);
-    pool.seed(2);
+    siddiqsoft::arrp::resource_pool<std::string> pool(10);
+    pool.seed("1");
+    pool.seed("2");
     
     auto borrowed = pool.try_borrow();
     
@@ -83,9 +84,9 @@ TEST(doxygen_examples, to_json)
 TEST(doxygen_examples, size)
 {
 // [size_example]
-    siddiqsoft::arrp::resource_pool<int> pool(10);
-    pool.seed(1);
-    pool.seed(2);
+    siddiqsoft::arrp::resource_pool<std::string> pool(10);
+    pool.seed("1");
+    pool.seed("2");
     
     // size() returns the total number of resources (both idle in queue and currently borrowed)
     std::cout << "Total resources tracked: " << pool.size() << std::endl; // Outputs 2
@@ -95,12 +96,12 @@ TEST(doxygen_examples, size)
 TEST(doxygen_examples, invalidate)
 {
 // [invalidate_example]
-    siddiqsoft::arrp::resource_pool<int> pool;
-    pool.seed(42);
+    siddiqsoft::arrp::resource_pool<std::string> pool;
+    pool.seed("42");
     
     {
         auto guard = pool.try_borrow();
-        if (guard.get() == 42) {
+        if ((*guard) == "42") {
             // Resource is corrupted or no longer needed.
             // Invalidate the guard so the resource is destroyed instead of returning to the pool.
             guard.invalidate();
@@ -118,7 +119,7 @@ TEST(doxygen_examples, get)
     auto guard = pool.try_borrow();
     if (guard.is_valid()) {
         // Access the underlying resource
-        guard.get() += " World";
+        (*guard) += " World";
     }
 // [get_example]
 }
