@@ -70,6 +70,18 @@ def run_doxygen(root_dir: Path) -> bool:
 
 def detect_project_info(root_dir: Path):
     default_branch = "main"
+    import subprocess
+    try:
+        res = subprocess.run(["git", "symbolic-ref", "refs/remotes/origin/HEAD"], capture_output=True, text=True, cwd=str(root_dir))
+        if res.returncode == 0:
+            default_branch = res.stdout.strip().split('/')[-1]
+        else:
+            res = subprocess.run(["git", "branch"], capture_output=True, text=True, cwd=str(root_dir))
+            if " master" in res.stdout or "* master" in res.stdout:
+                default_branch = "master"
+    except Exception:
+        pass
+    
     """Detects project name and GitHub org from CMakeLists.txt or mkdocs.yml."""
     project_name = "{{PROJECT_NAME}}"
     github_org = "{{GITHUB_ORG}}"
