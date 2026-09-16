@@ -167,99 +167,128 @@ def split_params(args_str: str) -> list:
 
 def extract_detailed_desc(detail_node, params_map=None) -> str:
     if params_map is None: params_map = {}
-    if detail_node is None:
-        return ""
-        
+    if detail_node is None: return ""
     out = []
-    
-    # Simple recursive text extraction for mixed content
-    def get_text(node):
+
+    def get_text(node, in_code=False):
         if node is None: return ""
         res = (node.text or "")
         for child in node:
             if child.tag == "ref":
-                res += f"{child.text or ''}"
+                if in_code:
+                    res += f"{child.text or ''}"
+                else:
+                    res += f"`{child.text or ''}`"
             elif child.tag == "computeroutput":
-                res += f"<code>{get_text(child)}</code>"
+                if in_code:
+                    res += f"{get_text(child, in_code)}"
+                else:
+                    res += f"<code>{get_text(child, in_code)}</code>"
             elif child.tag == "sp":
                 res += " "
             else:
-                res += get_text(child)
+                res += get_text(child, in_code)
             res += (child.tail or "")
         return res
 
-    for child in detail_node:
-        if child.tag == "para":
-            # Check if this para has a parameterlist or simplesect inside
-            has_special = False
-            for pchild in child:
-                if pchild.tag in ("parameterlist", "simplesect", "programlisting"):
-                    has_special = True
+    def get_source_ref(filename, code_lines):
+        if not filename: return ""
+        if not code_lines: return filename
+        import os
+        from pathlib import Path
+        repo_root = Path(__file__).resolve().parent.parent
+        matches = list(repo_root.rglob(filename))
+        if not matches: return filename
+        
+        real_path = matches[0]
+        rel_path = real_path.relative_to(repo_root)
+        try:
+            content_lines = real_path.read_text(encoding="utf-8").split("\n")
+            target = ""
+            target_offset = 0
+            for idx, cl in enumerate(code_lines):
+                if cl.strip():
+                    target = cl.strip()
+                    target_offset = idx
                     break
             
-            if not has_special:
+            start_line = -1
+            if target:
+                for i, l in enumerate(content_lines):
+                    if target in l:
+                        start_line = (i + 1) - target_offset
+                        break
+            
+            if start_line != -1:
+                end_line = start_line + len(code_lines) - 1
+                if start_line == end_line:
+                    return f"{rel_path}:L{start_line}"
+                return f"{rel_path}:L{start_line}-L{end_line}"
+            return str(rel_path)
+        except Exception:
+            return str(rel_path)
+
+    def render_content(node):
+        local_out = []
+        if node is None: return ""
+        if node.text and node.text.strip():
+            local_out.append(node.text.strip() + "\n")
+            
+        for child in node:
+            if child.tag == "parameterlist":
+                kind = child.get("kind", "")
+                title = "Parameters" if kind == "param" else "Template Parameters"
+                local_out.append(f'<div class="memdoc-section-title">{title}</div>\n')
+                local_out.append('<table class="params" markdown="0">\n')
+                for pitem in child.findall("parameteritem"):
+                    name = get_text(pitem.find("parameternamelist/parametername"))
+                    desc = get_text(pitem.find("parameterdescription/para"))
+                    ptype = params_map.get(name, "")
+                    ptype_td = f'<td class="paramtype"><code>{ptype}</code></td>\n    ' if ptype else ''
+                    local_out.append(f'  <tr>\n    {ptype_td}<td class="paramname">{name}</td>\n    <td class="paramdesc">{desc}</td>\n  </tr>\n')
+                local_out.append('</table>\n')
+            elif child.tag == "simplesect":
+                kind = child.get("kind", "")
+                if kind == "return":
+                    local_out.append('<div class="memdoc-section-title">Returns</div>\n')
+                    local_out.append(render_content(child.find("para")) + "\n")
+                elif kind == "note":
+                    local_out.append('<div class="memdoc-section-title">Note</div>\n')
+                    local_out.append(render_content(child.find("para")) + "\n")
+                elif kind == "par":
+                    title = get_text(child.find("title"))
+                    local_out.append(f'<div class="memdoc-section-title">{title}</div>\n')
+                    local_out.append(render_content(child.find("para")) + "\n")
+            elif child.tag == "programlisting":
+                filename = child.get("filename")
+                code_lines = [get_text(line, True) for line in child.findall("codeline")]
+                code = "\n".join(code_lines)
+                local_out.append(f"\n```cpp\n")
+                src_ref = get_source_ref(filename, code_lines)
+                if src_ref:
+                    local_out.append(f"// Source: {src_ref}\n")
+                local_out.append(f"{code}\n```\n")
+            else:
                 txt = get_text(child).strip()
                 if txt:
-                    out.append(txt + "\n")
-            else:
-                # Handle mixed para content
-                if child.text and child.text.strip():
-                    out.append(child.text.strip() + "\n")
-                    
-                for pchild in child:
-                    if pchild.tag == "parameterlist":
-                        kind = pchild.get("kind", "")
-                        if kind == "param":
-                            out.append('<div class="memdoc-section-title">Parameters</div>\n')
-                            out.append('<ul>')
-                            for pitem in pchild.findall("parameteritem"):
-                                name = get_text(pitem.find("parameternamelist/parametername"))
-                                desc = get_text(pitem.find("parameterdescription/para"))
-                                out.append(f'  <li><code>{name}</code> &mdash; {desc}</li>')
-                            out.append('</ul>\n')
-                        elif kind == "templateparam":
-                            out.append('<div class="memdoc-section-title">Template Parameters</div>\n')
-                            out.append('<table class="params" markdown="0">\n')
-                            for pitem in pchild.findall("parameteritem"):
-                                name = get_text(pitem.find("parameternamelist/parametername"))
-                                desc = get_text(pitem.find("parameterdescription/para"))
-                                out.append(f'  <tr>\n')
-                                out.append(f'    <td class="paramtype"><code>typename</code></td>\n')
-                                out.append(f'    <td class="paramname">{name}</td>\n')
-                                out.append(f'    <td class="paramdesc">{desc}</td>\n')
-                                out.append(f'  </tr>\n')
-                            out.append('</table>\n')
-                    elif pchild.tag == "simplesect":
-                        kind = pchild.get("kind", "")
-                        if kind == "return":
-                            out.append('<div class="memdoc-section-title">Returns</div>\n')
-                            out.append(get_text(pchild.find("para")) + "\n")
-                        elif kind == "note":
-                            out.append('<div class="memdoc-section-title">Note</div>\n')
-                            out.append(get_text(pchild.find("para")) + "\n")
-                        elif kind == "par":
-                            title = get_text(pchild.find("title"))
-                            out.append(f'<div class="memdoc-section-title">{title}</div>\n')
-                            out.append(get_text(pchild.find("para")) + "\n")
-                    elif pchild.tag == "programlisting":
-                        filename = pchild.get("filename")
-                        code = "\n".join(get_text(line) for line in pchild.findall("codeline"))
-                        out.append(f"\n```cpp\n{code}\n```\n")
-                        if filename:
-                            out.append(f'<div class="mdesc">Source reference: <code>{filename}</code></div>\n')
-                    else:
-                        txt = get_text(pchild).strip()
-                        if txt:
-                            out.append(txt)
-                        
-                if child.tail and child.tail.strip():
-                    out.append(child.tail.strip() + "\n")
+                    local_out.append(txt + "\n")
+            
+            if child.tail and child.tail.strip():
+                local_out.append(child.tail.strip() + "\n")
+        return "".join(local_out)
+
+    for child in detail_node:
+        if child.tag == "para":
+            out.append(render_content(child))
         elif child.tag == "programlisting":
             filename = child.get("filename")
-            code = "\n".join(get_text(line) for line in child.findall("codeline"))
-            out.append(f"\n```cpp\n{code}\n```\n")
-            if filename:
-                out.append(f'<div class="mdesc">Source reference: <code>{filename}</code></div>\n')
+            code_lines = [get_text(line, True) for line in child.findall("codeline")]
+            code = "\n".join(code_lines)
+            out.append(f"\n```cpp\n")
+            src_ref = get_source_ref(filename, code_lines)
+            if src_ref:
+                out.append(f"// Source: {src_ref}\n")
+            out.append(f"{code}\n```\n")
 
     return "\n".join(out)
 
