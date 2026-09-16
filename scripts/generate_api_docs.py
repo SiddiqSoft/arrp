@@ -899,7 +899,7 @@ def update_maintainer_uml(maintainer_file: Path, classes: list, project_name: st
     source_table = generate_source_mapping_table(
         classes, project_name, github_org, api_prefix="../api/"
     )
-    combined_content = "The following UML class diagram illustrates the primary classes, relationships, and inheritance. The diagram is auto-generated from the C++ source AST via Doxygen XML. Each node in the diagram links directly to its source header file on GitHub.\n\n<!-- @@uml-diag:complete -->\n\n<!-- @@uml-diag:source-table -->"
+    combined_content = f"The following UML class diagram illustrates the primary classes, relationships, and inheritance. The diagram is auto-generated from the C++ source AST via Doxygen XML. Each node in the diagram links directly to its source header file on GitHub.\n\n{sys_uml}\n\n{source_table}"
     new_block = f"{start_tag}\n{combined_content}\n{end_tag}"
 
     if start_tag in text and end_tag in text:
@@ -940,7 +940,7 @@ def update_architecture_uml(
     source_table = generate_source_mapping_table(
         classes, project_name, github_org, api_prefix="../api/"
     )
-    combined_content = "<!-- @@uml-diag:complete -->\n\n<!-- @@uml-diag:source-table -->"
+    combined_content = f"{sys_uml}\n\n{source_table}"
     new_block = f"{start_tag}\n{combined_content}\n{end_tag}"
 
     if start_tag in text and end_tag in text:
