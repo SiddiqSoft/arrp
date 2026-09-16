@@ -29,31 +29,28 @@ The following UML class diagram illustrates the primary classes, relationships, 
 
 ---
 
-### Referencing UML Diagrams in Documentation (`@@uml-diag:` Grammar)
+### Generating & Previewing Documentation Locally
 
-To keep all documentation Markdown files clean, human-editable, and version-controlled, diagrams and tables are **never** hard-coded or directly pasted as raw Mermaid code blocks. Instead, maintainers embed lightweight, semantic `@@uml-diag:` or `@@uml-diagram:` directives.
+The API documentation, inheritance graphs, and structural markdown are entirely auto-generated from the Doxygen XML output, guaranteeing that the `docs/` folder accurately reflects the latest C++ headers.
 
-To ensure **100% Markdown and HTML compatibility** (avoiding any GitHub Pages, Jekyll Liquid syntax errors, W3C HTML5 validator warnings, or interference with adjacent Markdown elements), the canonical syntax wraps the directive inside standard HTML comments `<!-- @@uml-diagram:... -->` or `<!-- @@uml-diag:... -->`:
+To build the documentation and spin up a live-reloading preview server locally:
 
-| Canonical Directive Syntax | Alternative Syntax | Target Description | Example Target |
-| :--- | :--- | :--- | :--- |
-| `<!-- @@uml-diag:complete -->` | `@@uml-diag:complete` | Full system UML class diagram | System architecture, maintainer guide |
-| `<!-- @@uml-diagram:namespace -->` | `@@uml-diagram:namespace` | Namespace package architecture & boundary diagram | Architecture namespace section |
-| `<!-- @@uml-diagram:namespace:<name> -->` | `@@uml-diagram:namespace:<name>` | Specific namespace package (e.g. `siddiqsoft`) | Specific package mapping |
-| `<!-- @@uml-diag:<class-name> -->` | `@@uml-diag:<class-name>` | Targeted class UML diagram (e.g. `sip2json`, `sipmessage`, `HeaderKeySet`) | Class reference API pages |
-| `<!-- @@uml-diag:class:<class-name> -->` | `@@uml-diag:class:<class-name>` | Explicit class specifier | Class reference API pages |
-| `<!-- @@uml-diag:structure -->` | `@@uml-diag:structure` | Subsystem topology & layered architecture flowchart | Subsystem structure overview |
-| `<!-- @@uml-diag:control-flow -->` | `@@uml-diag:control-flow` | Stream parsing linear control-flow sequence diagram | Stream mechanics & async parsing |
-| `<!-- @@uml-diag:source-table -->` | `@@uml-diag:source-table` | Source code mapping table with GitHub links | Mapping tables |
-| `<!-- @@uml-diag:errors -->` | `@@uml-diag:errors` | Diagnostic exceptions & error code hierarchy | Error handling reference |
+1. **Install Prerequisites**: Ensure you have Python 3 and the `mkdocs-material` stack installed (along with `doxygen` and `graphviz` for AST generation).
+   ```bash
+   pip install mkdocs-material mkdocs-git-revision-date-localized-plugin
+   ```
 
-#### Markdown & HTML Compatibility Guarantees:
-* **HTML & CommonMark Compliant**: Wrapping in `<!-- ... -->` represents an isolated HTML block per CommonMark 0.30+ specification, preventing conflicts with Markdown headers, list indentation, tables, or emphasis.
-* **GitHub Pages & Jekyll Safe**: Unlike template curly braces `{{ ... }}` which trigger Jekyll Liquid parse errors on GitHub Pages, HTML comments pass through cleanly without causing build failures.
-* **Clean Web Repository Browsing**: On github.com, HTML comments remain hidden, preventing raw directive text from displaying on unrendered Markdown pages.
-* **Flexible Parser**: The hook (documentation guidelines`, HTML tags `<div class="uml-diagram" data-diagram="..."></div>`, and bare `@@uml-diag:...` lines.
-* **Automated Clickable Source Links**: All generated diagrams automatically include clickable GitHub source links (`link ClassName "https://github.com/..."`).
+2. **Run the Rebuild & Serve Script**: Use the unified shell script which orchestrates Doxygen generation, the Python API generator, and the MkDocs live server.
+   ```bash
+   ./docs/rebuild-docs.sh serve
+   ```
+   *The documentation site will be served locally at `http://127.0.0.1:8000` and will auto-reload when you edit any Markdown files or modify the C++ headers.*
 
+3. **Verify Build Health**: Before submitting a Pull Request, ensure that the build emits zero dead links or schema errors by running:
+   ```bash
+   ./docs/rebuild-docs.sh
+   ```
+   *This executes `mkdocs build --strict` which treats warnings (like broken links) as fatal errors.*
 ---
 
 ## Source Code Formatting (Clang-Format)
@@ -85,8 +82,8 @@ cmake --build --preset Apple-Clang-Debug --target format
 cmake --build build/Apple-Clang-Debug --target format
 ```
 
-> [!TIP]
-> **Automatic Debug Formatting**: On non-CI local builds, CMake enables `sip2json_ENABLE_CLANG_FORMAT=ON` by default in `Debug` configuration. Formatting runs automatically prior to every local Debug compilation whenever a compatible `clang-format` executable is detected.
+!!! tip
+    **Automatic Debug Formatting**: On non-CI local builds, CMake enables `sip2json_ENABLE_CLANG_FORMAT=ON` by default in `Debug` configuration. Formatting runs automatically prior to every local Debug compilation whenever a compatible `clang-format` executable is detected.
 
 ---
 
@@ -173,7 +170,43 @@ Before submitting a pull request or pushing to `master`:
 <!-- UML_CLASS_DIAGRAM_START -->
 The following UML class diagram illustrates the primary classes, relationships, and inheritance. The diagram is auto-generated from the C++ source AST via Doxygen XML. Each node in the diagram links directly to its source header file on GitHub.
 
-<!-- @@uml-diag:complete -->
+```mermaid
+classDiagram
+    direction TB
 
-<!-- @@uml-diag:source-table -->
+    classDef coreClass fill:rgba(35,73,109,0.08),stroke:#23496d,stroke-width:2px;
+    classDef utilityClass fill:rgba(15,118,110,0.08),stroke:#0f766e,stroke-width:2px;
+    classDef exceptionClass fill:rgba(185,28,28,0.06),stroke:#b91c1c,stroke-width:1.5px;
+    classDef externalClass fill:rgba(100,116,139,0.06),stroke:#64748b,stroke-width:1.5px,stroke-dasharray: 4 3;
+    classDef highlightClass fill:rgba(2,132,199,0.18),stroke:#0284c7,stroke-width:3px;
+
+    class resource_guard["siddiqsoft::arrp::resource_guard"] {
+        +resource_guard(const resource_guard &) void
+        +operator_assign(const resource_guard &) resource_guard &
+        +resource_guard(const pool_error &err) void
+        +resource_guard(resource_guard &&src) void
+        +operator_assign(resource_guard &&src) resource_guard &
+    }
+    class resource_guard:::coreClass
+
+    class resource_pool["siddiqsoft::arrp::resource_pool"] {
+        +resource_pool(resource_pool &) void
+        +resource_pool(resource_pool &&src) void
+        +operator_assign(resource_pool &) resource_pool &
+        +operator_assign(resource_pool &&src) resource_pool &
+        +resource_pool(uint8_t init_capacity, std::function~ void(T &)~ &&on_shutdown_callback) void
+    }
+    class resource_pool:::coreClass
+
+
+    link resource_guard "https://github.com/SiddiqSoft/arrp/blob/main/include/siddiqsoft/private/resource_guard.hpp#L99" "Source: include/siddiqsoft/private/resource_guard.hpp"
+    link resource_pool "https://github.com/SiddiqSoft/arrp/blob/main/include/siddiqsoft/private/resource_pool.hpp#L77" "Source: include/siddiqsoft/private/resource_pool.hpp"
+```
+
+### Source Code Mapping
+
+| Component / Class | Header File | Source Link | Purpose & Architectural Role |
+| :--- | :--- | :--- | :--- |
+| [`siddiqsoft::arrp::resource_guard`](../api/resource_guard.md) | <code><span class="filepath-dir">include/siddiqsoft/private/</span><wbr><span class="filepath-name">resource_guard.hpp</span></code> | [`resource_guard.hpp`](https://github.com/SiddiqSoft/arrp/blob/main/include/siddiqsoft/private/resource_guard.hpp#L99) | RAII wrapper for managing resource lifecycle in a resource pool. |
+| [`siddiqsoft::arrp::resource_pool`](../api/resource_pool.md) | <code><span class="filepath-dir">include/siddiqsoft/private/</span><wbr><span class="filepath-name">resource_pool.hpp</span></code> | [`resource_pool.hpp`](https://github.com/SiddiqSoft/arrp/blob/main/include/siddiqsoft/private/resource_pool.hpp#L77) | Thread-safe auto-returning resource pool. |
 <!-- UML_CLASS_DIAGRAM_END -->
