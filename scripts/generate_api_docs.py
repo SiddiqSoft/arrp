@@ -231,50 +231,75 @@ def extract_detailed_desc(detail_node, params_map=None) -> str:
     def render_content(node):
         local_out = []
         if node is None: return ""
-        if node.text and node.text.strip():
-            local_out.append(node.text.strip() + "\n")
+        
+        inline_buf = []
+        if node.text:
+            inline_buf.append(node.text)
             
-        for child in node:
-            if child.tag == "parameterlist":
-                kind = child.get("kind", "")
-                title = "Parameters" if kind == "param" else "Template Parameters"
-                local_out.append(f'<div class="memdoc-section-title">{title}</div>\n')
-                local_out.append('<table class="params" markdown="0">\n')
-                for pitem in child.findall("parameteritem"):
-                    name = get_text(pitem.find("parameternamelist/parametername"))
-                    desc = get_text(pitem.find("parameterdescription/para"))
-                    ptype = params_map.get(name, "")
-                    ptype_td = f'<td class="paramtype"><code>{ptype}</code></td>\n    ' if ptype else ''
-                    local_out.append(f'  <tr>\n    {ptype_td}<td class="paramname">{name}</td>\n    <td class="paramdesc">{desc}</td>\n  </tr>\n')
-                local_out.append('</table>\n')
-            elif child.tag == "simplesect":
-                kind = child.get("kind", "")
-                if kind == "return":
-                    local_out.append('<div class="memdoc-section-title">Returns</div>\n')
-                    local_out.append(render_content(child.find("para")) + "\n")
-                elif kind == "note":
-                    local_out.append('<div class="memdoc-section-title">Note</div>\n')
-                    local_out.append(render_content(child.find("para")) + "\n")
-                elif kind == "par":
-                    title = get_text(child.find("title"))
-                    local_out.append(f'<div class="memdoc-section-title">{title}</div>\n')
-                    local_out.append(render_content(child.find("para")) + "\n")
-            elif child.tag == "programlisting":
-                filename = child.get("filename")
-                code_lines = [get_text(line, True) for line in child.findall("codeline")]
-                code = "\n".join(code_lines)
-                local_out.append(f"\n```cpp\n")
-                src_ref = get_source_ref(filename, code_lines)
-                if src_ref:
-                    local_out.append(f"// Source: {src_ref}\n")
-                local_out.append(f"{code}\n```\n")
-            else:
-                txt = get_text(child).strip()
+        def flush_inline():
+            if inline_buf:
+                txt = "".join(inline_buf).strip()
                 if txt:
                     local_out.append(txt + "\n")
-            
-            if child.tail and child.tail.strip():
-                local_out.append(child.tail.strip() + "\n")
+                inline_buf.clear()
+
+        for child in node:
+            if child.tag in ("parameterlist", "simplesect", "programlisting"):
+                flush_inline()
+                if child.tag == "parameterlist":
+                    kind = child.get("kind", "")
+                    title = "Parameters" if kind == "param" else "Template Parameters"
+                    local_out.append(f'<div class="memdoc-section-title">{title}</div>\n')
+                    local_out.append('<table class="params" markdown="0">\n')
+                    for pitem in child.findall("parameteritem"):
+                        name = get_text(pitem.find("parameternamelist/parametername"))
+                        desc = get_text(pitem.find("parameterdescription/para"))
+                        ptype = params_map.get(name, "")
+                        ptype_td = f'<td class="paramtype"><code>{ptype}</code></td>\n    ' if ptype else ''
+                        local_out.append(f'  <tr>\n    {ptype_td}<td class="paramname">{name}</td>\n    <td class="paramdesc">{desc}</td>\n  </tr>\n')
+                    local_out.append('</table>\n')
+                elif child.tag == "simplesect":
+                    kind = child.get("kind", "")
+                    if kind == "return":
+                        local_out.append('<div class="memdoc-section-title">Returns</div>\n')
+                        local_out.append(render_content(child.find("para")) + "\n")
+                    elif kind in ("note", "warning", "attention", "bug", "todo", "remark"):
+                        admonition_type = kind
+                        if kind == "remark": admonition_type = 'info "Remark"'
+                        if kind == "attention": admonition_type = 'danger "Attention"'
+                        para_content = render_content(child.find("para")).strip()
+                        if para_content:
+                            indented = "\n".join(f"    {line}" if line.strip() else "" for line in para_content.split("\n"))
+                            local_out.append(f"\n!!! {admonition_type}\n{indented}\n\n")
+                    elif kind == "par":
+                        title = get_text(child.find("title"))
+                        local_out.append(f'<div class="memdoc-section-title">{title}</div>\n')
+                        local_out.append(render_content(child.find("para")) + "\n")
+                elif child.tag == "programlisting":
+                    filename = child.get("filename")
+                    code_lines = [get_text(line, True) for line in child.findall("codeline")]
+                    code = "\n".join(code_lines)
+                    local_out.append(f"\n```cpp\n")
+                    src_ref = get_source_ref(filename, code_lines)
+                    if src_ref:
+                        local_out.append(f"// Source: {src_ref}\n")
+                    local_out.append(f"{code}\n```\n")
+                    
+                if child.tail:
+                    inline_buf.append(child.tail)
+            else:
+                if child.tag == "ref":
+                    inline_buf.append(f"`{child.text or ''}`")
+                elif child.tag == "computeroutput":
+                    inline_buf.append(f"<code>{get_text(child)}</code>")
+                elif child.tag == "sp":
+                    inline_buf.append(" ")
+                else:
+                    inline_buf.append(get_text(child))
+                if child.tail:
+                    inline_buf.append(child.tail)
+                    
+        flush_inline()
         return "".join(local_out)
 
     for child in detail_node:
