@@ -633,13 +633,11 @@ def get_cleaned_svg(html_dir, refid, aspect="coll"):
         if not m: return ""
         svg = m.group(1)
         
-        # Override hardcoded width/height to be responsive
+        # Retain original dimensions but add responsive max-width style
         def _adjust_svg_tag(match):
             tag = match.group(0)
-            tag = re.sub(r'width="[^"]+"', 'width="100%"', tag)
-            tag = re.sub(r'height="[^"]+"', 'height="100%"', tag)
             return tag
-        svg = re.sub(r'<svg[^>]*>', lambda m: _adjust_svg_tag(m).replace('<svg ', '<svg class="graphviz-uml-svg" '), svg)
+        svg = re.sub(r'<svg[^>]*>', lambda m: _adjust_svg_tag(m).replace('<svg ', '<svg class="graphviz-uml-svg" style="max-width: 100%; height: auto;" '), svg)
         
         # Strip hardcoded font families so it inherits JetBrains Mono/Roboto from custom.css
         svg = re.sub(r'font-family="[^"]+"', '', svg)
