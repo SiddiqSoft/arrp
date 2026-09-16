@@ -1184,3 +1184,20 @@ hr, .md-typeset hr {
 
 
 
+
+/* ==========================================================================
+   Admonition Overrides
+   ========================================================================== */
+.md-typeset .admonition p, 
+.md-typeset details p,
+.md-typeset .admonition li,
+.md-typeset details li,
+.md-typeset .admonition .admonition-title,
+.md-typeset details summary {
+  max-width: 100% !important;
+}
+
+.md-typeset .admonition,
+.md-typeset details {
+  font-size: 0.86rem; /* Increased font size for readability */
+}
